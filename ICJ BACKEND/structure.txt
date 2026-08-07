@@ -1,0 +1,206 @@
+Folder PATH listing
+Volume serial number is 00000273 CA60:D153
+C:\USERS\PAWAN\ONEDRIVE\DESKTOP\ICJ DEVELOPMENT\ICJ BACKEND\SRC
+¦   App.css
+¦   App.jsx
+¦   index.css
+¦   main.jsx
+¦   services.zip
+¦   
++---assets
+¦       hero.png
+¦       react.svg
+¦       vite.svg
+¦       
++---components
+¦   ¦   ErrorBoundary.jsx
+¦   ¦   Sidebar.jsx
+¦   ¦   Topbar.jsx
+¦   ¦   
+¦   +---activity
+¦   ¦       ActivityTimeline.jsx
+¦   ¦       
+¦   +---auth
+¦   ¦       ProtectedRoute.jsx
+¦   ¦       
+¦   +---documents
+¦   ¦       DocumentAuditDialog.jsx
+¦   ¦       DocumentDashboard.jsx
+¦   ¦       DocumentPreviewDialog.jsx
+¦   ¦       DocumentTable.jsx
+¦   ¦       DocumentUpload.jsx
+¦   ¦       DocumentVersionDialog.jsx
+¦   ¦       
+¦   +---donation
+¦   ¦       DonationHistory.jsx
+¦   ¦       
+¦   +---finance
+¦   ¦       FinanceTransactionTable.jsx
+¦   ¦       
+¦   +---legal
+¦   ¦       CaseLinkDialog.jsx
+¦   ¦       CaseTable.jsx
+¦   ¦       CaseTimelineDialog.jsx
+¦   ¦       HearingCalendar.jsx
+¦   ¦       LegalDashboard.jsx
+¦   ¦       LegalEntityManager.jsx
+¦   ¦       
+¦   +---member-registration
+¦   ¦       BasicInformation.jsx
+¦   ¦       DocumentUpload.jsx
+¦   ¦       ProfessionalInformation.jsx
+¦   ¦       RegistrationForm.jsx
+¦   ¦       VerificationSection.jsx
+¦   ¦       
+¦   +---memberprofile
+¦   ¦       ActivityTable.jsx
+¦   ¦       DocumentList.jsx
+¦   ¦       PersonalInfo.jsx
+¦   ¦       ProfileHeader.jsx
+¦   ¦       ProfileTabs.jsx
+¦   ¦       TokenCard.jsx
+¦   ¦       WalletCard.jsx
+¦   ¦       
+¦   +---membership
+¦   ¦       KYCinformation.jsx
+¦   ¦       MemberDocumentsDialog.jsx
+¦   ¦       MemberForm.jsx
+¦   ¦       MemberHistoryDialog.jsx
+¦   ¦       MemberProfileDialog.jsx
+¦   ¦       MemberSearch.jsx
+¦   ¦       MemberStats.jsx
+¦   ¦       MemberTable.jsx
+¦   ¦       ProfessionalInformation.jsx
+¦   ¦       
+¦   +---token
+¦   ¦       TokenDashboard.jsx
+¦   ¦       TokenTransactionTable.jsx
+¦   ¦       
+¦   +---wallet
+¦           WalletDashboard.jsx
+¦           WalletLedgerTable.jsx
+¦           
++---config
+¦       app.config.js
+¦       auth.config.js
+¦       
++---contexts
+¦       AuthContext.jsx
+¦       
++---core
+¦       modules.js
+¦       navigation.js
+¦       permissions.js
+¦       rbac.js
+¦       roles.js
+¦       system.js
+¦       
++---data
+¦   ¦   districts.js
+¦   ¦   memberLevels.js
+¦   ¦   MemberStatus.js
+¦   ¦   MemberTypes.js
+¦   ¦   organisationTypes.js
+¦   ¦   professions.js
+¦   ¦   registrationAuthorities.js
+¦   ¦   states.js
+¦   ¦   
+¦   +---masters
++---hooks
+¦       useAuth.js
+¦       
++---layouts
+¦       MainLayout.jsx
+¦       
++---modules
+¦   +---admin
+¦       +---components
+¦               AdminDashboard.jsx
+¦               
++---pages
+¦       AccountRecovery.jsx
+¦       ActivityLog.jsx
+¦       Administration.jsx
+¦       AIAssistant.jsx
+¦       Dashboard.jsx
+¦       Documents.jsx
+¦       Donations.jsx
+¦       Finance.jsx
+¦       LegalCases.jsx
+¦       Login.jsx
+¦       MemberActivity.jsx
+¦       MemberCard.jsx
+¦       MemberCertificates.jsx
+¦       MemberDirectory.jsx
+¦       MemberDocuments.jsx
+¦       MemberHistory.jsx
+¦       MemberIdentity.jsx
+¦       MemberKYC.jsx
+¦       MemberProfile.jsx
+¦       MemberRegistration.jsx
+¦       Members.jsx
+¦       MemberSettings.jsx
+¦       Membership.jsx
+¦       MemberVerification.jsx
+¦       MemberWallet.jsx
+¦       Notifications.jsx
+¦       Profile.jsx
+¦       Register.jsx
+¦       Reports.jsx
+¦       Research.jsx
+¦       Settings.jsx
+¦       Token.jsx
+¦       Tokens.jsx
+¦       Transactions.jsx
+¦       Wallet.jsx
+¦       
++---router
+¦       index.jsx
+¦       ProtectedRoute.jsx
+¦       
++---services
+¦   ¦   activityService.js
+¦   ¦   adminService.js
+¦   ¦   aiService.js
+¦   ¦   auditLogService.js
+¦   ¦   authService.js
+¦   ¦   dashboardService.js
+¦   ¦   database.js
+¦   ¦   documentService.js
+¦   ¦   donationService.js
+¦   ¦   financeService.js
+¦   ¦   legalService.js
+¦   ¦   memberService.js
+¦   ¦   notificationFoundationService.js
+¦   ¦   notificationService.js
+¦   ¦   profileService.js
+¦   ¦   reportingService.js
+¦   ¦   settingsService.js
+¦   ¦   supabase.js
+¦   ¦   tokenService.js
+¦   ¦   walletService.js
+¦   ¦   
+¦   +---ai
+¦   ¦       aiApiAdapter.js
+¦   ¦       aiApiPlaceholder.js
+¦   ¦       aiConfiguration.js
+¦   ¦       aiErrorHandler.js
+¦   ¦       aiFeatureFlags.js
+¦   ¦       aiLogger.js
+¦   ¦       aiModuleRegistry.js
+¦   ¦       aiPermissionService.js
+¦   ¦       aiPromptManager.js
+¦   ¦       aiProviderInterface.js
+¦   ¦       aiRequestHistory.js
+¦   ¦       aiStorage.js
+¦   ¦       
+¦   +---auth
+¦           otpService.js
+¦           registrationValidation.js
+¦           
++---theme
+¦       theme.js
+¦       
++---utils
+        validation.js
+        

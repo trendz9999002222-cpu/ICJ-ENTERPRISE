@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-08-06T23:50:23.212Z",
+  "systemConfiguration": {
+    "platformVersion": "v2.1.0 Enterprise Production",
+    "masterLegalConsentVersion": "v1.0",
+    "indiaLocationEngineVersion": "v2.0",
+    "fieldGovernanceEnabled": true
+  },
+  "roles": [
+    "super_admin",
+    "admin",
+    "employee",
+    "member",
+    "advocate",
+    "client",
+    "trust_official"
+  ],
+  "permissions": {
+    "admin": [
+      "*"
+    ],
+    "employee": [
+      "dashboard",
+      "membership",
+      "documents",
+      "legal",
+      "finance",
+      "notifications",
+      "reports",
+      "settings"
+    ],
+    "member": [
+      "dashboard",
+      "member-profile",
+      "member-documents",
+      "member-wallet",
+      "notifications"
+    ]
+  },
+  "masterData": {
+    "professionsCount": 15,
+    "countriesCount": 250,
+    "indianStatesCount": 36
+  },
+  "note": "Pre-reset snapshot of ICJ Enterprise Platform database store."
+}

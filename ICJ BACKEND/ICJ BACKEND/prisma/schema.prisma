@@ -1,0 +1,179 @@
+// ICJ ENTERPRISE PLATFORM — PRISMA ORM SCHEMA (Step 11.2)
+// Production PostgreSQL Database Schema Definition
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  ADVOCATE
+  MEMBER
+  CLIENT
+  READ_ONLY
+}
+
+enum Status {
+  ACTIVE
+  PENDING
+  BLOCKED
+  EXPIRED
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  fullName           String
+  role               Role     @default(MEMBER)
+  status             Status   @default(ACTIVE)
+  passwordHash       String
+  isFirstLogin       Boolean  @default(true)
+  memberId           String?  @unique
+  profession         String?
+  organisation       String?
+  gender             String?
+  birthYear          Int?
+  age                Int?
+  aadhar             String?
+  pan                String?
+  mobile             String?
+  whatsapp           String?
+  address            String?
+  city               String?
+  district           String?
+  state              String?
+  pincode            String?
+  verificationStatus String   @default("Verified")
+  walletBalance      Float    @default(0.0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  casesAssigned Case[]     @relation("AdvocateCases")
+  casesClient   Case[]     @relation("ClientCases")
+  documents     Document[]
+  activityLogs  Activity[]
+}
+
+model Case {
+  id               String   @id @default(uuid())
+  caseNumber       String   @unique
+  title            String
+  caseType         String
+  courtName        String
+  bench            String?
+  jurisdiction     String?
+  filingNumber     String?
+  status           String   @default("Pending")
+  nextHearingDate  DateTime?
+  advocateId       String?
+  advocate         User?    @relation("AdvocateCases", fields: [advocateId], references: [id])
+  clientId         String?
+  client           User?    @relation("ClientCases", fields: [clientId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  hearings         Hearing[]
+}
+
+model Hearing {
+  id         String   @id @default(uuid())
+  caseId     String
+  case       Case     @relation(fields: [caseId], references: [id])
+  date       DateTime
+  courtHall  String
+  judgeBench String
+  purpose    String
+  status     String   @default("Scheduled")
+  createdAt  DateTime @default(now())
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  documentNo  String   @unique
+  title       String
+  category    String
+  fileType    String
+  ownerId     String?
+  owner       User?    @relation(fields: [ownerId], references: [id])
+  sha256Hash  String
+  workflow    String   @default("Approved")
+  retention   String   @default("7 Years Legal Hold")
+  createdAt   DateTime @default(now())
+}
+
+model Wallet {
+  id         String   @id @default(uuid())
+  walletNo   String   @unique
+  ownerId    String   @unique
+  balance    Float    @default(0.0)
+  status     String   @default("Active")
+  createdAt  DateTime @default(now())
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  txnNo         String   @unique
+  type          String
+  amount        Float
+  gstAmount     Float    @default(0.0)
+  totalAmount   Float
+  status        String   @default("Completed")
+  sha256Hash    String
+  createdAt     DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reportNo    String   @unique
+  title       String
+  category    String
+  createdBy   String
+  status      String   @default("Generated")
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  category  String   @default("System")
+  status    String   @default("Unread")
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  category  String
+  ipAddress String?  @default("127.0.0.1")
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id                  String   @id @default(uuid())
+  orgName             String
+  financialYear       String
+  workingDays         String
+  officeHours         String
+  smtpServer          String
+  gstin               String
+  backupFrequency     String
+  forcePasswordChange Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+}
+
+model MigrationHistory {
+  id          String   @id @default(uuid())
+  version     String   @unique
+  name        String
+  executedAt  DateTime @default(now())
+  status      String   @default("Applied")
+}

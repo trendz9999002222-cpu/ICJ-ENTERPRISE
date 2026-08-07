@@ -1,0 +1,338 @@
+/* ==========================================================================
+   ICJ ENTERPRISE PLATFORM - PERMANENT ENTERPRISE DESIGN SYSTEM & CSS TOKENS
+   Government / NIC Compliant, Accessible (WCAG 2.1), Dark Mode & Print Ready
+   ========================================================================== */
+
+:root {
+  /* Brand & Status Colors (NIC / Government Standard) */
+  --icj-primary: #0B5ED7;
+  --icj-primary-dark: #084298;
+  --icj-primary-light: #e7f1ff;
+  --icj-secondary: #198754;
+  --icj-secondary-dark: #0f5132;
+  --icj-success: #198754;
+  --icj-warning: #ffc107;
+  --icj-warning-text: #664d03;
+  --icj-danger: #dc3545;
+  --icj-info: #0dcaf0;
+
+  /* Surfaces & Backgrounds */
+  --icj-bg: #f8f9fa;
+  --icj-surface: #ffffff;
+  --icj-surface-hover: #f1f5f9;
+  --icj-border: #dee2e6;
+  --icj-border-focus: #86b7fe;
+
+  /* Typography */
+  --icj-text-primary: #212529;
+  --icj-text-secondary: #6c757d;
+  --icj-text-muted: #8c98a4;
+  --icj-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --icj-font-mono: 'JetBrains Mono', SFMono-Regular, Menlio, Monaco, Consolas, monospace;
+
+  /* Layout & Spacing */
+  --icj-radius-sm: 4px;
+  --icj-radius-md: 8px;
+  --icj-radius-lg: 12px;
+  --icj-radius-pill: 9999px;
+  --icj-shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --icj-shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --icj-shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+  --icj-sidebar-width: 260px;
+  --icj-header-height: 64px;
+
+  /* Form & Component Controls */
+  --icj-input-bg: #ffffff;
+  --icj-input-border: #ced4da;
+  --icj-focus-ring: 0 0 0 0.25rem rgba(11, 94, 215, 0.25);
+  --icj-card-hover-border: #0B5ED7;
+  --icj-card-accent-gradient: linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+}
+
+/* Dark Mode Theme Overrides */
+[data-theme="dark"] {
+  --icj-bg: #0f172a;
+  --icj-surface: #1e293b;
+  --icj-surface-hover: #334155;
+  --icj-border: #334155;
+  --icj-border-focus: #60a5fa;
+
+  --icj-text-primary: #f8fafc;
+  --icj-text-secondary: #94a3b8;
+  --icj-text-muted: #64748b;
+
+  --icj-primary-light: rgba(11, 94, 215, 0.25);
+  --icj-input-bg: #1e293b;
+  --icj-input-border: #475569;
+  --icj-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --icj-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+  --icj-shadow-lg: 0 10px 25px rgba(0,0,0,0.6);
+  --icj-card-hover-border: #60a5fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --icj-bg: #0f172a;
+    --icj-surface: #1e293b;
+    --icj-surface-hover: #334155;
+    --icj-border: #334155;
+    --icj-border-focus: #60a5fa;
+
+    --icj-text-primary: #f8fafc;
+    --icj-text-secondary: #94a3b8;
+    --icj-text-muted: #64748b;
+
+    --icj-primary-light: rgba(11, 94, 215, 0.25);
+    --icj-input-bg: #1e293b;
+    --icj-input-border: #475569;
+    --icj-shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+    --icj-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+    --icj-shadow-lg: 0 10px 25px rgba(0,0,0,0.6);
+    --icj-card-hover-border: #60a5fa;
+  }
+}
+
+/* Focus Visible for WCAG 2.1 Accessibility */
+*:focus-visible {
+  outline: 2px solid var(--icj-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* Global Reset & Base Setup */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: var(--icj-font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--icj-text-primary);
+  background-color: var(--icj-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Standards */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--icj-text-primary);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1rem; }
+
+a {
+  color: var(--icj-primary);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Reusable Enterprise Utility Classes */
+
+/* Container & Layout */
+.icj-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.icj-card {
+  background: var(--icj-surface);
+  border: 1px solid var(--icj-border);
+  border-radius: var(--icj-radius-md);
+  box-shadow: var(--icj-shadow-sm);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.icj-card:hover {
+  box-shadow: var(--icj-shadow-md);
+}
+
+/* Header & Title Section */
+.icj-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--icj-border);
+}
+.icj-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--icj-text-primary);
+}
+.icj-page-subtitle {
+  font-size: 0.875rem;
+  color: var(--icj-text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Buttons System */
+.icj-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--icj-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-decoration: none;
+}
+.icj-btn-primary {
+  background-color: var(--icj-primary);
+  color: #ffffff;
+  border-color: var(--icj-primary);
+}
+.icj-btn-primary:hover {
+  background-color: var(--icj-primary-dark);
+  border-color: var(--icj-primary-dark);
+  color: #ffffff;
+}
+.icj-btn-secondary {
+  background-color: var(--icj-surface);
+  color: var(--icj-text-primary);
+  border-color: var(--icj-border);
+}
+.icj-btn-secondary:hover {
+  background-color: var(--icj-surface-hover);
+}
+.icj-btn-success {
+  background-color: var(--icj-success);
+  color: #ffffff;
+}
+.icj-btn-danger {
+  background-color: var(--icj-danger);
+  color: #ffffff;
+}
+.icj-btn-sm {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.775rem;
+}
+
+/* Form Controls */
+.icj-form-group {
+  margin-bottom: 1rem;
+}
+.icj-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--icj-text-primary);
+  margin-bottom: 0.375rem;
+}
+.icj-input, .icj-select, .icj-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--icj-text-primary);
+  background-color: var(--icj-input-bg);
+  border: 1px solid var(--icj-input-border);
+  border-radius: var(--icj-radius-sm);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.icj-input:focus, .icj-select:focus, .icj-textarea:focus {
+  border-color: var(--icj-border-focus);
+  box-shadow: var(--icj-focus-ring);
+}
+
+/* Tables & Data Grids */
+.icj-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--icj-border);
+  border-radius: var(--icj-radius-md);
+  background: var(--icj-surface);
+}
+.icj-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+.icj-table th {
+  background-color: var(--icj-bg);
+  color: var(--icj-text-secondary);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--icj-border);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+.icj-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--icj-border);
+  color: var(--icj-text-primary);
+}
+.icj-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.icj-table tbody tr:hover {
+  background-color: var(--icj-surface-hover);
+}
+
+/* Status Badges */
+.icj-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--icj-radius-pill);
+  text-transform: capitalize;
+}
+.icj-badge-success { background: #d1e7dd; color: #0f5132; }
+.icj-badge-warning { background: #fff3cd; color: #664d03; }
+.icj-badge-danger { background: #f8d7da; color: #842029; }
+.icj-badge-info { background: #cff4fc; color: #055160; }
+.icj-badge-secondary { background: #e2e3e5; color: #41464b; }
+
+/* Government/NIC Standard Print Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print, nav, sidebar, .icj-btn, header {
+    display: none !important;
+  }
+  .icj-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .icj-table-wrapper {
+    border: 1px solid #000000 !important;
+  }
+  .icj-table th, .icj-table td {
+    border: 1px solid #000000 !important;
+    padding: 0.5rem !important;
+  }
+}

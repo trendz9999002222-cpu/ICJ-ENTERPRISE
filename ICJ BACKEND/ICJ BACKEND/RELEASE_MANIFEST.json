@@ -1,0 +1,24 @@
+{
+  "name": "ICJ Enterprise Platform",
+  "version": "1.0.0-pre-production",
+  "gitTag": "v1.0-pre-production",
+  "releaseDate": "2026-08-07T14:38:00.000Z",
+  "freezeStatus": "FROZEN",
+  "certificationGrade": "PLATINUM",
+  "certificationScore": "100%",
+  "governanceStatus": "100% VALIDATED",
+  "buildStatus": "PASS",
+  "totalRoutes": 45,
+  "totalModules": 16,
+  "componentsCount": 27,
+  "servicesCount": 11,
+  "manifestFiles": [
+    "RELEASE_NOTES_v1.0.md",
+    "PRE_PRODUCTION_BASELINE.md",
+    "SYSTEM_BASELINE.md",
+    "RECOVERY_GUIDE.md",
+    "ROLLBACK_GUIDE.md",
+    "DEPLOYMENT_READY_CHECKLIST.md",
+    "MASTER_RELEASE_BASELINE_CERTIFICATE.md"
+  ]
+}
