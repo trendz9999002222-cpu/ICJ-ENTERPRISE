@@ -146,6 +146,7 @@ export default function MemberTable({
                 onChange={handleSelectAll}
               />
             </TableCell>
+            <TableCell><strong>S.No.</strong></TableCell>
             <TableCell><strong>Member ID</strong></TableCell>
             <TableCell><strong>Name</strong></TableCell>
             <TableCell><strong>Email / Mobile</strong></TableCell>
@@ -165,7 +166,7 @@ export default function MemberTable({
               </TableCell>
             </TableRow>
           ) : (
-            filteredMembers.map((member) => {
+            filteredMembers.map((member, index) => {
               const id = getMemberId(member);
               const isSelected = selectedIds.includes(id);
 
@@ -174,6 +175,7 @@ export default function MemberTable({
                   <TableCell padding="checkbox">
                     <Checkbox checked={isSelected} onChange={() => handleSelectOne(id)} />
                   </TableCell>
+                  <TableCell><Typography variant="body2" color="text.secondary">{index + 1}</Typography></TableCell>
                   <TableCell><Typography variant="body2" fontWeight="bold">{member.member_id || id}</Typography></TableCell>
                   <TableCell>{member.name || member.fullName}</TableCell>
                   <TableCell>
