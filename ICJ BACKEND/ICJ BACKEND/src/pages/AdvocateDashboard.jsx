@@ -42,6 +42,15 @@ import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
 import MainLayout from "../layouts/MainLayout";
 
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div role="tabpanel" hidden={value !== index} {...other}>
+      {value === index && <Box sx={{ pt: 2.5 }}>{children}</Box>}
+    </div>
+  );
+}
+
 const ADVOCATE_TABS = {
   ACTIVE_CASES: "ACTIVE_CASES",
   ADVOCATE_PROFILE: "ADVOCATE_PROFILE",
