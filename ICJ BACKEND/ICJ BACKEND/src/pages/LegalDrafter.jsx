@@ -220,10 +220,11 @@ Empaneled Counsel: ${selectedCase.advocateName || "Adv. Rajesh Sharma"} (Bar ID:
 
         {/* Phase F — Dashboard Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          {cards.map((item) => (
+          {cards.map((item, idx) => (
             <Grid item xs={12} sm={6} md={3} key={item.title}>
               <Paper
                 variant="outlined"
+                onClick={() => setTabIndex(idx % 4)}
                 sx={{
                   p: 2.5,
                   borderRadius: 3,
@@ -231,6 +232,9 @@ Empaneled Counsel: ${selectedCase.advocateName || "Adv. Rajesh Sharma"} (Bar ID:
                   alignItems: "center",
                   gap: 2,
                   borderLeft: `4px solid ${item.color}`,
+                  cursor: "pointer",
+                  transition: "0.2s",
+                  "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
                 }}
               >
                 <Box sx={{ color: item.color }}>{item.icon}</Box>
