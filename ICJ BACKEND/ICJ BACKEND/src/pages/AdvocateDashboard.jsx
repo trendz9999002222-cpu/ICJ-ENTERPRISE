@@ -42,23 +42,63 @@ import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
 import MainLayout from "../layouts/MainLayout";
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2.5 }}>{children}</Box>}
-    </div>
-  );
-}
+const ADVOCATE_TABS = {
+  ACTIVE_CASES: "ACTIVE_CASES",
+  ADVOCATE_PROFILE: "ADVOCATE_PROFILE",
+  APPOINTMENTS: "APPOINTMENTS",
+  COMMUNICATION: "COMMUNICATION",
+  TASKS: "TASKS",
+  CLIENT_LIST: "CLIENT_LIST",
+  ACTIVE_CLIENTS: "ACTIVE_CLIENTS",
+  EMPANELED_ADVOCATES: "EMPANELED_ADVOCATES",
+};
 
 export default function AdvocateDashboard() {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.ACTIVE_CASES);
   const [cases, setCases] = useState([]);
   const [hearings, setHearings] = useState([]);
   const [search, setSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
 
-  // Appointments state
+  // 18 Total Clients (15 Active, 3 Pending/Inactive)
+  const [clients] = useState([
+    { id: "cl-1", name: "Green Earth Trust", type: "NGO / Trust", status: "Active", mobile: "+91 9876543210", email: "contact@greenearth.org", region: "Mumbai" },
+    { id: "cl-2", name: "Apex Technovations Ltd", type: "Corporate", status: "Active", mobile: "+91 9876543211", email: "legal@apextech.com", region: "Bengaluru" },
+    { id: "cl-3", name: "Dr. Arvind Swamy", type: "Individual Practitioner", status: "Active", mobile: "+91 9876543212", email: "arvind.swamy@gmail.com", region: "Delhi NCR" },
+    { id: "cl-4", name: "Himalaya Legal Consortium", type: "Law Firm", status: "Active", mobile: "+91 9876543213", email: "info@himalayalaw.in", region: "Shimla" },
+    { id: "cl-5", name: "Vanguard Global Infra", type: "Enterprise", status: "Active", mobile: "+91 9876543214", email: "legal@vanguard.com", region: "Hyderabad" },
+    { id: "cl-6", name: "Savitri Public Charitable Trust", type: "NGO", status: "Active", mobile: "+91 9876543215", email: "trust@savitri.org", region: "Pune" },
+    { id: "cl-7", name: "Kaveri Maritime Logistics", type: "Corporate", status: "Active", mobile: "+91 9876543216", email: "ops@kaverimaritime.com", region: "Chennai" },
+    { id: "cl-8", name: "Metro Bio-Pharma Solutions", type: "Corporate", status: "Active", mobile: "+91 9876543217", email: "compliance@metrobiopharma.in", region: "Ahmedabad" },
+    { id: "cl-9", name: "Prof. Sunita Deshmukh", type: "Academic Scholar", status: "Active", mobile: "+91 9876543218", email: "sunita.d@nlsiu.ac.in", region: "Bengaluru" },
+    { id: "cl-10", name: "National Farmers Welfare Forum", type: "NGO", status: "Active", mobile: "+91 9876543219", email: "help@farmersforum.org", region: "Chandigarh" },
+    { id: "cl-11", name: "Surya Renewable Energies", type: "Corporate", status: "Active", mobile: "+91 9876543220", email: "legal@suryarenew.com", region: "Jaipur" },
+    { id: "cl-12", name: "Justice Outreach Society", type: "Society", status: "Active", mobile: "+91 9876543221", email: "desk@justiceoutreach.in", region: "Kolkata" },
+    { id: "cl-13", name: "Bharatiya Human Rights Legal Cell", type: "NGO", status: "Active", mobile: "+91 9876543222", email: "rights@bhrlc.org", region: "New Delhi" },
+    { id: "cl-14", name: "Oceanic Trade Lines", type: "Corporate", status: "Active", mobile: "+91 9876543223", email: "legal@oceanictrade.com", region: "Kochi" },
+    { id: "cl-15", name: "Vidarbha Legal Aid Society", type: "Society", status: "Active", mobile: "+91 9876543224", email: "aid@vidarbhalegal.org", region: "Nagpur" },
+    { id: "cl-16", name: "Trident Power Corp", type: "Corporate", status: "Pending Verification", mobile: "+91 9876543225", email: "info@tridentpower.in", region: "Lucknow" },
+    { id: "cl-17", name: "Shree Krishna Educational Trust", type: "Trust", status: "Pending Verification", mobile: "+91 9876543226", email: "admin@sket.edu.in", region: "Indore" },
+    { id: "cl-18", name: "Zenith Cyber Security Advisory", type: "Consultancy", status: "Pending Verification", mobile: "+91 9876543227", email: "contact@zenithcyber.com", region: "Noida" },
+  ]);
+
+  // 12 Empaneled Advocates
+  const [advocates] = useState([
+    { id: "adv-1", name: "Adv. Rajesh Sharma", enrollment: "MAH/12345/2012", barAuthority: "Bar Council of Maharashtra & Goa", spec: "Constitutional & Public Interest", exp: "14 Years", status: "Empaneled Counsel" },
+    { id: "adv-2", name: "Adv. Meera Sen", enrollment: "D/9876/2015", barAuthority: "Bar Council of Delhi", spec: "Corporate & Cyber Law", exp: "11 Years", status: "Empaneled Counsel" },
+    { id: "adv-3", name: "Adv. Ananya Iyer", enrollment: "KAR/4321/2014", barAuthority: "Bar Council of Karnataka", spec: "Environmental & Land Revenue", exp: "12 Years", status: "Empaneled Counsel" },
+    { id: "adv-4", name: "Adv. Vikramjit Singh", enrollment: "PH/5678/2010", barAuthority: "Bar Council of Punjab & Haryana", spec: "Criminal & Appellate Writs", exp: "16 Years", status: "Empaneled Counsel" },
+    { id: "adv-5", name: "Adv. Priya Nair", enrollment: "KER/1122/2016", barAuthority: "Bar Council of Kerala", spec: "Maritime & International Arbitration", exp: "10 Years", status: "Empaneled Counsel" },
+    { id: "adv-6", name: "Adv. Rameshwar Varma", enrollment: "UP/8899/2008", barAuthority: "Bar Council of Uttar Pradesh", spec: "Civil Suits & Revenue Disputes", exp: "18 Years", status: "Empaneled Counsel" },
+    { id: "adv-7", name: "Adv. Kavita Deshmukh", enrollment: "MAH/3344/2013", barAuthority: "Bar Council of Maharashtra & Goa", spec: "Banking & Insolvency (IBC)", exp: "13 Years", status: "Empaneled Counsel" },
+    { id: "adv-8", name: "Adv. Suresh H. Patel", enrollment: "GJ/7766/2011", barAuthority: "Bar Council of Gujarat", spec: "Taxation & Constitutional Appeals", exp: "15 Years", status: "Empaneled Counsel" },
+    { id: "adv-9", name: "Adv. Tariq Ahmad Khan", enrollment: "JK/5544/2017", barAuthority: "Bar Council of J&K", spec: "Public Law & Human Rights", exp: "9 Years", status: "Empaneled Counsel" },
+    { id: "adv-10", name: "Adv. Deepa Sundaram", enrollment: "TN/9900/2014", barAuthority: "Bar Council of Tamil Nadu", spec: "Intellectual Property & Patent Law", exp: "12 Years", status: "Empaneled Counsel" },
+    { id: "adv-11", name: "Adv. Alok Kumar Roy", enrollment: "WB/2233/2009", barAuthority: "Bar Council of West Bengal", spec: "Labor & Industrial Relations", exp: "17 Years", status: "Empaneled Counsel" },
+    { id: "adv-12", name: "Adv. Smita Joshi", enrollment: "MP/4455/2015", barAuthority: "Bar Council of Madhya Pradesh", spec: "Consumer Protection & Medical Law", exp: "11 Years", status: "Empaneled Counsel" },
+  ]);
+
+  // Appointments state (2 items)
   const [appointments, setAppointments] = useState([
     { id: "apt-1", clientName: "Green Earth Trust", advocateName: "Adv. Rajesh Sharma", date: "2026-08-12", time: "11:00 AM", mode: "Video Conference", status: "Approved", link: "https://meet.icj.org/room-legal-101" },
     { id: "apt-2", clientName: "Apex Technovations", advocateName: "Adv. Meera Sen", date: "2026-08-15", time: "02:30 PM", mode: "In-Person Chamber", status: "Pending", link: "" },
@@ -70,8 +110,8 @@ export default function AdvocateDashboard() {
   ]);
   const [newMessageText, setNewMessageText] = useState("");
 
-  // Today's Tasks state
-  const [tasks, setTasks] = useState([
+  // Today's Tasks state (3 total, 2 pending)
+  const [tasks] = useState([
     { id: "t1", title: "Review Rejoinder for WP/2026/1042", status: "In Progress", dueDate: "Today" },
     { id: "t2", title: "Verify Bar Association Enrollment Certificate", status: "Completed", dueDate: "Today" },
     { id: "t3", title: "Prepare Cause List for Court Hall 3", status: "Pending", dueDate: "Tomorrow" },
@@ -84,7 +124,7 @@ export default function AdvocateDashboard() {
     setHearings(allHearings);
   }, []);
 
-  // Multi-field search engine (Advocate, Client, Case, Mobile, Email, Enrollment)
+  // Multi-field search engine
   const filteredCases = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return cases;
@@ -122,24 +162,27 @@ export default function AdvocateDashboard() {
 
   // Real-time Dashboard Cards
   const stats = useMemo(() => {
-    const totalClients = 18;
-    const activeClients = 15;
-    const totalAdvocates = 12;
-    const activeCasesCount = cases.length;
-    const appointmentsCount = appointments.length;
-    const pendingTasksCount = tasks.filter((t) => t.status !== "Completed").length;
+    const totalClients = clients.length; // 18
+    const activeClients = clients.filter((c) => c.status === "Active").length; // 15
+    const totalAdvocates = advocates.length; // 12
+    const activeCasesCount = cases.length; // 2
+    const appointmentsCount = appointments.length; // 2
+    const pendingTasksCount = tasks.filter((t) => t.status !== "Completed").length; // 2
 
     return { totalClients, activeClients, totalAdvocates, activeCasesCount, appointmentsCount, pendingTasksCount };
-  }, [cases, appointments, tasks]);
+  }, [clients, advocates, cases, appointments, tasks]);
 
   const cards = [
-    { title: "Total Clients", value: stats.totalClients, color: "#1976d2", icon: <PersonIcon />, targetTab: 0 },
-    { title: "Active Clients", value: stats.activeClients, color: "#2e7d32", icon: <CheckCircleIcon />, targetTab: 0 },
-    { title: "Empaneled Advocates", value: stats.totalAdvocates, color: "#9c27b0", icon: <BadgeIcon />, targetTab: 1 },
-    { title: "Active Cases", value: stats.activeCasesCount, color: "#ed6c02", icon: <GavelIcon />, targetTab: 0 },
-    { title: "Appointments", value: stats.appointmentsCount, color: "#0288d1", icon: <CalendarMonthIcon />, targetTab: 2 },
-    { title: "Pending Tasks", value: stats.pendingTasksCount, color: "#d32f2f", icon: <AssignmentIcon />, targetTab: 4 },
+    { title: "Total Clients", value: stats.totalClients, color: "#1976d2", icon: <PersonIcon />, targetTab: ADVOCATE_TABS.CLIENT_LIST },
+    { title: "Active Clients", value: stats.activeClients, color: "#2e7d32", icon: <CheckCircleIcon />, targetTab: ADVOCATE_TABS.ACTIVE_CLIENTS },
+    { title: "Empaneled Advocates", value: stats.totalAdvocates, color: "#9c27b0", icon: <BadgeIcon />, targetTab: ADVOCATE_TABS.EMPANELED_ADVOCATES },
+    { title: "Active Cases", value: stats.activeCasesCount, color: "#ed6c02", icon: <GavelIcon />, targetTab: ADVOCATE_TABS.ACTIVE_CASES },
+    { title: "Appointments", value: stats.appointmentsCount, color: "#0288d1", icon: <CalendarMonthIcon />, targetTab: ADVOCATE_TABS.APPOINTMENTS },
+    { title: "Pending Tasks", value: stats.pendingTasksCount, color: "#d32f2f", icon: <AssignmentIcon />, targetTab: ADVOCATE_TABS.TASKS },
   ];
+
+  const activeClientsList = useMemo(() => clients.filter((c) => c.status === "Active"), [clients]);
+  const pendingTasksList = useMemo(() => tasks.filter((t) => t.status !== "Completed"), [tasks]);
 
   return (
     <MainLayout>
@@ -171,13 +214,13 @@ export default function AdvocateDashboard() {
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
-        {/* Phase G — Real-time Dashboard Cards */}
+        {/* Real-time Dashboard Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {cards.map((item) => (
             <Grid item xs={12} sm={6} md={2} key={item.title}>
               <Paper
                 variant="outlined"
-                onClick={() => setTabIndex(item.targetTab)}
+                onClick={() => setActiveTab(item.targetTab)}
                 sx={{
                   p: 2,
                   borderRadius: 3,
@@ -187,6 +230,7 @@ export default function AdvocateDashboard() {
                   borderLeft: `4px solid ${item.color}`,
                   cursor: "pointer",
                   transition: "0.2s",
+                  bgcolor: activeTab === item.targetTab ? "action.selected" : "background.paper",
                   "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
                 }}
               >
@@ -206,17 +250,20 @@ export default function AdvocateDashboard() {
 
         {/* Tabs for Navigation */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-          <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
-            <Tab icon={<GavelIcon />} iconPosition="start" label="Active Cases" />
-            <Tab icon={<PersonIcon />} iconPosition="start" label="Advocate Profile" />
-            <Tab icon={<CalendarMonthIcon />} iconPosition="start" label="Appointments & Video Links" />
-            <Tab icon={<ChatIcon />} iconPosition="start" label="Communication Engine" />
-            <Tab icon={<AssignmentIcon />} iconPosition="start" label="Today's Tasks" />
+          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
+            <Tab icon={<GavelIcon />} iconPosition="start" label="Active Cases" value={ADVOCATE_TABS.ACTIVE_CASES} />
+            <Tab icon={<PersonIcon />} iconPosition="start" label="Advocate Profile" value={ADVOCATE_TABS.ADVOCATE_PROFILE} />
+            <Tab icon={<CalendarMonthIcon />} iconPosition="start" label="Appointments & Video Links" value={ADVOCATE_TABS.APPOINTMENTS} />
+            <Tab icon={<ChatIcon />} iconPosition="start" label="Communication Engine" value={ADVOCATE_TABS.COMMUNICATION} />
+            <Tab icon={<AssignmentIcon />} iconPosition="start" label="Pending Tasks" value={ADVOCATE_TABS.TASKS} />
+            <Tab icon={<PersonIcon />} iconPosition="start" label="Total Client Directory" value={ADVOCATE_TABS.CLIENT_LIST} />
+            <Tab icon={<CheckCircleIcon />} iconPosition="start" label="Active Clients List" value={ADVOCATE_TABS.ACTIVE_CLIENTS} />
+            <Tab icon={<BadgeIcon />} iconPosition="start" label="Empaneled Advocate Roster" value={ADVOCATE_TABS.EMPANELED_ADVOCATES} />
           </Tabs>
         </Box>
 
-        {/* TAB 0: ACTIVE CASES */}
-        <TabPanel value={tabIndex} index={0}>
+        {/* TAB: ACTIVE CASES */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.ACTIVE_CASES}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Assigned Legal Case Registry ({filteredCases.length})
@@ -225,17 +272,19 @@ export default function AdvocateDashboard() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Case Number</TableCell>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Client Name</TableCell>
-                  <TableCell>Court</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Next Hearing</TableCell>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Case Number</strong></TableCell>
+                  <TableCell><strong>Title</strong></TableCell>
+                  <TableCell><strong>Client Name</strong></TableCell>
+                  <TableCell><strong>Court</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                  <TableCell><strong>Next Hearing</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredCases.map((c) => (
+                {filteredCases.map((c, idx) => (
                   <TableRow key={c.id} hover>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
                     <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.caseNumber}</TableCell>
                     <TableCell>{c.title}</TableCell>
                     <TableCell>{c.clientName}</TableCell>
@@ -251,8 +300,8 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 1: ADVOCATE PROFILE */}
-        <TabPanel value={tabIndex} index={1}>
+        {/* TAB: ADVOCATE PROFILE */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.ADVOCATE_PROFILE}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Empaneled Advocate Credentials & Profile
@@ -283,25 +332,28 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 2: APPOINTMENTS */}
-        <TabPanel value={tabIndex} index={2}>
+        {/* TAB: APPOINTMENTS */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.APPOINTMENTS}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Client Appointment Management & Video Links
+              Client Appointment Management & Video Links ({appointments.length})
             </Typography>
+            <Divider sx={{ mb: 2 }} />
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Client Name</TableCell>
-                  <TableCell>Date & Time</TableCell>
-                  <TableCell>Meeting Mode</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Video Link / Action</TableCell>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Client Name</strong></TableCell>
+                  <TableCell><strong>Date & Time</strong></TableCell>
+                  <TableCell><strong>Meeting Mode</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                  <TableCell><strong>Video Link / Action</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {appointments.map((a) => (
+                {appointments.map((a, idx) => (
                   <TableRow key={a.id}>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
                     <TableCell><Typography fontWeight="bold">{a.clientName}</Typography></TableCell>
                     <TableCell>{a.date} at {a.time}</TableCell>
                     <TableCell><Chip label={a.mode} variant="outlined" color="primary" size="small" /></TableCell>
@@ -324,8 +376,8 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 3: COMMUNICATION ENGINE */}
-        <TabPanel value={tabIndex} index={3}>
+        {/* TAB: COMMUNICATION ENGINE */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.COMMUNICATION}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Internal Communication Engine & Message Queues
@@ -353,26 +405,142 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 4: TODAY'S TASKS */}
-        <TabPanel value={tabIndex} index={4}>
+        {/* TAB: TASKS */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.TASKS}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Advocate Task List & Hearing Deadlines
+              Pending Task List & Hearing Deadlines ({pendingTasksList.length})
             </Typography>
+            <Divider sx={{ mb: 2 }} />
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Task Description</TableCell>
-                  <TableCell>Due Date</TableCell>
-                  <TableCell>Status</TableCell>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Task Description</strong></TableCell>
+                  <TableCell><strong>Due Date</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {tasks.map((t) => (
+                {pendingTasksList.map((t, idx) => (
                   <TableRow key={t.id}>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
                     <TableCell>{t.title}</TableCell>
                     <TableCell>{t.dueDate}</TableCell>
-                    <TableCell><Chip label={t.status} color={t.status === "Completed" ? "success" : "warning"} size="small" /></TableCell>
+                    <TableCell><Chip label={t.status} color="warning" size="small" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB: CLIENT LIST */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.CLIENT_LIST}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Master Client Registry ({clients.length})
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Client ID</strong></TableCell>
+                  <TableCell><strong>Client Name</strong></TableCell>
+                  <TableCell><strong>Type</strong></TableCell>
+                  <TableCell><strong>Region</strong></TableCell>
+                  <TableCell><strong>Mobile / Email</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {clients.map((c, idx) => (
+                  <TableRow key={c.id} hover>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.id}</TableCell>
+                    <TableCell><Typography fontWeight="bold">{c.name}</Typography></TableCell>
+                    <TableCell>{c.type}</TableCell>
+                    <TableCell>{c.region}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2">{c.mobile}</Typography>
+                      <Typography variant="caption" color="text.secondary">{c.email}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={c.status} size="small" color={c.status === "Active" ? "success" : "warning"} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB: ACTIVE CLIENTS */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.ACTIVE_CLIENTS}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Active Client Roster ({activeClientsList.length})
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Client ID</strong></TableCell>
+                  <TableCell><strong>Client Name</strong></TableCell>
+                  <TableCell><strong>Type</strong></TableCell>
+                  <TableCell><strong>Region</strong></TableCell>
+                  <TableCell><strong>Contact</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {activeClientsList.map((c, idx) => (
+                  <TableRow key={c.id} hover>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.id}</TableCell>
+                    <TableCell><Typography fontWeight="bold">{c.name}</Typography></TableCell>
+                    <TableCell>{c.type}</TableCell>
+                    <TableCell>{c.region}</TableCell>
+                    <TableCell>{c.email}</TableCell>
+                    <TableCell><Chip label="Active" size="small" color="success" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB: EMPANELED ADVOCATES */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.EMPANELED_ADVOCATES}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Empaneled Advocate Roster ({advocates.length})
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell><strong>S.No.</strong></TableCell>
+                  <TableCell><strong>Enrollment No.</strong></TableCell>
+                  <TableCell><strong>Advocate Name</strong></TableCell>
+                  <TableCell><strong>Specialization</strong></TableCell>
+                  <TableCell><strong>Bar Authority</strong></TableCell>
+                  <TableCell><strong>Experience</strong></TableCell>
+                  <TableCell><strong>Status</strong></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {advocates.map((a, idx) => (
+                  <TableRow key={a.id} hover>
+                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{a.enrollment}</TableCell>
+                    <TableCell><Typography fontWeight="bold">{a.name}</Typography></TableCell>
+                    <TableCell>{a.spec}</TableCell>
+                    <TableCell>{a.barAuthority}</TableCell>
+                    <TableCell>{a.exp}</TableCell>
+                    <TableCell><Chip label={a.status} size="small" color="success" /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
