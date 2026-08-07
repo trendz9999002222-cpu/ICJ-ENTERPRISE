@@ -133,12 +133,12 @@ export default function AdvocateDashboard() {
   }, [cases, appointments, tasks]);
 
   const cards = [
-    { title: "Total Clients", value: stats.totalClients, color: "#1976d2", icon: <PersonIcon /> },
-    { title: "Active Clients", value: stats.activeClients, color: "#2e7d32", icon: <CheckCircleIcon /> },
-    { title: "Empaneled Advocates", value: stats.totalAdvocates, color: "#9c27b0", icon: <BadgeIcon /> },
-    { title: "Active Cases", value: stats.activeCasesCount, color: "#ed6c02", icon: <GavelIcon /> },
-    { title: "Appointments", value: stats.appointmentsCount, color: "#0288d1", icon: <CalendarMonthIcon /> },
-    { title: "Pending Tasks", value: stats.pendingTasksCount, color: "#d32f2f", icon: <AssignmentIcon /> },
+    { title: "Total Clients", value: stats.totalClients, color: "#1976d2", icon: <PersonIcon />, targetTab: 0 },
+    { title: "Active Clients", value: stats.activeClients, color: "#2e7d32", icon: <CheckCircleIcon />, targetTab: 0 },
+    { title: "Empaneled Advocates", value: stats.totalAdvocates, color: "#9c27b0", icon: <BadgeIcon />, targetTab: 1 },
+    { title: "Active Cases", value: stats.activeCasesCount, color: "#ed6c02", icon: <GavelIcon />, targetTab: 0 },
+    { title: "Appointments", value: stats.appointmentsCount, color: "#0288d1", icon: <CalendarMonthIcon />, targetTab: 2 },
+    { title: "Pending Tasks", value: stats.pendingTasksCount, color: "#d32f2f", icon: <AssignmentIcon />, targetTab: 4 },
   ];
 
   return (
@@ -173,11 +173,11 @@ export default function AdvocateDashboard() {
 
         {/* Phase G — Real-time Dashboard Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          {cards.map((item, idx) => (
+          {cards.map((item) => (
             <Grid item xs={12} sm={6} md={2} key={item.title}>
               <Paper
                 variant="outlined"
-                onClick={() => setTabIndex(idx % 5)}
+                onClick={() => setTabIndex(item.targetTab)}
                 sx={{
                   p: 2,
                   borderRadius: 3,
