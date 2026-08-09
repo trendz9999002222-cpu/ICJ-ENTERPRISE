@@ -28,6 +28,7 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import CardGiftcardIcon from "@mui/icons-material/CardGiftcard";
 
+import VirtualOfficeService from "../services/virtualOfficeService";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
 
@@ -70,6 +71,7 @@ export default function MemberPersonalDashboard() {
   const seniorMentor = user?.seniorMentor || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)" : "Not Assigned (Independent Practice)");
   const juniorsList = user?.juniorsList || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? ["Pooja Verma (Junior Associate)", "Siddharth Mehta (Legal Intern)"] : []);
   const firmName = user?.organisation || user?.firmName || user?.orgName || (user?.regType === "Organisation" ? user?.name : "Independent Legal Practice");
+  const officeData = VirtualOfficeService.getOfficeForMember(memberId, memberName);
 
   return (
     <MainLayout>
