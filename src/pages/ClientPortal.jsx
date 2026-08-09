@@ -425,7 +425,7 @@ export default function ClientPortal() {
                         label="मामले की श्रेणी (Case Category)"
                         value={aiCaseCat}
                         onChange={(e) => setAiCaseCat(e.target.value)}
-                        sx={{ mb: 2 }}
+                        sx={{ mb: 2, mt: 1.5 }}
                         size="small"
                       >
                         {Object.entries(CASE_CATEGORIES).map(([k, v]) => (
@@ -449,13 +449,13 @@ export default function ClientPortal() {
                     </>
                   )}
 
-                  {/* Voice Note Recorder Simulation */}
+                  {/* Voice Note Recorder */}
                   <Paper sx={{ p: 2, mb: 2, bgcolor: aiRecording ? "#fef2f2" : "#f8fafc", borderRadius: 2, border: aiRecording ? "1px solid #fecaca" : "1px dashed #cbd5e1" }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <MicIcon color={aiRecording ? "error" : "action"} />
                         <Typography variant="body2" fontWeight={600} color={aiRecording ? "#dc2626" : "text.secondary"}>
-                          {aiRecording ? "🔴 रिकॉर्डिंग चालू है... (बोलिए)" : "🎙️ वॉइस नोट संदेश रिकॉर्ड करें"}
+                          {aiRecording ? "🔴 रिकॉर्डिंग चालू है... (बोलिए)" : "🎙️ वॉइस संदेश रिकॉर्ड करें"}
                         </Typography>
                       </Stack>
                       <Button
@@ -471,8 +471,9 @@ export default function ClientPortal() {
                             setAiVoiceNote("ऑडियो संदेश रिकॉर्ड किया गया: 'मेरे भाई के खिलाफ एफआईआर दर्ज हुई है, मुझे जमानत की प्रक्रिया और बचाव की कानूनी सलाह चाहिए।'");
                           }
                         }}
+                        sx={{ fontWeight: "bold", textTransform: "none" }}
                       >
-                        {aiRecording ? "Stop" : "Record Voice"}
+                        {aiRecording ? "🔴 Stop Recording" : "🎙️ Record Voice"}
                       </Button>
                     </Stack>
                     {aiVoiceNote && (
@@ -490,6 +491,9 @@ export default function ClientPortal() {
                     onChange={(e) => setAiOutcome(e.target.value)}
                     size="small"
                     sx={{ mb: 2 }}
+                    InputProps={{
+                      endAdornment: <VoiceInputAdornment onTranscript={(txt) => setAiOutcome((p) => p + " " + txt)} value={aiOutcome} />,
+                    }}
                   />
 
                   <Typography variant="caption" color="text.secondary" display="block" mb={2}>
