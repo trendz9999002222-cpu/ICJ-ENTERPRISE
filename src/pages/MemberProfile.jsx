@@ -38,6 +38,7 @@ import KYCCard from "../components/memberprofile/KYCCard";
 import ProfessionalCard from "../components/memberprofile/ProfessionalCard";
 import LegalCasesCard from "../components/memberprofile/LegalCasesCard";
 import AdvocateCard from "../components/memberprofile/AdvocateCard";
+import AdvocatePracticeTeamCard from "../components/memberprofile/AdvocatePracticeTeamCard";
 import WalletCard from "../components/memberprofile/WalletCard";
 import TokenCard from "../components/memberprofile/TokenCard";
 import DocumentList from "../components/memberprofile/DocumentList";
@@ -363,7 +364,10 @@ export default function MemberProfile() {
 										</Stack>
 									</AccordionSummary>
 									<AccordionDetails>
-										<ProfessionalCard profile={current} />
+										<Stack spacing={3}>
+											<ProfessionalCard profile={current} />
+											<AdvocatePracticeTeamCard profile={current} />
+										</Stack>
 									</AccordionDetails>
 								</Accordion>
 							)}

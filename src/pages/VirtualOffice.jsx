@@ -106,7 +106,7 @@ export default function VirtualOffice() {
         </Paper>
 
         {/* Office Dashboard Widgets */}
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card elevation={2} sx={{ borderRadius: 3, borderLeft: "6px solid #1e3a8a" }}>
               <CardContent>
@@ -163,6 +163,112 @@ export default function VirtualOffice() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* MULTI-COURT OFFICE CHAMBERS BOARD */}
+        <Paper elevation={3} sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#fff" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+            <Box>
+              <Typography variant="h6" fontWeight="bold" color="#0f172a">
+                🏛️ Multi-Office Court Chambers &amp; Jurisdictional Offices
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Registered District Court, High Court Bench, and Supreme Court Chambers
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
+              color="primary"
+              onClick={() => window.location.href = "/profile"}
+              sx={{ fontWeight: "bold" }}
+            >
+              MANAGE OFFICE CHAMBERS IN PROFILE ⚙️
+            </Button>
+          </Stack>
+
+          <Grid container spacing={2}>
+            {(office.officeLocations || []).map((loc) => {
+              const isSupreme = loc.type === "SupremeCourt";
+              const isHigh = loc.type === "HighCourt";
+              const color = isSupreme ? "#7c3aed" : isHigh ? "#1d4ed8" : "#059669";
+              const tag = isSupreme ? "🏛️ SUPREME COURT" : isHigh ? "⚖️ HIGH COURT BENCH" : "🏢 DISTRICT COURT";
+
+              return (
+                <Grid item xs={12} sm={6} md={4} key={loc.id || loc.name}>
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: color, bgcolor: "#f8fafc" }}>
+                    <Chip label={tag} size="small" sx={{ bgcolor: color, color: "#fff", fontWeight: "bold", fontSize: "0.68rem", mb: 1 }} />
+                    <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                      {loc.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      📍 {loc.address}
+                    </Typography>
+                    <Typography variant="caption" fontWeight="bold" color="primary.main">
+                      {loc.city}, {loc.state}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Paper>
+
+        {/* VERIFIED PRACTICE COLLEGIUM BOARD */}
+        <Paper elevation={3} sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#fff" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+            <Box>
+              <Typography variant="h6" fontWeight="bold" color="#0f172a">
+                👥 Verified Practice Collegium &amp; Junior Advocates Team
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Official BCI-compliant list of verified ICJ member junior associates posted across court offices
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="contained"
+              color="success"
+              onClick={() => window.location.href = "/profile"}
+              sx={{ fontWeight: "bold" }}
+            >
+              LINK NEW VERIFIED JUNIOR ➕
+            </Button>
+          </Stack>
+
+          <Grid container spacing={2}>
+            {(office.juniorsList || []).length === 0 ? (
+              <Grid item xs={12}>
+                <Typography color="text.secondary" variant="body2" sx={{ fontStyle: "italic" }}>
+                  No Junior Associates linked to this practice team yet. Manage team in Profile settings.
+                </Typography>
+              </Grid>
+            ) : (
+              (office.juniorsList || []).map((jr) => (
+                <Grid item xs={12} sm={6} key={jr.id || jr.memberId}>
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: "#10b981", bgcolor: "#f0fdf4" }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Avatar sx={{ bgcolor: "#059669", fontWeight: "bold" }}>
+                        {jr.name?.charAt(0)}
+                      </Avatar>
+                      <Box>
+                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                          {jr.name}
+                        </Typography>
+                        <Chip label={`ID: ${jr.memberId}`} size="small" color="primary" sx={{ height: 18, fontSize: "0.65rem", fontWeight: "bold", mb: 0.5 }} />
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Role: <strong>{jr.designation}</strong>
+                        </Typography>
+                        <Typography variant="caption" display="block" color="success.dark" fontWeight="bold">
+                          Assigned Office: {jr.assignedOffice}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Paper>
+                </Grid>
+              ))
+            )}
+          </Grid>
+        </Paper>
       </Container>
     </Box>
   );
