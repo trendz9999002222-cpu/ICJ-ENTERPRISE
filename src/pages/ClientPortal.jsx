@@ -49,6 +49,7 @@ import AiLegalConsultationService, { CASE_CATEGORIES } from "../services/aiLegal
 import SystemConfigService from "../services/systemConfigService.js";
 import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZATIONS } from "../services/virtualOfficeService.js";
 import { getDocuments, addDocument } from "../services/database.js";
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
 
@@ -440,6 +441,9 @@ export default function ClientPortal() {
                         value={aiProbText}
                         onChange={(e) => setAiProbText(e.target.value)}
                         sx={{ mb: 2 }}
+                        InputProps={{
+                          endAdornment: <VoiceInputAdornment onTranscript={(txt) => setAiProbText((p) => p + " " + txt)} value={aiProbText} />,
+                        }}
                       />
                     </>
                   )}
@@ -1125,7 +1129,15 @@ export default function ClientPortal() {
               ))}
             </Stack>
             <Stack direction="row" spacing={2}>
-              <TextField fullWidth placeholder="Type message to advocate..." value={clientMsgInput} onChange={(e) => setClientMsgInput(e.target.value)} />
+              <TextField
+                fullWidth
+                placeholder="Type message to advocate..."
+                value={clientMsgInput}
+                onChange={(e) => setClientMsgInput(e.target.value)}
+                InputProps={{
+                  endAdornment: <VoiceInputAdornment onTranscript={(txt) => setClientMsgInput((p) => p + " " + txt)} value={clientMsgInput} />,
+                }}
+              />
               <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMessage}>
                 Send
               </Button>

@@ -28,6 +28,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import LockIcon from "@mui/icons-material/Lock";
 import StarIcon from "@mui/icons-material/Star";
 
+import VoiceInputAdornment from "../common/VoiceInputAdornment.jsx";
 import MemberService from "../../services/memberService.js";
 import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZATIONS } from "../../services/virtualOfficeService.js";
 
@@ -503,24 +504,36 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
               value={rank1}
               onChange={(e) => setRank1(e.target.value)}
               placeholder="e.g. Criminal Law & FIR Bail"
+              InputProps={{
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setRank1((p) => p + " " + txt)} value={rank1} />,
+              }}
             />
             <TextField
               fullWidth label="🥈 Rank 2: Secondary Specialty *"
               value={rank2}
               onChange={(e) => setRank2(e.target.value)}
               placeholder="e.g. Property & Revenue Litigation"
+              InputProps={{
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setRank2((p) => p + " " + txt)} value={rank2} />,
+              }}
             />
             <TextField
               fullWidth label="🥉 Rank 3: Tertiary Specialty *"
               value={rank3}
               onChange={(e) => setRank3(e.target.value)}
               placeholder="e.g. Constitutional & High Court Writs"
+              InputProps={{
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setRank3((p) => p + " " + txt)} value={rank3} />,
+              }}
             />
             <TextField
               fullWidth label="🏅 Rank 4: Additional Practice Area"
               value={rank4}
               onChange={(e) => setRank4(e.target.value)}
               placeholder="e.g. Arbitration & Commercial Law"
+              InputProps={{
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setRank4((p) => p + " " + txt)} value={rank4} />,
+              }}
             />
           </Stack>
         </DialogContent>

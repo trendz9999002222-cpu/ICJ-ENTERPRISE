@@ -38,6 +38,7 @@ import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import EditIcon from "@mui/icons-material/Edit";
 
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import ActivityService from "../services/activityService";
 import DashboardService from "../services/dashboardService";
 import MemberService from "../services/memberService";
@@ -569,6 +570,9 @@ export default function Administration() {
               value={filterLastName}
               onChange={(e) => setFilterLastName(e.target.value)}
               placeholder="e.g. Verma, Mehta, Sharma..."
+              InputProps={{
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setFilterLastName(txt.trim())} value={filterLastName} />,
+              }}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
