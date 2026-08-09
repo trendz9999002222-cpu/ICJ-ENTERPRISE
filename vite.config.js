@@ -9,11 +9,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('@mui') || id.includes('@emotion')) {
+          const normalizedId = id.replace(/\\/g, '/');
+          if (normalizedId.includes('/node_modules/')) {
+            if (normalizedId.includes('/@mui/') || normalizedId.includes('/@emotion/')) {
               return 'vendor-mui';
             }
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            if (normalizedId.includes('/react/') || normalizedId.includes('/react-dom/') || normalizedId.includes('/react-router/')) {
               return 'vendor-react';
             }
             return 'vendor-libs';
