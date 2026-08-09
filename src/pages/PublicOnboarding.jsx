@@ -43,6 +43,7 @@ import AuthService from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
 import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
+import useAuth from "../hooks/useAuth";
 
 // ─── PURPOSE MASTER ───────────────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ const SERVICE_CATEGORIES = [
 
 export default function PublicOnboarding() {
   const navigate = useNavigate();
+  const { setSessionUser } = useAuth();
 
   // Tech Showcase & Privacy Modal State
   const [techShowcaseOpen, setTechShowcaseOpen] = useState(false);
@@ -322,8 +324,11 @@ export default function PublicOnboarding() {
 
       const result = await MemberService.create(payload);
       const finalMember = result || payload;
-      // Auto-authenticate newly onboarded member session into local storage
+      // Auto-authenticate newly onboarded member session into local storage and auth context
       AuthService.persistLocalUser(finalMember);
+      if (setSessionUser) {
+        setSessionUser(finalMember);
+      }
       setCreatedMember(finalMember);
       setOtpModalOpen(false);
       setStage("SUCCESS");
@@ -381,7 +386,7 @@ Thank you for registering with ICJ Enterprise Platform.
 
         {/* STAGE 1 : FORM */}
         {stage === "FORM" && (
-          <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+          <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
             <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom
               sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
               Applicant Basic Details
@@ -997,7 +1002,10 @@ Thank you for registering with ICJ Enterprise Platform.
                 DOWNLOAD RECEIPT
               </Button>
               <Button variant="contained" color="success" endIcon={<ArrowForwardIcon />}
-                onClick={() => navigate("/")}
+                onClick={() => {
+                  if (setSessionUser && createdMember) setSessionUser(createdMember);
+                  navigate("/");
+                }}
                 sx={{ py: 1.4, px: 4, fontWeight: "bold", borderRadius: 2, fontSize: "1.05rem" }}>
                 OPEN MY MEMBER AREA NOW 🔑
               </Button>
@@ -1007,40 +1015,42 @@ Thank you for registering with ICJ Enterprise Platform.
 
         {/* OTP MODAL */}
         <Dialog open={otpModalOpen} onClose={() => setOtpModalOpen(false)} maxWidth="xs" fullWidth>
-          <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
-            🔒 Verify Onboarding Contact
-          </DialogTitle>
-          <DialogContent dividers>
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
-                A 6-digit OTP has been dispatched to{" "}
-                <strong>{form.mobileCountryCode} {form.mobile}</strong> and{" "}
-                <strong>{form.email}</strong>.
-              </Alert>
-              <TextField
-                select fullWidth label="OTP Dispatch Channel"
-                value={otpChannel} onChange={(e) => setOtpChannel(e.target.value)}
-              >
-                <MenuItem value="SMS">📱 SMS Gateway</MenuItem>
-                <MenuItem value="WhatsApp">💬 WhatsApp API</MenuItem>
-                <MenuItem value="Email">📧 Email OTP</MenuItem>
-              </TextField>
-              <TextField
-                fullWidth label="Enter 6-Digit OTP Code"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                inputProps={{ maxLength: 6, style: { letterSpacing: 4, fontWeight: "bold", textAlign: "center" } }}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-            <Button onClick={() => setOtpModalOpen(false)}>Cancel</Button>
-            <Button variant="contained" onClick={handleVerifyAndSubmit}
-              disabled={submitting || otpCode.length !== 6}
-              sx={{ fontWeight: "bold" }}>
-              VERIFY &amp; GENERATE MEMBER ID
-            </Button>
-          </DialogActions>
+          <Box component="form" onSubmit={(e) => { e.preventDefault(); if (otpCode.length === 6 && !submitting) handleVerifyAndSubmit(); }}>
+            <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+              🔒 Verify Onboarding Contact
+            </DialogTitle>
+            <DialogContent dividers>
+              <Stack spacing={2} sx={{ pt: 1 }}>
+                <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
+                  A 6-digit OTP has been dispatched to{" "}
+                  <strong>{form.mobileCountryCode} {form.mobile}</strong> and{" "}
+                  <strong>{form.email}</strong>.
+                </Alert>
+                <TextField
+                  select fullWidth label="OTP Dispatch Channel"
+                  value={otpChannel} onChange={(e) => setOtpChannel(e.target.value)}
+                >
+                  <MenuItem value="SMS">📱 SMS Gateway</MenuItem>
+                  <MenuItem value="WhatsApp">💬 WhatsApp API</MenuItem>
+                  <MenuItem value="Email">📧 Email OTP</MenuItem>
+                </TextField>
+                <TextField
+                  fullWidth label="Enter 6-Digit OTP Code"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputProps={{ maxLength: 6, style: { letterSpacing: 4, fontWeight: "bold", textAlign: "center" } }}
+                />
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
+              <Button onClick={() => setOtpModalOpen(false)}>Cancel</Button>
+              <Button type="submit" variant="contained"
+                disabled={submitting || otpCode.length !== 6}
+                sx={{ fontWeight: "bold" }}>
+                VERIFY &amp; GENERATE MEMBER ID
+              </Button>
+            </DialogActions>
+          </Box>
         </Dialog>
 
         {/* TECH SHOWCASE & DRM PRIVACY POLICY MODAL */}
@@ -1118,7 +1128,14 @@ Thank you for registering with ICJ Enterprise Platform.
             </Box>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
-            <Button variant="contained" onClick={() => setTechShowcaseOpen(true)} color="primary">
+            <Button
+              variant="contained"
+              onClick={() => {
+                setForm((prev) => ({ ...prev, termsAccepted: true }));
+                setTechShowcaseOpen(false);
+              }}
+              color="primary"
+            >
               I Understand &amp; Agree
             </Button>
           </DialogActions>

@@ -60,6 +60,7 @@ export function AuthProvider({ children }) {
     user,
     loading,
     isAuthenticated: Boolean(user),
+    setSessionUser: (userObj) => setUser(userObj),
     login,
     register,
     logout,
