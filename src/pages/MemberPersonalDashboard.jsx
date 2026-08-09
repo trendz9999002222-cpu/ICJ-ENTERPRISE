@@ -246,13 +246,27 @@ export default function MemberPersonalDashboard() {
                 </Box>
 
                 <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, borderLeft: "4px solid #10b981" }}>
-                  <Typography variant="caption" color="text.secondary" fontWeight="bold" display="block" sx={{ mb: 1 }}>
-                    JUNIOR ASSOCIATES & PRACTICE TEAM ({juniorsList.length})
+                  <Typography variant="subtitle2" fontWeight="bold" color="success.main" gutterBottom sx={{ mt: 1 }}>
+                    JUNIOR ASSOCIATES & LEGAL INTERNS TEAM ({officeData?.juniorsList?.length || 0})
                   </Typography>
-                  {juniorsList.length > 0 ? (
-                    <Stack spacing={1}>
-                      {juniorsList.map((jr, idx) => (
-                        <Chip key={idx} label={jr} size="small" variant="outlined" color="success" />
+                  {(officeData?.juniorsList || []).length > 0 ? (
+                    <Stack spacing={1.5}>
+                      {officeData.juniorsList.map((jr) => (
+                        <Paper key={jr.id || jr.memberId} variant="outlined" sx={{ p: 1, borderRadius: 2, bgcolor: "#f0fdf4" }}>
+                          <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Avatar src={jr.photoUrl} alt={jr.name} sx={{ width: 34, height: 34, bgcolor: "#059669", fontSize: "0.8rem", fontWeight: "bold" }}>
+                              {jr.name?.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="caption" fontWeight="bold" display="block">
+                                {jr.name} ({jr.designation})
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                ID: {jr.memberId} | 📍 {jr.assignedOffice}
+                              </Typography>
+                            </Box>
+                          </Stack>
+                        </Paper>
                       ))}
                     </Stack>
                   ) : (

@@ -869,34 +869,160 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 3: ASSIGNED ADVOCATE (Phase 11) */}
+        {/* TAB 3: ASSIGNED ADVOCATE & PRACTICE TEAM */}
         <TabPanel value={tabIndex} index={3}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Assigned Advocate & Legal Counsel Roster
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold" color="#1e3a8a">
+                  🏛️ My Allotted ICJ Legal Counsel &amp; Practice Collegium
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Complete profile, court jurisdictions, ranked specializations, and verified practice team allotted to your legal matter
+                </Typography>
+              </Box>
+              <Chip label="🔒 ALLOTTED ICJ COUNSEL ONLY" color="primary" sx={{ fontWeight: "bold" }} />
+            </Stack>
 
-            {activeAdvocate ? (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderLeft: "4px solid #9c27b0" }}>
-                    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                      <BadgeIcon color="secondary" sx={{ fontSize: 40 }} />
-                      <Box>
-                        <Typography variant="h6" fontWeight="bold">{activeAdvocate.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">Bar ID: {activeAdvocate.barId || activeAdvocate.enrollment}</Typography>
-                      </Box>
-                    </Stack>
-                    <Typography variant="body2"><strong>Specialization:</strong> {activeAdvocate.specialization || "Constitutional & Civil Litigation"}</Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5 }}><strong>Chamber Contact:</strong> {activeAdvocate.phone || "+91 98201 12345"}</Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5 }}><strong>Empaneled Status:</strong> <Chip label="🟢 Empaneled Senior Counsel" color="success" size="small" /></Typography>
+            <Divider sx={{ mb: 3 }} />
+
+            {(() => {
+              const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "26ICJ08AA0001";
+              const advocateName = activeAdvocate?.name || "Adv. Rajesh Sharma";
+              const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
+              const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
+              const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
+              const juniors = office?.juniorsList || [];
+
+              return (
+                <Stack spacing={3}>
+                  {/* ADVOCATE PROFILE SUMMARY */}
+                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc" }}>
+                    <Grid container spacing={3} alignItems="center">
+                      <Grid item xs={12} sm={3} textAlign="center">
+                        <BadgeIcon sx={{ fontSize: 75, color: "#1e3a8a" }} />
+                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1 }}>
+                          {advocateName}
+                        </Typography>
+                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5 }} />
+                      </Grid>
+                      <Grid item xs={12} sm={9}>
+                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom>
+                          📜 Bar Registration &amp; Credential: {office.barEnrollmentNo || "UP/2026/9812"}
+                        </Typography>
+
+                        {/* RANKED SPECIALIZATIONS */}
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                          ORDERED SPECIALIZATION PRIORITY:
+                        </Typography>
+                        <Grid container spacing={1} sx={{ mb: 2 }}>
+                          {rankedSpecs.map((sp) => (
+                            <Grid item xs={12} sm={6} key={sp.rank}>
+                              <Chip
+                                label={`${sp.label}: ${sp.name}`}
+                                size="small"
+                                sx={{
+                                  bgcolor: sp.rank === 1 ? "#fee2e2" : sp.rank === 2 ? "#fef3c7" : "#ede9fe",
+                                  color: sp.rank === 1 ? "#991b1b" : sp.rank === 2 ? "#92400e" : "#4c1d95",
+                                  fontWeight: "bold",
+                                  width: "100%",
+                                  justifyContent: "flex-start",
+                                }}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          📍 Office Address: {office.officeAddress} | ⏰ Hours: {office.workingHours}
+                        </Typography>
+                      </Grid>
+                    </Grid>
                   </Paper>
-                </Grid>
-              </Grid>
-            ) : (
-              <Alert severity="info">No advocate assigned yet. Your matter is currently under ICJ Panel Review.</Alert>
-            )}
+
+                  {/* MULTI-COURT PRACTICE LOCATIONS & CHAMBERS */}
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" sx={{ mb: 1.5 }}>
+                      🏢 Allotted Advocate Pan-India Court Offices &amp; Chambers ({offices.length})
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {offices.map((loc) => {
+                        const isSupreme = loc.type === "SupremeCourt";
+                        const isHigh = loc.type === "HighCourt";
+                        const isTehsil = loc.type === "TehsilCourt";
+                        const isTribunal = loc.type === "Tribunal";
+
+                        const color = isSupreme ? "#7c3aed" : isHigh ? "#1d4ed8" : isTribunal ? "#c2410c" : isTehsil ? "#0284c7" : "#059669";
+                        const tag = isSupreme ? "🏛️ SUPREME COURT" : isHigh ? "⚖️ HIGH COURT BENCH" : isTribunal ? "⚖️ TRIBUNAL / FORUM" : isTehsil ? "🏛️ SDM / TEHSIL COURT" : "🏢 DISTRICT COURT";
+
+                        return (
+                          <Grid item xs={12} sm={6} md={4} key={loc.id || loc.name}>
+                            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: color, bgcolor: "#fff" }}>
+                              <Chip label={tag} size="small" sx={{ bgcolor: color, color: "#fff", fontWeight: "bold", fontSize: "0.65rem", mb: 1 }} />
+                              <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                                {loc.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" display="block">
+                                📍 {loc.address}
+                              </Typography>
+                              <Typography variant="caption" fontWeight="bold" color="primary.main">
+                                {loc.city}, {loc.state}
+                              </Typography>
+                            </Paper>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </Box>
+
+                  {/* ADVOCATE PRACTICE TEAM COLLEGIUM WITH PHOTOS */}
+                  <Box>
+                    <Box sx={{ mb: 1.5 }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
+                        👥 Verified Practice Collegium &amp; Associate Team ({juniors.length})
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Verified ICJ team members working under your allotted advocate. If work is diverted or an associate appears on court dates, verify them below.
+                      </Typography>
+                    </Box>
+
+                    {juniors.length === 0 ? (
+                      <Alert severity="info">No additional junior associates linked to this practice team yet.</Alert>
+                    ) : (
+                      <Grid container spacing={2}>
+                        {juniors.map((jr) => (
+                          <Grid item xs={12} sm={6} key={jr.id || jr.memberId}>
+                            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderColor: "#10b981", bgcolor: "#f0fdf4" }}>
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                <Avatar
+                                  src={jr.photoUrl}
+                                  alt={jr.name}
+                                  sx={{ width: 54, height: 54, border: "2px solid #059669", bgcolor: "#059669", fontWeight: "bold" }}
+                                >
+                                  {jr.name?.charAt(0)}
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                                    {jr.name}
+                                  </Typography>
+                                  <Chip label={`ICJ ID: ${jr.memberId}`} size="small" color="primary" sx={{ height: 18, fontSize: "0.65rem", fontWeight: "bold", mb: 0.5 }} />
+                                  <Typography variant="caption" display="block" color="text.secondary">
+                                    Role: <strong>{jr.designation}</strong>
+                                  </Typography>
+                                  <Typography variant="caption" display="block" color="success.dark" fontWeight="bold">
+                                    Assigned Court: {jr.assignedOffice}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    )}
+                  </Box>
+                </Stack>
+              );
+            })()}
           </Paper>
         </TabPanel>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
   Paper,
   Typography,
@@ -18,7 +18,6 @@ import {
   IconButton,
   Avatar,
 } from "@mui/material";
-import SecurityIcon from "@mui/icons-material/Security";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import GavelIcon from "@mui/icons-material/Gavel";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
@@ -27,9 +26,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import SearchIcon from "@mui/icons-material/Search";
 import LockIcon from "@mui/icons-material/Lock";
+import StarIcon from "@mui/icons-material/Star";
 
 import MemberService from "../../services/memberService.js";
-import VirtualOfficeService, { DEFAULT_COURT_OFFICES } from "../../services/virtualOfficeService.js";
+import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZATIONS } from "../../services/virtualOfficeService.js";
 
 export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
   const memberLevel = (profile?.member_level || profile?.memberLevel || "BASIC").toUpperCase();
@@ -39,9 +39,10 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
   const memberName = profile?.name || profile?.fullName || "Advocate";
 
   // Virtual office & team state
-  const [officeData, setOfficeData] = useState(null);
   const [offices, setOffices] = useState(DEFAULT_COURT_OFFICES);
   const [juniors, setJuniors] = useState([]);
+  const [rankedSpecs, setRankedSpecs] = useState(DEFAULT_RANKED_SPECIALIZATIONS);
+  const [teamQuotaLimit, setTeamQuotaLimit] = useState(5);
 
   // Office Add Modal State
   const [addOfficeOpen, setAddOfficeOpen] = useState(false);
@@ -62,22 +63,54 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
   const [juniorForm, setJuniorForm] = useState({
     designation: "Junior Associate",
     assignedOffice: "",
+    photoUrl: "",
   });
+
+  // Ranked Specializations Editor State
+  const [specsEditorOpen, setSpecsEditorOpen] = useState(false);
+  const [rank1, setRank1] = useState(DEFAULT_RANKED_SPECIALIZATIONS[0]?.name || "Criminal Law & FIR Bail");
+  const [rank2, setRank2] = useState(DEFAULT_RANKED_SPECIALIZATIONS[1]?.name || "Property & Revenue Litigation");
+  const [rank3, setRank3] = useState(DEFAULT_RANKED_SPECIALIZATIONS[2]?.name || "Constitutional & High Court Writs");
+  const [rank4, setRank4] = useState(DEFAULT_RANKED_SPECIALIZATIONS[3]?.name || "Arbitration & Commercial Contracts");
 
   useEffect(() => {
     if (memberId) {
       const data = VirtualOfficeService.getOfficeForMember(memberId, memberName);
-      setOfficeData(data);
       if (data?.officeLocations && Array.isArray(data.officeLocations)) {
         setOffices(data.officeLocations);
       }
       if (data?.juniorsList && Array.isArray(data.juniorsList)) {
         setJuniors(data.juniorsList);
       }
+      if (data?.rankedSpecializations && Array.isArray(data.rankedSpecializations)) {
+        setRankedSpecs(data.rankedSpecializations);
+        setRank1(data.rankedSpecializations[0]?.name || "");
+        setRank2(data.rankedSpecializations[1]?.name || "");
+        setRank3(data.rankedSpecializations[2]?.name || "");
+        setRank4(data.rankedSpecializations[3]?.name || "");
+      }
+      if (data?.teamQuotaLimit) {
+        setTeamQuotaLimit(data.teamQuotaLimit);
+      }
     }
   }, [memberId, memberName]);
 
   // ─── HANDLERS ────────────────────────────────────────────────────────────
+
+  const handleSaveRankedSpecs = () => {
+    const updated = [
+      { rank: 1, name: rank1.trim() || "Criminal Law", label: "🥇 Primary Core Expertise" },
+      { rank: 2, name: rank2.trim() || "Property Litigation", label: "🥈 Secondary Specialty" },
+      { rank: 3, name: rank3.trim() || "Constitutional Writs", label: "🥉 Tertiary Specialty" },
+      { rank: 4, name: rank4.trim() || "Arbitration", label: "🏅 Additional Practice Area" },
+    ];
+    setRankedSpecs(updated);
+    if (memberId) {
+      VirtualOfficeService.updateOffice(memberId, { rankedSpecializations: updated });
+    }
+    setSpecsEditorOpen(false);
+    if (onUpdate) onUpdate();
+  };
 
   const handleAddOffice = () => {
     if (!officeForm.name || !officeForm.city) return;
@@ -149,6 +182,16 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
 
   const handleLinkJunior = () => {
     if (!searchResult) return;
+    if (juniors.length >= teamQuotaLimit) {
+      alert(`Team capacity limit of ${teamQuotaLimit} members reached. Contact ICJ Admin to expand quota.`);
+      return;
+    }
+
+    const defaultPhoto = searchResult.profilePhoto || searchResult.avatar || (
+      juniorForm.designation.includes("Intern")
+        ? "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200"
+        : "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200"
+    );
 
     const newJunior = {
       id: `JR-${Date.now()}`,
@@ -159,6 +202,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
       barId: searchResult.barId || searchResult.pan || "Registered ICJ Member",
       mobile: searchResult.mobile || "N/A",
       email: searchResult.email || "N/A",
+      photoUrl: juniorForm.photoUrl.trim() || defaultPhoto,
       linkedAt: new Date().toISOString(),
     };
 
@@ -173,6 +217,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
     setSearchQuery("");
     setSearchResult(null);
     setSearchError("");
+    setJuniorForm({ designation: "Junior Associate", assignedOffice: "", photoUrl: "" });
     if (onUpdate) onUpdate();
   };
 
@@ -193,10 +238,10 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
       <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
         <Box>
           <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <GavelIcon /> Multi-Office Chambers & Practice Collegium
+            <GavelIcon /> Multi-Office Chambers, Ranked Practice &amp; Team Collegium
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Manage District Court, High Court & Supreme Court Chambers & Verified ICJ Member Junior Team
+            Manage District Court, Tehsil/SDM, High Court &amp; Supreme Court Chambers, Ranked Core Expertise &amp; Verified ICJ Member Team
           </Typography>
         </Box>
         <Chip
@@ -216,7 +261,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
             🔒 PREMIUM ADVOCATE FEATURE LOCKED
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
-            Multi-Office Chamber Management (District Court, High Court Benches, Supreme Court Offices) and Verified ICJ Member Junior Team Binding is exclusively available for <strong>PRO &amp; EXECUTIVE</strong> Advocate accounts.
+            Multi-Office Chamber Management (District Court, SDM Court, High Court Benches, Supreme Court &amp; NGT/NCLT Tribunals), Ranked Expertise Priority &amp; Verified ICJ Member Junior Team Binding is exclusively available for <strong>PRO &amp; EXECUTIVE</strong> Advocate accounts.
           </Typography>
           <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
             Bar Council of India (BCI) Rule 36 Compliant Client Transparency &amp; Practice Collegium Governance.
@@ -227,11 +272,58 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
         </Alert>
       ) : (
         <Stack spacing={4}>
-          {/* SECTION 1: MULTI-OFFICE COURT CHAMBERS */}
+          {/* SECTION 0: RANKED SPECIALIZATION PRIORITY GRADING */}
+          <Box>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+              <Box>
+                <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+                  <StarIcon color="warning" fontSize="small" /> Ordered Specialization Priority Ranking
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Specialization ranked in order of primary core expertise (Rank 1) to lower priority areas
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                variant="outlined"
+                color="secondary"
+                onClick={() => setSpecsEditorOpen(true)}
+                sx={{ fontWeight: "bold" }}
+              >
+                EDIT RANKING ✏️
+              </Button>
+            </Stack>
+
+            <Grid container spacing={1.5}>
+              {rankedSpecs.map((sp) => {
+                const isRank1 = sp.rank === 1;
+                const isRank2 = sp.rank === 2;
+                const color = isRank1 ? "#b91c1c" : isRank2 ? "#d97706" : "#4c1d95";
+                const bg = isRank1 ? "#fef2f2" : isRank2 ? "#fffbe6" : "#f3e8ff";
+
+                return (
+                  <Grid item xs={12} sm={6} key={sp.rank}>
+                    <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: bg, borderColor: color }}>
+                      <Typography variant="caption" fontWeight="bold" color={color} display="block">
+                        {sp.label}
+                      </Typography>
+                      <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                        {sp.name}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Box>
+
+          <Divider />
+
+          {/* SECTION 1: MULTI-OFFICE COURT & TRIBUNAL CHAMBERS */}
           <Box>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
               <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-                <AccountBalanceIcon color="primary" fontSize="small" /> Registered Court Office Chambers ({offices.length})
+                <AccountBalanceIcon color="primary" fontSize="small" /> Registered Pan-India Court Offices &amp; Chambers ({offices.length})
               </Typography>
               <Button
                 size="small"
@@ -247,11 +339,13 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
             <Grid container spacing={2}>
               {offices.map((off) => {
                 const isDistrict = off.type === "DistrictCourt";
+                const isTehsil = off.type === "TehsilCourt";
                 const isHighCourt = off.type === "HighCourt";
                 const isSupreme = off.type === "SupremeCourt";
+                const isTribunal = off.type === "Tribunal";
 
-                const chipColor = isSupreme ? "#7c3aed" : isHighCourt ? "#1d4ed8" : "#059669";
-                const chipLabel = isSupreme ? "🏛️ SUPREME COURT" : isHighCourt ? "⚖️ HIGH COURT BENCH" : "🏢 DISTRICT COURT";
+                const chipColor = isSupreme ? "#7c3aed" : isHighCourt ? "#1d4ed8" : isTribunal ? "#c2410c" : isTehsil ? "#0284c7" : "#059669";
+                const chipLabel = isSupreme ? "🏛️ SUPREME COURT" : isHighCourt ? "⚖️ HIGH COURT BENCH" : isTribunal ? "⚖️ TRIBUNAL / FORUM" : isTehsil ? "🏛️ SDM / TEHSIL COURT" : "🏢 DISTRICT COURT";
 
                 return (
                   <Grid item xs={12} sm={6} md={4} key={off.id}>
@@ -294,22 +388,34 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
             </Grid>
           </Box>
 
-          {/* SECTION 2: VERIFIED PRACTICE TEAM (JUNIORS & ASSOCIATES) */}
+          <Divider />
+
+          {/* SECTION 2: VERIFIED PRACTICE TEAM (JUNIORS & ASSOCIATES) WITH PHOTOS & QUOTA */}
           <Box>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 1.5 }}>
               <Box>
-                <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-                  <VerifiedUserIcon color="success" fontSize="small" /> Verified Practice Collegium &amp; Junior Team ({juniors.length})
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="subtitle1" fontWeight="bold" color="text.primary" sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
+                    <VerifiedUserIcon color="success" fontSize="small" /> Verified Practice Collegium &amp; Junior Team ({juniors.length} / {teamQuotaLimit} Slots Used)
+                  </Typography>
+                  <Chip
+                    label={juniors.length >= teamQuotaLimit ? "QUOTA FULL 🔒" : `${teamQuotaLimit - juniors.length} SLOTS REMAINING`}
+                    color={juniors.length >= teamQuotaLimit ? "error" : "success"}
+                    size="small"
+                    sx={{ fontWeight: "bold", height: 20, fontSize: "0.65rem" }}
+                  />
+                </Stack>
                 <Typography variant="caption" color="text.secondary">
                   Only persons with a registered ICJ Member ID can be linked to your official Practice Collegium.
                 </Typography>
               </Box>
+
               <Button
                 size="small"
                 variant="contained"
                 color="success"
                 startIcon={<PersonAddIcon />}
+                disabled={juniors.length >= teamQuotaLimit}
                 onClick={() => {
                   setSearchQuery("");
                   setSearchResult(null);
@@ -318,9 +424,15 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
                 }}
                 sx={{ fontWeight: "bold" }}
               >
-                LINK VERIFIED MEMBER ID
+                LINK VERIFIED MEMBER ID ➕
               </Button>
             </Stack>
+
+            {juniors.length >= teamQuotaLimit && (
+              <Alert severity="warning" sx={{ mb: 2, fontSize: "0.82rem", fontWeight: 500 }}>
+                ⚠️ Team Capacity Quota of {teamQuotaLimit} members reached. To add more junior associates, legal interns, or staff, contact ICJ Admin for custom quota expansion.
+              </Alert>
+            )}
 
             {juniors.length === 0 ? (
               <Alert severity="info" variant="outlined" sx={{ borderRadius: 2 }}>
@@ -341,7 +453,11 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
                     >
                       <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between">
                         <Stack direction="row" spacing={1.5} alignItems="center">
-                          <Avatar sx={{ bgcolor: "#059669", fontWeight: "bold" }}>
+                          <Avatar
+                            src={jr.photoUrl}
+                            alt={jr.name}
+                            sx={{ width: 48, height: 48, border: "2px solid #059669", bgcolor: "#059669", fontWeight: "bold" }}
+                          >
                             {jr.name?.charAt(0)}
                           </Avatar>
                           <Box>
@@ -374,23 +490,67 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
         </Stack>
       )}
 
+      {/* ─── MODAL 0: EDIT RANKED SPECIALIZATION PRIORITY ───────────────── */}
+      <Dialog open={specsEditorOpen} onClose={() => setSpecsEditorOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold" }}>🥇 Edit Ordered Specialization Priority</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Alert severity="info" sx={{ fontSize: "0.8rem" }}>
+              Rank your practice fields in order of expertise. <strong>Rank 1</strong> represents your primary core specialization.
+            </Alert>
+            <TextField
+              fullWidth required label="🥇 Rank 1: Primary Core Expertise *"
+              value={rank1}
+              onChange={(e) => setRank1(e.target.value)}
+              placeholder="e.g. Criminal Law & FIR Bail"
+            />
+            <TextField
+              fullWidth label="🥈 Rank 2: Secondary Specialty *"
+              value={rank2}
+              onChange={(e) => setRank2(e.target.value)}
+              placeholder="e.g. Property & Revenue Litigation"
+            />
+            <TextField
+              fullWidth label="🥉 Rank 3: Tertiary Specialty *"
+              value={rank3}
+              onChange={(e) => setRank3(e.target.value)}
+              placeholder="e.g. Constitutional & High Court Writs"
+            />
+            <TextField
+              fullWidth label="🏅 Rank 4: Additional Practice Area"
+              value={rank4}
+              onChange={(e) => setRank4(e.target.value)}
+              placeholder="e.g. Arbitration & Commercial Law"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setSpecsEditorOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="secondary" onClick={handleSaveRankedSpecs} sx={{ fontWeight: "bold" }}>
+            SAVE PRIORITY RANKING
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* ─── MODAL 1: ADD COURT OFFICE ───────────────────────────────────── */}
       <Dialog open={addOfficeOpen} onClose={() => setAddOfficeOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: "bold" }}>🏛️ Add Court Office Chamber</DialogTitle>
         <DialogContent dividers>
-          <Stack spacing= {2} sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField
               select fullWidth label="Court Level / Jurisdiction *"
               value={officeForm.type}
               onChange={(e) => setOfficeForm((p) => ({ ...p, type: e.target.value }))}
             >
               <MenuItem value="DistrictCourt">🏢 District &amp; Sessions Court</MenuItem>
+              <MenuItem value="TehsilCourt">🏛️ SDM / Tehsil Executive Court</MenuItem>
               <MenuItem value="HighCourt">⚖️ High Court Bench</MenuItem>
               <MenuItem value="SupremeCourt">🏛️ Supreme Court of India</MenuItem>
+              <MenuItem value="Tribunal">⚖️ Tribunal (NGT, NCLT, DRT, CAT)</MenuItem>
             </TextField>
             <TextField
               fullWidth required label="Office / Chamber Name *"
-              placeholder="e.g. Chamber #42, High Court Block"
+              placeholder="e.g. Chamber #42, SDM Court Complex"
               value={officeForm.name}
               onChange={(e) => setOfficeForm((p) => ({ ...p, name: e.target.value }))}
             />
@@ -434,7 +594,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
         <DialogContent dividers>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
-              To add a Junior Advocate, Intern or Staff member, enter their <strong>ICJ Member ID</strong> (e.g. 26ICJ08AA0001), <strong>Email Address</strong>, or <strong>Mobile Number</strong>.
+              To add a Junior Advocate, Legal Intern or Staff member, enter their <strong>ICJ Member ID</strong> (e.g. 26ICJ08AA0001), <strong>Email Address</strong>, or <strong>Mobile Number</strong>.
             </Alert>
 
             <Stack direction="row" spacing={1}>
@@ -512,6 +672,14 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
                         <MenuItem key={o.id} value={o.name}>{o.name} ({o.city})</MenuItem>
                       ))}
                     </TextField>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth size="small" label="Photo URL (Optional)"
+                      placeholder="https://... photo link"
+                      value={juniorForm.photoUrl}
+                      onChange={(e) => setJuniorForm((p) => ({ ...p, photoUrl: e.target.value }))}
+                    />
                   </Grid>
                 </Grid>
               </Paper>
