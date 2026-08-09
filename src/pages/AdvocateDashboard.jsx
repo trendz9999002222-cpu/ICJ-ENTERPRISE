@@ -31,9 +31,14 @@ import VideoCallIcon from "@mui/icons-material/VideoCall";
 import BadgeIcon from "@mui/icons-material/Badge";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SendIcon from "@mui/icons-material/Send";
+import MicIcon from "@mui/icons-material/Mic";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import PauseIcon from "@mui/icons-material/Pause";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
+import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 function TabPanel(props) {
@@ -47,6 +52,7 @@ function TabPanel(props) {
 
 const ADVOCATE_TABS = {
   ACTIVE_CASES: "ACTIVE_CASES",
+  CLIENT_VOICE_INTAKE: "CLIENT_VOICE_INTAKE",
   ADVOCATE_PROFILE: "ADVOCATE_PROFILE",
   APPOINTMENTS: "APPOINTMENTS",
   COMMUNICATION: "COMMUNICATION",
@@ -60,6 +66,7 @@ export default function AdvocateDashboard() {
   const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.ACTIVE_CASES);
   const [cases, setCases] = useState([]);
   const [advocates, setAdvocates] = useState([]);
+  const [aiConsultations, setAiConsultations] = useState([]);
   const [search, setSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
 
@@ -87,9 +94,11 @@ export default function AdvocateDashboard() {
     async function loadRepo() {
       const allCases = LegalEcosystemService.getCases();
       const allAdvocates = LegalEcosystemService.getAdvocates();
+      const allConsultations = AiLegalConsultationService.getConsultationsForAdvocate ? AiLegalConsultationService.getConsultationsForAdvocate("26ICJ08AA0001") : [];
       if (isMounted) {
         setCases(Array.isArray(allCases) ? allCases : []);
         setAdvocates(Array.isArray(allAdvocates) ? allAdvocates : []);
+        setAiConsultations(Array.isArray(allConsultations) ? allConsultations : []);
       }
     }
     loadRepo();
@@ -245,6 +254,7 @@ export default function AdvocateDashboard() {
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
           <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
             <Tab icon={<GavelIcon />} iconPosition="start" label="Active Cases" value={ADVOCATE_TABS.ACTIVE_CASES} />
+            <Tab icon={<MicIcon />} iconPosition="start" label="🎙️ Client Voice Intake & AI Pleading Desk" value={ADVOCATE_TABS.CLIENT_VOICE_INTAKE} />
             <Tab icon={<PersonIcon />} iconPosition="start" label="Advocate Profile" value={ADVOCATE_TABS.ADVOCATE_PROFILE} />
             <Tab icon={<CalendarMonthIcon />} iconPosition="start" label="Appointments & Video Links" value={ADVOCATE_TABS.APPOINTMENTS} />
             <Tab icon={<ChatIcon />} iconPosition="start" label="Communication Engine" value={ADVOCATE_TABS.COMMUNICATION} />
@@ -290,6 +300,134 @@ export default function AdvocateDashboard() {
                 ))}
               </TableBody>
             </Table>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB: CLIENT VOICE INTAKE & AI PLEADING DESK */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.CLIENT_VOICE_INTAKE}>
+          <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold" color="#1e3a8a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  🎙️ Client Spoken Voice Notes &amp; AI Pleading Console
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  क्लाइंट द्वारा रिकॉर्ड की गई सभी ऑडियो फ़ाइलें सुनें, स्वतः टाइप हुआ टेक्स्ट देखें और 1-क्लिक में विधिक ड्राफ्ट अप्रूव करें।
+                </Typography>
+              </Box>
+              <Chip label="🟢 LIVE REAL-TIME INTAKE STREAM" color="success" sx={{ fontWeight: "bold" }} />
+            </Stack>
+            <Divider sx={{ mb: 3 }} />
+
+            <Grid container spacing={3}>
+              {/* Left Column: Incoming Client Consultations & Audio Files */}
+              <Grid item xs={12} md={6}>
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5, bgcolor: "#f8fafc" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" mb={1.5}>
+                    📁 Incoming Client Audio Files &amp; Multi-Page Spoken Transcript
+                  </Typography>
+
+                  <Box sx={{ p: 2, bgcolor: "#fff", borderRadius: 2, border: "1px solid #e2e8f0", mb: 2 }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="subtitle2" fontWeight="bold" color="primary">
+                        Client: Pooja Verma (Member ID: 26ICJ08AA0002)
+                      </Typography>
+                      <Chip label="Property & Land Dispute" size="small" color="secondary" variant="outlined" />
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                      Case Reference: WP/2026/1042 • Intake Time: Today 10:28 AM
+                    </Typography>
+
+                    <Typography variant="caption" fontWeight="bold" color="#166534" display="block" mb={1}>
+                      🎧 Recorded Audio Files Playlist (क्लाइंट की बोली गई वॉइस फ़ाइलें):
+                    </Typography>
+                    <Stack spacing={1} mb={2}>
+                      <Paper variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac" }}>
+                        <Typography variant="caption" fontWeight="bold" display="block">
+                          🎙️ Voice Note #1 (01:24 mins) — Recording Date: 2026-08-10
+                        </Typography>
+                        <audio controls style={{ width: "100%", height: 36, marginTop: 6 }} />
+                      </Paper>
+                      <Paper variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac" }}>
+                        <Typography variant="caption" fontWeight="bold" display="block">
+                          🎙️ Voice Note #2 (00:45 mins) — Recording Date: 2026-08-10
+                        </Typography>
+                        <audio controls style={{ width: "100%", height: 36, marginTop: 6 }} />
+                      </Paper>
+                    </Stack>
+
+                    <Typography variant="caption" fontWeight="bold" color="#1e3a8a" display="block" mb={0.5}>
+                      📝 Client Verbatim Spoken Transcript (ऑटो-टाइप हुआ पूरा 2-पेज टेक्स्ट):
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={6}
+                      disabled
+                      value="पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी (लेखपाल/कानूनगो) को शिकायत दी थी परंतु कोई निवारण नहीं हुआ। अतः हमें उप-जिलाधिकारी (SDM) राजस्व न्यायालय में सीमांकन याचिका (Demarcation Suit under Section 24) और सिविल न्यायालय में स्थायी स्टे (Order 39 Rule 1 & 2 CPC) की आवश्यकता है।"
+                      sx={{ bgcolor: "#f8fafc", "& .MuiInputBase-input": { fontSize: "0.85rem", color: "#0f172a" } }}
+                    />
+                  </Box>
+                </Paper>
+              </Grid>
+
+              {/* Right Column: AI Auto-Generated Advocate Pleading Editor */}
+              <Grid item xs={12} md={6}>
+                <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5, bgcolor: "#faf5ff", borderColor: "#d8b4fe" }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
+                    <Typography variant="subtitle1" fontWeight="bold" color="#6b21a8" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AutoAwesomeIcon /> AI Auto-Pleading &amp; Advocate Approval Console
+                    </Typography>
+                    <Chip label="BNS / CPC Section Mapped" color="purple" size="small" />
+                  </Stack>
+
+                  <Alert severity="info" sx={{ mb: 2, fontSize: "0.8rem" }}>
+                    यह ड्राफ्ट क्लाइंट के स्पोकन ऑडियो एवं दस्तावेजों के आधार पर AI द्वारा तैयार किया गया है। एडवोकेट इसे रिव्यू करके 1-क्लिक में अप्रूव कर सकते हैं।
+                  </Alert>
+
+                  <Typography variant="caption" fontWeight="bold" display="block" mb={0.5}>
+                    🏛️ Formatted Advocate Court Pleading (स्वीकृति हेतु विधिक ड्राफ्ट):
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={8}
+                    defaultValue={`IN THE COURT OF SUB-DIVISIONAL MAGISTRATE (REVENUE), LUCKNOW
+PETITION NO. WP/2026/1042
+
+IN THE MATTER OF:
+Pooja Verma ...PETITIONER
+VERSUS
+State of UP & Ors. ...RESPONDENTS
+
+PETITION UNDER SECTION 24 OF LAND REVENUE CODE FOR BOUNDARY DEMARCATION & TEMPORARY INJUNCTION (ORDER 39 RULE 1 & 2 CPC)
+
+MOST RESPECTFULLY SHOWETH:
+1. That the Petitioner is the lawful owner in possession of agricultural land Khasra No. 412.
+2. That Respondent No. 1 has illegally encroached upon the boundary demarcation line on 08.08.2026.
+PRAYER: Restrain Respondents from interference and order official demarcation.`}
+                    sx={{ mb: 2, bgcolor: "#fff" }}
+                  />
+
+                  <Stack direction="row" spacing={1.5}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="success"
+                      startIcon={<CheckCircleIcon />}
+                      onClick={() => {
+                        ActivityService.create({ title: "Advocate Approved & Signed Client Pleading WP/2026/1042", type: "legal" });
+                        setAlertMsg("🟢 Client Spoken Voice Note & AI Pleading approved and signed by Senior Counsel!");
+                        setTimeout(() => setAlertMsg(""), 3500);
+                      }}
+                      sx={{ fontWeight: "bold" }}
+                    >
+                      🟢 APPROVE & SIGN PLEADING (स्वीकृत व हस्ताक्षरित)
+                    </Button>
+                  </Stack>
+                </Paper>
+              </Grid>
+            </Grid>
           </Paper>
         </TabPanel>
 
