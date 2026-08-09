@@ -305,9 +305,14 @@ export default function MemberPersonalDashboard() {
                 <CalendarMonthIcon fontSize="inherit" sx={{ mr: 0.5, verticalAlign: "middle" }} />
                 Next Hearing: {nextHearingDate}
               </Typography>
-              <Button size="small" variant="contained" onClick={() => navigate("/client-portal")}>
-                My Court Cases Desk
-              </Button>
+              <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                <Button size="small" variant="contained" onClick={() => navigate("/client-portal")}>
+                  My Court Cases Desk
+                </Button>
+                <Button size="small" variant="outlined" color="secondary" onClick={() => navigate("/advocate-dashboard")} sx={{ fontWeight: "bold" }}>
+                  ⚖️ View Empaneled Advocate Desk (वकील का पोर्टल)
+                </Button>
+              </Stack>
             </Paper>
           </Grid>
 

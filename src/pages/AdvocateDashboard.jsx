@@ -63,7 +63,7 @@ const ADVOCATE_TABS = {
 };
 
 export default function AdvocateDashboard() {
-  const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.ACTIVE_CASES);
+  const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.CLIENT_VOICE_INTAKE);
   const [cases, setCases] = useState([]);
   const [advocates, setAdvocates] = useState([]);
   const [aiConsultations, setAiConsultations] = useState([]);
