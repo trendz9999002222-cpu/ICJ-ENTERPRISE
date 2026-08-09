@@ -1,4 +1,3 @@
-/* global process */
 /**
  * ICJ ENTERPRISE PLATFORM — PHASE 13.1
  * Environment Configuration Manager & Production Config Loader
