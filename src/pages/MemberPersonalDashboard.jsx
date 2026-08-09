@@ -67,9 +67,9 @@ export default function MemberPersonalDashboard() {
   const aiDraftsCount = user?.aiDraftsCount ?? 12;
   const vaultDocsCount = user?.vaultDocsCount ?? 8;
 
-  const seniorMentor = user?.seniorMentor || "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)";
-  const juniorsList = user?.juniorsList || ["Rahul Sharma (Junior Associate)", "Pooja Verma (Legal Intern)", "Siddharth Mehta (Research Associate)"];
-  const firmName = user?.organisation || user?.firmName || "Lucknow Legal Practice Associates";
+  const seniorMentor = user?.seniorMentor || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)" : "Not Assigned (Independent Practice)");
+  const juniorsList = user?.juniorsList || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? ["Pooja Verma (Junior Associate)", "Siddharth Mehta (Legal Intern)"] : []);
+  const firmName = user?.organisation || user?.firmName || user?.orgName || (user?.regType === "Organisation" ? user?.name : "Independent Legal Practice");
 
   return (
     <MainLayout>
@@ -249,11 +249,17 @@ export default function MemberPersonalDashboard() {
                   <Typography variant="caption" color="text.secondary" fontWeight="bold" display="block" sx={{ mb: 1 }}>
                     JUNIOR ASSOCIATES & PRACTICE TEAM ({juniorsList.length})
                   </Typography>
-                  <Stack spacing={1}>
-                    {juniorsList.map((jr, idx) => (
-                      <Chip key={idx} label={jr} size="small" variant="outlined" color="success" />
-                    ))}
-                  </Stack>
+                  {juniorsList.length > 0 ? (
+                    <Stack spacing={1}>
+                      {juniorsList.map((jr, idx) => (
+                        <Chip key={idx} label={jr} size="small" variant="outlined" color="success" />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: "italic" }}>
+                      No Junior Associates Added Yet
+                    </Typography>
+                  )}
                 </Box>
               </CardContent>
             </Card>
