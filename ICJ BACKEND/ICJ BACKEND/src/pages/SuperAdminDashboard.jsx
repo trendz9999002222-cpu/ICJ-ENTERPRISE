@@ -5,19 +5,12 @@ import {
   Paper,
   Typography,
   Grid,
-  Button,
   Chip,
   Stack,
   Divider,
   Avatar,
   Card,
-  CardContent,
   CardActionArea,
-  Badge,
-  IconButton,
-  Menu,
-  MenuItem,
-  Tooltip,
 } from "@mui/material";
 
 // Icons
@@ -28,27 +21,23 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import SettingsIcon from "@mui/icons-material/Settings";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import StorageIcon from "@mui/icons-material/Storage";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import BlockIcon from "@mui/icons-material/Block";
 import BackupIcon from "@mui/icons-material/Backup";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import LogoutIcon from "@mui/icons-material/Logout";
 
-import DashboardService from "../services/dashboardService";
-import ActivityService from "../services/activityService";
-import MainLayout from "../layouts/MainLayout";
-import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
-import useAuth from "../hooks/useAuth";
-import AuthService from "../services/authService";
+import DashboardService from "../services/dashboardService.js";
+import MainLayout from "../layouts/MainLayout.jsx";
+import UniversalActionToolbar from "../components/common/UniversalActionToolbar.jsx";
+import useAuth from "../hooks/useAuth.js";
+import AuthService from "../services/authService.js";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
+  const { user } = useAuth();
+  const [stats, setStats] = useState(null);
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleString("en-IN", {
     weekday: "short",
@@ -72,23 +61,28 @@ export default function SuperAdminDashboard() {
         second: "2-digit",
       }));
     }, 1000);
+
+    DashboardService.getStatistics()
+      .then((s) => setStats(s))
+      .catch(() => {});
+
     return () => clearInterval(timer);
   }, []);
 
   const seedUsers = AuthService.getSeedUsers();
-  const totalUsers = seedUsers.length || 25;
+  const totalUsers = stats?.totalMembers ?? (seedUsers.length || 0);
   const superAdmins = seedUsers.filter(u => (u.user_type === "super_admin" || u.username === "ICJSuperAdmin1234")).length || 1;
-  const admins = seedUsers.filter(u => u.role === "admin" && u.username !== "ICJSuperAdmin1234").length || 4;
-  const members = seedUsers.filter(u => u.role === "member").length || 20;
+  const admins = seedUsers.filter(u => u.role === "admin" && u.username !== "ICJSuperAdmin1234").length || 0;
+  const members = seedUsers.filter(u => u.role === "member").length || totalUsers;
 
   const quickStats = [
-    { label: "Total Users", value: totalUsers, color: "primary.main", icon: <PeopleIcon fontSize="medium" /> },
-    { label: "Super Admins", value: superAdmins, color: "secondary.main", icon: <AdminPanelSettingsIcon fontSize="medium" /> },
-    { label: "Admins", value: admins, color: "info.main", icon: <SecurityIcon fontSize="medium" /> },
-    { label: "Members", value: members, color: "success.main", icon: <CardMembershipIcon fontSize="medium" /> },
-    { label: "Active Members", value: 25, color: "success.main", icon: <CheckCircleIcon fontSize="medium" /> },
-    { label: "Pending Members", value: 0, color: "warning.main", icon: <HourglassEmptyIcon fontSize="medium" /> },
-    { label: "Blocked Members", value: 0, color: "error.main", icon: <BlockIcon fontSize="medium" /> },
+    { label: "Total Users", value: totalUsers, color: "primary.main", icon: <PeopleIcon fontSize="medium" />, route: "/member-directory" },
+    { label: "Super Admins", value: superAdmins, color: "secondary.main", icon: <AdminPanelSettingsIcon fontSize="medium" />, route: "/administration" },
+    { label: "Admins", value: admins, color: "info.main", icon: <SecurityIcon fontSize="medium" />, route: "/administration" },
+    { label: "Members", value: members, color: "success.main", icon: <CardMembershipIcon fontSize="medium" />, route: "/member-directory" },
+    { label: "Active Members", value: stats?.activeMembers ?? totalUsers, color: "success.main", icon: <CheckCircleIcon fontSize="medium" />, route: "/member-directory" },
+    { label: "Pending Members", value: stats?.pendingMembers ?? 0, color: "warning.main", icon: <HourglassEmptyIcon fontSize="medium" />, route: "/member-verification" },
+    { label: "Blocked Members", value: stats?.suspendedMembers ?? 0, color: "error.main", icon: <BlockIcon fontSize="medium" />, route: "/member-directory" },
   ];
 
   const quickActionCards = [

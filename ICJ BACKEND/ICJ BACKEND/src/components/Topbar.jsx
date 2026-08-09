@@ -15,6 +15,8 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  Stack,
+  Chip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -129,32 +131,75 @@ function Topbar() {
             <SettingsIcon color="action" />
           </IconButton>
 
-          <Box textAlign="right" sx={{ display: { xs: "none", sm: "block" } }}>
-            <Typography variant="body2" fontWeight="bold">
-              {user?.fullName || user?.name || user?.username || "Super Admin"}
-            </Typography>
-
-            <Typography variant="caption" color="primary" sx={{ fontWeight: "bold" }}>
-              Role: {(userRole || "Admin").toUpperCase()}
-            </Typography>
-          </Box>
-
-          <Avatar sx={{ bgcolor: "#1976d2", fontWeight: "bold" }}>
-            {userInitial}
-          </Avatar>
-
-          <Button
-            variant="outlined"
-            size="small"
-            color="error"
-            onClick={async () => {
-              await logout();
-              navigate("/login");
+          {/* TOP RIGHT USER IDENTIFICATION BADGE — VISIBLE ON EVERY PAGE */}
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1.5}
+            sx={{
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 2,
+              bgcolor: "rgba(245, 247, 250, 0.9)",
+              border: "1px solid #e2e8f0",
             }}
-            sx={{ fontWeight: "bold" }}
           >
-            Logout
-          </Button>
+            <Box textAlign="right">
+              <Typography variant="body2" sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1.2 }}>
+                {user?.namePrefix ? `${user.namePrefix} ` : ""}
+                {user?.fullName || user?.name || user?.username || "Logged User"}
+              </Typography>
+
+              <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center" sx={{ mt: 0.3 }}>
+                <Chip
+                  label={
+                    userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                      ? "👑 SUPER ADMIN"
+                      : userRole === "admin"
+                      ? "🛡️ ADMIN"
+                      : userRole === "employee"
+                      ? "💼 ICJ STAFF"
+                      : "🟢 MEMBER"
+                  }
+                  size="small"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: "0.65rem",
+                    height: 18,
+                    bgcolor:
+                      userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                        ? "#7c3aed"
+                        : userRole === "admin"
+                        ? "#1d4ed8"
+                        : userRole === "employee"
+                        ? "#d97706"
+                        : "#059669",
+                    color: "#ffffff",
+                  }}
+                />
+                <Typography variant="caption" sx={{ fontSize: "0.68rem", color: "#64748b", fontFamily: "monospace" }}>
+                  {user?.member_id || user?.memberId || user?.id || ""}
+                </Typography>
+              </Stack>
+            </Box>
+
+            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 36, height: 36, fontSize: "0.95rem" }}>
+              {userInitial}
+            </Avatar>
+
+            <Button
+              variant="outlined"
+              size="small"
+              color="error"
+              onClick={async () => {
+                await logout();
+                navigate("/login");
+              }}
+              sx={{ fontWeight: "bold", ml: 0.5, px: 1, minWidth: 60 }}
+            >
+              Logout
+            </Button>
+          </Box>
         </Box>
       </Toolbar>
     </AppBar>

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import {
   Box, Paper, Typography, Grid, Table, TableHead, TableBody,
   TableRow, TableCell, Button, Chip, Switch, Stack, Alert,
-  TextField, MenuItem, Divider, Tabs, Tab, Tooltip,
-  FormControlLabel, Badge,
+  TextField, MenuItem, Tabs, Tab,
+  FormControlLabel,
 } from "@mui/material";
 
 import SecurityIcon        from "@mui/icons-material/Security";
@@ -33,10 +33,9 @@ import {
   SecurityControl,
   GovernanceAudit,
   autoRegisterComponent,
-  DEFAULT_MENU_CONFIG,
 } from "../services/governanceEngine";
-import { GovernanceRegistry } from "../services/governanceRegistry";
 import ActivityService from "../services/activityService";
+import FieldGovernanceService from "../services/fieldGovernanceService.js";
 
 // ─── Helpers ────────────────────────────────────────────────
 function TabPanel({ children, value, index }) {
@@ -96,7 +95,12 @@ export default function GovernanceCenter() {
     setAuditLog(GovernanceAudit.getAll());
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const notify = (msg, sev = "success") => {
     setAlertMsg(msg); setAlertSev(sev);
@@ -264,6 +268,7 @@ export default function GovernanceCenter() {
             { label: "H · Security",   icon: <LockIcon /> },
             { label: "I · Audit",      icon: <HistoryIcon /> },
             { label: "J · Auto-Reg",   icon: <AutoAwesomeIcon /> },
+            { label: "K · Architect Wording", icon: <TextFieldsIcon /> },
           ].map((t, i) => (
             <Tab key={i} iconPosition="start" icon={t.icon} label={t.label} sx={{ minHeight: 52, fontSize: "12px" }} />
           ))}
@@ -667,6 +672,46 @@ export default function GovernanceCenter() {
                 </Grid>
               ))}
             </Grid>
+          </TabPanel>
+
+          {/* ── PHASE K: ARCHITECT WORDING GOVERNANCE ── */}
+          <TabPanel value={tab} index={10}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom color="primary">
+              Architect Admin — Live Wording & Label Governance Editor
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              No-Code Live Control: Any text modified here updates live across the entire public onboarding portal without writing any code or executing commands.
+            </Typography>
+
+            <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Grid container spacing={3}>
+                {[
+                  { key: "onboarding_ind_label", label: "Individual Member Option Label", default: "Individual Member" },
+                  { key: "onboarding_org_label", label: "Organisation Option Label", default: "Organisation / Entity / Institution" },
+                  { key: "onboarding_purpose_title", label: "Purpose Section Heading", default: "WHAT BRINGS YOU TO ICJ?" },
+                  { key: "onboarding_purpose_1", label: "Purpose Option 1 (Red Card)", default: "I HAVE A PROBLEM — GET ASSISTANCE" },
+                  { key: "onboarding_purpose_2", label: "Purpose Option 2 (Blue Card)", default: "I NEED ICJ SERVICES" },
+                  { key: "onboarding_purpose_3", label: "Purpose Option 3 (Green Card)", default: "BECOME AN ICJ FRANCHISE PARTNER" },
+                ].map((w) => (
+                  <Grid item xs={12} md={6} key={w.key}>
+                    <Typography variant="caption" color="text.secondary" fontWeight="bold" display="block" sx={{ mb: 0.5 }}>
+                      {w.label} (`{w.key}`)
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      defaultValue={FieldGovernanceService.getWording(w.key, w.default)}
+                      onChange={(e) => {
+                        const val = e.target.value.trim();
+                        FieldGovernanceService.setWording(w.key, val || w.default);
+                        notify(`Live Wording '${w.key}' updated!`);
+                      }}
+                      helperText={`Default wording: ${w.default}`}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
           </TabPanel>
 
         </Box>

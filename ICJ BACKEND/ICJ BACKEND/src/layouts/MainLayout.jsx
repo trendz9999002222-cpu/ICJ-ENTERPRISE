@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 
 function MainLayout({ children }) {
   return (
-    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden" }}>
       <Sidebar />
 
       <Box
@@ -13,6 +13,8 @@ function MainLayout({ children }) {
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
+          minWidth: 0,
+          width: "100%",
         }}
       >
         <Topbar />
@@ -22,7 +24,9 @@ function MainLayout({ children }) {
         <Box
           sx={{
             flex: 1,
-            p: { xs: 2, md: 4 },
+            p: { xs: 1.5, sm: 2, md: 2.5 },
+            width: "100%",
+            boxSizing: "border-box",
           }}
         >
           {children}

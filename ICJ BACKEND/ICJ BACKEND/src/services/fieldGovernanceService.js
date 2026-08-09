@@ -477,11 +477,48 @@ class FieldGovernanceService {
   /**
    * Evaluate if a field is read-only
    */
-  isFieldReadOnly(fieldName, _context = {}) {
+  isFieldReadOnly(fieldName) {
     const cfg = this.getFieldConfig(fieldName);
     if (cfg.readOnly) return true;
     if (cfg.editable === false) return true;
     return false;
+  }
+
+  /**
+   * Platform Wording & Dynamic Label Governance
+   */
+  getWording(key, fallbackText) {
+    if (typeof window === "undefined") return fallbackText;
+    try {
+      const raw = window.localStorage.getItem("icj_platform_wording_v1");
+      if (!raw) return fallbackText;
+      const parsed = JSON.parse(raw);
+      return parsed[key] || fallbackText;
+    } catch {
+      return fallbackText;
+    }
+  }
+
+  setWording(key, newText) {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("icj_platform_wording_v1");
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed[key] = newText;
+      window.localStorage.setItem("icj_platform_wording_v1", JSON.stringify(parsed));
+    } catch (e) {
+      console.error("Failed to save wording override", e);
+    }
+  }
+
+  getAllWordings() {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = window.localStorage.getItem("icj_platform_wording_v1");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
   }
 }
 

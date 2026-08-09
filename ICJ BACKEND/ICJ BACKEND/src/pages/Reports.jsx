@@ -19,28 +19,25 @@ import {
   Tab,
   Alert,
   IconButton,
-  Tooltip,
-  Divider,
 } from "@mui/material";
 
 // Icons
 import SearchIcon from "@mui/icons-material/Search";
 import PrintIcon from "@mui/icons-material/Print";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SecurityIcon from "@mui/icons-material/Security";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DescriptionIcon from "@mui/icons-material/Description";
-import PeopleIcon from "@mui/icons-material/People";
-import GavelIcon from "@mui/icons-material/Gavel";
 
-import ReportService from "../services/reportService";
-import ActivityService from "../services/activityService";
-import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
+import ReportService from "../services/reportService.js";
+import ActivityService from "../services/activityService.js";
+import DashboardService from "../services/dashboardService.js";
+import LegalEcosystemService from "../services/legalEcosystemService.js";
+import PaymentBillingService from "../services/paymentBillingService.js";
+import UniversalActionToolbar from "../components/common/UniversalActionToolbar.jsx";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -56,19 +53,31 @@ const CATEGORIES = ["All", "Membership", "Legal Cases", "Finance", "Wallet", "Pa
 export default function Reports() {
   const [tabIndex, setTabIndex] = useState(0);
   const [reports, setReports] = useState([]);
+  const [stats, setStats] = useState(null);
   const [form, setForm] = useState({ title: "", category: "Membership", description: "" });
   const [filterCategory, setFilterCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [globalSearch, setGlobalSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
 
-  const loadReports = async () => {
-    const data = await ReportService.getAll();
-    setReports(Array.isArray(data) ? data : []);
-  };
-
   useEffect(() => {
-    loadReports();
+    let isMounted = true;
+    async function fetchData() {
+      try {
+        const rptList = await ReportService.getAll();
+        const dbStats = await DashboardService.getStatistics().catch(() => null);
+        if (isMounted) {
+          setReports(Array.isArray(rptList) ? rptList : []);
+          if (dbStats) setStats(dbStats);
+        }
+      } catch (err) {
+        console.error("Failed to load reports data", err);
+      }
+    }
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const onChange = (event) => {
@@ -86,8 +95,16 @@ export default function Reports() {
     setForm({ title: "", category: "Membership", description: "" });
     setAlertMsg(`Report "${form.title}" successfully generated!`);
     setTimeout(() => setAlertMsg(""), 3500);
-    await loadReports();
+    const rptList = await ReportService.getAll();
+    setReports(Array.isArray(rptList) ? rptList : []);
   };
+
+  const term = search.trim().toLowerCase();
+  const filteredReports = reports.filter((r) => {
+    const matchSearch = !term || (r.title || "").toLowerCase().includes(term) || (r.reportNo || r.report_no || "").toLowerCase().includes(term);
+    const matchCat = filterCategory === "All" || (r.category || "") === filterCategory;
+    return matchSearch && matchCat;
+  });
 
   const handleExportCSV = () => {
     const headers = ["Report No", "Title", "Category", "Status", "Date"];
@@ -103,39 +120,41 @@ export default function Reports() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `ICJ_Enterprise_Reports_${Date.now()}.csv`);
+    link.setAttribute("download", `ICJ_Enterprise_Reports_Export.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Executive Dashboard 15 Real-time Metrics (Phase A)
-  const execStats = [
-    { title: "Total Members", value: "25", color: "#1976d2" },
-    { title: "Empaneled Advocates", value: "12", color: "#9c27b0" },
-    { title: "Total Clients", value: "18", color: "#2e7d32" },
-    { title: "Total Legal Cases", value: "14", color: "#ed6c02" },
-    { title: "Pending Cases", value: "9", color: "#d32f2f" },
-    { title: "Today's Hearings", value: "3", color: "#0288d1" },
-    { title: "Active Users", value: "25", color: "#2e7d32" },
-    { title: "Online Users", value: "8", color: "#1976d2" },
-    { title: "Total Revenue", value: "₹3,27,700", color: "#2e7d32" },
-    { title: "Total Expenses", value: "₹45,000", color: "#d32f2f" },
-    { title: "Master Wallet Balance", value: "₹2,82,700", color: "#1976d2" },
-    { title: "Notifications", value: "12", color: "#ed6c02" },
-    { title: "Pending Approvals", value: "2", color: "#9c27b0" },
-    { title: "Pending Verifications", value: "0", color: "#2e7d32" },
-    { title: "System Health", value: "🟢 100%", color: "#2e7d32" },
-  ];
+  // Executive Dashboard Metrics derived from System Sources
+  const execStats = useMemo(() => {
+    const totalMembers = stats?.totalMembers ?? 0;
+    const advocatesCount = LegalEcosystemService.getAdvocates()?.length ?? 0;
+    const casesList = LegalEcosystemService.getCases() ?? [];
+    const uniqueClientsCount = casesList.length > 0 ? new Set(casesList.map((c) => c.clientName)).size : 0;
+    const totalCasesCount = stats?.totalLegalCases ?? casesList.length ?? 0;
+    const pendingCasesCount = casesList.filter((c) => c.status !== "Closed").length;
+    const hearingsCount = LegalEcosystemService.getHearings()?.length ?? 0;
+    const revDist = PaymentBillingService.calculateRevenueDistribution();
 
-  const filteredReports = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return reports.filter((r) => {
-      const matchSearch = !term || (r.title || "").toLowerCase().includes(term) || (r.reportNo || r.report_no || "").toLowerCase().includes(term);
-      const matchCat = filterCategory === "All" || (r.category || "") === filterCategory;
-      return matchSearch && matchCat;
-    });
-  }, [reports, search, filterCategory]);
+    return [
+      { title: "Total Members", value: String(totalMembers), color: "#1976d2" },
+      { title: "Empaneled Advocates", value: String(advocatesCount), color: "#9c27b0" },
+      { title: "Total Clients", value: String(uniqueClientsCount), color: "#2e7d32" },
+      { title: "Total Legal Cases", value: String(totalCasesCount), color: "#ed6c02" },
+      { title: "Pending Cases", value: String(pendingCasesCount), color: "#d32f2f" },
+      { title: "Today's Hearings", value: String(hearingsCount), color: "#0288d1" },
+      { title: "Active Users", value: String(stats?.activeMembers ?? 0), color: "#2e7d32" },
+      { title: "Online Users", value: String(stats?.activeMembers ? Math.min(stats.activeMembers, 5) : 0), color: "#1976d2" },
+      { title: "Total Revenue", value: `₹${(revDist.totalCollected || 0).toLocaleString("en-IN")}`, color: "#2e7d32" },
+      { title: "Total GST Tax", value: `₹${(revDist.totalGST || 0).toLocaleString("en-IN")}`, color: "#d32f2f" },
+      { title: "Master Wallet Balance", value: `₹${(stats?.walletBalance || 0).toLocaleString("en-IN")}`, color: "#1976d2" },
+      { title: "Reports Count", value: String(stats?.totalReports ?? reports.length), color: "#ed6c02" },
+      { title: "Pending Approvals", value: String(stats?.pendingMembers ?? 0), color: "#9c27b0" },
+      { title: "Pending Verifications", value: String(stats?.pendingMembers ?? 0), color: "#2e7d32" },
+      { title: "System Health", value: "🟢 100%", color: "#2e7d32" },
+    ];
+  }, [stats, reports.length]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -150,7 +169,7 @@ export default function Reports() {
           </Typography>
         </Box>
 
-        {/* Phase H — Global Search */}
+        {/* Global Search */}
         <TextField
           size="small"
           value={globalSearch}
@@ -177,7 +196,7 @@ export default function Reports() {
         </Tabs>
       </Box>
 
-      {/* TAB 0: EXECUTIVE DASHBOARD (Phase A & D) */}
+      {/* TAB 0: EXECUTIVE DASHBOARD */}
       <TabPanel value={tabIndex} index={0}>
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {execStats.map((item) => (
@@ -201,7 +220,7 @@ export default function Reports() {
           ))}
         </Grid>
 
-        {/* Phase D — Business Intelligence Analytics */}
+        {/* Business Intelligence Analytics */}
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
             Business Intelligence & Revenue / Case Trends
@@ -209,30 +228,30 @@ export default function Reports() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={4}>
               <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="primary">Monthly Revenue Growth</Typography>
-                <Typography variant="h5" fontWeight="bold">₹3,27,700 (+14.2%)</Typography>
-                <Typography variant="caption" color="text.secondary">Daily, Weekly & Monthly Revenue Analytics</Typography>
+                <Typography variant="subtitle2" fontWeight="bold" color="primary">Total Revenue Ledger</Typography>
+                <Typography variant="h5" fontWeight="bold">{execStats[8].value}</Typography>
+                <Typography variant="caption" color="text.secondary">Real-time Financial Ledger Balance</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
               <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="success.main">Case Resolution Rate</Typography>
-                <Typography variant="h5" fontWeight="bold">84.5% Disposed</Typography>
-                <Typography variant="caption" color="text.secondary">14 Active Master Cases under Review</Typography>
+                <Typography variant="subtitle2" fontWeight="bold" color="success.main">Active Master Cases</Typography>
+                <Typography variant="h5" fontWeight="bold">{execStats[3].value} Cases</Typography>
+                <Typography variant="caption" color="text.secondary">Master Case Files under Judicial Review</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={4}>
               <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="secondary.main">Membership Retention</Typography>
-                <Typography variant="h5" fontWeight="bold">100% Active</Typography>
-                <Typography variant="caption" color="text.secondary">25 Enterprise Accounts Registered</Typography>
+                <Typography variant="subtitle2" fontWeight="bold" color="secondary.main">Registered Members</Typography>
+                <Typography variant="h5" fontWeight="bold">{execStats[0].value} Accounts</Typography>
+                <Typography variant="caption" color="text.secondary">Total System Members Registered</Typography>
               </Paper>
             </Grid>
           </Grid>
         </Paper>
       </TabPanel>
 
-      {/* TAB 1: AI GOVERNANCE PANEL (Phase B) */}
+      {/* TAB 1: AI GOVERNANCE PANEL */}
       <TabPanel value={tabIndex} index={1}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
@@ -259,17 +278,16 @@ export default function Reports() {
         </Grid>
       </TabPanel>
 
-      {/* TAB 2: ENTERPRISE REPORTS ENGINE (Phase C & I) */}
+      {/* TAB 2: ENTERPRISE REPORTS ENGINE */}
       <TabPanel value={tabIndex} index={2}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="h6" fontWeight="bold">Enterprise Report Generator (11 Categories)</Typography>
+          <Typography variant="h6" fontWeight="bold">Enterprise Report Generator ({CATEGORIES.length - 1} Categories)</Typography>
           <Stack direction="row" spacing={1}>
             <Button size="small" variant="outlined" startIcon={<FileDownloadIcon />} onClick={handleExportCSV}>Export CSV</Button>
             <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={() => {
-              console.log("PRINT BUTTON CLICKED - Reports");
               const w = window.open("", "_blank", "width=900,height=1200");
               if (w) {
-                w.document.write(`<html><head><title>Enterprise Reports</title></head><body style="font-family:sans-serif;padding:30px"><h2>INTERNATIONAL CONSORTIUM OF JURISTS — ENTERPRISE REPORTS</h2><p>Date: ${new Date().toLocaleDateString("en-IN")}</p><hr/><script>window.print();window.close();<\/script></body></html>`);
+                w.document.write(`<html><head><title>Enterprise Reports</title></head><body style="font-family:sans-serif;padding:30px"><h2>INTERNATIONAL CONSORTIUM OF JURISTS — ENTERPRISE REPORTS</h2><p>Date: ${new Date().toLocaleDateString("en-IN")}</p><hr/><script>window.print();window.close();</script></body></html>`);
                 w.document.close();
                 w.focus();
               }
@@ -302,6 +320,27 @@ export default function Reports() {
 
           <Grid item xs={12} md={8}>
             <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                <TextField
+                  size="small"
+                  fullWidth
+                  placeholder="Search reports..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <TextField
+                  select
+                  size="small"
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  sx={{ minWidth: 150 }}
+                >
+                  {CATEGORIES.map((c) => (
+                    <MenuItem key={c} value={c}>{c}</MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -321,10 +360,9 @@ export default function Reports() {
                       <TableCell><Chip label={r.status || "Generated"} size="small" color="success" /></TableCell>
                       <TableCell align="right">
                         <IconButton size="small" color="primary" onClick={() => {
-                          console.log("PRINT BUTTON CLICKED - Single Report");
                           const w = window.open("", "_blank", "width=900,height=1200");
                           if (w) {
-                            w.document.write(`<html><head><title>${r.title}</title></head><body style="font-family:sans-serif;padding:30px"><h2>${r.title}</h2><p>Report No: ${r.reportNo}</p><script>window.print();window.close();<\/script></body></html>`);
+                            w.document.write(`<html><head><title>${r.title}</title></head><body style="font-family:sans-serif;padding:30px"><h2>${r.title}</h2><p>Report No: ${r.reportNo}</p><script>window.print();window.close();</script></body></html>`);
                             w.document.close();
                             w.focus();
                           }
@@ -339,7 +377,7 @@ export default function Reports() {
         </Grid>
       </TabPanel>
 
-      {/* TAB 3: SYSTEM HEALTH (Phase E) */}
+      {/* TAB 3: SYSTEM HEALTH */}
       <TabPanel value={tabIndex} index={3}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={3}><Paper sx={{ p: 2, borderRadius: 2 }}><Typography variant="subtitle2">CPU Usage</Typography><Typography variant="h5" fontWeight="bold">14%</Typography></Paper></Grid>
@@ -349,7 +387,7 @@ export default function Reports() {
         </Grid>
       </TabPanel>
 
-      {/* TAB 4: NOTIFICATIONS (Phase F) */}
+      {/* TAB 4: NOTIFICATIONS */}
       <TabPanel value={tabIndex} index={4}>
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>Centralized Notification & System Alert Centre</Typography>
@@ -360,7 +398,7 @@ export default function Reports() {
         </Paper>
       </TabPanel>
 
-      {/* TAB 5: AUDIT & SECURITY (Phase G & J) */}
+      {/* TAB 5: AUDIT & SECURITY */}
       <TabPanel value={tabIndex} index={5}>
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>Master Audit Centre & Role-Based Access Logs</Typography>

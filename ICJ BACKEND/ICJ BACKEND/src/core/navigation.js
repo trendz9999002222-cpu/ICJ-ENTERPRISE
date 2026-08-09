@@ -1,9 +1,10 @@
 const Modules = [
-  // CORE
+  // ─── GROUP A: ACTIVE MEMBER MODULES ─────────────────────────────────────────
   {
     id: "dashboard",
     name: "Dashboard",
     category: "Core",
+    group: "A",
     route: "/",
     icon: "dashboard",
     enabled: true,
@@ -18,6 +19,7 @@ const Modules = [
     id: "membership",
     name: "Membership Engine",
     category: "Membership",
+    group: "A",
     route: "/membership",
     icon: "groups",
     enabled: true,
@@ -32,6 +34,7 @@ const Modules = [
     id: "member-directory",
     name: "Member Directory",
     category: "Membership",
+    group: "A",
     route: "/member-directory",
     icon: "badge",
     enabled: true,
@@ -46,6 +49,7 @@ const Modules = [
     id: "member-verification",
     name: "Member Verification",
     category: "Membership",
+    group: "A",
     route: "/member-verification",
     icon: "how_to_reg",
     enabled: true,
@@ -56,12 +60,28 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view", "edit"],
   },
+  {
+    id: "member-profile",
+    name: "Member Profile",
+    category: "Membership",
+    group: "A",
+    route: "/member-profile",
+    icon: "badge",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 2.3,
+    version: "1.0.0",
+    permissions: ["view", "edit"],
+  },
 
-  // LEGAL & ADVOCACY
+  // LEGAL & ADVOCACY (MEMBER DATA FLOW)
   {
     id: "legal",
     name: "Legal Registry",
     category: "Legal",
+    group: "A",
     route: "/legal",
     icon: "gavel",
     enabled: true,
@@ -74,8 +94,9 @@ const Modules = [
   },
   {
     id: "advocate-dashboard",
-    name: "Advocate Centre",
+    name: "Professional Centre",
     category: "Legal",
+    group: "A",
     route: "/advocate-dashboard",
     icon: "gavel",
     enabled: true,
@@ -90,6 +111,7 @@ const Modules = [
     id: "client-portal",
     name: "Client Portal",
     category: "Legal",
+    group: "A",
     route: "/client-portal",
     icon: "folder",
     enabled: true,
@@ -101,23 +123,10 @@ const Modules = [
     permissions: ["view"],
   },
   {
-    id: "trust-dashboard",
-    name: "Trust Executive",
-    category: "Legal",
-    route: "/trust-dashboard",
-    icon: "account_balance_wallet",
-    enabled: true,
-    sidebar: true,
-    dashboard: true,
-    searchable: true,
-    order: 3.3,
-    version: "1.0.0",
-    permissions: ["view"],
-  },
-  {
     id: "court-calendar",
     name: "Court Calendar",
     category: "Legal",
+    group: "A",
     route: "/court-calendar",
     icon: "dashboard",
     enabled: true,
@@ -129,11 +138,12 @@ const Modules = [
     permissions: ["view"],
   },
 
-  // AI & INTELLIGENCE
+  // AI & INTELLIGENCE (MEMBER DATA FLOW)
   {
     id: "ai-drafter",
     name: "AI Legal Drafter",
     category: "AI",
+    group: "A",
     route: "/ai-drafter",
     icon: "smart_toy",
     enabled: true,
@@ -144,26 +154,13 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view"],
   },
-  {
-    id: "ai",
-    name: "AI Assistant",
-    category: "AI",
-    route: "/ai",
-    icon: "smart_toy",
-    enabled: true,
-    sidebar: true,
-    dashboard: true,
-    searchable: true,
-    order: 4.1,
-    version: "1.0.0",
-    permissions: ["view"],
-  },
 
-  // FINANCE & WALLET
+  // FINANCE & WALLET (MEMBER DATA FLOW)
   {
     id: "billing",
     name: "Billing & Revenue",
     category: "Finance",
+    group: "A",
     route: "/billing",
     icon: "receipt_long",
     enabled: true,
@@ -178,6 +175,7 @@ const Modules = [
     id: "finance",
     name: "Finance & Wallet",
     category: "Finance",
+    group: "A",
     route: "/finance",
     icon: "account_balance_wallet",
     enabled: true,
@@ -192,6 +190,7 @@ const Modules = [
     id: "payment-management",
     name: "Payment Management",
     category: "Finance",
+    group: "A",
     route: "/payment-management",
     icon: "account_balance_wallet",
     enabled: true,
@@ -206,6 +205,7 @@ const Modules = [
     id: "token",
     name: "Token Governance",
     category: "Finance",
+    group: "A",
     route: "/token",
     icon: "savings",
     enabled: true,
@@ -217,11 +217,12 @@ const Modules = [
     permissions: ["view"],
   },
 
-  // DOCUMENTS & RESEARCH
+  // DOCUMENTS & REPOSITORY (MEMBER DATA FLOW)
   {
     id: "documents",
     name: "Document Vault",
     category: "Core",
+    group: "A",
     route: "/documents",
     icon: "folder",
     enabled: true,
@@ -232,10 +233,43 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view", "upload", "delete"],
   },
+
+  // ─── GROUP B: UNFROZEN TECHNICAL INFRASTRUCTURE (FULLY UNLOCKED & ACTIVE) ─
+  {
+    id: "trust-dashboard",
+    name: "Trust Executive",
+    category: "Legal",
+    group: "B",
+    route: "/trust-dashboard",
+    icon: "account_balance_wallet",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 3.3,
+    version: "1.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "ai",
+    name: "AI Assistant",
+    category: "AI",
+    group: "B",
+    route: "/ai",
+    icon: "smart_toy",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 4.1,
+    version: "1.0.0",
+    permissions: ["view"],
+  },
   {
     id: "research",
     name: "Research Engine",
     category: "Research",
+    group: "B",
     route: "/research",
     icon: "science",
     enabled: true,
@@ -246,12 +280,11 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view"],
   },
-
-  // ADMINISTRATION & SYSTEM GOVERNANCE
   {
     id: "administration",
     name: "Administration Desk",
     category: "Admin",
+    group: "B",
     route: "/administration",
     icon: "admin_panel_settings",
     enabled: true,
@@ -266,6 +299,7 @@ const Modules = [
     id: "governance-center",
     name: "Governance Center",
     category: "Admin",
+    group: "B",
     route: "/governance-center",
     icon: "verified_user",
     enabled: true,
@@ -280,6 +314,7 @@ const Modules = [
     id: "location-master",
     name: "Location Master",
     category: "Admin",
+    group: "B",
     route: "/location-master",
     icon: "location_on",
     enabled: true,
@@ -294,6 +329,7 @@ const Modules = [
     id: "database-config",
     name: "Database Config",
     category: "Admin",
+    group: "B",
     route: "/database-config",
     icon: "storage",
     enabled: true,
@@ -308,6 +344,7 @@ const Modules = [
     id: "api-config",
     name: "API Gateway & Config",
     category: "Admin",
+    group: "B",
     route: "/api-config",
     icon: "api",
     enabled: true,
@@ -322,6 +359,7 @@ const Modules = [
     id: "deployment-center",
     name: "Deployment Center",
     category: "Admin",
+    group: "B",
     route: "/deployment-center",
     icon: "cloud_upload",
     enabled: true,
@@ -336,6 +374,7 @@ const Modules = [
     id: "system-health",
     name: "System Health & Metrics",
     category: "Admin",
+    group: "B",
     route: "/system-health",
     icon: "monitor_heart",
     enabled: true,
@@ -346,12 +385,11 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
-
-  // REPORTS & ANALYTICS
   {
     id: "reports",
     name: "Reports Registry",
     category: "Analytics",
+    group: "B",
     route: "/reports",
     icon: "assessment",
     enabled: true,
@@ -366,6 +404,7 @@ const Modules = [
     id: "activity-log",
     name: "Activity & Audit Log",
     category: "Analytics",
+    group: "B",
     route: "/activity-log",
     icon: "history",
     enabled: true,
@@ -376,12 +415,11 @@ const Modules = [
     version: "1.0.0",
     permissions: ["view"],
   },
-
-  // SYSTEM SETTINGS & NOTIFICATIONS
   {
     id: "settings",
     name: "System Settings",
     category: "System",
+    group: "B",
     route: "/settings",
     icon: "settings",
     enabled: true,
@@ -396,6 +434,7 @@ const Modules = [
     id: "notifications",
     name: "Notifications",
     category: "System",
+    group: "B",
     route: "/notifications",
     icon: "notifications",
     enabled: true,
@@ -411,6 +450,8 @@ const Modules = [
 export const getAllModules = () => Modules;
 export const getEnabledModules = () => Modules.filter((m) => m.enabled);
 export const getSidebarModules = () => Modules.filter((m) => m.enabled && m.sidebar);
+export const getGroupAModules = () => Modules.filter((m) => m.enabled && m.group === "A");
+export const getGroupBModules = () => Modules.filter((m) => m.enabled && m.group === "B");
 export const getDashboardModules = () => Modules.filter((m) => m.enabled && m.dashboard);
 export const getSearchModules = () => Modules.filter((m) => m.enabled && m.searchable);
 export const getModuleById = (id) => Modules.find((m) => m.id === id);

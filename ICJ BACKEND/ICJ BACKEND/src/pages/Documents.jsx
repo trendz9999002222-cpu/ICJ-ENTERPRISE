@@ -21,6 +21,10 @@ import {
   IconButton,
   Tooltip,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 
 // Icons
@@ -59,6 +63,63 @@ export default function Documents() {
   const [documents, setDocuments] = useState([]);
   const [search, setSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
+
+  // DRM Print Lock Modal State
+  const [drmModalOpen, setDrmModalOpen] = useState(false);
+  const [selectedDrmDoc, setSelectedDrmDoc] = useState(null);
+  const [drmOtp, setDrmOtp] = useState("");
+  const [simulatedOtp, setSimulatedOtp] = useState("");
+  const [drmError, setDrmError] = useState("");
+  const [drmUnlocked, setDrmUnlocked] = useState(false);
+
+  const handleOpenDrmModal = (doc) => {
+    setSelectedDrmDoc(doc);
+    setDrmOtp("");
+    setDrmError("");
+    setDrmUnlocked(false);
+    const res = DocumentService.requestPrintOTP(doc.id || doc.documentNo, doc.owner);
+    setSimulatedOtp(res.otp);
+    setDrmModalOpen(true);
+  };
+
+  const handleVerifyDrmOtp = () => {
+    if (!selectedDrmDoc) return;
+    const res = DocumentService.verifyPrintOTP(selectedDrmDoc.id || selectedDrmDoc.documentNo, drmOtp);
+    if (res.success) {
+      setDrmUnlocked(true);
+      setDrmError("");
+    } else {
+      setDrmError(res.message);
+    }
+  };
+
+  const handlePrintWatermarked = () => {
+    if (!selectedDrmDoc) return;
+    const w = window.open("", "_blank");
+    w.document.write(`
+      <html>
+      <head><title>WATERMARKED DRM PRINT - ${selectedDrmDoc.title}</title></head>
+      <body style="font-family:sans-serif;padding:40px;position:relative">
+        <div style="position:fixed;top:40%;left:10%;transform:rotate(-30deg);font-size:42px;color:rgba(180,0,0,0.15);font-weight:bold;pointer-events:none">
+          AUTHORIZED PRINT COPY — OWNER OTP VERIFIED<br/>
+          ${selectedDrmDoc.owner} | ${new Date().toLocaleString('en-IN')}
+        </div>
+        <h2>ICJ ZERO-TRUST PROTECTED DOCUMENT PRINT</h2>
+        <p><b>Document Title:</b> ${selectedDrmDoc.title}</p>
+        <p><b>Document ID:</b> ${selectedDrmDoc.documentNo || selectedDrmDoc.id}</p>
+        <p><b>Owner:</b> ${selectedDrmDoc.owner}</p>
+        <p><b>DRM Hash:</b> ${selectedDrmDoc.hash || 'SHA256-ENCRYPTED'}</p>
+        <hr/>
+        <div style="margin-top:20px;border:1px solid #ccc;padding:20px;min-height:300px">
+          [ICJ Vault Encrypted Document Content - Read & Parsed by AI Consultation Engine]
+        </div>
+        <script>window.print();<\/script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    setDrmModalOpen(false);
+  };
 
   // New Document Upload State
   const [uploadForm, setUploadForm] = useState({
@@ -289,9 +350,18 @@ export default function Documents() {
                     <TableCell><Chip label={d.workflow || "Approved"} color="success" size="small" /></TableCell>
                     <TableCell sx={{ fontFamily: "monospace", fontSize: "11px" }}>{d.hash || "SHA256-DOC-2026-ENCRYPTED"}</TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" color="primary" onClick={() => window.open(d.qrToken || "#", "_blank")}>
-                        <DownloadIcon fontSize="small" />
-                      </IconButton>
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Tooltip title="DRM Protected Print (Requires OTP)">
+                          <IconButton size="small" color="primary" onClick={() => handleOpenDrmModal(d)}>
+                            <PrintIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Download Document (DRM Locked)">
+                          <IconButton size="small" color="secondary" onClick={() => handleOpenDrmModal(d)}>
+                            <DownloadIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))
@@ -415,6 +485,64 @@ export default function Documents() {
           </Table>
         </Paper>
       </TabPanel>
+
+      {/* DRM PRINT & DOWNLOAD AUTHORIZATION MODAL */}
+      <Dialog open={drmModalOpen} onClose={() => setDrmModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ backgroundColor: "#0f172a", color: "#fff", display: "flex", alignItems: "center", gap: 1 }}>
+          <SecurityIcon color="warning" />
+          🔒 Zero-Trust DRM Print Authorization
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          {selectedDrmDoc && (
+            <Box sx={{ mt: 1 }}>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <b>Privacy Lock Enabled:</b> Direct un-watermarked printing/downloading of personal documents (Aadhaar, PAN, Court Orders) is restricted to prevent misuse.
+              </Alert>
+
+              <Paper sx={{ p: 2, backgroundColor: "#f8fafc", mb: 2, borderRadius: 2 }}>
+                <Typography variant="subtitle2"><b>Document:</b> {selectedDrmDoc.title}</Typography>
+                <Typography variant="body2" color="text.secondary"><b>Owner:</b> {selectedDrmDoc.owner}</Typography>
+                <Typography variant="body2" color="text.secondary"><b>Vault Hash:</b> {selectedDrmDoc.hash || 'SHA256-ENCRYPTED'}</Typography>
+              </Paper>
+
+              <Alert severity="info" sx={{ mb: 2 }}>
+                📲 <b>OTP Authorization Sent:</b> An OTP has been dispatched to <b>{selectedDrmDoc.owner}</b> / Super Admin.
+                <br/>
+                <Chip label={`Simulated SMS OTP: ${simulatedOtp}`} size="small" color="primary" sx={{ mt: 1, fontWeight: "bold" }} />
+              </Alert>
+
+              {drmError && <Alert severity="error" sx={{ mb: 2 }}>{drmError}</Alert>}
+
+              {drmUnlocked ? (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  ✅ <b>Permission Granted!</b> One-time Watermarked Print authorization generated for this session.
+                </Alert>
+              ) : (
+                <TextField
+                  fullWidth
+                  label="Enter 6-Digit Owner OTP"
+                  value={drmOtp}
+                  onChange={(e) => setDrmOtp(e.target.value)}
+                  placeholder="e.g. 482910"
+                  sx={{ mt: 1 }}
+                />
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDrmModalOpen(false)}>Cancel</Button>
+          {!drmUnlocked ? (
+            <Button variant="contained" color="primary" onClick={handleVerifyDrmOtp} disabled={!drmOtp.trim()}>
+              Verify OTP & Authorize
+            </Button>
+          ) : (
+            <Button variant="contained" color="success" startIcon={<PrintIcon />} onClick={handlePrintWatermarked}>
+              Print Watermarked Document
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -1,4 +1,6 @@
+/* eslint-disable no-empty */
 import { supabase } from "./supabase.js";
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 const STORAGE_KEYS = {
   members: "icj_members",
@@ -10,6 +12,8 @@ const STORAGE_KEYS = {
   notifications: "icj_notifications",
   reports: "icj_reports",
   settings: "icj_settings",
+  pinnedNotes: "icj_pinned_notes",
+  communicationHistory: "icj_communication_history",
 };
 
 const env = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
@@ -287,62 +291,77 @@ const deleteTable = async (table, id, localKey, idField = "id") => {
 // Members (Synchronized Master User Repository)
 // ===========================
 
-export const getMembers = async () => {
-  if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem("icj_enterprise_users");
-      if (raw) return JSON.parse(raw);
-    } catch {
-      // Fallback to STORAGE_KEYS.members
+const readUnifiedUsers = () => {
+  if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
+  try {
+    const rawEnt = window.localStorage.getItem("icj_enterprise_users");
+    const rawMem = window.localStorage.getItem("icj_members");
+
+    let list = [];
+    if (rawEnt) {
+      try { const p = JSON.parse(rawEnt); if (Array.isArray(p)) list = [...list, ...p]; } catch {}
     }
+    if (rawMem) {
+      try { const p = JSON.parse(rawMem); if (Array.isArray(p)) list = [...list, ...p]; } catch {}
+    }
+
+    const map = new Map();
+    ENTERPRISE_SEED_USERS.forEach((u) => {
+      const k = String(u.id || u.member_id || u.email).toLowerCase();
+      map.set(k, u);
+    });
+    list.forEach((u) => {
+      if (u && (u.id || u.member_id || u.email)) {
+        const k = String(u.id || u.member_id || u.email).toLowerCase();
+        map.set(k, { ...(map.get(k) || {}), ...u });
+      }
+    });
+
+    const merged = Array.from(map.values());
+    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
+    window.localStorage.setItem("icj_members", JSON.stringify(merged));
+    return merged;
+  } catch {
+    return ENTERPRISE_SEED_USERS;
   }
-  return listTable("members", STORAGE_KEYS.members);
+};
+
+const writeUnifiedUsers = (users) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(users));
+    window.localStorage.setItem("icj_members", JSON.stringify(users));
+  } catch {}
+};
+
+export const getMembers = async () => {
+  return readUnifiedUsers();
 };
 
 export const addMember = async (member) => {
   const result = await insertTable("members", member, STORAGE_KEYS.members);
-  if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem("icj_enterprise_users");
-      const currentUsers = raw ? JSON.parse(raw) : [];
-      const updatedUsers = [result, ...currentUsers];
-      window.localStorage.setItem("icj_enterprise_users", JSON.stringify(updatedUsers));
-    } catch {
-      // Ignore fallback
-    }
-  }
+  const current = readUnifiedUsers();
+  const filtered = current.filter((u) => String(u.id) !== String(result.id) && String(u.member_id) !== String(result.member_id));
+  const updated = [result, ...filtered];
+  writeUnifiedUsers(updated);
   return result;
 };
 
 export const updateMember = async (id, values) => {
   await updateTable("members", id, values, STORAGE_KEYS.members);
-  if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem("icj_enterprise_users");
-      const currentUsers = raw ? JSON.parse(raw) : [];
-      const index = currentUsers.findIndex((u) => String(u.id) === String(id) || String(u.member_id) === String(id));
-      if (index !== -1) {
-        currentUsers[index] = { ...currentUsers[index], ...values };
-        window.localStorage.setItem("icj_enterprise_users", JSON.stringify(currentUsers));
-      }
-    } catch {
-      // Ignore fallback
-    }
+  const current = readUnifiedUsers();
+  const index = current.findIndex((u) => String(u.id) === String(id) || String(u.member_id) === String(id));
+  if (index !== -1) {
+    current[index] = { ...current[index], ...values };
+    writeUnifiedUsers(current);
   }
 };
 
 export const deleteMember = async (id) => {
   await deleteTable("members", id, STORAGE_KEYS.members);
-  if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem("icj_enterprise_users");
-      const currentUsers = raw ? JSON.parse(raw) : [];
-      const nextUsers = currentUsers.filter((u) => String(u.id) !== String(id) && String(u.member_id) !== String(id));
-      window.localStorage.setItem("icj_enterprise_users", JSON.stringify(nextUsers));
-    } catch {
-      // Ignore fallback
-    }
-  }
+  const current = readUnifiedUsers();
+  const nextUsers = current.filter((u) => String(u.id) !== String(id) && String(u.member_id) !== String(id));
+  writeUnifiedUsers(nextUsers);
 };
 
 // ===========================
@@ -483,3 +502,35 @@ export const saveSystemSettings = async (settings) => {
   writeStore(STORAGE_KEYS.settings, [payload]);
   return payload;
 };
+
+// ===========================
+// Pinned Notes
+// ===========================
+
+export const getPinnedNotes = async () =>
+  listTable("pinned_notes", STORAGE_KEYS.pinnedNotes);
+
+export const addPinnedNote = async (note) =>
+  insertTable("pinned_notes", note, STORAGE_KEYS.pinnedNotes);
+
+export const updatePinnedNote = async (id, values) =>
+  updateTable("pinned_notes", id, values, STORAGE_KEYS.pinnedNotes);
+
+export const deletePinnedNote = async (id) =>
+  deleteTable("pinned_notes", id, STORAGE_KEYS.pinnedNotes);
+
+// ===========================
+// Communication History
+// ===========================
+
+export const getCommunicationHistory = async () =>
+  listTable("communication_history", STORAGE_KEYS.communicationHistory);
+
+export const addCommunicationRecord = async (record) =>
+  insertTable("communication_history", record, STORAGE_KEYS.communicationHistory);
+
+export const updateCommunicationRecord = async (id, values) =>
+  updateTable("communication_history", id, values, STORAGE_KEYS.communicationHistory);
+
+export const deleteCommunicationRecord = async (id) =>
+  deleteTable("communication_history", id, STORAGE_KEYS.communicationHistory);

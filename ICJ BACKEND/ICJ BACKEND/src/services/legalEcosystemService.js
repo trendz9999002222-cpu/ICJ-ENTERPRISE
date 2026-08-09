@@ -17,6 +17,7 @@ const STORAGE_KEYS = {
 
 const getItem = (key, defaultVal = []) => {
   try {
+    if (typeof localStorage === "undefined") return defaultVal;
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : defaultVal;
   } catch {
@@ -26,6 +27,7 @@ const getItem = (key, defaultVal = []) => {
 
 const setItem = (key, val) => {
   try {
+    if (typeof localStorage === "undefined") return;
     localStorage.setItem(key, JSON.stringify(val));
   } catch (err) {
     console.error(`Failed to store key ${key}`, err);
@@ -44,6 +46,41 @@ const seedDefaultData = () => {
 
   if (getItem(STORAGE_KEYS.cases).length === 0) {
     setItem(STORAGE_KEYS.cases, [
+      {
+        id: "CASE-4YR-RESCUE-001",
+        caseNumber: "UPHC-01-004812-2022",
+        title: "Sh. Ramesh Kumar vs State of UP & Ors (Land Title & Criminal Dispute)",
+        clientName: "Sh. Ramesh Kumar (Litigant ID: MEM-LKO-9812)",
+        advocateName: "Adv. Rajesh Sharma (Current ICJ Advocate)",
+        advocateId: "ADV-101",
+        courtName: "District & Sessions Court, Lucknow",
+        status: "In Hearing (Transferred to ICJ)",
+        trustApprovalStatus: "Approved & Escrow Protected",
+        nextHearing: "2026-08-22",
+        filingDate: "2022-04-12", // 4 Years Ago!
+        icjTransferDate: "2025-08-10", // 1 Year Ago Transferred to ICJ!
+        is4YearOldCase: true,
+        previousLawyer: "Adv. P.K. Verma (Dismissed due to 8 missed hearings & ₹45,000 fee taken with no progress)",
+        summary: "4 साल पुराना सिविल व क्रिमिनल मामला। 1 साल पहले पुराने वकील की लापरवाही से दुखी होकर ICJ में स्थानांतरित हुआ।",
+        legalProvisions: ["BNSS 2023 Sec 482 (Anticipatory Bail)", "CPC Order 39 Rule 1&2 (Stay Order)", "BNS 2023 Sec 352"],
+        feeAmount: 65000,
+        paidAmount: 50000,
+        advocateSharePaid: 35000, // 70% Released to Advocate for Arguments
+        trustSharePaid: 15000,   // 30% ICJ Trust Service Charge (80G Tax Receipt ICJ-80G-2025-9812)
+        escrowBalance: 15000,    // Locked in ICJ Escrow Treasury
+        hearingsStats: {
+          totalInIcj: 12,
+          advocateAttended: 5,  // High stakes argument dates
+          clientSelfAttended: 7, // Routine dates ("अपनी वकालत खुद करें")
+          travelFeeSaved: 24500, // INR saved for Client!
+        },
+        vaultDocs: [
+          { name: "FIR_Copy_Crime_412_2022.pdf", uploaded: "2025-08-10", drm: "Locked (OTP Protected)" },
+          { name: "SaleDeed_Plot42_Lucknow.pdf", uploaded: "2025-08-12", drm: "Locked (OTP Protected)" },
+          { name: "HighCourt_Interim_StayOrder_Jan2026.pdf", uploaded: "2026-01-14", drm: "Locked (OTP Protected)" },
+          { name: "Vakalatnama_Adv_Rajesh_Sharma.pdf", uploaded: "2025-08-15", drm: "e-Signed" },
+        ],
+      },
       {
         id: "CASE-2026-001",
         caseNumber: "WP/2026/1042",
@@ -308,7 +345,7 @@ export const LegalEcosystemService = {
     const client = caseDetails.clientName || "Petitioner";
     const court = caseDetails.courtName || "IN THE HIGH COURT OF JUDICATURE";
 
-    let draftContent = "";
+    let draftContent;
 
     if (type === "Notice") {
       draftContent = `LEGAL NOTICE UNDER SECTION 80 CPC

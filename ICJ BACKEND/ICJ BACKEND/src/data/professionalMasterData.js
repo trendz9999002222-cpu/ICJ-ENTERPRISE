@@ -165,6 +165,7 @@ export const CUSTOM_PROFESSION_TRIGGERS = [
   "User Defined",
   "अन्य",
   "Other (Enter Manually)",
+  "Other / Not Listed",
 ];
 
 const CUSTOM_QUEUE_KEY = "icj_custom_professions_queue";
@@ -190,23 +191,24 @@ export class ProfessionalMasterService {
   /**
    * Submit custom user-defined profession or master entry to Super Admin Approval Queue
    */
-  static submitCustomProfession(customValue, submittedBy = "Member Registration", category = "Profession") {
-    return this.submitCustomMaster(category, customValue, submittedBy);
+  static submitCustomProfession(customValue, submittedBy = "Member Registration", category = "Profession", metadata = {}) {
+    return this.submitCustomMaster(category, customValue, submittedBy, metadata);
   }
 
   /**
    * Submit any custom master entry (Practice Area, Organisation, Court, State, District, City, Specialization, Category)
    */
-  static submitCustomMaster(category = "Master", customValue, submittedBy = "User Entry") {
+  static submitCustomMaster(category = "Master", customValue, submittedBy = "User Entry", metadata = {}) {
     if (!customValue || !customValue.trim()) return null;
     const cleanValue = customValue.trim();
 
-    // Prevent duplicate master entries
+    // Prevent duplicate master entries under same category and state
     const queue = this.getApprovalQueue();
     const isDuplicate = queue.some(
       (q) =>
         (q.category || "").toLowerCase() === category.toLowerCase() &&
-        (q.value || "").toLowerCase() === cleanValue.toLowerCase()
+        (q.value || "").toLowerCase() === cleanValue.toLowerCase() &&
+        (!metadata.state || (q.metadata?.state || "").toLowerCase() === (metadata.state || "").toLowerCase())
     );
 
     if (isDuplicate) {
@@ -220,6 +222,11 @@ export class ProfessionalMasterService {
       submittedBy,
       submittedAt: new Date().toISOString(),
       status: "Pending Super Admin Approval",
+      source: "CUSTOM/MANUAL",
+      metadata: {
+        source: "CUSTOM/MANUAL",
+        ...metadata,
+      },
     };
 
     queue.unshift(newEntry);

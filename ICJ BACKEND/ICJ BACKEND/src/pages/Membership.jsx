@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Typography, Button, Stack, Alert } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { useNavigate } from "react-router-dom";
 
 import { MemberService } from "../services/memberService";
 import DashboardService from "../services/dashboardService";
@@ -20,7 +19,6 @@ import UniversalActionToolbar from "../components/common/UniversalActionToolbar"
 import MainLayout from "../layouts/MainLayout";
 
 export default function Membership() {
-  const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [stats, setStats] = useState({ totalMembers: 0, activeMembers: 0, pendingMembers: 0, blockedMembers: 0, expiredMembers: 0 });
   const [search, setSearch] = useState("");
@@ -78,7 +76,35 @@ export default function Membership() {
   };
 
   useEffect(() => {
-    refreshMembers();
+    let isMounted = true;
+    async function init() {
+      try {
+        const list = await MemberService.getAll();
+        const safeList = Array.isArray(list) ? list : [];
+        if (isMounted) {
+          setMembers(safeList);
+          const totalMembers = safeList.length;
+          const activeMembers = safeList.filter((m) => (m.status || "").toLowerCase() === "active").length;
+          const pendingMembers = safeList.filter((m) => (m.verification_status || "").toLowerCase().includes("pending")).length;
+          const blockedMembers = safeList.filter((m) => (m.status || "").toLowerCase() === "blocked").length;
+          const expiredMembers = safeList.filter((m) => (m.status || "").toLowerCase() === "expired").length;
+
+          setStats({
+            totalMembers,
+            activeMembers: activeMembers || totalMembers,
+            pendingMembers,
+            blockedMembers,
+            expiredMembers,
+          });
+        }
+      } catch {
+        if (isMounted) setMembers([]);
+      }
+    }
+    init();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleChange = (e) => {

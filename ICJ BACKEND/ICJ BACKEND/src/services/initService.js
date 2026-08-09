@@ -34,12 +34,6 @@ export const DEFAULT_PERMISSIONS = {
 export const InitService = {
   async ensureSuperAdmin() {
     const currentUser = await AuthService.getCurrentUser();
-    if (!currentUser) {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("icj_user", JSON.stringify(DEFAULT_SUPER_ADMIN));
-      }
-      return DEFAULT_SUPER_ADMIN;
-    }
     return currentUser;
   },
 
@@ -60,7 +54,7 @@ export const InitService = {
 
     return {
       initialized: true,
-      superAdmin: admin.email,
+      superAdmin: admin?.email || "admin@icj.org",
       roles: DEFAULT_ROLES,
       permissions: DEFAULT_PERMISSIONS,
     };

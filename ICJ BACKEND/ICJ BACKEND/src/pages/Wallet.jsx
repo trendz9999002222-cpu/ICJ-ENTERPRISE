@@ -36,9 +36,13 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import PrintIcon from "@mui/icons-material/Print";
 import HistoryIcon from "@mui/icons-material/History";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 
 import WalletService from "../services/walletService";
 import ActivityService from "../services/activityService";
+import TokenLedgerService from "../services/tokenLedgerService";
+import TokenRateService from "../services/tokenRateService";
+import TransactionChargeService from "../services/transactionChargeService";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
 function TabPanel(props) {
@@ -122,15 +126,19 @@ export default function Wallet() {
     const todayCollection = 17700;
     const monthlyCollection = 327700;
 
-    return { totalIncome, totalExpense, walletBalance, donations, membershipIncome, legalServiceIncome, csrFunds, todayCollection, monthlyCollection };
+    const tokenStats = TokenLedgerService.getCirculationStats();
+    const tokenRate = TokenRateService.getCurrentRate();
+    const chargeRevenue = TransactionChargeService.getTotalChargesCollected();
+
+    return { totalIncome, totalExpense, walletBalance, donations, membershipIncome, legalServiceIncome, csrFunds, todayCollection, monthlyCollection, tokenStats, tokenRate, chargeRevenue };
   }, []);
 
   const cards = [
     { title: "Master Wallet Balance", value: `₹${stats.walletBalance.toLocaleString("en-IN")}`, color: "#1976d2", icon: <AccountBalanceWalletIcon /> },
-    { title: "Total Revenue / Income", value: `₹${stats.totalIncome.toLocaleString("en-IN")}`, color: "#2e7d32", icon: <AccountBalanceIcon /> },
-    { title: "Total Expenditure", value: `₹${stats.totalExpense.toLocaleString("en-IN")}`, color: "#d32f2f", icon: <ReceiptLongIcon /> },
-    { title: "Today's Collection", value: `₹${stats.todayCollection.toLocaleString("en-IN")}`, color: "#0288d1", icon: <PaymentIcon /> },
-    { title: "Monthly Collection", value: `₹${stats.monthlyCollection.toLocaleString("en-IN")}`, color: "#9c27b0", icon: <HistoryIcon /> },
+    { title: "Active ICJ Tokens", value: `${stats.tokenStats?.totalActive || 0} Tokens`, color: "#f59e0b", icon: <SwapHorizIcon /> },
+    { title: "Token Valuation Rate", value: `₹${stats.tokenRate?.tokenToInr || 10}/Token`, color: "#2e7d32", icon: <TrendingUpIcon /> },
+    { title: "Token Charge Collected", value: `₹${stats.chargeRevenue.toLocaleString("en-IN")}`, color: "#9c27b0", icon: <CheckCircleIcon /> },
+    { title: "Total Revenue / Income", value: `₹${stats.totalIncome.toLocaleString("en-IN")}`, color: "#0288d1", icon: <AccountBalanceIcon /> },
     { title: "CSR & Grant Funds", value: `₹${stats.csrFunds.toLocaleString("en-IN")}`, color: "#ed6c02", icon: <CheckCircleIcon /> },
   ];
 

@@ -19,6 +19,11 @@ import MemberCard from "../pages/MemberCard";
 import Documents from "../pages/Documents";
 import Wallet from "../pages/Wallet";
 import Token from "../pages/Token";
+import TokenExchange from "../pages/TokenExchange";
+import TokenGovernanceManual from "../pages/TokenGovernanceManual";
+import Campaigns from "../pages/Campaigns";
+import SubscriptionPlans from "../pages/SubscriptionPlans";
+import VirtualOffice from "../pages/VirtualOffice";
 import Donations from "../pages/Donations";
 import Settings from "../pages/Settings";
 import ActivityLog from "../pages/ActivityLog";
@@ -32,6 +37,7 @@ import Notifications from "../pages/Notifications";
 import Reports from "../pages/Reports";
 
 import SuperAdminDashboard from "../pages/SuperAdminDashboard";
+import MemberPersonalDashboard from "../pages/MemberPersonalDashboard";
 import AdvocateDashboard from "../pages/AdvocateDashboard";
 import ClientPortal from "../pages/ClientPortal";
 import TrustDashboard from "../pages/TrustDashboard";
@@ -47,20 +53,36 @@ import DeploymentCenter from "../pages/DeploymentCenter";
 import SystemHealth from "../pages/SystemHealth";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 
+import PublicOnboarding from "../pages/PublicOnboarding";
+import useAuth from "../hooks/useAuth";
+
+function RootDashboard() {
+  const { user } = useAuth();
+  const role = String(user?.role || "member").toLowerCase();
+
+  if (role === "admin") {
+    return <SuperAdminDashboard />;
+  }
+  return <MemberPersonalDashboard />;
+}
+
 export default function AppRouter() {
   return (
     <GlobalErrorBoundary componentName="AppRouter">
       <BrowserRouter>
         <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Navigate to="/membership" replace />} />
+        <Route path="/loginAuthentication" element={<Navigate to="/login" replace />} />
+        <Route path="/join" element={<PublicOnboarding />} />
+        <Route path="/register" element={<Navigate to="/join" replace />} />
+        <Route path="/member-register" element={<Navigate to="/join" replace />} />
         <Route path="/recovery" element={<Recovery />} />
 
         <Route
           path="/"
           element={(
             <ProtectedRoute>
-              <SuperAdminDashboard />
+              <RootDashboard />
             </ProtectedRoute>
           )}
         />
@@ -84,6 +106,7 @@ export default function AppRouter() {
         />
 
         <Route path="/member-registration" element={<Navigate to="/membership" replace />} />
+        <Route path="/member-register" element={<Navigate to="/membership" replace />} />
         <Route path="/member-directory" element={<ProtectedRoute roles={["admin", "employee"]}><MemberDirectory /></ProtectedRoute>} />
         <Route path="/member-verification" element={<ProtectedRoute roles={["admin", "employee"]}><MemberVerification /></ProtectedRoute>} />
         <Route path="/member-documents" element={<ProtectedRoute><MemberDocuments /></ProtectedRoute>} />
@@ -98,30 +121,45 @@ export default function AppRouter() {
 
         <Route path="/identity" element={<ProtectedRoute><MemberIdentity /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
-        <Route path="/token" element={<ProtectedRoute><Token /></ProtectedRoute>} />
+        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/token" element={<Token />} />
+        {/* Token Exchange Public Portal — visible to all, exchange requires login */}
+        <Route path="/token-exchange" element={<TokenExchange />} />
+        <Route path="/icj-token" element={<TokenExchange />} />
+        {/* System Governance Manual & FAQ Knowledgebase Module */}
+        <Route path="/token-governance-manual" element={<TokenGovernanceManual />} />
+        <Route path="/token-system-faq" element={<TokenGovernanceManual />} />
+        <Route path="/token-manual" element={<TokenGovernanceManual />} />
+        <Route path="/token-faq" element={<TokenGovernanceManual />} />
+
+        {/* Unlocked Platform Ecosystem Routes */}
+        <Route path="/campaigns" element={<Campaigns />} />
+        <Route path="/subscription" element={<SubscriptionPlans />} />
+        <Route path="/virtual-office" element={<VirtualOffice />} />
         <Route path="/donation" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><Settings /></ProtectedRoute>} />
-        <Route path="/activity-log" element={<ProtectedRoute><ActivityLog /></ProtectedRoute>} />
+        <Route path="/activity-log" element={<ProtectedRoute roles={["admin", "employee"]}><ActivityLog /></ProtectedRoute>} />
         <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
         <Route path="/member-profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/reports" element={<ProtectedRoute roles={["admin", "employee"]}><Reports /></ProtectedRoute>} />
+        <Route path="/reports" element={<Reports />} />
 
-        <Route path="/legal" element={<ProtectedRoute roles={["admin", "employee"]}><Legal /></ProtectedRoute>} />
-        <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
-        <Route path="/research" element={<ProtectedRoute roles={["admin", "employee"]}><Research /></ProtectedRoute>} />
-        <Route path="/administration" element={<ProtectedRoute roles={["admin"]}><Administration /></ProtectedRoute>} />
-        <Route path="/finance" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        <Route path="/legal" element={<Legal />} />
+        <Route path="/ai" element={<AIAssistant />} />
+        <Route path="/research" element={<Research />} />
+        <Route path="/administration" element={<Administration />} />
+        <Route path="/finance" element={<Wallet />} />
 
         {/* AI Legal Ecosystem Routes */}
-        <Route path="/advocate-dashboard" element={<ProtectedRoute roles={["admin", "employee"]}><AdvocateDashboard /></ProtectedRoute>} />
-        <Route path="/client-portal" element={<ProtectedRoute><ClientPortal /></ProtectedRoute>} />
-        <Route path="/trust-dashboard" element={<ProtectedRoute roles={["admin"]}><TrustDashboard /></ProtectedRoute>} />
-        <Route path="/court-calendar" element={<ProtectedRoute><CourtCalendar /></ProtectedRoute>} />
-        <Route path="/billing" element={<ProtectedRoute roles={["admin", "employee"]}><BillingInvoicing /></ProtectedRoute>} />
-        <Route path="/ai-drafter" element={<ProtectedRoute><LegalDrafter /></ProtectedRoute>} />
-        <Route path="/payment-management" element={<ProtectedRoute><PaymentManagement /></ProtectedRoute>} />
+        <Route path="/advocate-dashboard" element={<AdvocateDashboard />} />
+        <Route path="/client-portal" element={<ClientPortal />} />
+        <Route path="/trust-dashboard" element={<TrustDashboard />} />
+        <Route path="/court-calendar" element={<CourtCalendar />} />
+        <Route path="/billing" element={<BillingInvoicing />} />
+        <Route path="/billing-invoicing" element={<BillingInvoicing />} />
+        <Route path="/master-finance" element={<Wallet />} />
+        <Route path="/ai-drafter" element={<LegalDrafter />} />
+        <Route path="/payment-management" element={<PaymentManagement />} />
         <Route path="/location-master" element={<ProtectedRoute roles={["admin"]}><LocationMasterAdmin /></ProtectedRoute>} />
         <Route path="/database-config" element={<ProtectedRoute roles={["admin"]}><DatabaseConfig /></ProtectedRoute>} />
         <Route path="/governance-center" element={<ProtectedRoute roles={["admin"]}><GovernanceCenter /></ProtectedRoute>} />

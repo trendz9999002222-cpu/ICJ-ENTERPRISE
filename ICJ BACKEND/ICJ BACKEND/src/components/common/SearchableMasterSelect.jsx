@@ -2,10 +2,17 @@ import { useMemo } from "react";
 import { Autocomplete, TextField, Grid } from "@mui/material";
 import { ProfessionalMasterService } from "../../data/professionalMasterData";
 
+const OTHER_TRIGGERS = [
+  "Other / Not Listed",
+  "Other (Enter Manually)",
+  "Other / Custom District",
+  "Other",
+];
+
 /**
  * ICJ ENTERPRISE PLATFORM — SEARCHABLE MASTER AUTOCOMPLETE SELECT
- * Upgrades all master dropdowns (State, City, Court, Practice Area, Specialization, etc.)
- * with searchable options and "Other (Enter Manually)" text entry.
+ * Upgrades all master dropdowns (State, District, City, Court, Practice Area, Specialization, etc.)
+ * with searchable options and "Other / Not Listed" inline manual text entry.
  */
 export default function SearchableMasterSelect({
   label = "Option",
@@ -21,23 +28,21 @@ export default function SearchableMasterSelect({
   error = false,
   fullWidth = true,
   disabled = false,
+  metadata = {},
 }) {
-  const OTHER_TRIGGER = "Other (Enter Manually)";
-
-  // Enforce "Other (Enter Manually)" presence in options
+  // Enforce "Other / Not Listed" presence in options
   const masterOptions = useMemo(() => {
     const list = Array.isArray(options) ? [...options] : [];
-    if (!list.includes(OTHER_TRIGGER)) {
-      list.push(OTHER_TRIGGER);
+    const mainTrigger = "Other / Not Listed";
+    if (!list.some((opt) => OTHER_TRIGGERS.includes(opt))) {
+      list.push(mainTrigger);
     }
     return list;
   }, [options]);
 
   const isCustomActive =
-    value === OTHER_TRIGGER ||
-    value === "Other" ||
-    value === "Custom" ||
-    (value && !options.includes(value));
+    OTHER_TRIGGERS.includes(value) ||
+    (value && !options.includes(value) && value !== "");
 
   const handleSelectChange = (event, newValue) => {
     if (!newValue) {
@@ -45,8 +50,8 @@ export default function SearchableMasterSelect({
       return;
     }
 
-    if (newValue === OTHER_TRIGGER || newValue === "Other") {
-      onChange({ target: { name: category.toLowerCase(), value: OTHER_TRIGGER } });
+    if (OTHER_TRIGGERS.includes(newValue)) {
+      onChange({ target: { name: category.toLowerCase(), value: newValue } });
     } else {
       onChange({ target: { name: category.toLowerCase(), value: newValue } });
     }
@@ -57,9 +62,17 @@ export default function SearchableMasterSelect({
     if (onCustomValueChange) {
       onCustomValueChange(customVal);
     }
-    // Automatically submit to Super Admin Queue
+    // Automatically submit to Super Admin Queue with provenance metadata
     if (customVal && customVal.trim().length >= 2) {
-      ProfessionalMasterService.submitCustomMaster(category, customVal, "Searchable Master Input");
+      ProfessionalMasterService.submitCustomMaster(
+        category,
+        customVal,
+        "Inline Master Custom Input",
+        {
+          source: "CUSTOM/MANUAL",
+          ...metadata,
+        }
+      );
     }
   };
 
@@ -73,7 +86,7 @@ export default function SearchableMasterSelect({
           disabled={disabled}
           onChange={handleSelectChange}
           onInputChange={(event, newInputValue) => {
-            if (newInputValue && !options.includes(newInputValue)) {
+            if (newInputValue && !options.includes(newInputValue) && !OTHER_TRIGGERS.includes(newInputValue)) {
               if (onCustomValueChange) {
                 onCustomValueChange(newInputValue);
               }
@@ -88,7 +101,7 @@ export default function SearchableMasterSelect({
               error={error}
               helperText={
                 isCustomActive
-                  ? `Custom ${category} mode active`
+                  ? `Custom ${category} (Manual Entry Active)`
                   : helperText
               }
             />
@@ -100,12 +113,12 @@ export default function SearchableMasterSelect({
         <Grid item xs={12}>
           <TextField
             fullWidth
-            label={`Custom ${category}`}
-            placeholder={`Enter custom ${category}...`}
-            value={customValue || ""}
+            label={`Manual ${category} Entry (Not Listed)`}
+            placeholder={`Type manual ${category} name...`}
+            value={customValue || (value && !OTHER_TRIGGERS.includes(value) ? value : "")}
             onChange={handleCustomTextChange}
-            helperText="Subject to admin approval"
-            error={Boolean(!customValue || !customValue.trim())}
+            helperText="Custom value will be preserved and sent to Admin Queue"
+            error={Boolean(!customValue && !OTHER_TRIGGERS.includes(value) && (!value || !value.trim()))}
           />
         </Grid>
       )}

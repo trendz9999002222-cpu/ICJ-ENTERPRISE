@@ -22,10 +22,19 @@ import {
   PROFESSIONAL_CLASSIFICATION,
   CUSTOM_PROFESSION_TRIGGERS,
 } from "../../data/professionalMasterData";
-import { STATES_LIST } from "../../data/locationMasterData";
+import {
+  NAME_PREFIXES,
+  LEGAL_PERSONALITIES,
+  FUNCTIONAL_CLASSIFICATIONS,
+  JURISDICTIONS,
+  getCategoriesForJurisdiction,
+  getEntityTypes,
+  getLegalPersonality,
+} from "../../data/entityTypeMasterData";
+import { STATES_LIST, getDistrictsForState } from "../../data/locationMasterData";
 import SearchableMasterSelect from "../common/SearchableMasterSelect";
 import SearchableCountrySelect from "../common/SearchableCountrySelect";
-import { getCountryByCodeOrIso } from "../../data/internationalPhoneMaster";
+import { getCountryByCodeOrIso, validatePhoneNumber } from "../../data/internationalPhoneMaster";
 
 export default function MemberForm({
   form,
@@ -42,6 +51,16 @@ export default function MemberForm({
   const mobileCountryCode = form.mobileCountryCode || "+91";
   const waCountryCode = form.waCountryCode || "+91";
   const emergencyCountryCode = form.emergencyCountryCode || "+91";
+
+  const entityJurisdiction = form.entityJurisdiction || "India";
+  const availableEntityCategories = getCategoriesForJurisdiction(entityJurisdiction);
+  const entityCategory = form.entityCategory || availableEntityCategories[0] || "";
+  const availableEntityTypes = getEntityTypes(entityJurisdiction, entityCategory);
+  const selectedEntityType = form.entityType || availableEntityTypes[0] || "";
+
+  // Auto-inferred legal personality fallback
+  const inferredLegalPersonality = getLegalPersonality(regType, entityCategory, selectedEntityType);
+  const legalPersonality = form.legalPersonality || inferredLegalPersonality;
 
   const mobCfg = getCountryByCodeOrIso(mobileCountryCode);
   const waCfg = getCountryByCodeOrIso(waCountryCode);
@@ -84,21 +103,23 @@ export default function MemberForm({
   }, [form.email]);
 
   const isMobileValid = useMemo(() => {
-    const mob = (form.mobile || "").trim();
-    return mobCfg.regex.test(mob);
-  }, [form.mobile, mobCfg]);
+    const res = validatePhoneNumber(mobileCountryCode, form.mobile || "");
+    return res.isValid;
+  }, [form.mobile, mobileCountryCode]);
 
   const isWaValid = useMemo(() => {
     const wa = (form.whatsapp || "").trim();
     if (!wa) return true; // optional
-    return waCfg.regex.test(wa);
-  }, [form.whatsapp, waCfg]);
+    const res = validatePhoneNumber(waCountryCode, wa);
+    return res.isValid;
+  }, [form.whatsapp, waCountryCode]);
 
   const isEmergencyValid = useMemo(() => {
     const emg = (form.emergencyContact || "").trim();
     if (!emg) return true; // optional
-    return emgCfg.regex.test(emg);
-  }, [form.emergencyContact, emgCfg]);
+    const res = validatePhoneNumber(emergencyCountryCode, emg);
+    return res.isValid;
+  }, [form.emergencyContact, emergencyCountryCode]);
 
   const isAadhaarValid = useMemo(() => {
     const aadh = (form.aadhaar || "").trim();
@@ -170,6 +191,14 @@ export default function MemberForm({
     isProfessionValid &&
     duplicateErrors.length === 0;
 
+  const handleRegTypeChange = (e) => {
+    const newType = e.target.value;
+    handleChange({ target: { name: "regType", value: newType } });
+    handleChange({ target: { name: "name", value: "" } });
+    handleChange({ target: { name: "mobile", value: "" } });
+    handleChange({ target: { name: "whatsapp", value: "" } });
+  };
+
   return (
     <Paper sx={{ mt: 4, p: { xs: 2.5, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
       <Typography variant="h5" fontWeight="bold" color="primary.main" gutterBottom sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
@@ -183,28 +212,48 @@ export default function MemberForm({
       )}
 
       <Stack spacing={4}>
-        {/* SECTION 1: IDENTITY */}
+        {/* SECTION 1: IDENTITY & ENTITY MASTER CLASSIFICATION */}
         <Box>
           <Typography variant="subtitle1" fontWeight="bold" color="primary.dark" sx={{ mb: 1.5, pb: 0.5, borderBottom: "1px solid #e0e0e0" }}>
-            SECTION 1 — Identity
+            SECTION 1 — Identity & Entity Master Classification
           </Typography>
           <Grid container spacing={2.5}>
+            {/* 1. Registration Type */}
             <Grid item xs={12}>
               <FormControl component="fieldset">
                 <FormLabel component="legend" sx={{ fontWeight: "bold", fontSize: "0.85rem", mb: 0.5 }}>
                   Registration Type
                 </FormLabel>
-                <RadioGroup row name="regType" value={regType} onChange={handleChange}>
+                <RadioGroup row name="regType" value={regType} onChange={handleRegTypeChange}>
                   <FormControlLabel value="Individual" control={<Radio color="primary" size="small" />} label="Individual Practitioner / Member" />
-                  <FormControlLabel value="Organisation" control={<Radio color="secondary" size="small" />} label="Organisation / Institution / Law Firm / NGO" />
+                  <FormControlLabel value="Organisation" control={<Radio color="secondary" size="small" />} label="Organisation / Institution / Law Firm / NGO / Government Entity" />
                 </RadioGroup>
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            {/* 2. Name Prefix / Salutation */}
+            <Grid item xs={12} md={3}>
+              <TextField
+                select
+                fullWidth
+                label="Name Prefix"
+                name="namePrefix"
+                value={form.namePrefix || "Mr."}
+                onChange={handleChange}
+                helperText="Title / Salutation (Prefix)"
+              >
+                {NAME_PREFIXES.map((prefix) => (
+                  <MenuItem key={prefix} value={prefix}>
+                    {prefix}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={9}>
               <TextField
                 fullWidth
-                label={regType === "Organisation" ? "Entity Name" : "Full Name"}
+                label={regType === "Organisation" ? "Entity Legal Name" : "Full Name"}
                 name="name"
                 value={form.name || ""}
                 onChange={handleNameChange}
@@ -219,36 +268,123 @@ export default function MemberForm({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            {/* 3. Country / Jurisdiction */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Country / Jurisdiction"
+                name="entityJurisdiction"
+                value={entityJurisdiction}
+                onChange={handleChange}
+                helperText="Legal Jurisdiction"
+              >
+                {JURISDICTIONS.map((j) => (
+                  <MenuItem key={j} value={j}>
+                    {j}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* 4. Entity Category (Dependent on Jurisdiction) */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Entity Category"
+                name="entityCategory"
+                value={entityCategory}
+                onChange={handleChange}
+                helperText="Broad Legal Category"
+              >
+                {availableEntityCategories.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* 5. Legal Entity Type (Dependent on Jurisdiction + Category) */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Legal Entity Type"
+                name="entityType"
+                value={selectedEntityType}
+                onChange={handleChange}
+                helperText="Specific Legal Constitution / Form"
+              >
+                {availableEntityTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* 6. Legal Personality (Master field after Legal Entity Type) */}
+            <Grid item xs={12} md={4}>
+              <TextField
+                select
+                fullWidth
+                label="Legal Personality"
+                name="legalPersonality"
+                value={legalPersonality}
+                onChange={handleChange}
+                helperText="Legal Entity Persona (Not Profession)"
+              >
+                {LEGAL_PERSONALITIES.map((person) => (
+                  <MenuItem key={person} value={person}>
+                    {person}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* 7. Official / Registered Entity Name (Search + Autocomplete + Manual Free-Text) */}
+            <Grid item xs={12} md={8}>
               <SearchableMasterSelect
-                label="Organisation"
+                label="Official / Registered Entity Name"
                 category="Organisation"
                 value={form.organisation || ""}
                 customValue={form.customOrganisation || ""}
                 onChange={(e) => handleChange({ target: { name: "organisation", value: e.target.value } })}
                 onCustomValueChange={(val) => handleChange({ target: { name: "customOrganisation", value: val } })}
-                options={[
-                  "Supreme Court Bar Association (SCBA)",
-                  "High Court Bar Association",
-                  "District Bar Association",
-                  "Bar Council of India",
-                  "ICAI - Institute of Chartered Accountants",
-                  "ICSI - Institute of Company Secretaries",
-                  "Indian Legal Service",
-                  "Corporate Law Chamber",
-                  "Independent Law Practice",
-                ]}
-                placeholder="Search organisation..."
-                helperText="Firm, bar council or institution"
+                options={existingMembers.map((m) => m.organisation || m.name).filter(Boolean)}
+                placeholder="Search or enter registered entity name..."
+                helperText="Official registered firm, institution or entity name"
               />
             </Grid>
 
+            {/* 8. Functional / Sector Classification */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                label="Functional / Sector Classification"
+                name="functionalClassification"
+                value={form.functionalClassification || "Legal Services"}
+                onChange={handleChange}
+                helperText="Functional / Sector Classification"
+              >
+                {FUNCTIONAL_CLASSIFICATIONS.map((func) => (
+                  <MenuItem key={func} value={func}>
+                    {func}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* 9. Designation / Role */}
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Designations"
+                label="Designations / Role"
                 name="designations"
-                placeholder="e.g. Senior Partner, Standing Counsel"
+                placeholder="e.g. Senior Partner, Managing Director, Trustee"
                 value={form.designations || ""}
                 onChange={handleChange}
                 helperText="Comma separated for multiple roles"
@@ -297,36 +433,25 @@ export default function MemberForm({
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Grid container spacing={1}>
-                <Grid item xs={5}>
-                  <SearchableCountrySelect
-                    label="Country"
-                    value={waCountryCode}
-                    onChange={(c) => handleChange({ target: { name: "waCountryCode", value: c.code } })}
-                  />
-                </Grid>
-                <Grid item xs={7}>
-                  <TextField
-                    fullWidth
-                    label="WhatsApp"
-                    name="whatsapp"
-                    placeholder={waCfg.placeholder}
-                    value={form.whatsapp || ""}
-                    onChange={(e) => handleDigitsOnlyChange(e, waCfg.maxDigits)}
-                    error={Boolean(form.whatsapp && !isWaValid)}
-                    helperText={
-                      form.whatsapp
-                        ? isWaValid
-                          ? `✓ Valid WhatsApp • ${waCfg.country} (${waCfg.code})`
-                          : waCfg.minDigits === waCfg.maxDigits
-                            ? `Must contain exactly ${waCfg.maxDigits} digits`
-                            : `Must contain ${waCfg.minDigits}–${waCfg.maxDigits} digits`
-                        : `${waCfg.minDigits === waCfg.maxDigits ? `${waCfg.maxDigits} digits` : `${waCfg.minDigits}–${waCfg.maxDigits} digits`} • ${waCfg.country} (${waCfg.code})`
-                    }
-                    inputProps={{ maxLength: waCfg.maxDigits }}
-                  />
-                </Grid>
-              </Grid>
+              <TextField
+                fullWidth
+                label={`WhatsApp (${waCfg.code})`}
+                name="whatsapp"
+                placeholder={waCfg.placeholder}
+                value={form.whatsapp || ""}
+                onChange={(e) => handleDigitsOnlyChange(e, waCfg.maxDigits)}
+                error={Boolean(form.whatsapp && !isWaValid)}
+                helperText={
+                  form.whatsapp
+                    ? isWaValid
+                      ? `✓ Valid WhatsApp • ${waCfg.country} (${waCfg.code})`
+                      : waCfg.minDigits === waCfg.maxDigits
+                        ? `Must contain exactly ${waCfg.maxDigits} digits`
+                        : `Must contain ${waCfg.minDigits}–${waCfg.maxDigits} digits`
+                    : `Optional (${waCfg.code})`
+                }
+                inputProps={{ maxLength: waCfg.maxDigits }}
+              />
             </Grid>
 
             <Grid item xs={12} md={6}>
@@ -564,11 +689,12 @@ export default function MemberForm({
                 category="District"
                 value={form.district || ""}
                 customValue={form.customDistrict || ""}
+                metadata={{ state: form.state || "Delhi", source: "CUSTOM/MANUAL" }}
                 onChange={(e) => handleChange({ target: { name: "district", value: e.target.value } })}
                 onCustomValueChange={(val) => handleChange({ target: { name: "customDistrict", value: val } })}
-                options={["New Delhi", "Central Delhi", "South Delhi", "Mumbai City", "Bengaluru Urban", "Lucknow", "Chennai", "Kolkata"]}
+                options={getDistrictsForState(form.state || "Delhi")}
                 placeholder="Search District..."
-                helperText="Select District"
+                helperText="Select District for selected State/UT"
               />
             </Grid>
 
@@ -665,36 +791,25 @@ export default function MemberForm({
             )}
 
             <Grid item xs={12} md={4}>
-              <Grid container spacing={1}>
-                <Grid item xs={5}>
-                  <SearchableCountrySelect
-                    label="Country"
-                    value={emergencyCountryCode}
-                    onChange={(c) => handleChange({ target: { name: "emergencyCountryCode", value: c.code } })}
-                  />
-                </Grid>
-                <Grid item xs={7}>
-                  <TextField
-                    fullWidth
-                    label="Emergency Contact"
-                    name="emergencyContact"
-                    placeholder={emgCfg.placeholder}
-                    value={form.emergencyContact || ""}
-                    onChange={(e) => handleDigitsOnlyChange(e, emgCfg.maxDigits)}
-                    error={Boolean(form.emergencyContact && !isEmergencyValid)}
-                    helperText={
-                      form.emergencyContact
-                        ? isEmergencyValid
-                          ? `✓ Valid Contact • ${emgCfg.country} (${emgCfg.code})`
-                          : emgCfg.minDigits === emgCfg.maxDigits
-                            ? `Must contain exactly ${emgCfg.maxDigits} digits`
-                            : `Must contain ${emgCfg.minDigits}–${emgCfg.maxDigits} digits`
-                        : `${emgCfg.minDigits === emgCfg.maxDigits ? `${emgCfg.maxDigits} digits` : `${emgCfg.minDigits}–${emgCfg.maxDigits} digits`} • ${emgCfg.country} (${emgCfg.code})`
-                    }
-                    inputProps={{ maxLength: emgCfg.maxDigits }}
-                  />
-                </Grid>
-              </Grid>
+              <TextField
+                fullWidth
+                label={`Emergency Contact (${emgCfg.code})`}
+                name="emergencyContact"
+                placeholder={emgCfg.placeholder}
+                value={form.emergencyContact || ""}
+                onChange={(e) => handleDigitsOnlyChange(e, emgCfg.maxDigits)}
+                error={Boolean(form.emergencyContact && !isEmergencyValid)}
+                helperText={
+                  form.emergencyContact
+                    ? isEmergencyValid
+                      ? `✓ Valid Contact • ${emgCfg.country} (${emgCfg.code})`
+                      : emgCfg.minDigits === emgCfg.maxDigits
+                        ? `Must contain exactly ${emgCfg.maxDigits} digits`
+                        : `Must contain ${emgCfg.minDigits}–${emgCfg.maxDigits} digits`
+                    : `Optional (${emgCfg.code})`
+                }
+                inputProps={{ maxLength: emgCfg.maxDigits }}
+              />
             </Grid>
           </Grid>
         </Box>

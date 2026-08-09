@@ -6,13 +6,16 @@ import ITU_GLOBAL_COUNTRY_MASTERS, {
 
 /**
  * ICJ ENTERPRISE PLATFORM — SEARCHABLE INTERNATIONAL COUNTRY AUTOCOMPLETE
- * Searchable country selector supporting all ITU-T E.164 assigned codes & territories.
+ * Supports two modes:
+ *   compact=true  → Phone calling-code picker (shows flag + code only in input)
+ *   compact=false → Full country picker (shows flag + full country name in input)
  */
 export default function SearchableCountrySelect({
   value = "+91",
   onChange,
   label = "Country",
   disabled = false,
+  compact = false,
 }) {
   const selectedCountry = useMemo(() => {
     return getCountryByCodeOrIso(value);
@@ -22,11 +25,13 @@ export default function SearchableCountrySelect({
     <Autocomplete
       options={ITU_GLOBAL_COUNTRY_MASTERS}
       disabled={disabled}
-      getOptionLabel={(option) =>
-        typeof option === "string"
-          ? option
-          : `${option.flag} ${option.country} (${option.code})`
-      }
+      getOptionLabel={(option) => {
+        if (typeof option === "string") return option;
+        // compact=true → closed input shows ONLY the ISD code, e.g. "+91"
+        // compact=false → closed input shows flag + country name, e.g. "🇮🇳 India"
+        if (compact) return option.code;
+        return `${option.flag} ${option.country}`;
+      }}
       value={selectedCountry}
       onChange={(event, newValue) => {
         if (newValue && typeof newValue === "object") {
@@ -59,10 +64,10 @@ export default function SearchableCountrySelect({
         <TextField
           {...params}
           label={label}
-          placeholder="Search country..."
+          placeholder={compact ? "Code..." : "Search country..."}
           inputProps={{
             ...params.inputProps,
-            autoComplete: "new-password", // disable autocomplete and autofill
+            autoComplete: "new-password",
           }}
         />
       )}

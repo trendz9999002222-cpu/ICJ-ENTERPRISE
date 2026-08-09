@@ -102,6 +102,61 @@ export const getCountryByCodeOrIso = (query) => {
   );
 };
 
+export const validatePhoneNumber = (callingCodeOrCountry, digits = "") => {
+  const cfg = getCountryByCodeOrIso(callingCodeOrCountry);
+  const rawStr = String(digits || "").trim();
+
+  if (/[^\d\s()-]/.test(rawStr)) {
+    return {
+      isValid: false,
+      reason: "Contains invalid non-numeric characters",
+      digits: rawStr.replace(/\D/g, ""),
+    };
+  }
+
+  const cleanDigits = rawStr.replace(/\D/g, "");
+
+  if (!cleanDigits) {
+    return { isValid: false, reason: "Phone number is required", digits: "" };
+  }
+
+  if (cfg.iso === "IN") {
+    if (cleanDigits.length !== 10) {
+      return {
+        isValid: false,
+        reason: `Indian mobile number must contain exactly 10 digits (entered ${cleanDigits.length})`,
+        digits: cleanDigits,
+      };
+    }
+    if (!/^[6-9]/.test(cleanDigits)) {
+      return {
+        isValid: false,
+        reason: "Indian mobile number must start with 6, 7, 8, or 9",
+        digits: cleanDigits,
+      };
+    }
+    return { isValid: true, reason: "✓ Valid Indian Phone Number", digits: cleanDigits };
+  }
+
+  if (cleanDigits.length < cfg.minDigits) {
+    return {
+      isValid: false,
+      reason: `${cfg.country} phone number requires minimum ${cfg.minDigits} digits (entered ${cleanDigits.length})`,
+      digits: cleanDigits,
+    };
+  }
+
+  if (cleanDigits.length > cfg.maxDigits) {
+    return {
+      isValid: false,
+      reason: `${cfg.country} phone number maximum allowed is ${cfg.maxDigits} digits (entered ${cleanDigits.length})`,
+      digits: cleanDigits,
+    };
+  }
+
+  return { isValid: true, reason: `✓ Valid ${cfg.country} Phone Number`, digits: cleanDigits };
+};
+
 export const formatE164 = (callingCode, digits) => {
   if (!digits) return "";
   const cleanDigits = String(digits).replace(/\D/g, "");
