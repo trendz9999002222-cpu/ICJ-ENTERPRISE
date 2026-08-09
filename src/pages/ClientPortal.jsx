@@ -51,6 +51,7 @@ import SystemConfigService from "../services/systemConfigService.js";
 import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZATIONS } from "../services/virtualOfficeService.js";
 import { getDocuments, addDocument } from "../services/database.js";
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
+import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
 
@@ -433,55 +434,16 @@ export default function ClientPortal() {
                         ))}
                       </TextField>
 
-                      <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        label="अपनी समस्या संक्षेप में बताएं (Text Explanation)"
-                        placeholder="उदा. मेरे भाई के खिलाफ पुलिस स्टेशन में झगड़े की झूठी एफआईआर (FIR) दर्ज कराई गई है..."
-                        value={aiProbText}
-                        onChange={(e) => setAiProbText(e.target.value)}
-                        sx={{ mb: 2 }}
-                        InputProps={{
-                          endAdornment: <VoiceInputAdornment onTranscript={(txt) => setAiProbText((p) => p + " " + txt)} value={aiProbText} />,
-                        }}
-                      />
+                      <Box sx={{ mb: 2 }}>
+                        <VoiceCommentaryStudio
+                          value={aiProbText}
+                          onChange={(text) => setAiProbText(text)}
+                          label="🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)"
+                          placeholder="यहाँ क्लिक करके 1 से 5 पेज की पूरी समस्या बोलें... आपका बोला गया एक-एक शब्द यहाँ रियल-टाइम में टाइप होगा!"
+                        />
+                      </Box>
                     </>
                   )}
-
-                  {/* Voice Note Recorder */}
-                  <Paper sx={{ p: 2, mb: 2, bgcolor: aiRecording ? "#fef2f2" : "#f8fafc", borderRadius: 2, border: aiRecording ? "1px solid #fecaca" : "1px dashed #cbd5e1" }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        <MicIcon color={aiRecording ? "error" : "action"} />
-                        <Typography variant="body2" fontWeight={600} color={aiRecording ? "#dc2626" : "text.secondary"}>
-                          {aiRecording ? "🔴 रिकॉर्डिंग चालू है... (बोलिए)" : "🎙️ वॉइस संदेश रिकॉर्ड करें"}
-                        </Typography>
-                      </Stack>
-                      <Button
-                        size="small"
-                        variant={aiRecording ? "contained" : "outlined"}
-                        color={aiRecording ? "error" : "primary"}
-                        onClick={() => {
-                          if (!aiRecording) {
-                            setAiRecording(true);
-                            setAiVoiceNote("रिकॉर्डिंग जारी...");
-                          } else {
-                            setAiRecording(false);
-                            setAiVoiceNote("ऑडियो संदेश रिकॉर्ड किया गया: 'मेरे भाई के खिलाफ एफआईआर दर्ज हुई है, मुझे जमानत की प्रक्रिया और बचाव की कानूनी सलाह चाहिए।'");
-                          }
-                        }}
-                        sx={{ fontWeight: "bold", textTransform: "none" }}
-                      >
-                        {aiRecording ? "🔴 Stop Recording" : "🎙️ Record Voice"}
-                      </Button>
-                    </Stack>
-                    {aiVoiceNote && (
-                      <Typography variant="caption" color="primary" sx={{ mt: 1, display: "block", fontStyle: "italic" }}>
-                        {aiVoiceNote}
-                      </Typography>
-                    )}
-                  </Paper>
 
                   <TextField
                     fullWidth
