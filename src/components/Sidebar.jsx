@@ -378,8 +378,8 @@ export default function Sidebar() {
         <Typography variant="caption" color="#64748b" display="block">
           ICJ Enterprise Platform
         </Typography>
-        <Typography variant="body2" sx={{ fontWeight: "bold", color: "#94a3b8" }}>
-          Group A: Active | Group B: Frozen 🔒
+        <Typography variant="body2" sx={{ fontWeight: "bold", color: "#34d399" }}>
+          Group A: Active | Group B: Active 🟢
         </Typography>
       </Box>
     </Drawer>
