@@ -166,6 +166,14 @@ export default function ClientPortal() {
     );
   }, [documents, clientName, memberId]);
 
+  const activeAdvocate = advocates[0] || {
+    id: "26ICJ08AA0001",
+    memberId: "26ICJ08AA0001",
+    name: "Adv. Rajesh Sharma",
+    barId: "UP/2026/9812",
+    phone: "+91 98390 12345",
+  };
+
   const handleCreateCase = () => {
     if (!form.title.trim()) {
       alert("Please provide a title or issue description.");
@@ -244,8 +252,6 @@ export default function ClientPortal() {
     ActivityService.create({ title: `Client Message Sent: "${clientMsgInput.substring(0, 30)}..."`, type: "legal" });
     setClientMsgInput("");
   };
-
-  const activeAdvocate = advocates[0] || { name: "Adv. Rajesh Sharma", barId: "MAH/1234/2012", phone: "+91 98201 12345" };
 
   return (
     <MainLayout>
