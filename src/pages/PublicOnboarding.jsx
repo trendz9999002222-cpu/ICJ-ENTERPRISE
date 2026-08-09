@@ -37,6 +37,7 @@ import VisibilityOff  from "@mui/icons-material/VisibilityOff";
 import LockIcon       from "@mui/icons-material/Lock";
 import SecurityIcon   from "@mui/icons-material/Security";
 
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService from "../services/authService";
@@ -440,15 +441,27 @@ Thank you for registering with ICJ Enterprise Platform.
                       </Grid>
                       <Grid item xs={12} sm={3.1}>
                         <TextField fullWidth required label="First Name *" name="firstName"
-                          value={form.firstName} onChange={handleChange} placeholder="First Name..." />
+                          value={form.firstName} onChange={handleChange} placeholder="First Name..."
+                          InputProps={{
+                            endAdornment: <VoiceInputAdornment onTranscript={(txt) => setForm((p) => ({ ...p, firstName: (p.firstName + " " + txt).trim() }))} value={form.firstName} />,
+                          }}
+                        />
                       </Grid>
                       <Grid item xs={12} sm={3.1}>
                         <TextField fullWidth label="Middle Name" name="middleName"
-                          value={form.middleName} onChange={handleChange} placeholder="Middle Name (optional)" />
+                          value={form.middleName} onChange={handleChange} placeholder="Middle Name (optional)"
+                          InputProps={{
+                            endAdornment: <VoiceInputAdornment onTranscript={(txt) => setForm((p) => ({ ...p, middleName: (p.middleName + " " + txt).trim() }))} value={form.middleName} />,
+                          }}
+                        />
                       </Grid>
                       <Grid item xs={12} sm={3.3}>
                         <TextField fullWidth required label="Last Name *" name="lastName"
-                          value={form.lastName} onChange={handleChange} placeholder="Last Name..." />
+                          value={form.lastName} onChange={handleChange} placeholder="Last Name..."
+                          InputProps={{
+                            endAdornment: <VoiceInputAdornment onTranscript={(txt) => setForm((p) => ({ ...p, lastName: (p.lastName + " " + txt).trim() }))} value={form.lastName} />,
+                          }}
+                        />
                       </Grid>
                     </Grid>
 

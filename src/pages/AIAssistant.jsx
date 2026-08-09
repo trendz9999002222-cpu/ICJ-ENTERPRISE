@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Box, Paper, Typography, Grid, TextField, Button, Stack } from "@mui/material";
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import AIService from "../services/aiService";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
@@ -56,6 +57,9 @@ export default function AIAssistant() {
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
                 placeholder="Summarize legal updates for this week..."
+                InputProps={{
+                  endAdornment: <VoiceInputAdornment onTranscript={(txt) => setPrompt((p) => p + " " + txt)} value={prompt} />,
+                }}
               />
 
               <Button variant="contained" onClick={askAssistant} disabled={submitting}>

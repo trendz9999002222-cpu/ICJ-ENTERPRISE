@@ -29,6 +29,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LockIcon from "@mui/icons-material/Lock";
 import GroupsIcon from "@mui/icons-material/Groups";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import { MemberService } from "../services/memberService";
 import ActivityService from "../services/activityService";
 import useAuth from "../hooks/useAuth";
@@ -323,6 +324,7 @@ export default function MemberDirectory() {
                     <SearchIcon />
                   </InputAdornment>
                 ),
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setSearch(txt.trim())} value={search} />,
               }}
             />
 
