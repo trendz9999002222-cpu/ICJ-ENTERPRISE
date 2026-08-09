@@ -70,7 +70,7 @@ export default class GlobalErrorBoundary extends Component {
               </Typography>
             </Alert>
 
-            <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 3 }}>
+            <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" gap={1} sx={{ mt: 3 }}>
               <Button
                 variant="contained"
                 color="primary"
@@ -78,6 +78,14 @@ export default class GlobalErrorBoundary extends Component {
                 onClick={this.handleReset}
               >
                 Try Re-rendering
+              </Button>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => window.history.back()}
+                sx={{ fontWeight: "bold" }}
+              >
+                🔙 Go Back (पिछला पेज जाएं)
               </Button>
               <Button
                 variant="outlined"

@@ -821,8 +821,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 1: CASE TIMELINE */}
-        <TabPanel value={tabIndex} index={1}>
+        {/* TAB 2: CASE TIMELINE */}
+        <TabPanel value={tabIndex} index={2}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Interactive Case Progress Timeline & Milestones
@@ -840,8 +840,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 2: DOCUMENT VAULT & UPLOAD (Phase 9 & 10) */}
-        <TabPanel value={tabIndex} index={2}>
+        {/* TAB 3: DOCUMENT VAULT & UPLOAD (Phase 9 & 10) */}
+        <TabPanel value={tabIndex} index={3}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
               <Typography variant="h6" fontWeight="bold">
@@ -882,8 +882,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 3: ASSIGNED ADVOCATE & PRACTICE TEAM */}
-        <TabPanel value={tabIndex} index={3}>
+        {/* TAB 4: ASSIGNED ADVOCATE & PRACTICE TEAM */}
+        <TabPanel value={tabIndex} index={4}>
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
               <Box>
@@ -1039,8 +1039,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 4: PAYMENTS */}
-        <TabPanel value={tabIndex} index={4}>
+        {/* TAB 5: PAYMENTS */}
+        <TabPanel value={tabIndex} index={5}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Legal Fee Payments & Invoice Ledger
@@ -1068,8 +1068,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 5: APPOINTMENTS */}
-        <TabPanel value={tabIndex} index={5}>
+        {/* TAB 6: APPOINTMENTS */}
+        <TabPanel value={tabIndex} index={6}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
               <Typography variant="h6" fontWeight="bold">
@@ -1114,8 +1114,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 6: MESSAGES */}
-        <TabPanel value={tabIndex} index={6}>
+        {/* TAB 7: MESSAGES */}
+        <TabPanel value={tabIndex} index={7}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Direct Messaging with Legal Counsel
@@ -1145,8 +1145,8 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 7: CLIENT PROFILE & KYC */}
-        <TabPanel value={tabIndex} index={7}>
+        {/* TAB 8: CLIENT PROFILE & KYC */}
+        <TabPanel value={tabIndex} index={8}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Client Identity, KYC & Membership Profile
@@ -1175,7 +1175,7 @@ export default function ClientPortal() {
         </TabPanel>
 
         {/* TAB 9: ICJ PARTNER & E-GOV DESK */}
-        <TabPanel value={tabIndex} index={8}>
+        <TabPanel value={tabIndex} index={9}>
           <Paper elevation={3} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
               <Box>
