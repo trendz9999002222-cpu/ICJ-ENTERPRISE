@@ -22,16 +22,21 @@ export default function VoiceInputAdornment({ onTranscript, value = "", lang = "
     recognition.lang = lang;
 
     recognition.onresult = (event) => {
-      let finalTranscript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      let finalStr = "";
+      let interimStr = "";
+
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
+          finalStr += transcript + " ";
+        } else {
+          interimStr += transcript + " ";
         }
       }
 
-      if (finalTranscript && onTranscript) {
-        onTranscript(finalTranscript);
+      const activeText = [finalStr, interimStr].filter(Boolean).join(" ").trim();
+      if (activeText && onTranscript) {
+        onTranscript(activeText);
       }
     };
 

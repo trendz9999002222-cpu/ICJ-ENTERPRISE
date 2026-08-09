@@ -43,6 +43,15 @@ export default function VoiceCommentaryStudio({
     isRecordingRef.current = isRecording;
   }, [isRecording]);
 
+  const baseTextRef = useRef(value);
+
+  // Keep baseTextRef in sync when NOT recording
+  useEffect(() => {
+    if (!isRecording) {
+      baseTextRef.current = value;
+    }
+  }, [value, isRecording]);
+
   // Speech Recognition & MediaRecorder Setup
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -54,16 +63,25 @@ export default function VoiceCommentaryStudio({
     recognition.lang = "hi-IN";
 
     recognition.onresult = (event) => {
-      let finalTranscript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      let finalStr = "";
+      let interimStr = "";
+
+      for (let i = 0; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
+          finalStr += transcript + " ";
+        } else {
+          interimStr += transcript + " ";
         }
       }
 
-      if (finalTranscript && onChange) {
-        onChange(value ? `${value.trim()} ${finalTranscript}` : finalTranscript);
+      const combinedText = [baseTextRef.current, finalStr, interimStr]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ");
+
+      if (onChange) {
+        onChange(combinedText);
       }
     };
 
