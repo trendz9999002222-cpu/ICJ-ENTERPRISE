@@ -438,6 +438,17 @@ export default function ClientPortal() {
                         <VoiceCommentaryStudio
                           value={aiProbText}
                           onChange={(text) => setAiProbText(text)}
+                          onSendVoiceToChat={(note) => {
+                            const chatMsg = {
+                              id: note.id,
+                              sender: clientName,
+                              text: `🎙️ ${note.title} (${note.duration}): "${(note.transcript || "Audio Commentary").substring(0, 80)}..."`,
+                              timestamp: note.timestamp,
+                              audioUrl: note.audioUrl,
+                            };
+                            setMessages((prev) => [...prev, chatMsg]);
+                            ActivityService.create({ title: `Voice Note Audio File Dispatched: ${note.title}`, type: "legal" });
+                          }}
                           label="🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)"
                           placeholder="यहाँ क्लिक करके 1 से 5 पेज की पूरी समस्या बोलें... आपका बोला गया एक-एक शब्द यहाँ रियल-टाइम में टाइप होगा!"
                         />
@@ -1089,9 +1100,14 @@ export default function ClientPortal() {
             </Typography>
             <Stack spacing={2} sx={{ mb: 3 }}>
               {messages.map((m) => (
-                <Paper key={m.id} variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
+                <Paper key={m.id} variant="outlined" sx={{ p: 2, bgcolor: m.audioUrl ? "#f0fdf4" : "#f8f9fa", borderColor: m.audioUrl ? "#86efac" : "#e2e8f0" }}>
                   <Typography variant="caption" color="primary" fontWeight="bold">{m.sender} • {m.timestamp}</Typography>
                   <Typography variant="body2" sx={{ mt: 0.5 }}>{m.text}</Typography>
+                  {m.audioUrl && (
+                    <Box sx={{ mt: 1 }}>
+                      <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, borderRadius: 8 }} />
+                    </Box>
+                  )}
                 </Paper>
               ))}
             </Stack>

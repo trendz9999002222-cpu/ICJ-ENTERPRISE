@@ -18,25 +18,23 @@ export default function VoiceInputAdornment({ onTranscript, value = "", lang = "
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true; // Continuous listening — never stops on pauses!
-    recognition.interimResults = true;
+    recognition.interimResults = false; // Disable raw predictive suggestions — ZERO TEXT ERASING!
+    recognition.maxAlternatives = 1;
     recognition.lang = lang;
 
     recognition.onresult = (event) => {
-      let finalStr = "";
-      let interimStr = "";
-
-      for (let i = 0; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
+      let newlyFinalizedText = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
-          finalStr += transcript + " ";
-        } else {
-          interimStr += transcript + " ";
+          const phrase = event.results[i][0].transcript.trim();
+          if (phrase) {
+            newlyFinalizedText += phrase + " ";
+          }
         }
       }
 
-      const activeText = [finalStr, interimStr].filter(Boolean).join(" ").trim();
-      if (activeText && onTranscript) {
-        onTranscript(activeText);
+      if (newlyFinalizedText && onTranscript) {
+        onTranscript(newlyFinalizedText);
       }
     };
 
