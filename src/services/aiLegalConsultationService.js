@@ -8,14 +8,15 @@
  *  4. Advocate Assistance & Auto Pleading Builder (Bail Apps, FIR Quashing, Written Statements)
  */
 
-import ActivityService from "./activityService";
+import ActivityService from "./activityService.js";
 
 const CONSULTATION_STORE_KEY = "icj_ai_legal_consultations";
 
+const getStorage = () => (typeof window !== "undefined" ? window.localStorage : (globalThis.window?.localStorage || globalThis.localStorage));
 const readStore = (key) => {
-  try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+  try { return JSON.parse(getStorage()?.getItem(key) || "[]"); } catch { return []; }
 };
-const writeStore = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+const writeStore = (key, val) => getStorage()?.setItem(key, JSON.stringify(val));
 
 export const CASE_CATEGORIES = {
   CRIMINAL_FIR: "Criminal FIR & Arrest / आपराधिक मामला व एफआईआर",
@@ -148,7 +149,7 @@ export const AiLegalConsultationService = {
       return c;
     });
     writeStore(CONSULTATION_STORE_KEY, updated);
-    return { success: true, consultationId };
+    return { success: true, consultationId, advocateAssigned: true, advocateName };
   },
 
   /** Advocate updates and approves the AI draft */
