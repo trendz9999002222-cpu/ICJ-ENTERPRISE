@@ -35,6 +35,7 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import PrintIcon from "@mui/icons-material/Print";
 
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
 import MainLayout from "../layouts/MainLayout";
@@ -208,6 +209,7 @@ export default function CourtCalendar() {
               sx={{ width: 400 }}
               InputProps={{
                 startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
+                endAdornment: <VoiceInputAdornment onTranscript={(txt) => setSearch(txt.trim())} value={search} />,
               }}
             />
           </Stack>

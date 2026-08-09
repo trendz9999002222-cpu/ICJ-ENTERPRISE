@@ -42,6 +42,7 @@ import QrCode2Icon from "@mui/icons-material/QrCode2";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
 
+import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import DocumentService from "../services/documentService";
 import ActivityService from "../services/activityService";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
@@ -245,6 +246,7 @@ export default function Documents() {
           sx={{ width: 450 }}
           InputProps={{
             startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
+            endAdornment: <VoiceInputAdornment onTranscript={(txt) => setSearch(txt.trim())} value={search} />,
           }}
         />
       </Stack>
