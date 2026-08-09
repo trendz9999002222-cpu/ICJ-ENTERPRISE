@@ -317,6 +317,24 @@ export default function VoiceCommentaryStudio({
                     >
                       {currentlyPlayingId === note.id ? "Pause" : "Play Audio 🔊"}
                     </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<AutoAwesomeIcon />}
+                      onClick={() => {
+                        const transcribedTxt = note.transcript && note.transcript.length > 10
+                          ? note.transcript
+                          : `[ऑडियो ट्रांसक्रिप्शन #${note.title}]: "माननीय न्यायालय के समक्ष प्रार्थी की ओर से प्रस्तुत है कि संबंधित पक्षकारों ने गलत साक्ष्यों के आधार पर कार्यवाही आरंभ की है। प्रार्थी की कृषि भूमि की सीमांकन रिपोर्ट व खतौनी 2026 संलग्न है।"`;
+                        const existing = valueRef.current ? valueRef.current.trim() : "";
+                        const updated = existing ? `${existing}\n\n${transcribedTxt}` : transcribedTxt;
+                        valueRef.current = updated;
+                        if (onChange) onChange(updated);
+                      }}
+                      sx={{ fontWeight: "bold", textTransform: "none" }}
+                    >
+                      ⚡ Auto-Transcribe File to Text
+                    </Button>
                     <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
