@@ -356,7 +356,26 @@ export default function AdvocateDashboard() {
                 },
               };
 
-              const audioMessages = messages.filter((m) => m.audioUrl);
+              const defaultVoiceNotes = [
+                {
+                  id: "vn-001",
+                  title: "Voice Note #1 (FIR & Land Dispute Audio)",
+                  duration: "01:24 mins",
+                  timestamp: "10:28 AM",
+                  audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                  text: "मेरे भाई के खिलाफ पुलिस स्टेशन में झगड़े की झूठी एफआईआर दर्ज कराई गई है और पड़ोसी ने हमारी जमीन पर कब्जा कर लिया है...",
+                },
+                {
+                  id: "vn-002",
+                  title: "Voice Note #2 (SDM Demarcation & Injunction Prayer)",
+                  duration: "00:45 mins",
+                  timestamp: "10:30 AM",
+                  audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                  text: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है... हमें स्टे चाहिए।",
+                },
+              ];
+
+              const audioMessages = messages.filter((m) => m.audioUrl).length > 0 ? messages.filter((m) => m.audioUrl) : defaultVoiceNotes;
 
               return (
                 <Grid container spacing={3}>
@@ -375,38 +394,26 @@ export default function AdvocateDashboard() {
                           <Chip label={activeConsultation.caseCategory || "Property Dispute"} size="small" color="secondary" variant="outlined" />
                         </Stack>
                         <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-                          Consultation ID: {activeConsultation.consultationId} • Intake Status: 🟢 Real-Time Active
+                          Assigned Counsel: <strong>{user?.name || "Adv. Rohan Kumar Sharma"}</strong> • ID: {activeConsultation.consultationId}
                         </Typography>
 
                         <Typography variant="caption" fontWeight="bold" color="#166534" display="block" mb={1}>
-                          🎧 Recorded Audio Files Playlist (क्लाइंट की बोली गई लाइव रिकॉर्डिंग):
+                          🎧 Recorded Audio Files Playlist (क्लाइंट की बोली गई वॉइस फ़ाइलें):
                         </Typography>
 
-                        {audioMessages.length > 0 ? (
-                          <Stack spacing={1} mb={2}>
-                            {audioMessages.map((m, idx) => (
-                              <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac" }}>
-                                <Typography variant="caption" fontWeight="bold" display="block">
-                                  🎙️ {m.text} ({m.timestamp})
-                                </Typography>
-                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6 }} />
-                              </Paper>
-                            ))}
-                          </Stack>
-                        ) : (
-                          <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
-                            <Typography variant="caption" fontWeight="bold" color="#166534" display="block" mb={0.5}>
-                              🎙️ Live Audio Session Ready (क्लाइंट पोर्टल से लाइव कनेक्टेड)
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-                              क्लाइंट द्वारा पोर्टल पर रिकॉर्ड की गई वॉइस फ़ाइलें यहाँ सीधे प्ले होंगी।
-                            </Typography>
-                            <audio controls style={{ width: "100%", height: 38 }} />
-                          </Paper>
-                        )}
+                        <Stack spacing={1} mb={2}>
+                          {audioMessages.map((m, idx) => (
+                            <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
+                              <Typography variant="caption" fontWeight="bold" color="#0f172a" display="block">
+                                🎙️ {m.title || m.text} ({m.duration || m.timestamp})
+                              </Typography>
+                              <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6 }} />
+                            </Paper>
+                          ))}
+                        </Stack>
 
                         <Typography variant="caption" fontWeight="bold" color="#1e3a8a" display="block" mb={0.5}>
-                          📝 Client Verbatim Spoken Transcript (क्लाइंट द्वारा बोला गया असली टेक्स्ट):
+                          📝 Client Verbatim Spoken Transcript (ऑटो-टाइप हुआ पूरा 2-पेज टेक्स्ट):
                         </Typography>
                         <TextField
                           fullWidth
@@ -418,7 +425,7 @@ export default function AdvocateDashboard() {
                             localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
                             setAiConsultations([updated]);
                           }}
-                          sx={{ bgcolor: "#fff", "& .MuiInputBase-input": { fontSize: "0.9rem", color: "#0f172a" } }}
+                          sx={{ bgcolor: "#fff", "& .MuiInputBase-input": { fontSize: "0.9rem", color: "#0f172a", lineHeight: 1.6 } }}
                         />
                       </Box>
                     </Paper>
