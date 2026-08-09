@@ -47,6 +47,7 @@ import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
 import AiLegalConsultationService, { CASE_CATEGORIES } from "../services/aiLegalConsultationService.js";
 import SystemConfigService from "../services/systemConfigService.js";
+import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZATIONS } from "../services/virtualOfficeService.js";
 import { getDocuments, addDocument } from "../services/database.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
