@@ -22,6 +22,7 @@ import {
   Tabs,
   Tab,
   Alert,
+  Avatar,
 } from "@mui/material";
 
 // Icons
