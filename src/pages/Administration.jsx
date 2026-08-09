@@ -42,6 +42,7 @@ import ActivityService from "../services/activityService";
 import DashboardService from "../services/dashboardService";
 import MemberService from "../services/memberService";
 import VirtualOfficeService from "../services/virtualOfficeService";
+import SystemConfigService from "../services/systemConfigService";
 import PasswordPolicyAdminConfigurator from "../components/admin/PasswordPolicyAdminConfigurator";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
@@ -388,6 +389,23 @@ export default function Administration() {
     { label: "Reports", value: stats?.totalReports ?? "—" },
   ];
 
+  // Partner Plan Launch Switchboard state
+  const [planConfigs, setPlanConfigs] = useState(SystemConfigService.getPlanConfigs());
+
+  const handleLaunchPlan = (planId) => {
+    const updated = SystemConfigService.launchPlan(planId);
+    setPlanConfigs(SystemConfigService.getPlanConfigs());
+    setSaveMsg(`🎉 SUCCESS! ${updated.name} has been officially launched! Instant broadcast notification sent to all registered members.`);
+    setTimeout(() => setSaveMsg(""), 5000);
+  };
+
+  const handleLockPlan = (planId) => {
+    const updated = SystemConfigService.lockPlan(planId);
+    setPlanConfigs(SystemConfigService.getPlanConfigs());
+    setSaveMsg(`🔒 ${updated.name} has been locked by Super Admin.`);
+    setTimeout(() => setSaveMsg(""), 3500);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom color="#0f172a">
@@ -408,6 +426,95 @@ export default function Administration() {
           {saveMsg}
         </Alert>
       )}
+
+      {/* ─── SECTION 0: MASTER PARTNER PLAN LAUNCH SWITCHBOARD ─── */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", borderLeft: "6px solid #7c3aed" }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="#6d28d9" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              ⚡ Master Partner Plan Launch Switchboard &amp; Member Broadcast Control
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Super Admin master controls to launch or lock client partner plans. Launching dispatches instant notifications to all existing members.
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Divider sx={{ mb: 2.5 }} />
+
+        <Grid container spacing={2}>
+          {Object.values(planConfigs).map((plan) => {
+            const isLaunched = plan.status === "LAUNCHED";
+            const isStandard = plan.id === "plan_standard";
+
+            return (
+              <Grid item xs={12} sm={6} md={3} key={plan.id}>
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    bgcolor: isLaunched ? "#f0fdf4" : "#fffbe6",
+                    borderColor: isLaunched ? "#10b981" : "#f59e0b",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                      <Typography variant="h6">{plan.icon}</Typography>
+                      <Chip
+                        label={isLaunched ? "ACTIVE & LIVE" : "LOCKED 🔒"}
+                        color={isLaunched ? "success" : "warning"}
+                        size="small"
+                        sx={{ fontWeight: "bold" }}
+                      />
+                    </Stack>
+                    <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" gutterBottom>
+                      {plan.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" paragraph sx={{ minHeight: 40 }}>
+                      {plan.description}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ pt: 1 }}>
+                    {isStandard ? (
+                      <Button fullWidth size="small" variant="outlined" color="success" disabled sx={{ fontWeight: "bold" }}>
+                        ALWAYS ACTIVE
+                      </Button>
+                    ) : isLaunched ? (
+                      <Button
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleLockPlan(plan.id)}
+                        sx={{ fontWeight: "bold" }}
+                      >
+                        LOCK PLAN 🔒
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth
+                        size="small"
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => handleLaunchPlan(plan.id)}
+                        sx={{ fontWeight: "bold", bgcolor: "#7c3aed" }}
+                      >
+                        LAUNCH PLAN NOW 🚀
+                      </Button>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Paper>
 
       {/* ─── SECTION 1: SUPER ADMIN PAN-INDIA MASTER LEGAL INTELLIGENCE & EXCEL TABLE ─── */}
       <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff" }}>
