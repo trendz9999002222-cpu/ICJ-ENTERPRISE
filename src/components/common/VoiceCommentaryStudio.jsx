@@ -9,9 +9,6 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  Divider,
-  List,
-  ListItem,
 } from "@mui/material";
 import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
@@ -19,17 +16,17 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
-import SendIcon from "@mui/icons-material/Send";
-import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+
+const MAX_RECORDING_SECONDS = 60; // 60 seconds (1 minute) auto-stop limit
 
 export default function VoiceCommentaryStudio({
   value = "",
   onChange,
   onSendVoiceToChat,
   onVoiceNotesChange,
-  label = "🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)",
-  placeholder = "यहाँ क्लिक करके 1 से 5 पेज की पूरी समस्या बोलें... आपका बोला गया एक-एक शब्द यहाँ रियल-टाइम में टाइप होगा!",
+  label = "🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary)",
+  placeholder = "यहाँ क्लिक करके बोलना शुरू करें... आपका बोला गया एक-एक शब्द रिकॉर्डिंग बंद होने के बाद यहाँ टाइप होगा!",
 }) {
   const [isRecording, setIsRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -43,6 +40,8 @@ export default function VoiceCommentaryStudio({
   const audioElementsRef = useRef({});
   const isRecordingRef = useRef(false);
   const valueRef = useRef(value);
+  const tempTranscriptRef = useRef("");
+  const detectedMimeTypeRef = useRef("");
 
   useEffect(() => {
     isRecordingRef.current = isRecording;
@@ -52,15 +51,15 @@ export default function VoiceCommentaryStudio({
     valueRef.current = value;
   }, [value]);
 
-  // Speech Recognition Setup: interimResults = false & maxAlternatives = 1 (Zero Erasing!)
+  // Speech Recognition Setup: Process text after recording stops
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.continuous = true; // Continuous listening on silence pauses
-    recognition.interimResults = false; // Disable raw predictive suggestions — ZERO TEXT ERASING!
-    recognition.maxAlternatives = 1; // Single best acoustic match
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
     recognition.lang = "hi-IN";
 
     recognition.onresult = (event) => {
@@ -73,16 +72,13 @@ export default function VoiceCommentaryStudio({
           }
         }
       }
-
-      if (newlyFinalizedText && onChange) {
-        const existing = valueRef.current ? valueRef.current.trim() : "";
-        const updated = existing ? `${existing} ${newlyFinalizedText}` : newlyFinalizedText;
-        valueRef.current = updated;
-        onChange(updated);
+      if (newlyFinalizedText) {
+        tempTranscriptRef.current += newlyFinalizedText + " ";
       }
     };
 
     recognition.onerror = (err) => {
+      console.warn("Speech recognition error:", err.error);
       if (isRecordingRef.current && err.error !== "not-allowed") {
         try { recognition.start(); } catch { /* ignore */ }
       }
@@ -101,12 +97,21 @@ export default function VoiceCommentaryStudio({
         try { recognitionRef.current.stop(); } catch { /* ignore */ }
       }
     };
-  }, [onChange]);
+  }, []);
 
-  // Timer logic
+  // Timer logic with auto-stop at MAX_RECORDING_SECONDS
   useEffect(() => {
     if (isRecording) {
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
+      timerRef.current = setInterval(() => {
+        setSeconds((s) => {
+          if (s >= MAX_RECORDING_SECONDS - 1) {
+            clearInterval(timerRef.current);
+            stopRecording();
+            return MAX_RECORDING_SECONDS;
+          }
+          return s + 1;
+        });
+      }, 1000);
     } else {
       clearInterval(timerRef.current);
     }
@@ -116,25 +121,48 @@ export default function VoiceCommentaryStudio({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      
+      // Browser-compatible MIME type detection
+      let options = {};
+      let mimeType = "";
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        mimeType = "audio/webm;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+        mimeType = "audio/ogg;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        mimeType = "audio/webm";
+      } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        mimeType = "audio/mp4";
+      }
+      if (mimeType) {
+        options = { mimeType };
+      }
+      detectedMimeTypeRef.current = mimeType;
+
+      const mediaRecorder = new MediaRecorder(stream, options);
       audioChunksRef.current = [];
+      tempTranscriptRef.current = "";
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const blobType = detectedMimeTypeRef.current || "audio/webm";
+        const blob = new Blob(audioChunksRef.current, { type: blobType });
         const url = URL.createObjectURL(blob);
         const noteId = `vn-${Date.now()}`;
+
+        const finalTrans = tempTranscriptRef.current.trim();
+
         const newNote = {
           id: noteId,
           title: `Voice Note #${voiceNotesList.length + 1}`,
           audioUrl: url,
           blob,
-          duration: formatTimer(seconds),
+          duration: formatTimer(seconds || MAX_RECORDING_SECONDS),
           timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
-          transcript: valueRef.current,
+          transcript: finalTrans,
         };
 
         setVoiceNotesList((prev) => {
@@ -144,6 +172,14 @@ export default function VoiceCommentaryStudio({
           }
           return updated;
         });
+
+        if (finalTrans && onChange) {
+          const existing = valueRef.current ? valueRef.current.trim() : "";
+          const updated = existing ? `${existing}\n\n${finalTrans}` : finalTrans;
+          valueRef.current = updated;
+          onChange(updated);
+        }
+
         if (onSendVoiceToChat) {
           onSendVoiceToChat(newNote);
         }
@@ -162,12 +198,7 @@ export default function VoiceCommentaryStudio({
       }
     } catch (err) {
       console.error("Mic access error:", err);
-      setIsRecording(true);
-      isRecordingRef.current = true;
-      setSeconds(0);
-      if (recognitionRef.current) {
-        try { recognitionRef.current.start(); } catch { /* ignore */ }
-      }
+      alert("Microphone access denied or not supported by this browser.");
     }
   };
 
@@ -220,23 +251,23 @@ export default function VoiceCommentaryStudio({
 
   return (
     <Paper
-      elevation={3}
+      elevation={2}
       sx={{
-        p: 2.5,
-        borderRadius: 3,
-        bgcolor: isRecording ? "#fef2f2" : "#ffffff",
-        border: isRecording ? "2px solid #ef4444" : "1px solid #cbd5e1",
+        p: 2,
+        borderRadius: 2,
+        bgcolor: isRecording ? "#fff5f5" : "#f8fafc",
+        border: isRecording ? "2px solid #ef4444" : "1px solid #e2e8f0",
         transition: "all 0.3s ease",
       }}
     >
       {/* Header Bar */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} mb={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} mb={1.5}>
         <Box>
-          <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            🎙️ Long-Form Voice Commentary &amp; Multi-File Studio
+          <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            🎙️ Voice Commentary Studio (वॉयस रिकॉर्डिंग)
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            बोलकर 1 से 5 पेज दर्ज करें — हर बार रिकॉर्डिंग बंद करने पर अलग ऑडियो फाइल बनेगी और चैट बॉक्स में सेव रहेगी।
+            बोलकर क्लिप रिकॉर्ड करें — रिकॉर्डिंग बंद होने पर आटोमैटिक टाइपिंग आपके बॉक्स में आ जाएगी। (अधिकतम 60 सेकंड प्रति क्लिप)
           </Typography>
         </Box>
 
@@ -245,71 +276,70 @@ export default function VoiceCommentaryStudio({
             <Button
               variant="contained"
               color="error"
+              size="small"
               onClick={stopRecording}
               startIcon={<MicOffIcon />}
               sx={{ fontWeight: "bold", animation: "pulse 1.5s infinite" }}
             >
-              🔴 STOP RECORDING ({formatTimer(seconds)})
+              🔴 STOP ({formatTimer(seconds)} / 01:00)
             </Button>
           ) : (
             <Button
               variant="contained"
               color="primary"
+              size="small"
               onClick={startRecording}
               startIcon={<MicIcon />}
               sx={{ fontWeight: "bold", bgcolor: "#7c3aed", "&:hover": { bgcolor: "#6d28d9" } }}
             >
-              🎙️ START NEW VOICE NOTE
+              🎙️ START RECORDING
             </Button>
           )}
         </Stack>
       </Stack>
 
       {/* Live Telemetry Bar */}
-      <Paper variant="outlined" sx={{ p: 1.5, mb: 2, bgcolor: "#f8fafc", borderRadius: 2 }}>
+      <Paper variant="outlined" sx={{ p: 1, mb: 1.5, bgcolor: "#fff", borderRadius: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip
-              label={isRecording ? `🔴 RECORDING LIVE (${formatTimer(seconds)})` : "READY FOR RECORDING"}
+              label={isRecording ? `🔴 RECORDING...` : "READY"}
               color={isRecording ? "error" : "default"}
               size="small"
-              sx={{ fontWeight: "bold" }}
+              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
             />
             <Chip
               label={`📝 ${wordCount} Words | ${charCount} Chars`}
               color="secondary"
               variant="outlined"
               size="small"
-              sx={{ fontWeight: "bold" }}
+              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
             />
           </Stack>
           <Chip
-            label={`📁 ${voiceNotesList.length} Audio Files Saved to Advocate Chat`}
+            label={`📁 ${voiceNotesList.length} Files Saved`}
             color="primary"
             size="small"
-            sx={{ fontWeight: "bold" }}
+            sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
           />
         </Stack>
       </Paper>
 
-      {/* Multi-Audio Playlist Box (Chambers & Chat Repository) */}
+      {/* Multi-Audio Playlist Box */}
       {voiceNotesList.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
-          <Typography variant="subtitle2" fontWeight="bold" color="#166534" gutterBottom>
-            📁 Saved Voice Files Playlist (Advocate &amp; Collegium Team Chat Archive):
+        <Paper variant="outlined" sx={{ p: 1.5, mb: 1.5, bgcolor: "#f0fdf4", borderColor: "#bbf7d0", borderRadius: 1 }}>
+          <Typography variant="caption" fontWeight="bold" color="#166534" gutterBottom sx={{ display: "block", mb: 1 }}>
+            📁 Saved Voice Files (प्लेलिस्ट):
           </Typography>
           <Stack spacing={1}>
             {voiceNotesList.map((note) => (
-              <Paper key={note.id} variant="outlined" sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 2 }}>
+              <Paper key={note.id} variant="outlined" sx={{ p: 1, bgcolor: "#fff", borderRadius: 1 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1} alignItems="center">
                     <VolumeUpIcon color="primary" fontSize="small" />
                     <Box>
-                      <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                      <Typography variant="caption" fontWeight="bold" color="#0f172a" sx={{ display: "block" }}>
                         {note.title} ({note.duration})
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Recorded at {note.timestamp} • Sent to Counsel Chat Thread
                       </Typography>
                     </Box>
                   </Stack>
@@ -327,27 +357,9 @@ export default function VoiceCommentaryStudio({
                       color={currentlyPlayingId === note.id ? "warning" : "success"}
                       startIcon={currentlyPlayingId === note.id ? <PauseIcon /> : <PlayArrowIcon />}
                       onClick={() => togglePlayAudio(note.id)}
-                      sx={{ fontWeight: "bold" }}
+                      sx={{ fontWeight: "bold", fontSize: "0.7rem", py: 0.2, minWidth: 70 }}
                     >
-                      {currentlyPlayingId === note.id ? "Pause" : "Play Audio 🔊"}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<AutoAwesomeIcon />}
-                      onClick={() => {
-                        const transcribedTxt = note.transcript && note.transcript.length > 10
-                          ? note.transcript
-                          : `[ऑडियो ट्रांसक्रिप्शन #${note.title}]: "माननीय न्यायालय के समक्ष प्रार्थी की ओर से प्रस्तुत है कि संबंधित पक्षकारों ने गलत साक्ष्यों के आधार पर कार्यवाही आरंभ की है। प्रार्थी की कृषि भूमि की सीमांकन रिपोर्ट व खतौनी 2026 संलग्न है।"`;
-                        const existing = valueRef.current ? valueRef.current.trim() : "";
-                        const updated = existing ? `${existing}\n\n${transcribedTxt}` : transcribedTxt;
-                        valueRef.current = updated;
-                        if (onChange) onChange(updated);
-                      }}
-                      sx={{ fontWeight: "bold", textTransform: "none" }}
-                    >
-                      ⚡ Auto-Transcribe File to Text
+                      {currentlyPlayingId === note.id ? "Pause" : "Play"}
                     </Button>
                     <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
                       <DeleteIcon fontSize="small" />
@@ -360,11 +372,11 @@ export default function VoiceCommentaryStudio({
         </Paper>
       )}
 
-      {/* Large Multi-Page Text Editor (Zero Text Erasing!) */}
+      {/* Text Editor */}
       <TextField
         fullWidth
         multiline
-        rows={8}
+        rows={4}
         label={label}
         placeholder={placeholder}
         value={value}
@@ -372,9 +384,8 @@ export default function VoiceCommentaryStudio({
         sx={{
           bgcolor: "#ffffff",
           "& .MuiInputBase-input": {
-            fontSize: "0.95rem",
-            lineHeight: 1.6,
-            minHeight: "180px",
+            fontSize: "0.9rem",
+            lineHeight: 1.5,
           },
         }}
       />
