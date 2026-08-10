@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Autocomplete,
 } from "@mui/material";
 import AssignmentLateIcon  from "@mui/icons-material/AssignmentLate";
 import MiscellaneousServicesIcon from "@mui/icons-material/MiscellaneousServices";
@@ -146,16 +147,15 @@ export default function PublicOnboarding() {
     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
     problemCategories: [],           // Multi-select problem categories
     problemState:      "Delhi",
-    problemStateCustom: "",
     problemDistrict:   "",
-    problemDistrictCustom: "",
     problemCity:       "",
     problemPincode:    "",
     problemPoliceStation: "",
     solutionServices:  [],           // Multi-select solution services
-    franchiseState:    "",
+    franchiseState:    "Delhi",
     franchiseDistrict: "",
     franchiseCity:     "",
+    franchisePincode:  "",
     franchiseBackground: "",
     termsAccepted:     false,
   });
@@ -209,9 +209,16 @@ export default function PublicOnboarding() {
       repFirstName: "", repMiddleName: "", repLastName: "",
       gender: "", birthYear: String(2000 + (new Date().getFullYear() - 2026)),
       mobile: "", whatsapp: "", password: "", confirmPassword: "",
-      problemState: "Delhi", problemStateCustom: "",
-      problemDistrict: "", problemDistrictCustom: "",
-      problemCity: "", problemPincode: "", problemPoliceStation: "",
+      problemState: "Delhi",
+      problemDistrict: "",
+      problemCity: "",
+      problemPincode: "",
+      problemPoliceStation: "",
+      franchiseState: "Delhi",
+      franchiseDistrict: "",
+      franchiseCity: "",
+      franchisePincode: "",
+      franchiseBackground: "",
     }));
   };
 
@@ -303,10 +310,11 @@ export default function PublicOnboarding() {
     if (form.purpose === "FRANCHISE") {
       return (form.franchiseState || "").trim().length >= 1 &&
              (form.franchiseDistrict || "").trim().length >= 1 &&
-             (form.franchiseCity || "").trim().length >= 2;
+             (form.franchiseCity || "").trim().length >= 2 &&
+             (form.franchisePincode || "").trim().length === 6;
     }
     return false;
-  }, [form.purpose, form.problemCategories, form.solutionServices, form.franchiseState, form.franchiseDistrict, form.franchiseCity]);
+  }, [form.purpose, form.problemCategories, form.solutionServices, form.franchiseState, form.franchiseDistrict, form.franchiseCity, form.franchisePincode]);
 
   const isFormValid =
     isNameValid && isAgeValid && isEmailValid && isMobileValid && isWaValid &&
@@ -965,77 +973,54 @@ Thank you for registering with ICJ Enterprise Platform.
                                     Problem Location Details (Optional / वैकल्पिक)
                                   </Typography>
                                   <Grid container spacing={1.5}>
-                                    {/* State Dropdown */}
+                                    {/* State Input with freeSolo Autocomplete */}
                                     <Grid item xs={12} sm={4}>
-                                      <TextField
-                                        select fullWidth size="small"
-                                        label="State / राज्य"
-                                        name="problemState"
+                                      <Autocomplete
+                                        freeSolo
+                                        size="small"
+                                        options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
                                         value={form.problemState}
-                                        onChange={(e) => {
-                                          const val = e.target.value;
+                                        onInputChange={(_, newValue) => {
                                           setForm(p => ({
                                             ...p,
-                                            problemState: val,
+                                            problemState: newValue,
                                             problemDistrict: "", // Reset district when state changes
-                                            problemDistrictCustom: "",
                                           }));
                                         }}
-                                      >
-                                        <MenuItem value="Delhi">Delhi (दिल्ली)</MenuItem>
-                                        <MenuItem value="Uttar Pradesh">Uttar Pradesh (उत्तर प्रदेश)</MenuItem>
-                                        <MenuItem value="Punjab">Punjab (पंजाब)</MenuItem>
-                                        <MenuItem value="Haryana">Haryana (हरियाणा)</MenuItem>
-                                        <MenuItem value="Other">Other (Type Manually)</MenuItem>
-                                      </TextField>
+                                        renderInput={(params) => (
+                                          <TextField
+                                            {...params}
+                                            label="State / राज्य"
+                                            name="problemState"
+                                            placeholder="Select or type..."
+                                          />
+                                        )}
+                                      />
                                     </Grid>
 
-                                    {/* Custom State Text Input (when "Other" is chosen) */}
-                                    {form.problemState === "Other" && (
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          fullWidth size="small"
-                                          label="Enter State Name"
-                                          name="problemStateCustom"
-                                          value={form.problemStateCustom}
-                                          onChange={handleChange}
-                                          placeholder="Type state name..."
-                                        />
-                                      </Grid>
-                                    )}
-
-                                    {/* District Dropdown / Text Input */}
-                                    {form.problemState !== "Other" && STATE_DISTRICTS_MAP[form.problemState] ? (
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          select fullWidth size="small"
-                                          label="District / जिला"
-                                          name="problemDistrict"
-                                          value={form.problemDistrict}
-                                          onChange={handleChange}
-                                        >
-                                          <MenuItem value="">-- Select District --</MenuItem>
-                                          {STATE_DISTRICTS_MAP[form.problemState].map((d) => (
-                                            <MenuItem key={d} value={d}>{d}</MenuItem>
-                                          ))}
-                                          <MenuItem value="Other">Other (Type Manually)</MenuItem>
-                                        </TextField>
-                                      </Grid>
-                                    ) : null}
-
-                                    {/* Custom District Text Input (when "Other" selected or non-listed state) */}
-                                    {(form.problemState === "Other" || form.problemDistrict === "Other") && (
-                                      <Grid item xs={12} sm={4}>
-                                        <TextField
-                                          fullWidth size="small"
-                                          label="Enter District Name"
-                                          name="problemDistrictCustom"
-                                          value={form.problemDistrictCustom}
-                                          onChange={handleChange}
-                                          placeholder="Type district name..."
-                                        />
-                                      </Grid>
-                                    )}
+                                    {/* District Input with freeSolo Autocomplete */}
+                                    <Grid item xs={12} sm={4}>
+                                      <Autocomplete
+                                        freeSolo
+                                        size="small"
+                                        options={STATE_DISTRICTS_MAP[form.problemState] || []}
+                                        value={form.problemDistrict}
+                                        onInputChange={(_, newValue) => {
+                                          setForm(p => ({
+                                            ...p,
+                                            problemDistrict: newValue,
+                                          }));
+                                        }}
+                                        renderInput={(params) => (
+                                          <TextField
+                                            {...params}
+                                            label="District / जिला"
+                                            name="problemDistrict"
+                                            placeholder="Select or type..."
+                                          />
+                                        )}
+                                      />
+                                    </Grid>
 
                                     {/* City Input */}
                                     <Grid item xs={12} sm={4}>
@@ -1132,31 +1117,61 @@ Thank you for registering with ICJ Enterprise Platform.
                                   Franchise Interest Details *
                                 </Typography>
                                 <Grid container spacing={2}>
-                                  <Grid item xs={12} sm={4}>
-                                    <TextField
-                                      fullWidth required
-                                      label="Preferred State *"
-                                      name="franchiseState"
+                                  {/* Preferred State Autocomplete freeSolo */}
+                                  <Grid item xs={12} sm={3}>
+                                    <Autocomplete
+                                      freeSolo
+                                      size="small"
+                                      options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
                                       value={form.franchiseState}
-                                      onChange={handleChange}
-                                      placeholder="State..."
-                                      error={Boolean(form.franchiseState && form.franchiseState.trim().length < 2)}
+                                      onInputChange={(_, newValue) => {
+                                        setForm(p => ({
+                                          ...p,
+                                          franchiseState: newValue,
+                                          franchiseDistrict: "",
+                                        }));
+                                      }}
+                                      renderInput={(params) => (
+                                        <TextField
+                                          {...params}
+                                          required
+                                          label="Preferred State *"
+                                          name="franchiseState"
+                                          placeholder="Select or type..."
+                                        />
+                                      )}
                                     />
                                   </Grid>
-                                  <Grid item xs={12} sm={4}>
-                                    <TextField
-                                      fullWidth required
-                                      label="Preferred District *"
-                                      name="franchiseDistrict"
+
+                                  {/* Preferred District Autocomplete freeSolo */}
+                                  <Grid item xs={12} sm={3}>
+                                    <Autocomplete
+                                      freeSolo
+                                      size="small"
+                                      options={STATE_DISTRICTS_MAP[form.franchiseState] || []}
                                       value={form.franchiseDistrict}
-                                      onChange={handleChange}
-                                      placeholder="District..."
-                                      error={Boolean(form.franchiseDistrict && form.franchiseDistrict.trim().length < 2)}
+                                      onInputChange={(_, newValue) => {
+                                        setForm(p => ({
+                                          ...p,
+                                          franchiseDistrict: newValue,
+                                        }));
+                                      }}
+                                      renderInput={(params) => (
+                                        <TextField
+                                          {...params}
+                                          required
+                                          label="Preferred District *"
+                                          name="franchiseDistrict"
+                                          placeholder="Select or type..."
+                                        />
+                                      )}
                                     />
                                   </Grid>
-                                  <Grid item xs={12} sm={4}>
+
+                                  {/* Preferred City */}
+                                  <Grid item xs={12} sm={3}>
                                     <TextField
-                                      fullWidth required
+                                      fullWidth required size="small"
                                       label="Preferred City *"
                                       name="franchiseCity"
                                       value={form.franchiseCity}
@@ -1165,6 +1180,24 @@ Thank you for registering with ICJ Enterprise Platform.
                                       error={Boolean(form.franchiseCity && form.franchiseCity.trim().length < 2)}
                                     />
                                   </Grid>
+
+                                  {/* Preferred Pincode */}
+                                  <Grid item xs={12} sm={3}>
+                                    <TextField
+                                      fullWidth required size="small"
+                                      label="Preferred Pincode *"
+                                      name="franchisePincode"
+                                      value={form.franchisePincode}
+                                      onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                        setForm(p => ({ ...p, franchisePincode: val }));
+                                      }}
+                                      placeholder="6-digit pincode"
+                                      inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                                      error={Boolean(form.franchisePincode && form.franchisePincode.length !== 6)}
+                                    />
+                                  </Grid>
+
                                   <Grid item xs={12}>
                                     <TextField
                                       fullWidth required
