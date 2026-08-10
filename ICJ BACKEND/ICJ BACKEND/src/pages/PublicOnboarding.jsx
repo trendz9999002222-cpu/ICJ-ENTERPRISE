@@ -107,6 +107,13 @@ const SERVICE_CATEGORIES = [
   "Other ICJ Service",
 ];
 
+const STATE_DISTRICTS_MAP = {
+  "Delhi": ["New Delhi", "North Delhi", "South Delhi", "West Delhi", "East Delhi", "North West Delhi", "South West Delhi"],
+  "Uttar Pradesh": ["Noida / Gautam Buddha Nagar", "Ghaziabad", "Lucknow", "Kanpur", "Meerut", "Prayagraj", "Varanasi", "Agra"],
+  "Punjab": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda", "Mohali"],
+  "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Sonipat", "Rohtak"],
+};
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function PublicOnboarding() {
@@ -138,6 +145,13 @@ export default function PublicOnboarding() {
     confirmPassword:   "",
     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
     problemCategories: [],           // Multi-select problem categories
+    problemState:      "Delhi",
+    problemStateCustom: "",
+    problemDistrict:   "",
+    problemDistrictCustom: "",
+    problemCity:       "",
+    problemPincode:    "",
+    problemPoliceStation: "",
     solutionServices:  [],           // Multi-select solution services
     franchiseState:    "",
     franchiseDistrict: "",
@@ -195,6 +209,9 @@ export default function PublicOnboarding() {
       repFirstName: "", repMiddleName: "", repLastName: "",
       gender: "", birthYear: String(2000 + (new Date().getFullYear() - 2026)),
       mobile: "", whatsapp: "", password: "", confirmPassword: "",
+      problemState: "Delhi", problemStateCustom: "",
+      problemDistrict: "", problemDistrictCustom: "",
+      problemCity: "", problemPincode: "", problemPoliceStation: "",
     }));
   };
 
@@ -940,6 +957,128 @@ Thank you for registering with ICJ Enterprise Platform.
                                     );
                                   })}
                                 </Grid>
+
+                                {/* Problem Location details (Optional) */}
+                                <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
+                                  <Typography variant="caption" fontWeight="bold" color="text.secondary"
+                                    sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                                    Problem Location Details (Optional / वैकल्पिक)
+                                  </Typography>
+                                  <Grid container spacing={1.5}>
+                                    {/* State Dropdown */}
+                                    <Grid item xs={12} sm={4}>
+                                      <TextField
+                                        select fullWidth size="small"
+                                        label="State / राज्य"
+                                        name="problemState"
+                                        value={form.problemState}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setForm(p => ({
+                                            ...p,
+                                            problemState: val,
+                                            problemDistrict: "", // Reset district when state changes
+                                            problemDistrictCustom: "",
+                                          }));
+                                        }}
+                                      >
+                                        <MenuItem value="Delhi">Delhi (दिल्ली)</MenuItem>
+                                        <MenuItem value="Uttar Pradesh">Uttar Pradesh (उत्तर प्रदेश)</MenuItem>
+                                        <MenuItem value="Punjab">Punjab (पंजाब)</MenuItem>
+                                        <MenuItem value="Haryana">Haryana (हरियाणा)</MenuItem>
+                                        <MenuItem value="Other">Other (Type Manually)</MenuItem>
+                                      </TextField>
+                                    </Grid>
+
+                                    {/* Custom State Text Input (when "Other" is chosen) */}
+                                    {form.problemState === "Other" && (
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          fullWidth size="small"
+                                          label="Enter State Name"
+                                          name="problemStateCustom"
+                                          value={form.problemStateCustom}
+                                          onChange={handleChange}
+                                          placeholder="Type state name..."
+                                        />
+                                      </Grid>
+                                    )}
+
+                                    {/* District Dropdown / Text Input */}
+                                    {form.problemState !== "Other" && STATE_DISTRICTS_MAP[form.problemState] ? (
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          select fullWidth size="small"
+                                          label="District / जिला"
+                                          name="problemDistrict"
+                                          value={form.problemDistrict}
+                                          onChange={handleChange}
+                                        >
+                                          <MenuItem value="">-- Select District --</MenuItem>
+                                          {STATE_DISTRICTS_MAP[form.problemState].map((d) => (
+                                            <MenuItem key={d} value={d}>{d}</MenuItem>
+                                          ))}
+                                          <MenuItem value="Other">Other (Type Manually)</MenuItem>
+                                        </TextField>
+                                      </Grid>
+                                    ) : null}
+
+                                    {/* Custom District Text Input (when "Other" selected or non-listed state) */}
+                                    {(form.problemState === "Other" || form.problemDistrict === "Other") && (
+                                      <Grid item xs={12} sm={4}>
+                                        <TextField
+                                          fullWidth size="small"
+                                          label="Enter District Name"
+                                          name="problemDistrictCustom"
+                                          value={form.problemDistrictCustom}
+                                          onChange={handleChange}
+                                          placeholder="Type district name..."
+                                        />
+                                      </Grid>
+                                    )}
+
+                                    {/* City Input */}
+                                    <Grid item xs={12} sm={4}>
+                                      <TextField
+                                        fullWidth size="small"
+                                        label="City / शहर"
+                                        name="problemCity"
+                                        value={form.problemCity}
+                                        onChange={handleChange}
+                                        placeholder="City name..."
+                                      />
+                                    </Grid>
+
+                                    {/* Pincode Input */}
+                                    <Grid item xs={12} sm={4}>
+                                      <TextField
+                                        fullWidth size="small"
+                                        label="Pincode / पिन कोड"
+                                        name="problemPincode"
+                                        value={form.problemPincode}
+                                        onChange={(e) => {
+                                          const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                                          setForm(p => ({ ...p, problemPincode: val }));
+                                        }}
+                                        placeholder="6-digit pincode"
+                                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                                        error={Boolean(form.problemPincode && form.problemPincode.length !== 6)}
+                                      />
+                                    </Grid>
+
+                                    {/* Police Station Input */}
+                                    <Grid item xs={12} sm={4}>
+                                      <TextField
+                                        fullWidth size="small"
+                                        label="Police Station / थाना"
+                                        name="problemPoliceStation"
+                                        value={form.problemPoliceStation}
+                                        onChange={handleChange}
+                                        placeholder="Police station name..."
+                                      />
+                                    </Grid>
+                                  </Grid>
+                                </Box>
                               </Box>
                             )}
 

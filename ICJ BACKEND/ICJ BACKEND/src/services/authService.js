@@ -165,6 +165,7 @@ const AuthService = {
       forcePasswordChange: true,
       passwordHash,
       created_at: new Date().toISOString(),
+      ...payload,
     };
 
     const updatedUsers = [newUser, ...users];
