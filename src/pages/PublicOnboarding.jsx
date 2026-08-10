@@ -739,8 +739,11 @@ Thank you for registering with ICJ Enterprise Platform.
               {/* MEMBER PORTAL SECURITY & PASSWORD CREATION */}
               <Box>
                 <Typography variant="caption" color="text.secondary"
-                  sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, mb: 1, display: "block" }}>
+                  sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, mb: 0.5, display: "block" }}>
                   Member Portal Security (Set Secret Password for Member Area Login)
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
+                  * Password must be minimum 8 characters, containing at least 1 letter, 1 number, and 1 special character (no starting/ending spaces).
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
@@ -758,8 +761,8 @@ Thank you for registering with ICJ Enterprise Platform.
                         form.password
                           ? isPasswordValid
                             ? "✓ Password meets requirements"
-                            : "Minimum 8 characters, 1 letter, 1 number, and 1 special character required (no leading/trailing spaces)"
-                          : "Hint: Minimum 8 characters (at least 1 letter, 1 number, and 1 special character like @, #, $, etc.)"
+                            : "अमान्य प्रारूप (न्यूनतम 8 कैरेक्टर, 1 अक्षर, 1 नंबर, 1 स्पेशल)"
+                          : "Min 8 chars, 1 letter, 1 number, 1 special char"
                       }
                       InputProps={{
                         startAdornment: (
@@ -792,7 +795,7 @@ Thank you for registering with ICJ Enterprise Platform.
                         form.confirmPassword
                           ? doPasswordsMatch
                             ? "✓ Passwords Match"
-                            : "Passwords do not match"
+                            : "पासवर्ड मेल नहीं खा रहे हैं"
                           : "Must match secret password above"
                       }
                       InputProps={{
