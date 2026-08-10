@@ -80,11 +80,15 @@ const PROBLEM_CATEGORIES = [
   "Legal Dispute",
   "Criminal Matter",
   "Harassment / Domestic Violence",
-  "Property / Real Estate",
-  "Consumer Complaint",
+  "Property / Real Estate / Land Dispute",
+  "Consumer Complaint / Exploitation",
   "Labour / Employment Issue",
-  "Family Law / Divorce",
-  "Cyber Crime / Fraud",
+  "Family Law / Divorce / Matrimonial Dispute",
+  "Cyber Crime / Online Fraud",
+  "Cheque Bounce / Debt Recovery",
+  "Human Rights / Public Interest Issue",
+  "Accident Claims / Compensation",
+  "Taxation & Revenue Disputes",
   "Other Legal Matter",
 ];
 
@@ -93,9 +97,13 @@ const SERVICE_CATEGORIES = [
   "Arbitration / Mediation",
   "Contract Drafting & Review",
   "Documentation Services",
-  "Legal Audit",
+  "Legal Audit & Compliance",
   "Notarisation / Attestation",
   "Court Representation",
+  "Property Title Verification",
+  "Debt Recovery Assistance",
+  "Cyber Security Legal Advisory",
+  "Human Rights Protection Desk",
   "Other ICJ Service",
 ];
 
@@ -1027,7 +1035,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                       onChange={handleChange}
                                       placeholder="Detail your professional capability and background..."
                                       multiline
-                                      rows={2}
+                                      rows={6}
                                       error={Boolean(form.franchiseBackground && form.franchiseBackground.trim().length < 5)}
                                     />
                                   </Grid>
