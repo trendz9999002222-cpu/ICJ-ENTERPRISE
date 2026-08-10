@@ -188,7 +188,7 @@ export default function VoiceCommentaryStudio({
       };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      mediaRecorder.start(250); // Fetch audio chunks every 250ms to prevent silent/empty recordings
       setIsRecording(true);
       isRecordingRef.current = true;
       setSeconds(0);
