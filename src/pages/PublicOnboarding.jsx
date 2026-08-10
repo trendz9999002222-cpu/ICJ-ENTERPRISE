@@ -977,6 +977,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                     <Grid item xs={12} sm={4}>
                                       <Autocomplete
                                         freeSolo
+                                        disableClearable
                                         size="small"
                                         options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
                                         value={form.problemState}
@@ -1002,6 +1003,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                     <Grid item xs={12} sm={4}>
                                       <Autocomplete
                                         freeSolo
+                                        disableClearable
                                         size="small"
                                         options={STATE_DISTRICTS_MAP[form.problemState] || []}
                                         value={form.problemDistrict}
@@ -1117,10 +1119,11 @@ Thank you for registering with ICJ Enterprise Platform.
                                   Franchise Interest Details *
                                 </Typography>
                                 <Grid container spacing={2}>
-                                  {/* Preferred State Autocomplete freeSolo */}
-                                  <Grid item xs={12} sm={3}>
+                                  {/* State Autocomplete freeSolo */}
+                                  <Grid item xs={12}>
                                     <Autocomplete
                                       freeSolo
+                                      disableClearable
                                       size="small"
                                       options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
                                       value={form.franchiseState}
@@ -1135,18 +1138,19 @@ Thank you for registering with ICJ Enterprise Platform.
                                         <TextField
                                           {...params}
                                           required
-                                          label="Preferred State *"
+                                          label="State / राज्य *"
                                           name="franchiseState"
-                                          placeholder="Select or type..."
+                                          placeholder="Select or type state..."
                                         />
                                       )}
                                     />
                                   </Grid>
 
-                                  {/* Preferred District Autocomplete freeSolo */}
-                                  <Grid item xs={12} sm={3}>
+                                  {/* District Autocomplete freeSolo */}
+                                  <Grid item xs={12}>
                                     <Autocomplete
                                       freeSolo
+                                      disableClearable
                                       size="small"
                                       options={STATE_DISTRICTS_MAP[form.franchiseState] || []}
                                       value={form.franchiseDistrict}
@@ -1160,32 +1164,32 @@ Thank you for registering with ICJ Enterprise Platform.
                                         <TextField
                                           {...params}
                                           required
-                                          label="Preferred District *"
+                                          label="District / जिला *"
                                           name="franchiseDistrict"
-                                          placeholder="Select or type..."
+                                          placeholder="Select or type district..."
                                         />
                                       )}
                                     />
                                   </Grid>
 
-                                  {/* Preferred City */}
-                                  <Grid item xs={12} sm={3}>
+                                  {/* City */}
+                                  <Grid item xs={12}>
                                     <TextField
                                       fullWidth required size="small"
-                                      label="Preferred City *"
+                                      label="City / शहर *"
                                       name="franchiseCity"
                                       value={form.franchiseCity}
                                       onChange={handleChange}
-                                      placeholder="City..."
+                                      placeholder="City name..."
                                       error={Boolean(form.franchiseCity && form.franchiseCity.trim().length < 2)}
                                     />
                                   </Grid>
 
-                                  {/* Preferred Pincode */}
-                                  <Grid item xs={12} sm={3}>
+                                  {/* Pincode */}
+                                  <Grid item xs={12}>
                                     <TextField
                                       fullWidth required size="small"
-                                      label="Preferred Pincode *"
+                                      label="Pincode / पिन कोड *"
                                       name="franchisePincode"
                                       value={form.franchisePincode}
                                       onChange={(e) => {
