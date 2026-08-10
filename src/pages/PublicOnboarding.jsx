@@ -116,6 +116,9 @@ export default function PublicOnboarding() {
     middleName:        "",
     lastName:          "",
     orgName:           "",
+    repFirstName:      "",
+    repMiddleName:     "",
+    repLastName:       "",
     gender:            "",
     birthYear:         "",           // सिर्फ जन्म का साल (DOB नहीं)
     mobile:            "",
@@ -126,10 +129,12 @@ export default function PublicOnboarding() {
     password:          "",
     confirmPassword:   "",
     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
-    problemCategory:   "",
-    serviceCategory:   "",
+    problemCategories: [],           // Multi-select problem categories
+    solutionServices:  [],           // Multi-select solution services
+    franchiseState:    "",
+    franchiseDistrict: "",
     franchiseCity:     "",
-    franchiseMsg:      "",
+    franchiseBackground: "",
     termsAccepted:     false,
   });
 
@@ -169,6 +174,7 @@ export default function PublicOnboarding() {
       ...prev,
       regType:    e.target.value,
       namePrefix: "", firstName: "", middleName: "", lastName: "", orgName: "",
+      repFirstName: "", repMiddleName: "", repLastName: "",
       gender: "", birthYear: "",
       mobile: "", whatsapp: "", password: "", confirmPassword: "",
     }));
@@ -184,12 +190,30 @@ export default function PublicOnboarding() {
   const handlePurposeSelect = (value) => {
     setForm((prev) => ({
       ...prev,
-      purpose:         value,
-      problemCategory: "",
-      serviceCategory: "",
-      franchiseCity:   "",
-      franchiseMsg:    "",
+      purpose:             value,
+      problemCategories:   [],
+      solutionServices:    [],
+      franchiseState:      "",
+      franchiseDistrict:   "",
+      franchiseCity:       "",
+      franchiseBackground: "",
     }));
+  };
+
+  const handleToggleCategory = (cat) => {
+    setForm((prev) => {
+      const list = prev.problemCategories || [];
+      const updated = list.includes(cat) ? list.filter((c) => c !== cat) : [...list, cat];
+      return { ...prev, problemCategories: updated };
+    });
+  };
+
+  const handleToggleService = (cat) => {
+    setForm((prev) => {
+      const list = prev.solutionServices || [];
+      const updated = list.includes(cat) ? list.filter((c) => c !== cat) : [...list, cat];
+      return { ...prev, solutionServices: updated };
+    });
   };
 
   // ─── Validation ──────────────────────────────────────────────────────────
@@ -198,8 +222,10 @@ export default function PublicOnboarding() {
       return (form.firstName || "").trim().length >= 1 &&
              (form.lastName  || "").trim().length >= 1;
     }
-    return (form.orgName || "").trim().length >= 2;
-  }, [form.regType, form.firstName, form.lastName, form.orgName]);
+    return (form.orgName || "").trim().length >= 2 &&
+           (form.repFirstName || "").trim().length >= 1 &&
+           (form.repLastName || "").trim().length >= 1;
+  }, [form.regType, form.firstName, form.lastName, form.orgName, form.repFirstName, form.repLastName]);
 
   const isAgeValid = useMemo(() => {
     if (form.regType !== "Individual") return true;
@@ -215,15 +241,15 @@ export default function PublicOnboarding() {
 
   const isMobileValid = useMemo(() => {
     const digits = (form.mobile || "").replace(/\D/g, "");
-    if (form.mobileCountryCode === "+91") return digits.length === 10;
-    return digits.length >= 1;
+    if (form.mobileCountryCode === "+91" ? digits.length === 10 : digits.length >= 1) return true;
+    return false;
   }, [form.mobile, form.mobileCountryCode]);
 
   const isWaValid = useMemo(() => {
     const digits = (form.whatsapp || "").replace(/\D/g, "");
     if (!digits) return true; // optional field
-    if (form.waCountryCode === "+91") return digits.length === 10;
-    return digits.length >= 1;
+    if (form.waCountryCode === "+91" ? digits.length === 10 : digits.length >= 1) return true;
+    return false;
   }, [form.whatsapp, form.waCountryCode]);
 
   const isPasswordValid = useMemo(() => (form.password || "").length >= 6, [form.password]);
@@ -235,42 +261,22 @@ export default function PublicOnboarding() {
 
   const isPurposeValid = useMemo(() => {
     if (!form.purpose) return false;
-    if (form.purpose === "PROBLEM")   return Boolean(form.problemCategory);
-    if (form.purpose === "SERVICES")  return Boolean(form.serviceCategory);
-    if (form.purpose === "FRANCHISE") return (form.franchiseCity || "").trim().length >= 2;
+    if (form.purpose === "PROBLEM")   return (form.problemCategories || []).length >= 1;
+    if (form.purpose === "SERVICES")  return (form.solutionServices || []).length >= 1;
+    if (form.purpose === "FRANCHISE") {
+      return (form.franchiseState || "").trim().length >= 1 &&
+             (form.franchiseDistrict || "").trim().length >= 1 &&
+             (form.franchiseCity || "").trim().length >= 2;
+    }
     return false;
-  }, [form.purpose, form.problemCategory, form.serviceCategory, form.franchiseCity]);
+  }, [form.purpose, form.problemCategories, form.solutionServices, form.franchiseState, form.franchiseDistrict, form.franchiseCity]);
 
   const isFormValid =
     isNameValid && isAgeValid && isEmailValid && isMobileValid && isWaValid &&
     isPasswordValid && doPasswordsMatch && isPurposeValid && form.termsAccepted;
 
-  const handleAutoFillDemo = () => {
-    setForm((prev) => ({
-      ...prev,
-      regType:           "Individual",
-      namePrefix:        "Mr.",
-      firstName:         prev.firstName  || "Dharmji",
-      middleName:        prev.middleName || "",
-      lastName:          prev.lastName   || "Sharma",
-      orgName:           "",
-      gender:            prev.gender     || "Male",
-      birthYear:         prev.birthYear  || "1995",
-      mobile:            prev.mobile     || "8796486025",
-      mobileCountryCode: prev.mobileCountryCode || "+91",
-      whatsapp:          prev.whatsapp   || "8796486025",
-      waCountryCode:     prev.waCountryCode || "+91",
-      email:             prev.email      || "dharmji8799@gmail.com",
-      password:          prev.password   || "ICJMember1234",
-      confirmPassword:   prev.confirmPassword || "ICJMember1234",
-      purpose:           prev.purpose    || "FRANCHISE",
-      problemCategory:   prev.problemCategory || "",
-      serviceCategory:   prev.serviceCategory || "",
-      franchiseCity:     prev.franchiseCity   || "Nepal",
-      franchiseMsg:      prev.franchiseMsg    || "Interested in ICJ Franchise Partner in Nepal",
-      termsAccepted:     true,
-    }));
-  };
+
+
 
   // ─── Submission ──────────────────────────────────────────────────────────
   const handleContinueClick = async () => {
@@ -326,8 +332,11 @@ export default function PublicOnboarding() {
         id: permanentMemberId, member_id: permanentMemberId, memberId: permanentMemberId,
         username: permanentMemberId, password: form.password, passwordHash,
         namePrefix: form.namePrefix,
-        name: fullName, fullName, firstName: form.firstName, middleName: form.middleName,
-        lastName: form.lastName, orgName: form.orgName,
+        name: form.regType === "Organisation" ? form.orgName : fullName,
+        fullName: form.regType === "Organisation" ? form.orgName : fullName,
+        firstName: form.firstName, middleName: form.middleName, lastName: form.lastName,
+        orgName: form.orgName,
+        repFirstName: form.repFirstName, repMiddleName: form.repMiddleName, repLastName: form.repLastName,
         gender:     form.gender,
         birthYear:  form.birthYear,
         birth_year: form.birthYear,
@@ -338,10 +347,12 @@ export default function PublicOnboarding() {
         role: "member", user_type: "member", member_level: "BASIC",
         purpose:    purposeLabel,
         purposeCode: form.purpose,
-        problemCategory:  form.problemCategory,
-        serviceCategory:  form.serviceCategory,
-        franchiseCity:    form.franchiseCity,
-        franchiseMessage: form.franchiseMsg,
+        problemCategories: form.problemCategories,
+        solutionServices: form.solutionServices,
+        franchiseState: form.franchiseState,
+        franchiseDistrict: form.franchiseDistrict,
+        franchiseCity: form.franchiseCity,
+        franchiseBackground: form.franchiseBackground,
         education: form.education || "Graduate",
         profession: form.profession || "Business / Professional",
         areaOfInterest: form.areaOfInterest || "Digital Legal Rights",
@@ -425,13 +436,10 @@ Thank you for registering with ICJ Enterprise Platform.
         {/* STAGE 1 : FORM */}
         {stage === "FORM" && (
           <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
+            <Stack direction="row" alignItems="center" sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
                 Applicant Basic Details
               </Typography>
-              <Button size="small" variant="contained" color="warning" onClick={handleAutoFillDemo} sx={{ fontWeight: "bold" }}>
-                ⚡ AUTO-FILL DEMO DATA
-              </Button>
             </Stack>
 
             <Stack spacing={3.5}>
@@ -552,6 +560,37 @@ Thank you for registering with ICJ Enterprise Platform.
                       helperText="Official registered firm, institution or entity name"
                       error={Boolean(form.orgName && form.orgName.trim().length < 2)}
                     />
+
+                    {/* Representative details for Organisation */}
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, fontWeight: "bold", textTransform: "uppercase" }}>
+                      Representative / Contact Person Name *
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={4}>
+                        <TextField fullWidth required
+                          label="Rep First Name *" name="repFirstName"
+                          value={form.repFirstName} onChange={handleChange}
+                          placeholder="First Name..."
+                          error={Boolean(form.repFirstName && form.repFirstName.trim().length < 1)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField fullWidth
+                          label="Rep Middle Name" name="repMiddleName"
+                          value={form.repMiddleName} onChange={handleChange}
+                          placeholder="Middle Name (optional)..."
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField fullWidth required
+                          label="Rep Last Name *" name="repLastName"
+                          value={form.repLastName} onChange={handleChange}
+                          placeholder="Last Name..."
+                          error={Boolean(form.repLastName && form.repLastName.trim().length < 1)}
+                        />
+                      </Grid>
+                    </Grid>
+
                     {/* Gender — Organisation representative का gender */}
                     <Grid container spacing={1.5}>
                       <Grid item xs={12} sm={4}>
@@ -829,36 +868,39 @@ Thank you for registering with ICJ Enterprise Platform.
                               <Box>
                                 <Typography variant="caption" fontWeight="bold" color="text.secondary"
                                   sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                                  Select your problem category *
+                                  Select your problem category * (Select Multiple)
                                 </Typography>
                                 <Grid container spacing={1}>
-                                  {PROBLEM_CATEGORIES.map((cat) => (
-                                    <Grid item xs={12} sm={6} key={cat}>
-                                      <Paper
-                                        elevation={0}
-                                        onClick={() => setForm((prev) => ({ ...prev, problemCategory: cat }))}
-                                        sx={{
-                                          p: 1.5,
-                                          border: "1.5px solid",
-                                          borderColor: form.problemCategory === cat ? opt.color : "#dde3ec",
-                                          bgcolor: form.problemCategory === cat ? "#fff0f0" : "#fff",
-                                          borderRadius: 1.5,
-                                          cursor: "pointer",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 1,
-                                          "&:hover": { borderColor: opt.color },
-                                        }}
-                                      >
-                                        {form.problemCategory === cat && (
-                                          <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
-                                        )}
-                                        <Typography variant="body2" fontWeight={form.problemCategory === cat ? 700 : 400}>
-                                          {cat}
-                                        </Typography>
-                                      </Paper>
-                                    </Grid>
-                                  ))}
+                                  {PROBLEM_CATEGORIES.map((cat) => {
+                                    const isSelected = (form.problemCategories || []).includes(cat);
+                                    return (
+                                      <Grid item xs={12} sm={6} key={cat}>
+                                        <Paper
+                                          elevation={0}
+                                          onClick={() => handleToggleCategory(cat)}
+                                          sx={{
+                                            p: 1.5,
+                                            border: "1.5px solid",
+                                            borderColor: isSelected ? opt.color : "#dde3ec",
+                                            bgcolor: isSelected ? "#fff0f0" : "#fff",
+                                            borderRadius: 1.5,
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1,
+                                            "&:hover": { borderColor: opt.color },
+                                          }}
+                                        >
+                                          {isSelected && (
+                                            <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
+                                          )}
+                                          <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
+                                            {cat}
+                                          </Typography>
+                                        </Paper>
+                                      </Grid>
+                                    );
+                                  })}
                                 </Grid>
                               </Box>
                             )}
@@ -868,36 +910,39 @@ Thank you for registering with ICJ Enterprise Platform.
                               <Box>
                                 <Typography variant="caption" fontWeight="bold" color="text.secondary"
                                   sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                                  Select the ICJ service you need *
+                                  Select the ICJ service you need * (Select Multiple)
                                 </Typography>
                                 <Grid container spacing={1}>
-                                  {SERVICE_CATEGORIES.map((cat) => (
-                                    <Grid item xs={12} sm={6} key={cat}>
-                                      <Paper
-                                        elevation={0}
-                                        onClick={() => setForm((prev) => ({ ...prev, serviceCategory: cat }))}
-                                        sx={{
-                                          p: 1.5,
-                                          border: "1.5px solid",
-                                          borderColor: form.serviceCategory === cat ? opt.color : "#dde3ec",
-                                          bgcolor: form.serviceCategory === cat ? "#e8f0ff" : "#fff",
-                                          borderRadius: 1.5,
-                                          cursor: "pointer",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: 1,
-                                          "&:hover": { borderColor: opt.color },
-                                        }}
-                                      >
-                                        {form.serviceCategory === cat && (
-                                          <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
-                                        )}
-                                        <Typography variant="body2" fontWeight={form.serviceCategory === cat ? 700 : 400}>
-                                          {cat}
-                                        </Typography>
-                                      </Paper>
-                                    </Grid>
-                                  ))}
+                                  {SERVICE_CATEGORIES.map((cat) => {
+                                    const isSelected = (form.solutionServices || []).includes(cat);
+                                    return (
+                                      <Grid item xs={12} sm={6} key={cat}>
+                                        <Paper
+                                          elevation={0}
+                                          onClick={() => handleToggleService(cat)}
+                                          sx={{
+                                            p: 1.5,
+                                            border: "1.5px solid",
+                                            borderColor: isSelected ? opt.color : "#dde3ec",
+                                            bgcolor: isSelected ? "#e8f0ff" : "#fff",
+                                            borderRadius: 1.5,
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1,
+                                            "&:hover": { borderColor: opt.color },
+                                          }}
+                                        >
+                                          {isSelected && (
+                                            <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
+                                          )}
+                                          <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
+                                            {cat}
+                                          </Typography>
+                                        </Paper>
+                                      </Grid>
+                                    );
+                                  })}
                                 </Grid>
                               </Box>
                             )}
@@ -910,28 +955,50 @@ Thank you for registering with ICJ Enterprise Platform.
                                   Franchise Interest Details *
                                 </Typography>
                                 <Grid container spacing={2}>
-                                  <Grid item xs={12} sm={6}>
+                                  <Grid item xs={12} sm={4}>
                                     <TextField
                                       fullWidth required
-                                      label="Preferred City / Location *"
+                                      label="Preferred State *"
+                                      name="franchiseState"
+                                      value={form.franchiseState}
+                                      onChange={handleChange}
+                                      placeholder="State..."
+                                      error={Boolean(form.franchiseState && form.franchiseState.trim().length < 2)}
+                                    />
+                                  </Grid>
+                                  <Grid item xs={12} sm={4}>
+                                    <TextField
+                                      fullWidth required
+                                      label="Preferred District *"
+                                      name="franchiseDistrict"
+                                      value={form.franchiseDistrict}
+                                      onChange={handleChange}
+                                      placeholder="District..."
+                                      error={Boolean(form.franchiseDistrict && form.franchiseDistrict.trim().length < 2)}
+                                    />
+                                  </Grid>
+                                  <Grid item xs={12} sm={4}>
+                                    <TextField
+                                      fullWidth required
+                                      label="Preferred City *"
                                       name="franchiseCity"
                                       value={form.franchiseCity}
                                       onChange={handleChange}
-                                      placeholder="City where you wish to operate..."
+                                      placeholder="City..."
                                       error={Boolean(form.franchiseCity && form.franchiseCity.trim().length < 2)}
-                                      helperText="Minimum 2 characters"
                                     />
                                   </Grid>
-                                  <Grid item xs={12} sm={6}>
+                                  <Grid item xs={12}>
                                     <TextField
-                                      fullWidth
-                                      label="Background / Experience (Optional)"
-                                      name="franchiseMsg"
-                                      value={form.franchiseMsg}
+                                      fullWidth required
+                                      label="Background / Experience / Capability *"
+                                      name="franchiseBackground"
+                                      value={form.franchiseBackground}
                                       onChange={handleChange}
-                                      placeholder="Brief professional background..."
+                                      placeholder="Detail your professional capability and background..."
                                       multiline
-                                      rows={1}
+                                      rows={2}
+                                      error={Boolean(form.franchiseBackground && form.franchiseBackground.trim().length < 5)}
                                     />
                                   </Grid>
                                 </Grid>
@@ -991,9 +1058,9 @@ Thank you for registering with ICJ Enterprise Platform.
 
               {!isFormValid && (
                 <Alert severity="warning" sx={{ fontSize: "0.85rem" }}>
-                  <strong>💡 To enable registration, please ensure:</strong>
+                  <strong>💡 Please ensure:</strong>
                   <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
-                    {!isNameValid && <li>First Name &amp; Last Name / Entity Name</li>}
+                    {!isNameValid && <li>First Name &amp; Last Name / Entity Representative Name</li>}
                     {!isAgeValid && <li>Birth Year डालें (18+ वर्ष अनिवार्य, 1900–{maxBirthYear})</li>}
                     {!isEmailValid && <li>Valid Email Address (e.g. name@gmail.com)</li>}
                     {!isMobileValid && <li>Mobile Number {form.mobileCountryCode === "+91" ? "(10 अंक अनिवार्य)" : "(required)"}</li>}
@@ -1001,9 +1068,6 @@ Thank you for registering with ICJ Enterprise Platform.
                     {!isPurposeValid && <li>Select "WHAT BRINGS YOU TO ICJ?" card &amp; details (e.g. City / Category)</li>}
                     {!form.termsAccepted && <li>Check the Onboarding Terms &amp; Privacy Policy checkbox</li>}
                   </ul>
-                  <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#d32f2f", fontWeight: "bold" }}>
-                    👉 Click "⚡ AUTO-FILL DEMO DATA" at the top of the form to fill all fields instantly!
-                  </Typography>
                 </Alert>
               )}
 
