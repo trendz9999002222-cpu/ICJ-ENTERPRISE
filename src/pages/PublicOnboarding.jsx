@@ -1083,20 +1083,7 @@ Thank you for registering with ICJ Enterprise Platform.
                 CONTINUE REGISTRATION
               </Button>
 
-              {!isFormValid && (
-                <Alert severity="warning" sx={{ fontSize: "0.85rem" }}>
-                  <strong>💡 Please ensure:</strong>
-                  <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
-                    {!isNameValid && <li>First Name &amp; Last Name / Entity Representative Name</li>}
-                    {!isAgeValid && <li>Birth Year डालें ({minBirthYear}–{maxBirthYear})</li>}
-                    {!isEmailValid && <li>Valid Email Address (e.g. name@gmail.com)</li>}
-                    {!isMobileValid && <li>Mobile Number {form.mobileCountryCode === "+91" ? "(10 अंक अनिवार्य)" : "(required)"}</li>}
-                    {(!isPasswordValid || !doPasswordsMatch) && <li>Secret Password &amp; Matching Confirm Password (Min. 6 chars)</li>}
-                    {!isPurposeValid && <li>Select "WHAT BRINGS YOU TO ICJ?" card &amp; details (e.g. City / Category)</li>}
-                    {!form.termsAccepted && <li>Check the Onboarding Terms &amp; Privacy Policy checkbox</li>}
-                  </ul>
-                </Alert>
-              )}
+
 
             </Stack>
           </Paper>
