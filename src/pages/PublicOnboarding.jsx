@@ -751,15 +751,15 @@ Thank you for registering with ICJ Enterprise Platform.
                       name="password"
                       value={form.password}
                       onChange={handleChange}
-                      placeholder="Min. 8 characters..."
+                      placeholder="e.g. Abc@12345"
                       error={Boolean(form.password && !isPasswordValid)}
                       autoComplete="new-password"
                       helperText={
                         form.password
                           ? isPasswordValid
-                            ? "✓ Password OK"
-                            : "At least 8 chars, 1 letter, 1 number, and 1 special char required"
-                          : "Required to open your Member Dashboard"
+                            ? "✓ Password meets requirements"
+                            : "Minimum 8 characters, 1 letter, 1 number, and 1 special character required (no leading/trailing spaces)"
+                          : "Hint: Minimum 8 characters (at least 1 letter, 1 number, and 1 special character like @, #, $, etc.)"
                       }
                       InputProps={{
                         startAdornment: (
