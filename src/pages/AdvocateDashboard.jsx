@@ -385,38 +385,29 @@ export default function AdvocateDashboard() {
                           <Stack spacing={1.5} mb={2}>
                             {realAudioMessages.map((m, idx) => (
                               <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
-                                <Typography variant="caption" fontWeight="bold" color="#0f172a" display="block">
-                                  🎙️ {m.title || m.text} ({m.timestamp})
-                                </Typography>
-                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6, marginBottom: 8 }} />
-                                
-                                <Box sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 1.5, border: "1px solid #bbf7d0", mt: 1 }}>
-                                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
-                                    <Typography variant="caption" fontWeight="bold" color="#166534" display="block">
-                                      📝 इस ऑडियो का बिना सुने ऑटो-टाइप हुआ टेक्स्ट (Auto-Spoken Transcript):
-                                    </Typography>
-                                    <Button
-                                      size="small"
-                                      variant="outlined"
-                                      color="success"
-                                      startIcon={<AutoAwesomeIcon />}
-                                      onClick={() => {
-                                        const transcribedText = m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।";
-                                        const updated = { ...(activeConsultation || {}), problemText: transcribedText };
-                                        localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                                        setAiConsultations([updated]);
-                                        setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly!`);
-                                        setTimeout(() => setAlertMsg(""), 3500);
-                                      }}
-                                      sx={{ fontSize: "0.7rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
-                                    >
-                                      ⚡ Auto-Transcribe File
-                                    </Button>
-                                  </Stack>
-                                  <Typography variant="body2" color="#0f172a" sx={{ fontSize: "0.88rem", lineHeight: 1.5, fontWeight: 500 }}>
-                                    "{m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।"}"
+                                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                                  <Typography variant="caption" fontWeight="bold" color="#0f172a">
+                                    🎙️ {m.title || m.text} ({m.timestamp})
                                   </Typography>
-                                </Box>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="success"
+                                    startIcon={<AutoAwesomeIcon />}
+                                    onClick={() => {
+                                      const transcribedText = m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे की आवश्यकता है।";
+                                      const updated = { ...(activeConsultation || {}), problemText: transcribedText };
+                                      localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
+                                      setAiConsultations([updated]);
+                                      setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly!`);
+                                      setTimeout(() => setAlertMsg(""), 3500);
+                                    }}
+                                    sx={{ fontSize: "0.72rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
+                                  >
+                                    ⚡ Auto-Transcribe File
+                                  </Button>
+                                </Stack>
+                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38 }} />
                               </Paper>
                             ))}
                           </Stack>
@@ -448,11 +439,11 @@ export default function AdvocateDashboard() {
                           fullWidth
                           multiline
                           rows={6}
-                          placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा..."
+                          placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा... (1-Click में '⚡ Auto-Transcribe File' दबाएं)"
                           value={
                             (activeConsultation?.problemText && !activeConsultation.problemText.startsWith("🎙️") && activeConsultation.problemText !== "Client Spoken Statement")
                               ? activeConsultation.problemText
-                              : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे की आवश्यकता है।"
+                              : (realAudioMessages.find(m => m.transcript && !m.transcript.startsWith("🎙️"))?.transcript || "")
                           }
                           onChange={(e) => {
                             if (activeConsultation) {
