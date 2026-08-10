@@ -71,6 +71,7 @@ export default function AdvocateDashboard() {
   const [aiConsultations, setAiConsultations] = useState([]);
   const [search, setSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
+  const [customPleadingText, setCustomPleadingText] = useState("");
 
   // Appointments state
   const [appointments, setAppointments] = useState([
@@ -472,30 +473,46 @@ export default function AdvocateDashboard() {
                         {activeConsultation?.diagnosis?.legalStand || "यह ड्राफ्ट क्लाइंट के स्पोकन ऑडियो के आधार पर तैयार किया गया है。"}
                       </Alert>
 
-                      <Typography variant="caption" fontWeight="bold" display="block" mb={0.5}>
-                        🏛️ Formatted Advocate Court Pleading (स्वीकृति हेतु विधिक ड्राफ्ट):
-                      </Typography>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Typography variant="caption" fontWeight="bold" display="block">
+                          🏛️ Advocate Legal Pleading Box (एडवोकेट ड्राफ्टिंग व टाइपिंग विंडो):
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => {
+                            setCustomPleadingText("");
+                            if (activeConsultation) {
+                              const updated = { ...activeConsultation, problemText: "" };
+                              localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
+                              setAiConsultations([updated]);
+                            }
+                            setAlertMsg("🗑️ पूरा मैटर डिलीट कर दिया गया है! अब आप अपना नया मैटर यहाँ टाइप कर सकते हैं।");
+                            setTimeout(() => setAlertMsg(""), 3500);
+                          }}
+                          sx={{ fontSize: "0.72rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
+                        >
+                          🗑️ Clear All Text (मैटर डिलीट करें)
+                        </Button>
+                      </Stack>
+
                       <TextField
                         fullWidth
                         multiline
                         rows={8}
-                        value={`IN THE REVENUE / CIVIL COURT OF JUDICATURE
-MATTER REFERENCE: ${activeConsultation?.consultationId || "INTAKE-2026"}
-
-IN THE MATTER OF:
-${activeConsultation?.clientName || "Pooja Verma (Client)"} ...PETITIONER
-VERSUS
-Opposite Party & Ors. ...RESPONDENTS
-
-PETITION UNDER ${activeConsultation?.diagnosis?.sectionsApplicable ? activeConsultation.diagnosis.sectionsApplicable.join(", ") : "SECTION 24 LAND REVENUE CODE & ORDER 39 CPC"}
-
-STATEMENT OF FACTS (BASED ON CLIENT SPOKEN AUDIO):
-${activeConsultation?.problemText || "Client Spoken Statement"}
-
-PRAYER:
-Grant immediate relief, stay, and boundary demarcation as prayed for.`}
-                        onChange={() => {}}
-                        sx={{ mb: 2, bgcolor: "#fff" }}
+                        placeholder="यहाँ क्लिक करके अपना मैटर टाइप करें या डिलीट करके नया ड्राफ्ट लिखें..."
+                        value={customPleadingText !== "" ? customPleadingText : (activeConsultation?.problemText || "")}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomPleadingText(val);
+                          if (activeConsultation) {
+                            const updated = { ...activeConsultation, problemText: val };
+                            localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
+                            setAiConsultations([updated]);
+                          }
+                        }}
+                        sx={{ mb: 2, bgcolor: "#fff", "& .MuiInputBase-input": { fontSize: "0.9rem", color: "#0f172a", lineHeight: 1.6 } }}
                       />
 
                       <Stack direction="row" spacing={1.5}>
