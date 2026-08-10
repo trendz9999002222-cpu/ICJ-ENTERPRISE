@@ -139,8 +139,8 @@ export default function Sidebar() {
       <Toolbar sx={{ px: 2, display: "flex", alignItems: "center", gap: 1 }}>
         <Box
           sx={{
-            w: 32,
-            h: 32,
+            width: 32,
+            height: 32,
             borderRadius: "8px",
             bgcolor: "#2563eb",
             display: "flex",
