@@ -32,6 +32,7 @@ export default function VoiceCommentaryStudio({
   const [seconds, setSeconds] = useState(0);
   const [voiceNotesList, setVoiceNotesList] = useState([]);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState(null);
+  const [speechStatus, setSpeechStatus] = useState("Ready"); // "Ready" | "Listening" | "Error" | "Blocked"
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -62,6 +63,10 @@ export default function VoiceCommentaryStudio({
     recognition.maxAlternatives = 1;
     recognition.lang = "hi-IN";
 
+    recognition.onstart = () => {
+      setSpeechStatus("Listening");
+    };
+
     recognition.onresult = (event) => {
       let newlyFinalizedText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -74,17 +79,26 @@ export default function VoiceCommentaryStudio({
       }
       if (newlyFinalizedText) {
         tempTranscriptRef.current += newlyFinalizedText + " ";
+        setSpeechStatus("Listening (Speech detected)");
       }
     };
 
     recognition.onerror = (err) => {
       console.warn("Speech recognition error:", err.error);
-      if (isRecordingRef.current && err.error !== "not-allowed") {
+      if (err.error === "not-allowed") {
+        setSpeechStatus("Blocked: Mic/Speech API blocked. Connection must be HTTPS or localhost.");
+      } else if (err.error === "network") {
+        setSpeechStatus("Error: Network connection required for Speech API.");
+      } else {
+        setSpeechStatus(`Error: ${err.error}`);
+      }
+      if (isRecordingRef.current && err.error !== "not-allowed" && err.error !== "service-not-allowed") {
         try { recognition.start(); } catch { /* ignore */ }
       }
     };
 
     recognition.onend = () => {
+      setSpeechStatus(prev => prev.startsWith("Blocked") ? prev : "Ready");
       if (isRecordingRef.current) {
         try { recognition.start(); } catch { setIsRecording(false); }
       }
@@ -148,43 +162,54 @@ export default function VoiceCommentaryStudio({
       };
 
       mediaRecorder.onstop = () => {
-        const blobType = detectedMimeTypeRef.current || "audio/webm";
-        const blob = new Blob(audioChunksRef.current, { type: blobType });
-        const url = URL.createObjectURL(blob);
-        const noteId = `vn-${Date.now()}`;
+        // Wait 800ms for final SpeechRecognition results to finish processing from servers
+        setTimeout(() => {
+          const blobType = detectedMimeTypeRef.current || "audio/webm";
+          const blob = new Blob(audioChunksRef.current, { type: blobType });
 
-        const finalTrans = tempTranscriptRef.current.trim();
-
-        const newNote = {
-          id: noteId,
-          title: `Voice Note #${voiceNotesList.length + 1}`,
-          audioUrl: url,
-          blob,
-          duration: formatTimer(seconds || MAX_RECORDING_SECONDS),
-          timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
-          transcript: finalTrans,
-        };
-
-        setVoiceNotesList((prev) => {
-          const updated = [...prev, newNote];
-          if (onVoiceNotesChange) {
-            onVoiceNotesChange(updated);
+          // Validate recording data size and duration
+          if (blob.size === 0) {
+            console.warn("Recording produced an empty audio blob.");
+            alert("रिकॉर्डिंग में कोई आवाज़ नहीं मिली। कृपया पुनः प्रयास करें।");
+            stream.getTracks().forEach((track) => track.stop());
+            return;
           }
-          return updated;
-        });
 
-        if (finalTrans && onChange) {
-          const existing = valueRef.current ? valueRef.current.trim() : "";
-          const updated = existing ? `${existing}\n\n${finalTrans}` : finalTrans;
-          valueRef.current = updated;
-          onChange(updated);
-        }
+          const url = URL.createObjectURL(blob);
+          const noteId = `vn-${Date.now()}`;
+          const finalTrans = tempTranscriptRef.current.trim();
 
-        if (onSendVoiceToChat) {
-          onSendVoiceToChat(newNote);
-        }
+          const newNote = {
+            id: noteId,
+            title: `Voice Note #${voiceNotesList.length + 1}`,
+            audioUrl: url,
+            blob,
+            duration: formatTimer(seconds || MAX_RECORDING_SECONDS),
+            timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+            transcript: finalTrans,
+          };
 
-        stream.getTracks().forEach((track) => track.stop());
+          setVoiceNotesList((prev) => {
+            const updated = [...prev, newNote];
+            if (onVoiceNotesChange) {
+              onVoiceNotesChange(updated);
+            }
+            return updated;
+          });
+
+          if (finalTrans && onChange) {
+            const existing = valueRef.current ? valueRef.current.trim() : "";
+            const updated = existing ? `${existing}\n\n${finalTrans}` : finalTrans;
+            valueRef.current = updated;
+            onChange(updated);
+          }
+
+          if (onSendVoiceToChat) {
+            onSendVoiceToChat(newNote);
+          }
+
+          stream.getTracks().forEach((track) => track.stop());
+        }, 800);
       };
 
       mediaRecorderRef.current = mediaRecorder;
@@ -210,9 +235,12 @@ export default function VoiceCommentaryStudio({
       try { mediaRecorderRef.current.stop(); } catch { /* ignore */ }
     }
 
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { /* ignore */ }
-    }
+    // Delay stopping of Speech Recognition to allow final async results to be received
+    setTimeout(() => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch { /* ignore */ }
+      }
+    }, 800);
   };
 
   const formatTimer = (sec) => {
@@ -311,6 +339,13 @@ export default function VoiceCommentaryStudio({
             <Chip
               label={`📝 ${wordCount} Words | ${charCount} Chars`}
               color="secondary"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
+            />
+            <Chip
+              label={`Speech API: ${speechStatus}`}
+              color={speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error") ? "warning" : "success"}
               variant="outlined"
               size="small"
               sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
