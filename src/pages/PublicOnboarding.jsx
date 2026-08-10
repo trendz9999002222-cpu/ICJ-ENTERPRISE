@@ -254,7 +254,9 @@ export default function PublicOnboarding() {
     return false;
   }, [form.whatsapp, form.waCountryCode]);
 
-  const isPasswordValid = useMemo(() => (form.password || "").length >= 6, [form.password]);
+  const isPasswordValid = useMemo(() => {
+    return PasswordPolicyService.validatePassword(form.password).valid;
+  }, [form.password]);
 
   const doPasswordsMatch = useMemo(
     () => Boolean(form.password && form.password === form.confirmPassword),
@@ -735,13 +737,13 @@ Thank you for registering with ICJ Enterprise Platform.
                       name="password"
                       value={form.password}
                       onChange={handleChange}
-                      placeholder="Min. 6 characters..."
+                      placeholder="Min. 8 characters..."
                       error={Boolean(form.password && !isPasswordValid)}
                       helperText={
                         form.password
                           ? isPasswordValid
                             ? "✓ Password OK"
-                            : "At least 6 characters required"
+                            : "At least 8 chars, 1 letter, 1 number, and 1 special char required"
                           : "Required to open your Member Dashboard"
                       }
                       InputProps={{
@@ -752,7 +754,7 @@ Thank you for registering with ICJ Enterprise Platform.
                         ),
                         endAdornment: (
                           <InputAdornment position="end">
-                            <IconButton onClick={() => setShowPassword((v) => !v)} edge="end">
+                            <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
                               {showPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                           </InputAdornment>
@@ -781,6 +783,13 @@ Thank you for registering with ICJ Enterprise Platform.
                         startAdornment: (
                           <InputAdornment position="start">
                             <LockIcon color="primary" fontSize="small" />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
                           </InputAdornment>
                         ),
                       }}

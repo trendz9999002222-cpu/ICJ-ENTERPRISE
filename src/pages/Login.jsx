@@ -14,6 +14,10 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
 
 import useAuth from "../hooks/useAuth.js";
 import ForcePasswordChangeModal from "../components/ForcePasswordChangeModal.jsx";
@@ -35,9 +39,9 @@ export default function Login() {
   const [submitting,             setSubmitting]             = useState(false);
   const [pendingForceChangeUser, setPendingForceChangeUser] = useState(null);
 
-  // MFA Challenge State
   const [mfaPendingUser,         setMfaPendingUser]         = useState(null);
   const [mfaOtpInput,            setMfaOtpInput]            = useState("");
+  const [showPassword,           setShowPassword]           = useState(false);
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -241,11 +245,20 @@ export default function Login() {
               fullWidth
               label="Password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={form.password}
               onChange={onChange}
               required
               sx={{ mb: 3 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Button

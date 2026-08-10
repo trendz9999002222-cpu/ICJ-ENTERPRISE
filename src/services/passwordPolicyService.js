@@ -5,8 +5,8 @@ const POLICY_STORAGE_KEY = "icj_password_policy_config";
 const HISTORY_STORAGE_KEY = "icj_password_history";
 
 export const DEFAULT_PASSWORD_POLICY = {
-  minLength: 6,
-  maxLength: 64,
+  minLength: 8,
+  maxLength: 128,
   requireAlphabet: true,
   requireNumber: true,
   requireSpecialChar: true,
@@ -126,6 +126,12 @@ export const PasswordPolicyService = {
     const config = customConfig || this.getConfig();
     const errors = [];
     const pwd = String(password);
+
+    if (pwd.trim().length === 0) {
+      errors.push("Password cannot be empty or contain only spaces.");
+    } else if (pwd !== pwd.trim()) {
+      errors.push("Password cannot start or end with spaces.");
+    }
 
     if (pwd.length < config.minLength) {
       errors.push(`Password must be at least ${config.minLength} characters long.`);

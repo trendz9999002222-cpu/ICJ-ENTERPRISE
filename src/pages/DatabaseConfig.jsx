@@ -18,7 +18,11 @@ import {
   Switch,
   FormControlLabel,
   Divider,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 import StorageIcon from "@mui/icons-material/Storage";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -46,6 +50,7 @@ export default function DatabaseConfig() {
   const [alertMsg, setAlertMsg] = useState("");
   const [migrations, setMigrations] = useState(MigrationEngine.getHistory());
   const [testing, setTesting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const loadHealthMetrics = async () => {
     const data = await PostgresHealthMonitor.getMetrics();
@@ -155,7 +160,23 @@ export default function DatabaseConfig() {
                 <TextField fullWidth label="PostgreSQL User" name="username" value={config.username} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <TextField fullWidth type="password" label="Password" name="password" value={config.password} onChange={handleChange} />
+                <TextField
+                  fullWidth
+                  type={showPassword ? "text" : "password"}
+                  label="Password"
+                  name="password"
+                  value={config.password}
+                  onChange={handleChange}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
               </Grid>
               <Grid item xs={12} md={8}>
                 <TextField fullWidth label="Database Name" name="databaseName" value={config.databaseName} onChange={handleChange} />

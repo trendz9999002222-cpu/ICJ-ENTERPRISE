@@ -10,8 +10,12 @@ import {
   Alert,
   Box,
   LinearProgress,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
 import LockResetIcon from "@mui/icons-material/LockReset";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import PasswordPolicyService from "../services/passwordPolicyService";
 import AuthService from "../services/authService";
 
@@ -22,6 +26,7 @@ export default function ForcePasswordChangeModal({ open = false, user = null, on
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const policyConfig = PasswordPolicyService.getConfig();
 
@@ -91,33 +96,60 @@ export default function ForcePasswordChangeModal({ open = false, user = null, on
         <Box component="form" onSubmit={handlePasswordChange} sx={{ mt: 1 }}>
           <TextField
             fullWidth
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="Current Initial Password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
             sx={{ mb: 2 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <TextField
             fullWidth
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="New Password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
             helperText={`Min ${policyConfig.minLength} chars, min 1 letter, min 1 number, min 1 special char (!@#$%^&*)`}
             sx={{ mb: 2 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           <TextField
             fullWidth
-            type="password"
+            type={showPassword ? "text" : "password"}
             label="Confirm New Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
             sx={{ mb: 2 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
 
           {submitting && <LinearProgress sx={{ my: 2 }} />}

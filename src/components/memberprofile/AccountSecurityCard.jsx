@@ -13,12 +13,16 @@ import {
 	DialogContent,
 	DialogActions,
 	TextField,
+	IconButton,
+	InputAdornment,
 } from "@mui/material";
 import SecurityIcon from "@mui/icons-material/Security";
 import LockIcon from "@mui/icons-material/Lock";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import KeyIcon from "@mui/icons-material/Key";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ActivityService from "../../services/activityService";
 import { updateMember } from "../../services/database";
 
@@ -28,6 +32,7 @@ export default function AccountSecurityCard({ profile, currentUserRole = "admin"
 	const [resetDialogOpen, setResetDialogOpen] = useState(false);
 	const [newPassInput, setNewPassInput] = useState("");
 	const [passError, setPassError] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 
 	if (!profile) return null;
 
@@ -236,7 +241,7 @@ export default function AccountSecurityCard({ profile, currentUserRole = "admin"
 					</Typography>
 					<TextField
 						fullWidth
-						type="password"
+						type={showPassword ? "text" : "password"}
 						label="New Temporary Password"
 						value={newPassInput}
 						onChange={(e) => {
@@ -245,6 +250,15 @@ export default function AccountSecurityCard({ profile, currentUserRole = "admin"
 						}}
 						error={Boolean(passError)}
 						helperText={passError || "Minimum 8 characters"}
+						InputProps={{
+							endAdornment: (
+								<InputAdornment position="end">
+									<IconButton onClick={() => setShowPassword((v) => !v)} edge="end" aria-label="toggle password visibility">
+										{showPassword ? <VisibilityOff /> : <Visibility />}
+									</IconButton>
+								</InputAdornment>
+							),
+						}}
 					/>
 				</DialogContent>
 				<DialogActions>
