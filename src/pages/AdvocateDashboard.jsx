@@ -382,13 +382,24 @@ export default function AdvocateDashboard() {
                         </Typography>
 
                         {realAudioMessages.length > 0 ? (
-                          <Stack spacing={1} mb={2}>
+                          <Stack spacing={1.5} mb={2}>
                             {realAudioMessages.map((m, idx) => (
                               <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
                                 <Typography variant="caption" fontWeight="bold" color="#0f172a" display="block">
-                                  🎙️ {m.text} ({m.timestamp})
+                                  🎙️ {m.title || m.text} ({m.timestamp})
                                 </Typography>
-                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6 }} />
+                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6, marginBottom: 8 }} />
+                                
+                                {m.transcript ? (
+                                  <Box sx={{ p: 1, bgcolor: "#fff", borderRadius: 1, border: "1px solid #bbf7d0" }}>
+                                    <Typography variant="caption" fontWeight="bold" color="#166534" display="block">
+                                      📝 इस ऑडियो फ़ाइल का ऑटो-टाइप हुआ लाइव टेक्स्ट:
+                                    </Typography>
+                                    <Typography variant="body2" color="#0f172a" sx={{ fontSize: "0.85rem", fontStyle: "italic", mt: 0.5 }}>
+                                      "{m.transcript}"
+                                    </Typography>
+                                  </Box>
+                                ) : null}
                               </Paper>
                             ))}
                           </Stack>
@@ -421,7 +432,7 @@ export default function AdvocateDashboard() {
                           multiline
                           rows={6}
                           placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा..."
-                          value={activeConsultation?.problemText || ""}
+                          value={activeConsultation?.problemText || (realAudioMessages.length > 0 ? (realAudioMessages[realAudioMessages.length - 1]?.transcript || realAudioMessages[realAudioMessages.length - 1]?.text) : "")}
                           onChange={(e) => {
                             if (activeConsultation) {
                               const updated = { ...activeConsultation, problemText: e.target.value };

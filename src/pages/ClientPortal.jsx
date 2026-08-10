@@ -439,10 +439,14 @@ export default function ClientPortal() {
                           value={aiProbText}
                           onChange={(text) => setAiProbText(text)}
                           onSendVoiceToChat={(note) => {
+                            const spokenText = note.transcript || aiProbText || "";
                             const chatMsg = {
                               id: note.id,
                               sender: clientName,
-                              text: `🎙️ ${note.title} (${note.duration}): "${(note.transcript || "Audio Commentary").substring(0, 80)}..."`,
+                              title: note.title || "Voice Note",
+                              duration: note.duration || "00:30",
+                              text: `🎙️ ${note.title || "Voice Note"} (${note.duration || "00:30"})`,
+                              transcript: spokenText,
                               timestamp: note.timestamp,
                               audioUrl: note.audioUrl,
                             };
@@ -451,6 +455,21 @@ export default function ClientPortal() {
                               try { localStorage.setItem("icj_client_messages", JSON.stringify(updated)); } catch {}
                               return updated;
                             });
+
+                            try {
+                              const existing = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
+                              const updatedConsultation = {
+                                ...(existing[0] || {}),
+                                consultationId: "INTAKE-2026-LIVE",
+                                clientName: clientName || "Pooja Verma (Client)",
+                                caseCategory: "Voice Intake & Consultation",
+                                problemText: spokenText || existing[0]?.problemText || "",
+                                voiceNotes: [...(existing[0]?.voiceNotes || []), { id: note.id, title: note.title, audioUrl: note.audioUrl, transcript: spokenText }],
+                                createdAt: new Date().toISOString(),
+                              };
+                              localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updatedConsultation]));
+                            } catch {}
+
                             ActivityService.create({ title: `Voice Note Audio File Dispatched: ${note.title}`, type: "legal" });
                           }}
                           label="🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)"
