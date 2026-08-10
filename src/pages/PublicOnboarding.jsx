@@ -171,6 +171,14 @@ export default function PublicOnboarding() {
   const defaultBirthYear = 2000 + (currentYear - 2026);
   const maxBirthYear = currentYear - 10;
 
+  const birthYearsList = useMemo(() => {
+    const list = [];
+    for (let y = maxBirthYear; y >= minBirthYear; y--) {
+      list.push(y);
+    }
+    return list;
+  }, [minBirthYear, maxBirthYear]);
+
   const handleRegTypeChange = (e) => {
     setForm((prev) => ({
       ...prev,
@@ -533,13 +541,11 @@ Thank you for registering with ICJ Enterprise Platform.
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <TextField
-                          fullWidth required
+                          select fullWidth required
                           label="Birth Year *"
                           name="birthYear"
                           value={form.birthYear}
                           onChange={handleChange}
-                          placeholder={`e.g. ${maxBirthYear - 10}`}
-                          inputProps={{ maxLength: 4, inputMode: "numeric" }}
                           error={Boolean(
                             form.birthYear &&
                             (Number(form.birthYear) < minBirthYear || Number(form.birthYear) > maxBirthYear)
@@ -551,7 +557,14 @@ Thank you for registering with ICJ Enterprise Platform.
                                 : `${minBirthYear} से ${maxBirthYear} के बीच होना चाहिए`
                               : "केवल जन्म का साल"
                           }
-                        />
+                        >
+                          <MenuItem value="">-- Select Birth Year --</MenuItem>
+                          {birthYearsList.map((y) => (
+                            <MenuItem key={y} value={String(y)}>
+                              {y}
+                            </MenuItem>
+                          ))}
+                        </TextField>
                       </Grid>
                     </Grid>
                   </Stack>
