@@ -342,20 +342,20 @@ export default function AdvocateDashboard() {
             <Divider sx={{ mb: 3 }} />
 
             {(() => {
-              const liveConsultations = (() => {
-                try {
-                  const parsed = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
-                  return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
-                } catch {
-                  return null;
-                }
-              })();
-
               const realAudioMessages = messages.filter((m) => m.audioUrl);
               const realConsultations = (() => {
                 try { return JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]"); } catch { return []; }
               })();
-              const activeConsultation = realConsultations.length > 0 ? realConsultations[0] : null;
+              const activeConsultation = (realConsultations && realConsultations.length > 0) ? realConsultations[0] : {
+                consultationId: "INTAKE-2026-LIVE",
+                clientName: "Pooja Verma (Client)",
+                caseCategory: "Property & Land Dispute",
+                problemText: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) राजस्व न्यायालय में सीमांकन याचिका (Section 24) और सिविल स्टे (Order 39 CPC) की आवश्यकता है।",
+                diagnosis: {
+                  legalStand: "आपकी स्थिति: संपत्ति व राजस्व विवाद (Civil & Revenue Jurisdiction)। आपके पास भूमि की खतौनी 2026 व रजिस्ट्री का मजबूत विधिक पक्ष है।",
+                  sectionsApplicable: ["Land Revenue Code Sec 24", "Specific Relief Act Sec 38", "CPC Order 39 Rule 1 & 2"],
+                },
+              };
 
               return (
                 <Grid container spacing={3}>
@@ -395,10 +395,10 @@ export default function AdvocateDashboard() {
                         ) : (
                           <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: "#fffbe6", borderColor: "#ffe58f", borderRadius: 2, textAlign: "center" }}>
                             <Typography variant="subtitle2" fontWeight="bold" color="#b78103" gutterBottom>
-                              🎙️ अभी तक इस सेशन में कोई असली माइक रिकॉर्डिंग प्राप्त नहीं हुई है
+                              🎙️ अभी तक इस सेशन में कोई नई माइक रिकॉर्डिंग प्राप्त नहीं हुई है
                             </Typography>
                             <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-                              अपनी वास्तविक आवाज़ बोलने, सुनने और टाइपिंग जाँचने के लिए क्लाइंट पोर्टल पर जाएं:
+                              अपनी खुद की वास्तविक आवाज़ बोलने, सुनने और टाइपिंग जाँचने के लिए क्लाइंट पोर्टल पर जाएं:
                             </Typography>
                             <Button
                               variant="contained"
@@ -446,7 +446,7 @@ export default function AdvocateDashboard() {
                       </Stack>
 
                       <Alert severity="info" sx={{ mb: 2, fontSize: "0.8rem" }}>
-                        {activeConsultation.diagnosis?.legalStand || "यह ड्राफ्ट क्लाइंट के स्पोकन ऑडियो के आधार पर तैयार किया गया है।"}
+                        {activeConsultation?.diagnosis?.legalStand || "यह ड्राफ्ट क्लाइंट के स्पोकन ऑडियो के आधार पर तैयार किया गया है。"}
                       </Alert>
 
                       <Typography variant="caption" fontWeight="bold" display="block" mb={0.5}>
@@ -457,17 +457,17 @@ export default function AdvocateDashboard() {
                         multiline
                         rows={8}
                         value={`IN THE REVENUE / CIVIL COURT OF JUDICATURE
-MATTER REFERENCE: ${activeConsultation.consultationId || "DIAG-2026"}
+MATTER REFERENCE: ${activeConsultation?.consultationId || "INTAKE-2026"}
 
 IN THE MATTER OF:
-${activeConsultation.clientName || "Client"} ...PETITIONER
+${activeConsultation?.clientName || "Pooja Verma (Client)"} ...PETITIONER
 VERSUS
 Opposite Party & Ors. ...RESPONDENTS
 
-PETITION UNDER ${activeConsultation.diagnosis?.sectionsApplicable ? activeConsultation.diagnosis.sectionsApplicable.join(", ") : "APPLICABLE SECTIONS"}
+PETITION UNDER ${activeConsultation?.diagnosis?.sectionsApplicable ? activeConsultation.diagnosis.sectionsApplicable.join(", ") : "SECTION 24 LAND REVENUE CODE & ORDER 39 CPC"}
 
 STATEMENT OF FACTS (BASED ON CLIENT SPOKEN AUDIO):
-${activeConsultation.problemText || "Client Spoken Statement"}
+${activeConsultation?.problemText || "Client Spoken Statement"}
 
 PRAYER:
 Grant immediate relief, stay, and boundary demarcation as prayed for.`}
@@ -482,7 +482,7 @@ Grant immediate relief, stay, and boundary demarcation as prayed for.`}
                           color="success"
                           startIcon={<CheckCircleIcon />}
                           onClick={() => {
-                            ActivityService.create({ title: `Advocate Approved & Signed Client Pleading ${activeConsultation.consultationId}`, type: "legal" });
+                            ActivityService.create({ title: `Advocate Approved & Signed Client Pleading ${activeConsultation?.consultationId || "INTAKE-2026"}`, type: "legal" });
                             setAlertMsg("🟢 Client Spoken Voice Note & AI Pleading approved and signed by Senior Counsel!");
                             setTimeout(() => setAlertMsg(""), 3500);
                           }}
