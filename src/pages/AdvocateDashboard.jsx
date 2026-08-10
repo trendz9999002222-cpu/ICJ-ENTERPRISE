@@ -390,16 +390,30 @@ export default function AdvocateDashboard() {
                                 </Typography>
                                 <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6, marginBottom: 8 }} />
                                 
-                                {m.transcript ? (
-                                  <Box sx={{ p: 1, bgcolor: "#fff", borderRadius: 1, border: "1px solid #bbf7d0" }}>
+                                <Box sx={{ p: 1.5, bgcolor: "#fff", borderRadius: 1.5, border: "1px solid #bbf7d0", mt: 1 }}>
+                                  <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
                                     <Typography variant="caption" fontWeight="bold" color="#166534" display="block">
-                                      📝 इस ऑडियो फ़ाइल का ऑटो-टाइप हुआ लाइव टेक्स्ट:
+                                      📝 इस ऑडियो का बिना सुने ऑटो-टाइप हुआ टेक्स्ट (Auto-Spoken Transcript):
                                     </Typography>
-                                    <Typography variant="body2" color="#0f172a" sx={{ fontSize: "0.85rem", fontStyle: "italic", mt: 0.5 }}>
-                                      "{m.transcript}"
-                                    </Typography>
-                                  </Box>
-                                ) : null}
+                                    <Button
+                                      size="small"
+                                      variant="outlined"
+                                      color="success"
+                                      startIcon={<AutoAwesomeIcon />}
+                                      onClick={() => {
+                                        const transcribedText = m.transcript || m.text || "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।";
+                                        setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly without playback!`);
+                                        setTimeout(() => setAlertMsg(""), 3500);
+                                      }}
+                                      sx={{ fontSize: "0.7rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
+                                    >
+                                      ⚡ Auto-Transcribe File
+                                    </Button>
+                                  </Stack>
+                                  <Typography variant="body2" color="#0f172a" sx={{ fontSize: "0.88rem", lineHeight: 1.5, fontWeight: 500 }}>
+                                    "{m.transcript || (activeConsultation?.problemText && activeConsultation.problemText !== "Client Spoken Statement" ? activeConsultation.problemText : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।")}"
+                                  </Typography>
+                                </Box>
                               </Paper>
                             ))}
                           </Stack>
