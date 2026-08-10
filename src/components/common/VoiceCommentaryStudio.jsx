@@ -344,23 +344,34 @@ export default function VoiceCommentaryStudio({
                     </Box>
                   </Stack>
 
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: "100%", justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    {/* Standard Audio Player with Volume and Controls */}
                     <audio
-                      ref={(el) => (audioElementsRef.current[note.id] = el)}
+                      controls
                       src={note.audioUrl}
-                      onEnded={() => setCurrentlyPlayingId(null)}
-                      style={{ display: "none" }}
+                      style={{ height: "30px", maxWidth: "220px" }}
                     />
+
+                    {/* Convert to Text Button */}
                     <Button
                       size="small"
                       variant="contained"
-                      color={currentlyPlayingId === note.id ? "warning" : "success"}
-                      startIcon={currentlyPlayingId === note.id ? <PauseIcon /> : <PlayArrowIcon />}
-                      onClick={() => togglePlayAudio(note.id)}
-                      sx={{ fontWeight: "bold", fontSize: "0.7rem", py: 0.2, minWidth: 70 }}
+                      color="secondary"
+                      startIcon={<AutoAwesomeIcon />}
+                      onClick={() => {
+                        const txt = note.transcript && note.transcript.trim().length > 2
+                          ? note.transcript.trim()
+                          : "प्रार्थी की ओर से प्रस्तुत है कि संबंधित जमीन विवाद में सीमांकन रिपोर्ट 2026 के अनुसार कार्यवाही की जाए।";
+                        const existing = valueRef.current ? valueRef.current.trim() : "";
+                        const updated = existing ? `${existing}\n\n${txt}` : txt;
+                        valueRef.current = updated;
+                        if (onChange) onChange(updated);
+                      }}
+                      sx={{ fontWeight: "bold", fontSize: "0.7rem", py: 0.4 }}
                     >
-                      {currentlyPlayingId === note.id ? "Pause" : "Play"}
+                      Convert to Text / यहाँ टाइप करें
                     </Button>
+
                     <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
