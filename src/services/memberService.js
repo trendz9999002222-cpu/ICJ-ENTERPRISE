@@ -172,6 +172,15 @@ export const MemberService = {
 
     const aadhaarClean = String(member.aadhaar || member.aadhar || "").replace(/\D/g, "").slice(0, 12);
     const birthYearVal = member.birthYear || member.birth_year || "";
+    if (birthYearVal) {
+      const currentYear = new Date().getFullYear();
+      const minBirthYear = 1925 + (currentYear - 2026);
+      const maxBirthYear = currentYear - 10;
+      const yr = Number(birthYearVal);
+      if (isNaN(yr) || yr < minBirthYear || yr > maxBirthYear) {
+        throw new Error(`Birth Year must be between ${minBirthYear} and ${maxBirthYear}.`);
+      }
+    }
     const rawLevel = member.member_level || member.memberLevel || autoAssignMembershipLevel(member);
     const memberLevel = normalizeMembershipLevel(rawLevel);
     const statusVal = member.verification_status || "Pending Verification";

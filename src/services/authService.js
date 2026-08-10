@@ -135,6 +135,17 @@ const AuthService = {
       );
     }
 
+    const birthYearVal = payload.birthYear || payload.birth_year || "";
+    if (birthYearVal) {
+      const currentYear = new Date().getFullYear();
+      const minBirthYear = 1925 + (currentYear - 2026);
+      const maxBirthYear = currentYear - 10;
+      const yr = Number(birthYearVal);
+      if (isNaN(yr) || yr < minBirthYear || yr > maxBirthYear) {
+        throw new Error(`Birth Year must be between ${minBirthYear} and ${maxBirthYear}.`);
+      }
+    }
+
     const newUser = {
       id: `ICJ-USER-${Date.now()}`,
       member_id: `ICJ-USER-${Date.now()}`,

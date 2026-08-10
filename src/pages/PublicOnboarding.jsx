@@ -120,7 +120,7 @@ export default function PublicOnboarding() {
     repMiddleName:     "",
     repLastName:       "",
     gender:            "",
-    birthYear:         "",           // सिर्फ जन्म का साल (DOB नहीं)
+    birthYear:         String(2000 + (new Date().getFullYear() - 2026)),           // Default Birth Year rule
     mobile:            "",
     mobileCountryCode: "+91",
     whatsapp:          "",
@@ -165,9 +165,11 @@ export default function PublicOnboarding() {
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  // Birth Year validation — 18+ check
+  // Birth Year validation rules
   const currentYear = new Date().getFullYear();
-  const maxBirthYear = currentYear - 18; // 18 साल से कम नहीं
+  const minBirthYear = 1925 + (currentYear - 2026);
+  const defaultBirthYear = 2000 + (currentYear - 2026);
+  const maxBirthYear = currentYear - 10;
 
   const handleRegTypeChange = (e) => {
     setForm((prev) => ({
@@ -175,7 +177,7 @@ export default function PublicOnboarding() {
       regType:    e.target.value,
       namePrefix: "", firstName: "", middleName: "", lastName: "", orgName: "",
       repFirstName: "", repMiddleName: "", repLastName: "",
-      gender: "", birthYear: "",
+      gender: "", birthYear: String(2000 + (new Date().getFullYear() - 2026)),
       mobile: "", whatsapp: "", password: "", confirmPassword: "",
     }));
   };
@@ -230,9 +232,9 @@ export default function PublicOnboarding() {
   const isAgeValid = useMemo(() => {
     if (form.regType !== "Individual") return true;
     const yr = Number(form.birthYear);
-    if (!yr || yr < 1900 || yr > maxBirthYear) return false;
+    if (!yr || yr < minBirthYear || yr > maxBirthYear) return false;
     return true;
-  }, [form.regType, form.birthYear, maxBirthYear]);
+  }, [form.regType, form.birthYear, minBirthYear, maxBirthYear]);
 
   const isEmailValid = useMemo(() =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test((form.email || "").trim()),
@@ -538,14 +540,14 @@ Thank you for registering with ICJ Enterprise Platform.
                           inputProps={{ maxLength: 4, inputMode: "numeric" }}
                           error={Boolean(
                             form.birthYear &&
-                            (Number(form.birthYear) < 1900 || Number(form.birthYear) > maxBirthYear)
+                            (Number(form.birthYear) < minBirthYear || Number(form.birthYear) > maxBirthYear)
                           )}
                           helperText={
                             form.birthYear
-                              ? Number(form.birthYear) >= 1900 && Number(form.birthYear) <= maxBirthYear
+                              ? Number(form.birthYear) >= minBirthYear && Number(form.birthYear) <= maxBirthYear
                                 ? `✓ Valid (Age ~${currentYear - Number(form.birthYear)} yrs)`
-                                : `1900 से ${maxBirthYear} के बीच होना चाहिए (18+ वर्ष)`
-                              : "केवल जन्म का साल — 18+ वर्ष अनिवार्य"
+                                : `${minBirthYear} से ${maxBirthYear} के बीच होना चाहिए`
+                              : "केवल जन्म का साल"
                           }
                         />
                       </Grid>
@@ -1061,7 +1063,7 @@ Thank you for registering with ICJ Enterprise Platform.
                   <strong>💡 Please ensure:</strong>
                   <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
                     {!isNameValid && <li>First Name &amp; Last Name / Entity Representative Name</li>}
-                    {!isAgeValid && <li>Birth Year डालें (18+ वर्ष अनिवार्य, 1900–{maxBirthYear})</li>}
+                    {!isAgeValid && <li>Birth Year डालें ({minBirthYear}–{maxBirthYear})</li>}
                     {!isEmailValid && <li>Valid Email Address (e.g. name@gmail.com)</li>}
                     {!isMobileValid && <li>Mobile Number {form.mobileCountryCode === "+91" ? "(10 अंक अनिवार्य)" : "(required)"}</li>}
                     {(!isPasswordValid || !doPasswordsMatch) && <li>Secret Password &amp; Matching Confirm Password (Min. 6 chars)</li>}
