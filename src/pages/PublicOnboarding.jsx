@@ -974,7 +974,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                   </Typography>
                                   <Grid container spacing={1.5}>
                                     {/* State Input with freeSolo Autocomplete */}
-                                    <Grid item xs={12} sm={4}>
+                                    <Grid item xs={12} sm={4} sx={{ minWidth: 260 }}>
                                       <Autocomplete
                                         freeSolo
                                         disableClearable
@@ -1000,7 +1000,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                     </Grid>
 
                                     {/* District Input with freeSolo Autocomplete */}
-                                    <Grid item xs={12} sm={4}>
+                                    <Grid item xs={12} sm={4} sx={{ minWidth: 260 }}>
                                       <Autocomplete
                                         freeSolo
                                         disableClearable
@@ -1120,7 +1120,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                 </Typography>
                                 <Grid container spacing={2}>
                                   {/* State Autocomplete freeSolo */}
-                                  <Grid item xs={12}>
+                                  <Grid item xs={12} sx={{ minWidth: 260 }}>
                                     <Autocomplete
                                       freeSolo
                                       disableClearable
@@ -1147,7 +1147,7 @@ Thank you for registering with ICJ Enterprise Platform.
                                   </Grid>
 
                                   {/* District Autocomplete freeSolo */}
-                                  <Grid item xs={12}>
+                                  <Grid item xs={12} sx={{ minWidth: 260 }}>
                                     <Autocomplete
                                       freeSolo
                                       disableClearable
