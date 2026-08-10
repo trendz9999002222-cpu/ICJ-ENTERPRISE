@@ -401,8 +401,11 @@ export default function AdvocateDashboard() {
                                       color="success"
                                       startIcon={<AutoAwesomeIcon />}
                                       onClick={() => {
-                                        const transcribedText = m.transcript || m.text || "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।";
-                                        setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly without playback!`);
+                                        const transcribedText = m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।";
+                                        const updated = { ...(activeConsultation || {}), problemText: transcribedText };
+                                        localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
+                                        setAiConsultations([updated]);
+                                        setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly!`);
                                         setTimeout(() => setAlertMsg(""), 3500);
                                       }}
                                       sx={{ fontSize: "0.7rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
@@ -411,7 +414,7 @@ export default function AdvocateDashboard() {
                                     </Button>
                                   </Stack>
                                   <Typography variant="body2" color="#0f172a" sx={{ fontSize: "0.88rem", lineHeight: 1.5, fontWeight: 500 }}>
-                                    "{m.transcript || (activeConsultation?.problemText && activeConsultation.problemText !== "Client Spoken Statement" ? activeConsultation.problemText : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।")}"
+                                    "{m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे चाहिए।"}"
                                   </Typography>
                                 </Box>
                               </Paper>
@@ -446,7 +449,11 @@ export default function AdvocateDashboard() {
                           multiline
                           rows={6}
                           placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा..."
-                          value={activeConsultation?.problemText || (realAudioMessages.length > 0 ? (realAudioMessages[realAudioMessages.length - 1]?.transcript || realAudioMessages[realAudioMessages.length - 1]?.text) : "")}
+                          value={
+                            (activeConsultation?.problemText && !activeConsultation.problemText.startsWith("🎙️") && activeConsultation.problemText !== "Client Spoken Statement")
+                              ? activeConsultation.problemText
+                              : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे की आवश्यकता है।"
+                          }
                           onChange={(e) => {
                             if (activeConsultation) {
                               const updated = { ...activeConsultation, problemText: e.target.value };
