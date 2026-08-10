@@ -724,6 +724,7 @@ Thank you for registering with ICJ Enterprise Platform.
                       onChange={handleChange}
                       placeholder="applicant@domain.com"
                       error={Boolean(form.email && !isEmailValid)}
+                      autoComplete="off"
                       helperText={
                         form.email && !isEmailValid
                           ? "Enter a valid email address"
@@ -752,6 +753,7 @@ Thank you for registering with ICJ Enterprise Platform.
                       onChange={handleChange}
                       placeholder="Min. 8 characters..."
                       error={Boolean(form.password && !isPasswordValid)}
+                      autoComplete="new-password"
                       helperText={
                         form.password
                           ? isPasswordValid
@@ -785,6 +787,7 @@ Thank you for registering with ICJ Enterprise Platform.
                       onChange={handleChange}
                       placeholder="Re-enter secret password..."
                       error={Boolean(form.confirmPassword && !doPasswordsMatch)}
+                      autoComplete="new-password"
                       helperText={
                         form.confirmPassword
                           ? doPasswordsMatch
