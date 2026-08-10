@@ -40,6 +40,7 @@ import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
 import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
+import useAuth from "../hooks/useAuth.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -63,6 +64,7 @@ const ADVOCATE_TABS = {
 };
 
 export default function AdvocateDashboard() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.CLIENT_VOICE_INTAKE);
   const [cases, setCases] = useState([]);
   const [advocates, setAdvocates] = useState([]);
