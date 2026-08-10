@@ -359,9 +359,11 @@ export default function VoiceCommentaryStudio({
                       color="secondary"
                       startIcon={<AutoAwesomeIcon />}
                       onClick={() => {
-                        const txt = note.transcript && note.transcript.trim().length > 2
-                          ? note.transcript.trim()
-                          : "प्रार्थी की ओर से प्रस्तुत है कि संबंधित जमीन विवाद में सीमांकन रिपोर्ट 2026 के अनुसार कार्यवाही की जाए।";
+                        const txt = (note.transcript || "").trim();
+                        if (!txt) {
+                          alert("वॉयस ट्रांसक्रिप्शन खाली है। कृपया सुनिश्चित करें कि आपने माइक को अनुमति दी है और आवाज़ रिकॉर्ड की है।");
+                          return;
+                        }
                         const existing = valueRef.current ? valueRef.current.trim() : "";
                         const updated = existing ? `${existing}\n\n${txt}` : txt;
                         valueRef.current = updated;
