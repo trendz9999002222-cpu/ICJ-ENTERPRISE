@@ -342,40 +342,11 @@ export default function AdvocateDashboard() {
                 }
               })();
 
-              const activeConsultation = liveConsultations ? liveConsultations[0] : {
-                consultationId: "DIAG-2026-LIVE",
-                clientName: "Pooja Verma",
-                caseCategory: "Property & Land Dispute",
-                problemText: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) राजस्व न्यायालय में सीमांकन याचिका (Section 24) और सिविल स्टे (Order 39 CPC) चाहिए।",
-                diagnosis: {
-                  legalStand: "आपकी स्थिति: संपत्ति व राजस्व विवाद (Civil & Revenue Jurisdiction)। आपके पास भूमि की खतौनी 2026 व रजिस्ट्री का मजबूत पक्ष है।",
-                  sectionsApplicable: ["Land Revenue Code Sec 24", "Specific Relief Act Sec 38", "CPC Order 39 Rule 1 & 2"],
-                  sentenceRisk: "कोई आपराधिक सजा नहीं (सिविल अधिकार क्षेत्र)",
-                  bailProspects: "लागू नहीं",
-                  estimatedTrialDuration: "6 माह से 1 वर्ष (SDM राजस्व कोर्ट)",
-                },
-              };
-
-              const defaultVoiceNotes = [
-                {
-                  id: "vn-001",
-                  title: "Voice Note #1 (FIR & Land Dispute Audio)",
-                  duration: "01:24 mins",
-                  timestamp: "10:28 AM",
-                  audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-                  text: "मेरे भाई के खिलाफ पुलिस स्टेशन में झगड़े की झूठी एफआईआर दर्ज कराई गई है और पड़ोसी ने हमारी जमीन पर कब्जा कर लिया है...",
-                },
-                {
-                  id: "vn-002",
-                  title: "Voice Note #2 (SDM Demarcation & Injunction Prayer)",
-                  duration: "00:45 mins",
-                  timestamp: "10:30 AM",
-                  audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-                  text: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है... हमें स्टे चाहिए।",
-                },
-              ];
-
-              const audioMessages = messages.filter((m) => m.audioUrl).length > 0 ? messages.filter((m) => m.audioUrl) : defaultVoiceNotes;
+              const realAudioMessages = messages.filter((m) => m.audioUrl);
+              const realConsultations = (() => {
+                try { return JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]"); } catch { return []; }
+              })();
+              const activeConsultation = realConsultations.length > 0 ? realConsultations[0] : null;
 
               return (
                 <Grid container spacing={3}>
@@ -389,41 +360,65 @@ export default function AdvocateDashboard() {
                       <Box sx={{ p: 2, bgcolor: "#fff", borderRadius: 2, border: "1px solid #e2e8f0", mb: 2 }}>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
                           <Typography variant="subtitle2" fontWeight="bold" color="primary">
-                            Client: {activeConsultation.clientName || "Pooja Verma"}
+                            Client: {activeConsultation?.clientName || "Pooja Verma (Client)"}
                           </Typography>
-                          <Chip label={activeConsultation.caseCategory || "Property Dispute"} size="small" color="secondary" variant="outlined" />
+                          <Chip label={activeConsultation?.caseCategory || "Active Legal Intake"} size="small" color="secondary" variant="outlined" />
                         </Stack>
                         <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-                          Assigned Counsel: <strong>{user?.name || "Adv. Rohan Kumar Sharma"}</strong> • ID: {activeConsultation.consultationId}
+                          Assigned Counsel: <strong>{user?.name || "Adv. Rohan Kumar Sharma"}</strong> • ID: {activeConsultation?.consultationId || "INTAKE-2026-LIVE"}
                         </Typography>
 
                         <Typography variant="caption" fontWeight="bold" color="#166534" display="block" mb={1}>
-                          🎧 Recorded Audio Files Playlist (क्लाइंट की बोली गई वॉइस फ़ाइलें):
+                          🎧 Real-Time Recorded Voice Files (माइक्रोफोन द्वारा रिकॉर्ड की गई असली आवाज़):
                         </Typography>
 
-                        <Stack spacing={1} mb={2}>
-                          {audioMessages.map((m, idx) => (
-                            <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
-                              <Typography variant="caption" fontWeight="bold" color="#0f172a" display="block">
-                                🎙️ {m.title || m.text} ({m.duration || m.timestamp})
-                              </Typography>
-                              <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6 }} />
-                            </Paper>
-                          ))}
-                        </Stack>
+                        {realAudioMessages.length > 0 ? (
+                          <Stack spacing={1} mb={2}>
+                            {realAudioMessages.map((m, idx) => (
+                              <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
+                                <Typography variant="caption" fontWeight="bold" color="#0f172a" display="block">
+                                  🎙️ {m.text} ({m.timestamp})
+                                </Typography>
+                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, marginTop: 6 }} />
+                              </Paper>
+                            ))}
+                          </Stack>
+                        ) : (
+                          <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: "#fffbe6", borderColor: "#ffe58f", borderRadius: 2, textAlign: "center" }}>
+                            <Typography variant="subtitle2" fontWeight="bold" color="#b78103" gutterBottom>
+                              🎙️ अभी तक इस सेशन में कोई असली माइक रिकॉर्डिंग प्राप्त नहीं हुई है
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                              अपनी वास्तविक आवाज़ बोलने, सुनने और टाइपिंग जाँचने के लिए क्लाइंट पोर्टल पर जाएं:
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              startIcon={<MicIcon />}
+                              onClick={() => (window.location.href = "/client-portal")}
+                              sx={{ fontWeight: "bold" }}
+                            >
+                              🎙️ क्लाइंट पोर्टल पर अपनी असली आवाज़ रिकॉर्ड करें
+                            </Button>
+                          </Paper>
+                        )}
 
                         <Typography variant="caption" fontWeight="bold" color="#1e3a8a" display="block" mb={0.5}>
-                          📝 Client Verbatim Spoken Transcript (ऑटो-टाइप हुआ पूरा 2-पेज टेक्स्ट):
+                          📝 Client Verbatim Spoken Transcript (ऑटो-टाइप हुआ पूरा असली टेक्स्ट):
                         </Typography>
                         <TextField
                           fullWidth
                           multiline
                           rows={6}
-                          value={activeConsultation.problemText || "क्लाइंट का बोला गया टेक्स्ट यहाँ प्रदर्शित होगा..."}
+                          placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा..."
+                          value={activeConsultation?.problemText || ""}
                           onChange={(e) => {
-                            const updated = { ...activeConsultation, problemText: e.target.value };
-                            localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                            setAiConsultations([updated]);
+                            if (activeConsultation) {
+                              const updated = { ...activeConsultation, problemText: e.target.value };
+                              localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
+                              setAiConsultations([updated]);
+                            }
                           }}
                           sx={{ bgcolor: "#fff", "& .MuiInputBase-input": { fontSize: "0.9rem", color: "#0f172a", lineHeight: 1.6 } }}
                         />
