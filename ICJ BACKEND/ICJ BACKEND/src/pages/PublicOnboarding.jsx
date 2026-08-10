@@ -39,6 +39,7 @@ import LockIcon       from "@mui/icons-material/Lock";
 import SecurityIcon   from "@mui/icons-material/Security";
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
+import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService from "../services/authService";
@@ -151,6 +152,8 @@ export default function PublicOnboarding() {
     problemCity:       "",
     problemPincode:    "",
     problemPoliceStation: "",
+    problemDescription: "",
+    problemVoiceFiles: [],
     solutionServices:  [],           // Multi-select solution services
     franchiseState:    "Delhi",
     franchiseDistrict: "",
@@ -214,6 +217,8 @@ export default function PublicOnboarding() {
       problemCity: "",
       problemPincode: "",
       problemPoliceStation: "",
+      problemDescription: "",
+      problemVoiceFiles: [],
       franchiseState: "Delhi",
       franchiseDistrict: "",
       franchiseCity: "",
@@ -1065,6 +1070,17 @@ Thank you for registering with ICJ Enterprise Platform.
                                       />
                                     </Grid>
                                   </Grid>
+                                </Box>
+
+                                {/* Voice commentary mic dictation studio */}
+                                <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
+                                  <VoiceCommentaryStudio
+                                    value={form.problemDescription}
+                                    onChange={(newValue) => setForm(p => ({ ...p, problemDescription: newValue }))}
+                                    onVoiceNotesChange={(updatedNotes) => setForm(p => ({ ...p, problemVoiceFiles: updatedNotes }))}
+                                    label="🎙️ Describe your problem / अपनी समस्या विस्तार से बताएं (Optional)"
+                                    placeholder="यहाँ क्लिक करें और अपनी पूरी समस्या बोलें या टाइप करें..."
+                                  />
                                 </Box>
                               </Box>
                             )}
