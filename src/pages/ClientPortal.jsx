@@ -446,7 +446,11 @@ export default function ClientPortal() {
                               timestamp: note.timestamp,
                               audioUrl: note.audioUrl,
                             };
-                            setMessages((prev) => [...prev, chatMsg]);
+                            setMessages((prev) => {
+                              const updated = [...prev, chatMsg];
+                              try { localStorage.setItem("icj_client_messages", JSON.stringify(updated)); } catch {}
+                              return updated;
+                            });
                             ActivityService.create({ title: `Voice Note Audio File Dispatched: ${note.title}`, type: "legal" });
                           }}
                           label="🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)"

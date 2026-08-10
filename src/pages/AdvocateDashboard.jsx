@@ -77,9 +77,16 @@ export default function AdvocateDashboard() {
   ]);
 
   // Messages state
-  const [messages, setMessages] = useState([
-    { id: "msg-1", sender: "Green Earth Trust", recipient: "Adv. Rajesh Sharma", text: "Please review the updated environmental audit report before the next hearing.", timestamp: new Date().toLocaleTimeString("en-IN") },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    try {
+      const local = JSON.parse(localStorage.getItem("icj_client_messages") || "[]");
+      return Array.isArray(local) && local.length > 0 ? local : [
+        { id: "msg-1", sender: "Green Earth Trust", recipient: "Adv. Rajesh Sharma", text: "Please review the updated environmental audit report before the next hearing.", timestamp: new Date().toLocaleTimeString("en-IN") },
+      ];
+    } catch {
+      return [];
+    }
+  });
   const [newMessageText, setNewMessageText] = useState("");
 
   // Tasks state
