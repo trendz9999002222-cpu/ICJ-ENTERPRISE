@@ -432,29 +432,6 @@ export default function AdvocateDashboard() {
                             </Button>
                           </Paper>
                         )}
-
-                        <Typography variant="caption" fontWeight="bold" color="#1e3a8a" display="block" mb={0.5}>
-                          📝 Client Verbatim Spoken Transcript (ऑटो-टाइप हुआ पूरा असली टेक्स्ट):
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={6}
-                          placeholder="क्लाइंट पोर्टल पर आप जो भी बोलेंगे, वह पूरा टेक्स्ट यहाँ रियल-टाइम में स्वतः दिखेगा... (1-Click में '⚡ Auto-Transcribe File' दबाएं)"
-                          value={
-                            (activeConsultation?.problemText && !activeConsultation.problemText.startsWith("🎙️") && activeConsultation.problemText !== "Client Spoken Statement")
-                              ? activeConsultation.problemText
-                              : (realAudioMessages.find(m => m.transcript && !m.transcript.startsWith("🎙️"))?.transcript || "")
-                          }
-                          onChange={(e) => {
-                            if (activeConsultation) {
-                              const updated = { ...activeConsultation, problemText: e.target.value };
-                              localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                              setAiConsultations([updated]);
-                            }
-                          }}
-                          sx={{ bgcolor: "#fff", "& .MuiInputBase-input": { fontSize: "0.9rem", color: "#0f172a", lineHeight: 1.6 } }}
-                        />
                       </Box>
                     </Paper>
                   </Grid>
