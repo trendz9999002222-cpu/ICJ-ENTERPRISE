@@ -19,7 +19,8 @@ const registeredCatalog = [
   "/token", "/donation", "/settings", "/activity-log", "/transactions", "/member-profile",
   "/notifications", "/reports", "/legal", "/ai", "/research", "/administration", "/finance",
   "/advocate-dashboard", "/client-portal", "/trust-dashboard", "/court-calendar", "/billing",
-  "/ai-drafter", "/payment-management", "/location-master", "/database-config", "/governance-center", "/api-config", "/deployment-center", "/system-health"
+  "/ai-drafter", "/payment-management", "/location-master", "/database-config", "/governance-center", "/api-config", "/deployment-center", "/system-health",
+  "/loginAuthentication", "/join", "/member-register", "/token-exchange", "/icj-token", "/token-governance-manual", "/token-system-faq", "/token-manual", "/token-faq", "/campaigns", "/subscription", "/virtual-office", "/billing-invoicing", "/master-finance"
 ];
 
 const unregistered = routeMatches.filter(r => !registeredCatalog.includes(r));

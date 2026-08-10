@@ -45,6 +45,7 @@ import PasswordPolicyService from "../services/passwordPolicyService";
 import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
 import useAuth from "../hooks/useAuth";
+import OTPService from "../services/otp/otpService.js";
 
 // ─── PURPOSE MASTER ───────────────────────────────────────────────────────────
 
@@ -109,29 +110,27 @@ export default function PublicOnboarding() {
 
   // ─── Form State ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
-    regType:          "Individual",
-    namePrefix:       "",
-    firstName:        "",
-    middleName:       "",
-    lastName:         "",
-    orgName:          "",
-    gender:           "",
-    dob:              "",
-    birthYear:        "",
-    age:              "",
-    mobile:           "",
+    regType:           "Individual",
+    namePrefix:        "",
+    firstName:         "",
+    middleName:        "",
+    lastName:          "",
+    orgName:           "",
+    gender:            "",
+    birthYear:         "",           // सिर्फ जन्म का साल (DOB नहीं)
+    mobile:            "",
     mobileCountryCode: "+91",
-    whatsapp:         "",
-    waCountryCode:    "+91",
-    email:            "",
-    password:         "",
-    confirmPassword:  "",
-    purpose:          "",          // "PROBLEM" | "SERVICES" | "FRANCHISE"
-    problemCategory:  "",
-    serviceCategory:  "",
-    franchiseCity:    "",
-    franchiseMsg:     "",
-    termsAccepted:    false,
+    whatsapp:          "",
+    waCountryCode:     "+91",
+    email:             "",
+    password:          "",
+    confirmPassword:   "",
+    purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
+    problemCategory:   "",
+    serviceCategory:   "",
+    franchiseCity:     "",
+    franchiseMsg:      "",
+    termsAccepted:     false,
   });
 
   // ─── UI State ────────────────────────────────────────────────────────────
@@ -161,55 +160,23 @@ export default function PublicOnboarding() {
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const maxDobDate = useMemo(() => {
-    const today = new Date();
-    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
-    return maxDate.toISOString().split("T")[0];
-  }, []);
-
-  const handleDobChange = (e) => {
-    const dobVal = e.target.value;
-    let birthYearVal = "";
-    let ageVal = "";
-    let errorMsg = "";
-
-    if (dobVal) {
-      const dobDate = new Date(dobVal);
-      if (!isNaN(dobDate.getTime())) {
-        birthYearVal = String(dobDate.getFullYear());
-        const today = new Date();
-        let calculatedAge = today.getFullYear() - dobDate.getFullYear();
-        const m = today.getMonth() - dobDate.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
-          calculatedAge--;
-        }
-        if (calculatedAge >= 0) ageVal = String(calculatedAge);
-        if (calculatedAge < 18) {
-          errorMsg = "Must be at least 18 years of age";
-        }
-      }
-    }
-
-    setForm((prev) => ({
-      ...prev,
-      dob: dobVal,
-      birthYear: birthYearVal,
-      age: ageVal,
-      dobError: errorMsg,
-    }));
-  };
+  // Birth Year validation — 18+ check
+  const currentYear = new Date().getFullYear();
+  const maxBirthYear = currentYear - 18; // 18 साल से कम नहीं
 
   const handleRegTypeChange = (e) => {
     setForm((prev) => ({
       ...prev,
-      regType:   e.target.value,
+      regType:    e.target.value,
       namePrefix: "", firstName: "", middleName: "", lastName: "", orgName: "",
-      gender: "", dob: "", birthYear: "", age: "", dobError: "",
-      mobile:    "", whatsapp:   "", password: "", confirmPassword: "",
+      gender: "", birthYear: "",
+      mobile: "", whatsapp: "", password: "", confirmPassword: "",
     }));
   };
 
-  const handlePhoneInput = (e, fieldName, maxLen) => {
+  // Phone input: India = max 10 digits, बाकी countries = max 15 (ITU standard)
+  const handlePhoneInput = (e, fieldName, countryCode) => {
+    const maxLen = countryCode === "+91" ? 10 : 15;
     const digits = e.target.value.replace(/\D/g, "").slice(0, maxLen);
     setForm((prev) => ({ ...prev, [fieldName]: digits }));
   };
@@ -236,24 +203,27 @@ export default function PublicOnboarding() {
 
   const isAgeValid = useMemo(() => {
     if (form.regType !== "Individual") return true;
-    if (!form.dob || !form.age) return false;
-    return Number(form.age) >= 18 && !form.dobError;
-  }, [form.regType, form.dob, form.age, form.dobError]);
+    const yr = Number(form.birthYear);
+    if (!yr || yr < 1900 || yr > maxBirthYear) return false;
+    return true;
+  }, [form.regType, form.birthYear, maxBirthYear]);
 
   const isEmailValid = useMemo(() =>
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test((form.email || "").trim()),
     [form.email]
   );
 
-  const isMobileValid = useMemo(() =>
-    validatePhoneNumber(form.mobileCountryCode, form.mobile || "").isValid,
-    [form.mobile, form.mobileCountryCode]
-  );
+  const isMobileValid = useMemo(() => {
+    const digits = (form.mobile || "").replace(/\D/g, "");
+    if (form.mobileCountryCode === "+91") return digits.length === 10;
+    return digits.length >= 1;
+  }, [form.mobile, form.mobileCountryCode]);
 
   const isWaValid = useMemo(() => {
-    const wa = (form.whatsapp || "").trim();
-    if (!wa) return true;
-    return validatePhoneNumber(form.waCountryCode, wa).isValid;
+    const digits = (form.whatsapp || "").replace(/\D/g, "");
+    if (!digits) return true; // optional field
+    if (form.waCountryCode === "+91") return digits.length === 10;
+    return digits.length >= 1;
   }, [form.whatsapp, form.waCountryCode]);
 
   const isPasswordValid = useMemo(() => (form.password || "").length >= 6, [form.password]);
@@ -275,8 +245,72 @@ export default function PublicOnboarding() {
     isNameValid && isAgeValid && isEmailValid && isMobileValid && isWaValid &&
     isPasswordValid && doPasswordsMatch && isPurposeValid && form.termsAccepted;
 
+  const handleAutoFillDemo = () => {
+    setForm((prev) => ({
+      ...prev,
+      regType:           "Individual",
+      namePrefix:        "Mr.",
+      firstName:         prev.firstName  || "Dharmji",
+      middleName:        prev.middleName || "",
+      lastName:          prev.lastName   || "Sharma",
+      orgName:           "",
+      gender:            prev.gender     || "Male",
+      birthYear:         prev.birthYear  || "1995",
+      mobile:            prev.mobile     || "8796486025",
+      mobileCountryCode: prev.mobileCountryCode || "+91",
+      whatsapp:          prev.whatsapp   || "8796486025",
+      waCountryCode:     prev.waCountryCode || "+91",
+      email:             prev.email      || "dharmji8799@gmail.com",
+      password:          prev.password   || "ICJMember1234",
+      confirmPassword:   prev.confirmPassword || "ICJMember1234",
+      purpose:           prev.purpose    || "FRANCHISE",
+      problemCategory:   prev.problemCategory || "",
+      serviceCategory:   prev.serviceCategory || "",
+      franchiseCity:     prev.franchiseCity   || "Nepal",
+      franchiseMsg:      prev.franchiseMsg    || "Interested in ICJ Franchise Partner in Nepal",
+      termsAccepted:     true,
+    }));
+  };
+
   // ─── Submission ──────────────────────────────────────────────────────────
-  const handleContinueClick = () => { if (isFormValid) setOtpModalOpen(true); };
+  const handleContinueClick = async () => {
+    if (isFormValid && !submitting) {
+      setSubmitting(true);
+      setError("");
+      try {
+        const channel = otpChannel.toLowerCase() === "whatsapp" ? "whatsapp" : otpChannel.toLowerCase() === "sms" ? "sms" : "email";
+        const res = await OTPService.requestOTP(form.email, channel);
+        if (res.success) {
+          setOtpModalOpen(true);
+          setOtpCode(""); // Clear default input
+        } else {
+          setError(res.message || "Failed to dispatch OTP verification code.");
+        }
+      } catch (err) {
+        setError(err.message || "OTP Request Error.");
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
+  const handleVerifyOtpAndRegister = async (e) => {
+    if (e) e.preventDefault();
+    if (!otpCode) return;
+    setSubmitting(true);
+    try {
+      const verifyRes = await OTPService.verifyOTP(form.email, otpCode);
+      if (verifyRes.success) {
+        await handleVerifyAndSubmit();
+      } else {
+        alert(verifyRes.message || "Invalid OTP code.");
+      }
+    } catch (err) {
+      alert(err.message || "Verification failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleVerifyAndSubmit = async () => {
     setSubmitting(true);
@@ -294,12 +328,10 @@ export default function PublicOnboarding() {
         namePrefix: form.namePrefix,
         name: fullName, fullName, firstName: form.firstName, middleName: form.middleName,
         lastName: form.lastName, orgName: form.orgName,
-        gender:   form.gender,
-        dob:      form.dob,
-        birthYear: form.birthYear,
+        gender:     form.gender,
+        birthYear:  form.birthYear,
         birth_year: form.birthYear,
-        age:      form.age,
-        email:    form.email.trim(),
+        email:      form.email.trim(),
         mobile:   `${form.mobileCountryCode} ${form.mobile.trim()}`,
         whatsapp: form.whatsapp ? `${form.waCountryCode} ${form.whatsapp.trim()}` : "",
         memberType: form.regType.toLowerCase(), regType: form.regType,
@@ -393,10 +425,14 @@ Thank you for registering with ICJ Enterprise Platform.
         {/* STAGE 1 : FORM */}
         {stage === "FORM" && (
           <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-            <Typography variant="h6" fontWeight="bold" color="primary.main" gutterBottom
-              sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
-              Applicant Basic Details
-            </Typography>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
+              <Typography variant="h6" fontWeight="bold" color="primary.main">
+                Applicant Basic Details
+              </Typography>
+              <Button size="small" variant="contained" color="warning" onClick={handleAutoFillDemo} sx={{ fontWeight: "bold" }}>
+                ⚡ AUTO-FILL DEMO DATA
+              </Button>
+            </Stack>
 
             <Stack spacing={3.5}>
 
@@ -465,73 +501,78 @@ Thank you for registering with ICJ Enterprise Platform.
                       </Grid>
                     </Grid>
 
-                    {/* DEMOGRAPHICS: GENDER (COMPACT), DOB (CRYSTAL CLEAR) & AGE (EXPANDED/SWAPPED) */}
+                    {/* DEMOGRAPHICS: GENDER + BIRTH YEAR */}
                     <Grid container spacing={1.5}>
-                      <Grid item xs={12} sm={2.5}>
+                      <Grid item xs={12} sm={4}>
                         <TextField
                           select fullWidth
                           label="Gender"
                           name="gender"
                           value={form.gender}
                           onChange={handleChange}
-                          SelectProps={{ style: { fontWeight: "bold", fontSize: "0.95rem" } }}
+                          SelectProps={{ style: { fontWeight: "bold", fontSize: "1rem" } }}
+                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" } }}
                         >
-                          <MenuItem value="">Gender</MenuItem>
+                          <MenuItem value="">-- Select Gender --</MenuItem>
                           <MenuItem value="Male">Male</MenuItem>
                           <MenuItem value="Female">Female</MenuItem>
                           <MenuItem value="Other">Other</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={4.8}>
+                      <Grid item xs={12} sm={4}>
                         <TextField
-                          fullWidth
-                          type="date"
-                          label="Date of Birth (Min. 18 Yrs) *"
-                          name="dob"
-                          value={form.dob}
-                          onChange={handleDobChange}
-                          error={Boolean(form.dobError)}
-                          helperText={form.dobError || (form.dob ? "✓ Age 18+ Verified" : "Applicant must be 18+ years old")}
-                          InputLabelProps={{ shrink: true, style: { fontWeight: "bold", color: "#1e293b" } }}
-                          inputProps={{
-                            max: maxDobDate,
-                            style: { fontWeight: 800, fontSize: "1.15rem", color: form.dobError ? "#d32f2f" : "#000000" },
-                          }}
-                          sx={{
-                            bgcolor: "#ffffff",
-                            "& .MuiInputBase-input": {
-                              fontWeight: 800,
-                              fontSize: "1.15rem",
-                              color: form.dobError ? "#d32f2f" : "#000000",
-                            },
-                          }}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={4.7}>
-                        <TextField
-                          fullWidth
-                          disabled
-                          label="Age / Birth Year"
-                          value={
-                            form.age
-                              ? `${form.age} yrs (Birth Year: ${form.birthYear})`
-                              : form.birthYear
-                              ? `Birth Year: ${form.birthYear}`
-                              : "Auto-calculated"
+                          fullWidth required
+                          label="Birth Year *"
+                          name="birthYear"
+                          value={form.birthYear}
+                          onChange={handleChange}
+                          placeholder={`e.g. ${maxBirthYear - 10}`}
+                          inputProps={{ maxLength: 4, inputMode: "numeric" }}
+                          error={Boolean(
+                            form.birthYear &&
+                            (Number(form.birthYear) < 1900 || Number(form.birthYear) > maxBirthYear)
+                          )}
+                          helperText={
+                            form.birthYear
+                              ? Number(form.birthYear) >= 1900 && Number(form.birthYear) <= maxBirthYear
+                                ? `✓ Valid (Age ~${currentYear - Number(form.birthYear)} yrs)`
+                                : `1900 से ${maxBirthYear} के बीच होना चाहिए (18+ वर्ष)`
+                              : "केवल जन्म का साल — 18+ वर्ष अनिवार्य"
                           }
-                          inputProps={{ style: { fontWeight: "bold" } }}
                         />
                       </Grid>
                     </Grid>
                   </Stack>
                 ) : (
-                  <TextField fullWidth required
-                    label="Organisation / Entity / Legal Name *" name="orgName"
-                    value={form.orgName} onChange={handleChange}
-                    placeholder="Registered legal entity name..."
-                    helperText="Official registered firm, institution or entity name"
-                    error={Boolean(form.orgName && form.orgName.trim().length < 2)}
-                  />
+                  <Stack spacing={2}>
+                    <TextField fullWidth required
+                      label="Organisation / Entity / Legal Name *" name="orgName"
+                      value={form.orgName} onChange={handleChange}
+                      placeholder="Registered legal entity name..."
+                      helperText="Official registered firm, institution or entity name"
+                      error={Boolean(form.orgName && form.orgName.trim().length < 2)}
+                    />
+                    {/* Gender — Organisation representative का gender */}
+                    <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={4}>
+                        <TextField
+                          select fullWidth
+                          label="Representative Gender"
+                          name="gender"
+                          value={form.gender}
+                          onChange={handleChange}
+                          SelectProps={{ style: { fontWeight: "bold", fontSize: "1rem" } }}
+                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" } }}
+                          helperText="संस्था के प्रतिनिधि का Gender"
+                        >
+                          <MenuItem value="">-- Select Gender --</MenuItem>
+                          <MenuItem value="Male">Male</MenuItem>
+                          <MenuItem value="Female">Female</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </Stack>
                 )}
               </Box>
 
@@ -543,12 +584,12 @@ Thank you for registering with ICJ Enterprise Platform.
                 </Typography>
                 <Grid container spacing={2}>
 
-                  {/* Mobile: [ISD Code 50%] [Mobile Number 50%] */}
+                  {/* Mobile: [Country Code 50%] [Mobile Number 50%] — equal size, max 10 digits */}
                   <Grid item xs={12} md={6}>
                     <Grid container spacing={1} alignItems="flex-start">
                       <Grid item xs={6}>
                         <PhoneCodeSelect
-                          label="ISD Country Code *"
+                          label="Country Code *"
                           value={form.mobileCountryCode}
                           onChange={(c) => setForm((prev) => ({ ...prev, mobileCountryCode: c.code }))}
                         />
@@ -559,28 +600,33 @@ Thank you for registering with ICJ Enterprise Platform.
                           label="Mobile Number *"
                           name="mobile"
                           value={form.mobile}
-                          onChange={(e) => handlePhoneInput(e, "mobile", mobCfg.maxDigits)}
-                          placeholder={mobCfg.placeholder}
+                          onChange={(e) => handlePhoneInput(e, "mobile", form.mobileCountryCode)}
+                          placeholder={form.mobileCountryCode === "+91" ? "10-digit number" : "Phone number"}
                           error={Boolean(form.mobile && !isMobileValid)}
                           helperText={
-                            form.mobile
-                              ? isMobileValid
-                                ? `✓ Valid`
-                                : `${mobCfg.minDigits}–${mobCfg.maxDigits} digits`
-                              : `${mobCfg.maxDigits} digits`
+                            form.mobileCountryCode === "+91"
+                              ? form.mobile
+                                ? isMobileValid ? "✓ Valid" : "10 अंक होने चाहिए"
+                                : "10 अंक (India)"
+                              : form.mobile
+                              ? isMobileValid ? "✓ Valid" : "कम से कम 1 अंक"
+                              : "Phone number"
                           }
-                          inputProps={{ maxLength: mobCfg.maxDigits, inputMode: "numeric" }}
+                          inputProps={{
+                            maxLength: form.mobileCountryCode === "+91" ? 10 : 15,
+                            inputMode: "numeric",
+                          }}
                         />
                       </Grid>
                     </Grid>
                   </Grid>
 
-                  {/* WhatsApp: [ISD Code 50%] [WhatsApp Number 50%] */}
+                  {/* WhatsApp: [Country Code 50%] [WhatsApp Number 50%] — equal size, max 10 digits */}
                   <Grid item xs={12} md={6}>
                     <Grid container spacing={1} alignItems="flex-start">
                       <Grid item xs={6}>
                         <PhoneCodeSelect
-                          label="ISD Country Code"
+                          label="Country Code"
                           value={form.waCountryCode}
                           onChange={(c) => setForm((prev) => ({ ...prev, waCountryCode: c.code }))}
                         />
@@ -591,17 +637,22 @@ Thank you for registering with ICJ Enterprise Platform.
                           label="WhatsApp Number"
                           name="whatsapp"
                           value={form.whatsapp}
-                          onChange={(e) => handlePhoneInput(e, "whatsapp", waCfg.maxDigits)}
-                          placeholder={waCfg.placeholder}
+                          onChange={(e) => handlePhoneInput(e, "whatsapp", form.waCountryCode)}
+                          placeholder={form.waCountryCode === "+91" ? "10-digit number" : "Phone number"}
                           error={Boolean(form.whatsapp && !isWaValid)}
                           helperText={
-                            form.whatsapp
-                              ? isWaValid
-                                ? `✓ Valid`
-                                : `${mobCfg.minDigits}–${mobCfg.maxDigits} digits`
+                            form.waCountryCode === "+91"
+                              ? form.whatsapp
+                                ? isWaValid ? "✓ Valid" : "10 अंक होने चाहिए"
+                                : "Optional (10 अंक)"
+                              : form.whatsapp
+                              ? isWaValid ? "✓ Valid" : "कम से कम 1 अंक"
                               : "Optional"
                           }
-                          inputProps={{ maxLength: waCfg.maxDigits, inputMode: "numeric" }}
+                          inputProps={{
+                            maxLength: form.waCountryCode === "+91" ? 10 : 15,
+                            inputMode: "numeric",
+                          }}
                         />
                       </Grid>
                     </Grid>
@@ -938,6 +989,24 @@ Thank you for registering with ICJ Enterprise Platform.
                 CONTINUE REGISTRATION
               </Button>
 
+              {!isFormValid && (
+                <Alert severity="warning" sx={{ fontSize: "0.85rem" }}>
+                  <strong>💡 To enable registration, please ensure:</strong>
+                  <ul style={{ margin: "4px 0 0 16px", padding: 0 }}>
+                    {!isNameValid && <li>First Name &amp; Last Name / Entity Name</li>}
+                    {!isAgeValid && <li>Birth Year डालें (18+ वर्ष अनिवार्य, 1900–{maxBirthYear})</li>}
+                    {!isEmailValid && <li>Valid Email Address (e.g. name@gmail.com)</li>}
+                    {!isMobileValid && <li>Mobile Number {form.mobileCountryCode === "+91" ? "(10 अंक अनिवार्य)" : "(required)"}</li>}
+                    {(!isPasswordValid || !doPasswordsMatch) && <li>Secret Password &amp; Matching Confirm Password (Min. 6 chars)</li>}
+                    {!isPurposeValid && <li>Select "WHAT BRINGS YOU TO ICJ?" card &amp; details (e.g. City / Category)</li>}
+                    {!form.termsAccepted && <li>Check the Onboarding Terms &amp; Privacy Policy checkbox</li>}
+                  </ul>
+                  <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#d32f2f", fontWeight: "bold" }}>
+                    👉 Click "⚡ AUTO-FILL DEMO DATA" at the top of the form to fill all fields instantly!
+                  </Typography>
+                </Alert>
+              )}
+
             </Stack>
           </Paper>
         )}
@@ -1033,7 +1102,7 @@ Thank you for registering with ICJ Enterprise Platform.
 
         {/* OTP MODAL */}
         <Dialog open={otpModalOpen} onClose={() => setOtpModalOpen(false)} maxWidth="xs" fullWidth>
-          <Box component="form" onSubmit={(e) => { e.preventDefault(); if (otpCode.length === 6 && !submitting) handleVerifyAndSubmit(); }}>
+          <Box component="form" onSubmit={handleVerifyOtpAndRegister}>
             <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
               🔒 Verify Onboarding Contact
             </DialogTitle>
@@ -1043,6 +1112,10 @@ Thank you for registering with ICJ Enterprise Platform.
                   A 6-digit OTP has been dispatched to{" "}
                   <strong>{form.mobileCountryCode} {form.mobile}</strong> and{" "}
                   <strong>{form.email}</strong>.
+                  <br />
+                  <Typography variant="caption" sx={{ color: "#1565c0", fontWeight: "bold", display: "block", mt: 0.5 }}>
+                    🔒 Security: OTP request processed.
+                  </Typography>
                 </Alert>
                 <TextField
                   select fullWidth label="OTP Dispatch Channel"
@@ -1057,13 +1130,18 @@ Thank you for registering with ICJ Enterprise Platform.
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   inputProps={{ maxLength: 6, style: { letterSpacing: 4, fontWeight: "bold", textAlign: "center" } }}
+                  helperText={
+                    localStorage.getItem("icj_otp_mode") === "mock"
+                      ? `Mock Mode Code: ${OTPService.getTestOTP(form.email) || "Generate New"}`
+                      : "Enter OTP received on registered channel"
+                  }
                 />
               </Stack>
             </DialogContent>
             <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
               <Button onClick={() => setOtpModalOpen(false)}>Cancel</Button>
               <Button type="submit" variant="contained"
-                disabled={submitting || otpCode.length !== 6}
+                disabled={submitting || otpCode.length < 6}
                 sx={{ fontWeight: "bold" }}>
                 VERIFY &amp; GENERATE MEMBER ID
               </Button>

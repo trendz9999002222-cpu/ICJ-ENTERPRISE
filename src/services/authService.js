@@ -103,8 +103,18 @@ const AuthService = {
     const fullName = String(payload.fullName || payload.name || "").trim();
     const role = mapRole(payload.role);
 
-    if (!email || !password) {
-      throw new Error("Email/Username and password are required.");
+    // ── RULE 1: Email अनिवार्य है ──────────────────────────────────────────
+    if (!email) {
+      throw new Error("Email address is required. Registration cannot proceed without an email.");
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Please enter a valid email address (e.g. name@gmail.com).");
+    }
+
+    if (!password) {
+      throw new Error("Password is required.");
     }
 
     const validation = PasswordPolicyService.validatePassword(password);
@@ -115,9 +125,14 @@ const AuthService = {
     const passwordHash = PasswordPolicyService.hashPassword(password);
     const users = getStoredUsers();
 
-    const existing = users.find(u => u.email === email || u.username === payload.username);
+    // ── RULE 2: एक Email = एक Registration ─────────────────────────────────
+    const existing = users.find(u =>
+      String(u.email || "").trim().toLowerCase() === email
+    );
     if (existing) {
-      throw new Error("User with this Username/Email already exists.");
+      throw new Error(
+        `This email is already registered (Member ID: ${existing.member_id || existing.id}). Each email can only be used for one account.`
+      );
     }
 
     const newUser = {
@@ -155,32 +170,20 @@ const AuthService = {
     const fallbackRole = mapRole(credentials.role);
 
     if (!loginIdentifier || !password) {
-      throw new Error("Username/Email and password are required.");
+      throw new Error("Email address and password are required.");
     }
 
     const inputHash = PasswordPolicyService.hashPassword(password);
     const users = getStoredUsers();
 
-    // Match against username, email, member_id, id, or mobile number
+    // Match only by email address
     const matchedUser = users.find(u => {
-      const idKey = String(u.id || "").toLowerCase();
-      const memberIdKey = String(u.member_id || "").toLowerCase();
-      const usernameKey = String(u.username || "").toLowerCase();
       const emailKey = String(u.email || "").toLowerCase();
-      const mobileClean = String(u.mobile || "").replace(/\D/g, "");
-      const inputClean = loginIdentifier.replace(/\D/g, "");
-
-      return (
-        usernameKey === loginIdentifier ||
-        emailKey === loginIdentifier ||
-        memberIdKey === loginIdentifier ||
-        idKey === loginIdentifier ||
-        (inputClean.length >= 7 && mobileClean.endsWith(inputClean))
-      );
+      return emailKey === loginIdentifier;
     });
 
     if (!matchedUser) {
-      throw new Error("Invalid Member ID, Email, Mobile or Password.");
+      throw new Error("Invalid Email or Password. Please check and try again.");
     }
 
     // Verify Password Hash (or initial seed/reset password match)

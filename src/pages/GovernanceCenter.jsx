@@ -83,6 +83,19 @@ export default function GovernanceCenter() {
   // Phase J auto-register form
   const [newComp, setNewComp]       = useState({ name: "", route: "", category: "Core" });
 
+  // OTP & MFA Governance state
+  const [otpConfig, setOtpConfig]   = useState({
+    mfaEnabled: false,
+    smsPrimary: "2factor",
+    smsFallback: "fast2sms",
+    otpExpirySeconds: 300,
+    cooldownSeconds: 60,
+    maxRequests: 5,
+    maxAttempts: 3,
+    lockoutDurationMinutes: 15,
+    mfaRoles: { admin: false, employee: true, advocate: true, client: true, member: true },
+  });
+
   const refresh = () => {
     setModules(ModuleControl.getAll());
     setMenus(MenuControl.getAll());
@@ -93,6 +106,32 @@ export default function GovernanceCenter() {
     setCards(DashboardControl.getAll());
     setSecurity(SecurityControl.get());
     setAuditLog(GovernanceAudit.getAll());
+
+    try {
+      const raw = localStorage.getItem("icj_otp_governance_config");
+      if (raw) {
+        setOtpConfig(JSON.parse(raw));
+      }
+    } catch (e) {
+      console.error("Failed to load OTP governance config", e);
+    }
+  };
+
+  const updateOtpConfig = (updates) => {
+    const next = { ...otpConfig, ...updates };
+    setOtpConfig(next);
+    localStorage.setItem("icj_otp_governance_config", JSON.stringify(next));
+    
+    // Log to governance audit trail
+    GovernanceAudit.log({
+      action: "OTP_GOVERNANCE_UPDATE",
+      target: "otp_governance_config",
+      oldValue: JSON.stringify(otpConfig),
+      newValue: JSON.stringify(next)
+    });
+    
+    setAuditLog(GovernanceAudit.getAll());
+    notify("OTP & MFA Governance configuration saved.");
   };
 
   useEffect(() => {
@@ -560,6 +599,117 @@ export default function GovernanceCenter() {
                     placeholder="192.168.1.0/24, 10.0.0.1"
                     disabled={!security.ipRestriction}
                   />
+                </Paper>
+              </Grid>
+
+              {/* MFA & OTP Routing Policy Engine */}
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="primary" sx={{ mb: 1.5 }}>
+                    🔐 MFA &amp; Communication Gateways Routing Policy
+                  </Typography>
+                  
+                  <Grid container spacing={3}>
+                    {/* General Settings */}
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={2.5}>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={!!otpConfig.mfaEnabled}
+                              onChange={(e) => updateOtpConfig({ mfaEnabled: e.target.checked })}
+                              color="success"
+                            />
+                          }
+                          label={<Typography variant="body2" fontWeight="bold">Require Multi-Factor Authentication (MFA)</Typography>}
+                        />
+
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <TextField
+                              select fullWidth size="small"
+                              label="Primary SMS Provider"
+                              value={otpConfig.smsPrimary || "2factor"}
+                              onChange={(e) => updateOtpConfig({ smsPrimary: e.target.value })}
+                            >
+                              <MenuItem value="2factor">2Factor API</MenuItem>
+                              <MenuItem value="fast2sms">Fast2SMS Gateway</MenuItem>
+                            </TextField>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              select fullWidth size="small"
+                              label="Fallback SMS Provider"
+                              value={otpConfig.smsFallback || "fast2sms"}
+                              onChange={(e) => updateOtpConfig({ smsFallback: e.target.value })}
+                            >
+                              <MenuItem value="2factor">2Factor API</MenuItem>
+                              <MenuItem value="fast2sms">Fast2SMS Gateway</MenuItem>
+                            </TextField>
+                          </Grid>
+                        </Grid>
+
+                        <Grid container spacing={2}>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth size="small" type="number"
+                              label="OTP Expiry (sec)"
+                              value={otpConfig.otpExpirySeconds || 300}
+                              onChange={(e) => updateOtpConfig({ otpExpirySeconds: parseInt(e.target.value) || 300 })}
+                            />
+                          </Grid>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth size="small" type="number"
+                              label="Request Cooldown (sec)"
+                              value={otpConfig.cooldownSeconds || 60}
+                              onChange={(e) => updateOtpConfig({ cooldownSeconds: parseInt(e.target.value) || 60 })}
+                            />
+                          </Grid>
+                          <Grid item xs={4}>
+                            <TextField
+                              fullWidth size="small" type="number"
+                              label="Max Attempts"
+                              value={otpConfig.maxAttempts || 3}
+                              onChange={(e) => updateOtpConfig({ maxAttempts: parseInt(e.target.value) || 3 })}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Stack>
+                    </Grid>
+
+                    {/* Role MFA Requirement Matrix */}
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+                        Role-Based MFA Enforcement (MFA Policy Matrix)
+                      </Typography>
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: "action.hover" }}>
+                        {["employee", "advocate", "client", "member"].map((role) => (
+                          <Stack key={role} direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                            <Typography variant="body2" sx={{ textTransform: "capitalize" }}>
+                              {role} Login Verification
+                            </Typography>
+                            <Switch
+                              size="small"
+                              checked={!!otpConfig.mfaRoles?.[role]}
+                              onChange={(e) => {
+                                const nextRoles = { ...otpConfig.mfaRoles, [role]: e.target.checked };
+                                updateOtpConfig({ mfaRoles: nextRoles });
+                              }}
+                              disabled={!otpConfig.mfaEnabled}
+                            />
+                          </Stack>
+                        ))}
+                        
+                        {/* Safe Recovery Override Hint */}
+                        <Box sx={{ mt: 1, p: 1, bgcolor: "#fffbeb", borderRadius: 1, border: "1px solid #fef3c7" }}>
+                          <Typography variant="caption" color="warning.dark" display="block">
+                            💡 <strong>Super Admin Lockout Prevention:</strong> MFA is intentionally disabled for Super Admin to ensure access is not locked before recovery credentials are authenticated.
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  </Grid>
                 </Paper>
               </Grid>
             </Grid>

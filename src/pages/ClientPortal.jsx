@@ -452,7 +452,7 @@ export default function ClientPortal() {
                             };
                             setMessages((prev) => {
                               const updated = [...prev, chatMsg];
-                              try { localStorage.setItem("icj_client_messages", JSON.stringify(updated)); } catch {}
+                              try { localStorage.setItem("icj_client_messages", JSON.stringify(updated)); } catch (err) { console.debug(err); }
                               return updated;
                             });
 
@@ -468,7 +468,7 @@ export default function ClientPortal() {
                                 createdAt: new Date().toISOString(),
                               };
                               localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updatedConsultation]));
-                            } catch {}
+                            } catch (err) { console.debug(err); }
 
                             ActivityService.create({ title: `Voice Note Audio File Dispatched: ${note.title}`, type: "legal" });
                           }}

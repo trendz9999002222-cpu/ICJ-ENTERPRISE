@@ -144,7 +144,29 @@ export const MemberService = {
   },
 
   async create(member) {
+    // ── RULE 1: Email अनिवार्य है ──────────────────────────────────────────
+    const emailVal = String(member.email || "").trim().toLowerCase();
+    if (!emailVal) {
+      throw new Error("Email address is required. Registration cannot proceed without an email.");
+    }
+
+    // Basic email format check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailVal)) {
+      throw new Error("Please enter a valid email address.");
+    }
+
+    // ── RULE 2: एक Email = एक Registration ─────────────────────────────────
     const existing = await getMembers();
+    const duplicate = existing.find(
+      (m) => String(m.email || "").trim().toLowerCase() === emailVal
+    );
+    if (duplicate) {
+      throw new Error(
+        `This email address is already registered (Member ID: ${duplicate.member_id || duplicate.id}). Each email can only be used for one registration.`
+      );
+    }
+
     // Pass full existing list so new ID is date-aware and duplicate-safe
     const permanentId = generateMemberId(existing || []);
 
@@ -158,6 +180,7 @@ export const MemberService = {
       id: member.id || permanentId,
       member_id: permanentId,
       memberId: permanentId,
+      email: emailVal,
       registration_date: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

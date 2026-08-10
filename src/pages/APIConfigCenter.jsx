@@ -130,6 +130,8 @@ export default function APIConfigCenter() {
   const [wizardStep, setWizardStep] = useState(0);
   const [wizardCompleted, setWizardCompleted] = useState([]);
   const [health, setHealth]       = useState([]);
+  const [otpHealth, setOtpHealth] = useState({});
+  const [otpConfig, setOtpConfig] = useState({});
 
   const refresh = useCallback(() => {
     const p = InfraService.getProviders();
@@ -146,6 +148,22 @@ export default function APIConfigCenter() {
     const ws = InfraService.getWizardState();
     setWizardStep(ws.step);
     setWizardCompleted(ws.completed);
+
+    // Load OTP Framework status & health
+    try {
+      const rawHealth = localStorage.getItem("icj_otp_providers_health");
+      setOtpHealth(rawHealth ? JSON.parse(rawHealth) : {});
+      const rawConfig = localStorage.getItem("icj_otp_governance_config");
+      setOtpConfig(rawConfig ? JSON.parse(rawConfig) : {
+        smsPrimary: "2factor",
+        smsFallback: "fast2sms",
+        whatsappPrimary: "whatsapp",
+        whatsappFallback: "sms",
+        emailPrimary: "smtp",
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -496,6 +514,91 @@ export default function APIConfigCenter() {
                 </Grid>
               ))}
             </Grid>
+
+            {/* OTP Provider Gateway Section */}
+            <Box sx={{ mt: 4 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
+                🔐 OTP &amp; Communication Security Gateway Health
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                Real-time pluggable provider routing, health state, and automatic fallback failover status.
+              </Typography>
+              <Table size="small" sx={{ border: "1px solid #e0e0e0", borderRadius: 2, overflow: "hidden" }}>
+                <TableHead sx={{ bgcolor: "action.hover" }}>
+                  <TableRow>
+                    <TableCell>Provider</TableCell>
+                    <TableCell>Config Status</TableCell>
+                    <TableCell>Health Metrics</TableCell>
+                    <TableCell>Requests (OK / Failed)</TableCell>
+                    <TableCell>Last Activity</TableCell>
+                    <TableCell>Routing Policy</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {[
+                    { id: "2factor", name: "2Factor SMS", channel: "sms", vaultId: "sms" },
+                    { id: "fast2sms", name: "Fast2SMS", channel: "sms", vaultId: "sms" },
+                    { id: "whatsapp", name: "WhatsApp Business API", channel: "whatsapp", vaultId: "whatsapp" },
+                    { id: "smtp", name: "SMTP Email Gateway", channel: "email", vaultId: "smtp" },
+                  ].map((prov) => {
+                    const stats = otpHealth[prov.id] || {
+                      health: "healthy",
+                      lastSuccess: null,
+                      lastFailure: null,
+                      failureCount: 0,
+                      successCount: 0,
+                    };
+                    const isMockMode = localStorage.getItem("icj_otp_mode") === "mock";
+                    const isConfigured = isMockMode || stats.successCount > 0 || localStorage.getItem(`icj_infra_api_key_vault`)?.includes(prov.vaultId);
+
+                    // Determine fallback designation label
+                    let policyLabel = "Optional";
+                    if (prov.id === otpConfig.smsPrimary) policyLabel = "⭐ Primary SMS";
+                    else if (prov.id === otpConfig.smsFallback) policyLabel = "🔄 Fallback SMS";
+                    else if (prov.id === "whatsapp") policyLabel = "💬 Primary WhatsApp (Falls back to SMS)";
+                    else if (prov.id === "smtp") policyLabel = "📧 Primary Email";
+
+                    return (
+                      <TableRow key={prov.id} hover>
+                        <TableCell sx={{ fontWeight: "bold" }}>{prov.name}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={isConfigured ? "Configured" : "Not Configured"}
+                            size="small"
+                            color={isConfigured ? "success" : "default"}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={stats.health === "unknown" ? "Healthy (Idle)" : stats.health.toUpperCase()}
+                            size="small"
+                            color={stats.health === "healthy" || stats.health === "unknown" ? "success" : stats.health === "degraded" ? "warning" : "error"}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+                            {stats.successCount} OK / {stats.failureCount} Fail
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ fontSize: "11px", color: "text.secondary" }}>
+                          {stats.lastSuccess
+                            ? `Last OK: ${new Date(stats.lastSuccess).toLocaleTimeString()}`
+                            : stats.lastFailure
+                            ? `Last Fail: ${new Date(stats.lastFailure).toLocaleTimeString()}`
+                            : "No recent activity"}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" fontWeight="bold" color="primary">
+                            {policyLabel}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Box>
           </TabPanel>
 
           {/* ── TAB 2: SECRET MANAGER ─────────────────────────── */}

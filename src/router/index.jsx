@@ -106,7 +106,6 @@ export default function AppRouter() {
         />
 
         <Route path="/member-registration" element={<Navigate to="/membership" replace />} />
-        <Route path="/member-register" element={<Navigate to="/membership" replace />} />
         <Route path="/member-directory" element={<ProtectedRoute roles={["admin", "employee"]}><MemberDirectory /></ProtectedRoute>} />
         <Route path="/member-verification" element={<ProtectedRoute roles={["admin", "employee"]}><MemberVerification /></ProtectedRoute>} />
         <Route path="/member-documents" element={<ProtectedRoute><MemberDocuments /></ProtectedRoute>} />
