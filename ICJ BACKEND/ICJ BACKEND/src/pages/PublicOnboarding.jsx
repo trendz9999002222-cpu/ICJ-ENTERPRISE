@@ -94,13 +94,6 @@ const PROBLEM_CATEGORIES = [
   "Other Legal Matter",
 ];
 
-const INTAKE_SERVICES = [
-  "Notary / नोटरी",
-  "Drafting / ड्राफ्टिंग",
-  "Writer/Typist / लिखने वाला",
-  "Court Representation / कोर्ट पैरवी",
-];
-
 const SERVICE_CATEGORIES = [
   "Legal Consultation",
   "Arbitration / Mediation",
@@ -154,7 +147,6 @@ export default function PublicOnboarding() {
     confirmPassword:   "",
     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
     problemCategories: [],           // Multi-select problem categories
-    intakeServices:    [],           // Selected intake services (Notary, Drafting, etc)
     problemState:      "Delhi",
     problemDistrict:   "",
     problemCity:       "",
@@ -263,14 +255,6 @@ export default function PublicOnboarding() {
     });
   };
 
-  const handleToggleIntakeService = (srv) => {
-    setForm((prev) => {
-      const list = prev.intakeServices || [];
-      const updated = list.includes(srv) ? list.filter((s) => s !== srv) : [...list, srv];
-      return { ...prev, intakeServices: updated };
-    });
-  };
-
   const handleToggleService = (cat) => {
     setForm((prev) => {
       const list = prev.solutionServices || [];
@@ -363,6 +347,24 @@ export default function PublicOnboarding() {
       } finally {
         setSubmitting(false);
       }
+    } else if (!isFormValid) {
+      const errors = [];
+      if (!isNameValid) errors.push("- नाम (First Name और Last Name) दर्ज करें।");
+      if (!isAgeValid) errors.push(`- जन्म वर्ष ${minBirthYear} और ${maxBirthYear} के बीच होना चाहिए।`);
+      if (!isEmailValid) errors.push("- कृपया सही ईमेल पता (e.g. name@gmail.com) दर्ज करें।");
+      if (!isMobileValid) errors.push("- मोबाइल नंबर 10 अंकों का होना चाहिए।");
+      if (!isWaValid) errors.push("- व्हाट्सएप नंबर 10 अंकों का होना चाहिए।");
+      if (!isPasswordValid) errors.push("- पासवर्ड में कम से कम 8 अक्षर, एक बड़ा अक्षर, एक छोटा अक्षर, एक नंबर और एक विशेष वर्ण (@$!%*?&) होना चाहिए।");
+      if (!doPasswordsMatch) errors.push("- दोनों पासवर्ड एक समान होने चाहिए।");
+      if (!isPurposeValid) {
+        if (!form.purpose) errors.push("- कृपया कोई एक उद्देश्य (Problem, Solution या Franchisee) चुनें।");
+        else if (form.purpose === "PROBLEM") errors.push("- कृपया कम से कम एक प्रॉब्लम कैटेगरी चुनें।");
+        else if (form.purpose === "SERVICES") errors.push("- कृपया कम से कम एक सर्विस चुनें।");
+        else if (form.purpose === "FRANCHISE") errors.push("- फ्रेंचाइजी के लिए राज्य, जिला, शहर और 6 अंकों का पिन कोड दर्ज करें।");
+      }
+      if (!form.termsAccepted) errors.push("- नियम और शर्तों को स्वीकार (Terms Accepted) करना अनिवार्य है।");
+      
+      alert("कृपया फॉर्म की निम्नलिखित आवश्यक जानकारियों को सही से भरें:\n\n" + errors.join("\n"));
     }
   };
 
@@ -986,46 +988,6 @@ Thank you for registering with ICJ Enterprise Platform.
                                     );
                                   })}
                                 </Grid>
-
-                                {/* Service Needed Intake */}
-                                <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
-                                  <Typography variant="caption" fontWeight="bold" color="text.secondary"
-                                    sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                                    Select Service Needed * (आवश्यक सेवा का चयन करें)
-                                  </Typography>
-                                  <Grid container spacing={1}>
-                                    {INTAKE_SERVICES.map((srv) => {
-                                      const isSelected = (form.intakeServices || []).includes(srv);
-                                      return (
-                                        <Grid item xs={12} sm={6} key={srv}>
-                                          <Paper
-                                            elevation={0}
-                                            onClick={() => handleToggleIntakeService(srv)}
-                                            sx={{
-                                              p: 1.5,
-                                              border: "1.5px solid",
-                                              borderColor: isSelected ? opt.color : "#dde3ec",
-                                              bgcolor: isSelected ? "#fff0f0" : "#fff",
-                                              borderRadius: 1.5,
-                                              cursor: "pointer",
-                                              display: "flex",
-                                              alignItems: "center",
-                                              gap: 1,
-                                              "&:hover": { borderColor: opt.color },
-                                            }}
-                                          >
-                                            {isSelected && (
-                                              <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
-                                            )}
-                                            <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
-                                              {srv}
-                                            </Typography>
-                                          </Paper>
-                                        </Grid>
-                                      );
-                                    })}
-                                  </Grid>
-                                </Box>
 
                                 {/* Problem Location details (Optional) */}
                                 <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>

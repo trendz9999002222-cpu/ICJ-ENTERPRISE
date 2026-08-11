@@ -347,6 +347,24 @@ export default function PublicOnboarding() {
       } finally {
         setSubmitting(false);
       }
+    } else if (!isFormValid) {
+      const errors = [];
+      if (!isNameValid) errors.push("- नाम (First Name और Last Name) दर्ज करें।");
+      if (!isAgeValid) errors.push(`- जन्म वर्ष ${minBirthYear} और ${maxBirthYear} के बीच होना चाहिए।`);
+      if (!isEmailValid) errors.push("- कृपया सही ईमेल पता (e.g. name@gmail.com) दर्ज करें।");
+      if (!isMobileValid) errors.push("- मोबाइल नंबर 10 अंकों का होना चाहिए।");
+      if (!isWaValid) errors.push("- व्हाट्सएप नंबर 10 अंकों का होना चाहिए।");
+      if (!isPasswordValid) errors.push("- पासवर्ड में कम से कम 8 अक्षर, एक बड़ा अक्षर, एक छोटा अक्षर, एक नंबर और एक विशेष वर्ण (@$!%*?&) होना चाहिए।");
+      if (!doPasswordsMatch) errors.push("- दोनों पासवर्ड एक समान होने चाहिए।");
+      if (!isPurposeValid) {
+        if (!form.purpose) errors.push("- कृपया कोई एक उद्देश्य (Problem, Solution या Franchisee) चुनें।");
+        else if (form.purpose === "PROBLEM") errors.push("- कृपया कम से कम एक प्रॉब्लम कैटेगरी चुनें।");
+        else if (form.purpose === "SERVICES") errors.push("- कृपया कम से कम एक सर्विस चुनें।");
+        else if (form.purpose === "FRANCHISE") errors.push("- फ्रेंचाइजी के लिए राज्य, जिला, शहर और 6 अंकों का पिन कोड दर्ज करें।");
+      }
+      if (!form.termsAccepted) errors.push("- नियम और शर्तों को स्वीकार (Terms Accepted) करना अनिवार्य है।");
+      
+      alert("कृपया फॉर्म की निम्नलिखित आवश्यक जानकारियों को सही से भरें:\n\n" + errors.join("\n"));
     }
   };
 
