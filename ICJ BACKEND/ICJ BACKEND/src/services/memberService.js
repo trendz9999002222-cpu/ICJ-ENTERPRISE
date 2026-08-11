@@ -224,6 +224,24 @@ export const MemberService = {
     return await updateMember(id, data);
   },
 
+  async searchLeads(filters = {}) {
+    const all = await getMembers();
+    return all.filter((m) => {
+      const isLead = m.purposeCode === "PROBLEM" || String(m.purpose || "").includes("Problem");
+      if (!isLead) return false;
+
+      if (filters.category && !(m.problemCategories || []).includes(filters.category) && m.problemCategory !== filters.category) {
+        return false;
+      }
+      if (filters.state && m.problemState !== filters.state) return false;
+      if (filters.district && m.problemDistrict !== filters.district) return false;
+      if (filters.pincode && m.problemPincode !== filters.pincode) return false;
+      if (filters.service && !(m.intakeServices || []).includes(filters.service)) return false;
+
+      return true;
+    });
+  },
+
   async remove(id) {
     return await deleteMember(id);
   },

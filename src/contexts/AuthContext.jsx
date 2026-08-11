@@ -30,6 +30,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (credentials) => {
+    const isSuperAdminEmail = String(credentials.email || "").includes("superadmin");
+    if (isSuperAdminEmail) {
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+      const enteredPassword = credentials.password;
+      const expectedPassword = `ICJSuperAdmin1234${todayStr}`;
+      if (enteredPassword !== expectedPassword) {
+        throw new Error("अमान्य पासवर्ड! सुपर एडमिन दैनिक गतिशील सुरक्षा पासवर्ड दर्ज करें (ICJSuperAdmin1234 + YYYYMMDD)।");
+      }
+    }
     const sessionUser = await AuthService.login(credentials);
     setUser(sessionUser);
     return sessionUser;

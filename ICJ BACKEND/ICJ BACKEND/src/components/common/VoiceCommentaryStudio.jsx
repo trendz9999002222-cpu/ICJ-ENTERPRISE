@@ -59,7 +59,7 @@ export default function VoiceCommentaryStudio({
 
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.lang = "hi-IN";
 
@@ -69,38 +69,58 @@ export default function VoiceCommentaryStudio({
 
     recognition.onresult = (event) => {
       let newlyFinalizedText = "";
+      let interimText = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          const phrase = event.results[i][0].transcript.trim();
-          if (phrase) {
-            newlyFinalizedText += phrase + ". ";
-          }
+          newlyFinalizedText += transcript.trim() + " ";
+        } else {
+          interimText += transcript;
         }
       }
       if (newlyFinalizedText) {
-        tempTranscriptRef.current += newlyFinalizedText + " ";
-        setSpeechStatus("Listening (Speech detected)");
+        tempTranscriptRef.current += newlyFinalizedText;
       }
+      const fullText = tempTranscriptRef.current + interimText;
+      if (onChange) {
+        onChange(fullText);
+      }
+      setSpeechStatus(interimText ? `Typing: "${interimText}"` : "Listening...");
     };
 
     recognition.onerror = (err) => {
       console.warn("Speech recognition error:", err.error);
       if (err.error === "not-allowed") {
-        setSpeechStatus("Blocked: Mic/Speech API blocked. Connection must be HTTPS or localhost.");
+        setSpeechStatus("Blocked: Mic blocked.");
       } else if (err.error === "network") {
-        setSpeechStatus("Error: Network connection required for Speech API.");
+        setSpeechStatus("Error: Network required.");
       } else {
-        setSpeechStatus(`Error: ${err.error}`);
+        setSpeechStatus(`Listening...`);
       }
-      if (isRecordingRef.current && err.error !== "not-allowed" && err.error !== "service-not-allowed") {
-        try { recognition.start(); } catch { /* ignore */ }
+      // Auto restart on minor errors/timeouts
+      if (isRecordingRef.current && err.error !== "not-allowed") {
+        setTimeout(() => {
+          if (isRecordingRef.current) {
+            try { recognition.start(); } catch { /* ignore */ }
+          }
+        }, 300);
       }
     };
 
     recognition.onend = () => {
-      setSpeechStatus(prev => prev.startsWith("Blocked") ? prev : "Ready");
       if (isRecordingRef.current) {
-        try { recognition.start(); } catch { setIsRecording(false); }
+        try {
+          recognition.start();
+        } catch {
+          // Retry setup
+          setTimeout(() => {
+            if (isRecordingRef.current) {
+              try { recognition.start(); } catch { /* ignore */ }
+            }
+          }, 300);
+        }
+      } else {
+        setSpeechStatus("Ready");
       }
     };
 
@@ -278,149 +298,7 @@ export default function VoiceCommentaryStudio({
   const charCount = (value || "").length;
 
   return (
-    <Paper
-      elevation={2}
-      sx={{
-        p: 2,
-        borderRadius: 2,
-        bgcolor: isRecording ? "#fff5f5" : "#f8fafc",
-        border: isRecording ? "2px solid #ef4444" : "1px solid #e2e8f0",
-        transition: "all 0.3s ease",
-      }}
-    >
-      {/* Header Bar */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} mb={1.5}>
-        <Box>
-          <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            🎙️ Voice Commentary Studio (वॉयस रिकॉर्डिंग)
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            बोलकर क्लिप रिकॉर्ड करें — रिकॉर्डिंग बंद होने पर आटोमैटिक टाइपिंग आपके बॉक्स में आ जाएगी। (अधिकतम 60 सेकंड प्रति क्लिप)
-          </Typography>
-        </Box>
-
-        <Stack direction="row" spacing={1.5} alignItems="center">
-          {isRecording ? (
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={stopRecording}
-              startIcon={<MicOffIcon />}
-              sx={{ fontWeight: "bold", animation: "pulse 1.5s infinite" }}
-            >
-              🔴 STOP ({formatTimer(seconds)} / 01:00)
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={startRecording}
-              startIcon={<MicIcon />}
-              sx={{ fontWeight: "bold", bgcolor: "#7c3aed", "&:hover": { bgcolor: "#6d28d9" } }}
-            >
-              🎙️ START RECORDING
-            </Button>
-          )}
-        </Stack>
-      </Stack>
-
-      {/* Live Telemetry Bar */}
-      <Paper variant="outlined" sx={{ p: 1, mb: 1.5, bgcolor: "#fff", borderRadius: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Chip
-              label={isRecording ? `🔴 RECORDING...` : "READY"}
-              color={isRecording ? "error" : "default"}
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
-            <Chip
-              label={`📝 ${wordCount} Words | ${charCount} Chars`}
-              color="secondary"
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
-            <Chip
-              label={`Speech API: ${speechStatus}`}
-              color={speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error") ? "warning" : "success"}
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
-          </Stack>
-          <Chip
-            label={`📁 ${voiceNotesList.length} Files Saved`}
-            color="primary"
-            size="small"
-            sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-          />
-        </Stack>
-      </Paper>
-
-      {/* Multi-Audio Playlist Box */}
-      {voiceNotesList.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 1.5, mb: 1.5, bgcolor: "#f0fdf4", borderColor: "#bbf7d0", borderRadius: 1 }}>
-          <Typography variant="caption" fontWeight="bold" color="#166534" gutterBottom sx={{ display: "block", mb: 1 }}>
-            📁 Saved Voice Files (प्लेलिस्ट):
-          </Typography>
-          <Stack spacing={1}>
-            {voiceNotesList.map((note) => (
-              <Paper key={note.id} variant="outlined" sx={{ p: 1, bgcolor: "#fff", borderRadius: 1 }}>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <VolumeUpIcon color="primary" fontSize="small" />
-                    <Box>
-                      <Typography variant="caption" fontWeight="bold" color="#0f172a" sx={{ display: "block" }}>
-                        {note.title} ({note.duration})
-                      </Typography>
-                    </Box>
-                  </Stack>
-
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: "100%", justifyContent: "flex-end", flexWrap: "wrap" }}>
-                    {/* Standard Audio Player with Volume and Controls */}
-                    <audio
-                      controls
-                      src={note.audioUrl}
-                      style={{ height: "30px", maxWidth: "220px" }}
-                    />
-
-                    {/* Convert to Text Button */}
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="secondary"
-                      startIcon={<AutoAwesomeIcon />}
-                      onClick={() => {
-                        const txt = (note.transcript || "").trim();
-                        if (!txt) {
-                          alert("वॉयस ट्रांसक्रिप्शन खाली है। कृपया सुनिश्चित करें कि आपने माइक को अनुमति दी है और आवाज़ रिकॉर्ड की है।");
-                          return;
-                        }
-                        const existing = valueRef.current ? valueRef.current.trim() : "";
-                        const updated = existing ? `${existing}\n\n${txt}` : txt;
-                        valueRef.current = updated;
-                        if (onChange) onChange(updated);
-                      }}
-                      sx={{ fontWeight: "bold", fontSize: "0.7rem", py: 0.4 }}
-                    >
-                      Convert to Text / यहाँ टाइप करें
-                    </Button>
-
-                    <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </Stack>
-              </Paper>
-            ))}
-          </Stack>
-        </Paper>
-      )}
-
-      {/* Text Editor */}
+    <Box sx={{ width: "100%" }}>
       <TextField
         fullWidth
         multiline
@@ -429,14 +307,106 @@ export default function VoiceCommentaryStudio({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange && onChange(e.target.value)}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end" sx={{ alignSelf: "flex-end", mb: 1 }}>
+              <Tooltip title={isRecording ? "Stop Recording (रिकॉर्डिंग रोकें)" : "Start Recording (बोलना शुरू करें)"}>
+                <IconButton
+                  onClick={isRecording ? stopRecording : startRecording}
+                  sx={{
+                    bgcolor: isRecording ? "#ef4444" : "#7c3aed",
+                    color: "#ffffff",
+                    "&:hover": {
+                      bgcolor: isRecording ? "#dc2626" : "#6d28d9",
+                    },
+                    width: 48,
+                    height: 48,
+                    boxShadow: isRecording ? "0 0 12px #ef4444" : "0 4px 6px -1px rgba(0,0,0,0.1)",
+                    animation: isRecording ? "pulse 1.2s infinite" : "none",
+                    "@keyframes pulse": {
+                      "0%": { transform: "scale(1)" },
+                      "50%": { transform: "scale(1.1)", boxShadow: "0 0 18px #ef4444" },
+                      "100%": { transform: "scale(1)" },
+                    }
+                  }}
+                >
+                  {isRecording ? <MicOffIcon /> : <MicIcon />}
+                </IconButton>
+              </Tooltip>
+            </InputAdornment>
+          ),
+        }}
         sx={{
-          bgcolor: "#ffffff",
+          bgcolor: isRecording ? "#fff5f5" : "#ffffff",
+          borderRadius: 2,
+          transition: "all 0.3s ease",
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "12px",
+            borderWidth: isRecording ? "2px" : "1px",
+            borderColor: isRecording ? "#ef4444 !important" : "rgba(0,0,0,0.23)",
+          },
           "& .MuiInputBase-input": {
             fontSize: "0.9rem",
             lineHeight: 1.5,
           },
         }}
       />
-    </Paper>
+
+      {/* Subtle Telemetry chips underneath the input box */}
+      <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} sx={{ mt: 1, px: 0.5 }}>
+        {isRecording && (
+          <Chip
+            label={`🔴 Recording: ${formatTimer(seconds)}`}
+            color="error"
+            size="small"
+            sx={{ fontWeight: "bold", height: 22, fontSize: "0.75rem" }}
+          />
+        )}
+        <Chip
+          label={`📝 ${wordCount} Words`}
+          variant="outlined"
+          size="small"
+          sx={{ fontWeight: "600", height: 22, fontSize: "0.75rem", borderColor: "#e2e8f0" }}
+        />
+        <Chip
+          label={speechStatus}
+          color={speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error") ? "warning" : "primary"}
+          variant={isRecording ? "filled" : "outlined"}
+          size="small"
+          sx={{ fontWeight: "500", height: 22, fontSize: "0.75rem" }}
+        />
+        {voiceNotesList.length > 0 && (
+          <Chip
+            label={`📁 ${voiceNotesList.length} Audio Clips Saved`}
+            color="success"
+            variant="outlined"
+            size="small"
+            sx={{ fontWeight: "600", height: 22, fontSize: "0.75rem" }}
+          />
+        )}
+      </Stack>
+
+      {/* Playlist Accordion/Box for audio playback (if files exist) */}
+      {voiceNotesList.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 1, mt: 1.5, bgcolor: "#f8fafc", borderRadius: 2, borderColor: "#e2e8f0" }}>
+          <Stack spacing={1}>
+            {voiceNotesList.map((note) => (
+              <Box key={note.id} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1, p: 0.8, bgcolor: "#fff", borderRadius: 1.5, border: "1px solid #f1f5f9" }}>
+                <Typography variant="caption" fontWeight="bold" color="#334155">
+                  {note.title} ({note.duration})
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <audio controls src={note.audioUrl} style={{ height: "26px", maxWidth: "160px" }} />
+                  <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
+                    <DeleteIcon fontSize="inherit" />
+                  </IconButton>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        </Paper>
+      )}
+    </Box>
   );
 }
+

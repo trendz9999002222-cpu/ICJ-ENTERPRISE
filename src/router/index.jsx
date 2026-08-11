@@ -54,6 +54,7 @@ import SystemHealth from "../pages/SystemHealth";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 
 import PublicOnboarding from "../pages/PublicOnboarding";
+import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import useAuth from "../hooks/useAuth";
 
 function RootDashboard() {
@@ -72,6 +73,7 @@ export default function AppRouter() {
       <BrowserRouter>
         <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/demo-leads-portal" element={<DemoLeadsPortal />} />
         <Route path="/loginAuthentication" element={<Navigate to="/login" replace />} />
         <Route path="/join" element={<PublicOnboarding />} />
         <Route path="/register" element={<Navigate to="/join" replace />} />
