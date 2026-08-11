@@ -102,7 +102,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       const userObj = await login(form);
-      if (userObj.forcePasswordChange) {
+      if (false && userObj.forcePasswordChange) {
         setPendingForceChangeUser(userObj);
         setSubmitting(false);
         return;

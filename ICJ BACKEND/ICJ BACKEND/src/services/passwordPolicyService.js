@@ -10,10 +10,10 @@ export const DEFAULT_PASSWORD_POLICY = {
   requireAlphabet: true,
   requireNumber: true,
   requireSpecialChar: true,
-  passwordExpiryDays: 90,
+  passwordExpiryDays: 999999,
   failedLoginLockout: true,
   maxLoginAttempts: 5,
-  forcePasswordChange: true,
+  forcePasswordChange: false,
   passwordHistoryCount: 5,
 };
 
