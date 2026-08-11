@@ -340,9 +340,11 @@ export default function PublicOnboarding() {
           setOtpModalOpen(true);
           setOtpCode(""); // Clear default input
         } else {
+          alert("ओटीपी भेजने में असमर्थ: " + (res.message || "Failed to dispatch OTP verification code."));
           setError(res.message || "Failed to dispatch OTP verification code.");
         }
       } catch (err) {
+        alert("ओटीपी सर्वर त्रुटि: " + (err.message || "OTP Request Error."));
         setError(err.message || "OTP Request Error.");
       } finally {
         setSubmitting(false);
