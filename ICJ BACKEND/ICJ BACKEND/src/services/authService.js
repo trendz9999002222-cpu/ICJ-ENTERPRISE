@@ -85,10 +85,20 @@ const getLocalUser = () => {
 };
 
 const mapRole = (value) => {
-  const role = String(value || "member").toLowerCase();
+  const role = String(value || "member").trim().toLowerCase().replace(/\s+/g, "_");
 
   if (["admin", "administrator", "super_admin"].includes(role)) return "admin";
   if (["employee", "staff"].includes(role)) return "employee";
+  
+  // Support custom roles dynamically from localStorage
+  try {
+    const rawRoles = typeof window !== "undefined" ? window.localStorage.getItem("icj_roles") : null;
+    const customRoles = rawRoles ? JSON.parse(rawRoles) : {};
+    if (customRoles[role]) return role;
+  } catch (e) {
+    // ignore
+  }
+
   return "member";
 };
 
