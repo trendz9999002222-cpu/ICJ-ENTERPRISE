@@ -47,6 +47,10 @@ const getStoredUsers = () => {
       existingUsers.forEach((u) => {
         if (u && (u.id || u.member_id || u.email)) {
           const key = String(u.id || u.member_id || u.email).toLowerCase();
+          // Filter out legacy default admin users to maintain a single Super Admin account
+          if (["icjadmin1234", "icjadmin2234", "icjadmin3234", "icjadmin4234"].includes(String(u.username || "").toLowerCase())) {
+            return;
+          }
           mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...u });
         }
       });
