@@ -131,7 +131,7 @@ export default function MemberPersonalDashboard() {
         <Grid container spacing={3} sx={{ mb: 3 }}>
 
           {/* PERSONAL DETAILS CARD */}
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={user?.role === "member" || user?.role === "client" ? 12 : 6}>
             <Card sx={{ height: "100%", borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
               <CardContent>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
@@ -227,8 +227,9 @@ export default function MemberPersonalDashboard() {
           </Grid>
 
           {/* MENTORSHIP & JUNIOR HIERARCHY */}
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: "100%", borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
+          {user?.role !== "member" && user?.role !== "client" && (
+            <Grid item xs={12} md={6}>
+              <Card sx={{ height: "100%", borderRadius: 3, boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}>
               <CardContent>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
                   <GroupsIcon color="secondary" />
@@ -280,6 +281,7 @@ export default function MemberPersonalDashboard() {
               </CardContent>
             </Card>
           </Grid>
+          )}
 
         </Grid>
 
