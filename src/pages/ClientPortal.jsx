@@ -126,9 +126,7 @@ export default function ClientPortal() {
   });
 
   // Appointments list
-  const [appointments, setAppointments] = useState([
-    { id: "apt-1", advocateName: "Adv. Rajesh Sharma", date: "2026-08-12", time: "11:00 AM", mode: "Video Conference", status: "Approved", link: "https://meet.icj.org/room-legal-101" },
-  ]);
+  const [appointments, setAppointments] = useState([]);
 
   // AI Consultation & Case Diagnosis State
   const [aiCaseCat, setAiCaseCat] = useState("CRIMINAL_FIR");
@@ -175,8 +173,7 @@ export default function ClientPortal() {
     return cases.filter(
       (c) =>
         (c.clientName && c.clientName.toLowerCase() === term) ||
-        String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase() ||
-        cases.length > 0
+        String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
     );
   }, [cases, clientName, memberId]);
 
@@ -185,8 +182,7 @@ export default function ClientPortal() {
     return documents.filter(
       (d) =>
         String(d.owner || "").toLowerCase() === clientName.toLowerCase() ||
-        String(d.member_id || "").toLowerCase() === String(memberId).toLowerCase() ||
-        documents.length > 0
+        String(d.member_id || "").toLowerCase() === String(memberId).toLowerCase()
     );
   }, [documents, clientName, memberId]);
 

@@ -61,9 +61,13 @@ function RootDashboard() {
   const { user } = useAuth();
   const role = String(user?.role || "member").toLowerCase();
 
+  if (role === "advocate") {
+    return <AdvocateDashboard />;
+  }
+
   const isCustomAdmin = (r) => {
     if (["admin", "super_admin"].includes(r)) return true;
-    if (["member", "client"].includes(r)) return false;
+    if (["member", "client", "advocate"].includes(r)) return false;
     return true;
   };
 
