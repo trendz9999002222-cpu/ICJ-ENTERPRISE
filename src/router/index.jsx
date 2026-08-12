@@ -163,15 +163,15 @@ export default function AppRouter() {
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
         <Route path="/reports" element={<Reports />} />
 
-        <Route path="/legal" element={<Legal />} />
-        <Route path="/ai" element={<AIAssistant />} />
-        <Route path="/research" element={<Research />} />
-        <Route path="/administration" element={<Administration />} />
-        <Route path="/finance" element={<Wallet />} />
+        <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
+        <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+        <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
+        <Route path="/administration" element={<ProtectedRoute roles={["admin"]}><Administration /></ProtectedRoute>} />
+        <Route path="/finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
 
         {/* AI Legal Ecosystem Routes */}
-        <Route path="/advocate-dashboard" element={<AdvocateDashboard />} />
-        <Route path="/client-portal" element={<ClientPortal />} />
+        <Route path="/advocate-dashboard" element={<ProtectedRoute roles={["advocate", "admin"]}><AdvocateDashboard /></ProtectedRoute>} />
+        <Route path="/client-portal" element={<ProtectedRoute roles={["member", "client", "admin"]}><ClientPortal /></ProtectedRoute>} />
         <Route path="/trust-dashboard" element={<TrustDashboard />} />
         <Route path="/court-calendar" element={<CourtCalendar />} />
         <Route path="/billing" element={<BillingInvoicing />} />
