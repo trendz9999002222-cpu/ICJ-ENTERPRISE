@@ -107,6 +107,10 @@ const mapRole = (value) => {
 };
 
 const AuthService = {
+  persistLocalUser(user) {
+    persistLocalUser(user);
+  },
+
   getSeedUsers() {
     return getStoredUsers();
   },
