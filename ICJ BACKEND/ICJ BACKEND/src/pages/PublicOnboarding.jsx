@@ -646,29 +646,48 @@ Thank you for registering with ICJ Enterprise Platform.
                       error={Boolean(form.orgName && form.orgName.trim().length < 2)}
                     />
 
-                    {/* Representative details for Organisation */}
+                    {/* Contact Person details for Organisation */}
                     <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, fontWeight: "bold", textTransform: "uppercase" }}>
-                      Representative / Contact Person Name *
+                      CONTACT PERSON NAME *
                     </Typography>
                     <Grid container spacing={1.5}>
+                      <Grid item xs={12} sm={2}>
+                        <TextField
+                          select fullWidth
+                          label="Title"
+                          name="namePrefix"
+                          value={form.namePrefix}
+                          onChange={handleChange}
+                          SelectProps={{ style: { fontWeight: "bold" } }}
+                          sx={{ minWidth: 110 }}
+                        >
+                          <MenuItem value="">None</MenuItem>
+                          <MenuItem value="Mr.">Mr.</MenuItem>
+                          <MenuItem value="Mrs.">Mrs.</MenuItem>
+                          <MenuItem value="Ms.">Ms.</MenuItem>
+                          <MenuItem value="Dr.">Dr.</MenuItem>
+                          <MenuItem value="Adv.">Adv.</MenuItem>
+                          <MenuItem value="Prof.">Prof.</MenuItem>
+                        </TextField>
+                      </Grid>
                       <Grid item xs={12} sm={4}>
                         <TextField fullWidth required
-                          label="Rep First Name *" name="repFirstName"
+                          label="First Name *" name="repFirstName"
                           value={form.repFirstName} onChange={handleChange}
                           placeholder="First Name..."
                           error={Boolean(form.repFirstName && form.repFirstName.trim().length < 1)}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={3}>
                         <TextField fullWidth
-                          label="Rep Middle Name" name="repMiddleName"
+                          label="Middle Name" name="repMiddleName"
                           value={form.repMiddleName} onChange={handleChange}
                           placeholder="Middle Name (optional)..."
                         />
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={3}>
                         <TextField fullWidth required
-                          label="Rep Last Name *" name="repLastName"
+                          label="Last Name *" name="repLastName"
                           value={form.repLastName} onChange={handleChange}
                           placeholder="Last Name..."
                           error={Boolean(form.repLastName && form.repLastName.trim().length < 1)}
@@ -678,16 +697,15 @@ Thank you for registering with ICJ Enterprise Platform.
 
                     {/* Gender — Organisation representative का gender */}
                     <Grid container spacing={1.5}>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           select fullWidth
-                          label="Representative Gender"
+                          label="Gender"
                           name="gender"
                           value={form.gender}
                           onChange={handleChange}
                           SelectProps={{ style: { fontWeight: "bold", fontSize: "1rem" } }}
-                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" } }}
-                          helperText="संस्था के प्रतिनिधि का Gender"
+                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" }, minWidth: 140 }}
                         >
                           <MenuItem value="">-- Select Gender --</MenuItem>
                           <MenuItem value="Male">Male</MenuItem>
