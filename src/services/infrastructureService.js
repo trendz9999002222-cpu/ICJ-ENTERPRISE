@@ -348,7 +348,17 @@ export const InfraService = {
   _deriveStatus(providerId, config) {
     const provider = PROVIDER_CATALOG.find(p => p.id === providerId);
     if (!provider) return "not_configured";
-    const requiredFields = provider.fields.filter(f => f.type !== "boolean" && !f.placeholder?.includes("optional"));
+
+    const requiredFields = provider.fields.filter(f => {
+      if (f.type === "boolean") return false;
+      if (f.placeholder?.includes("optional")) return false;
+      // 2Factor under SMS does not require apiSecret
+      if (providerId === "sms" && String(config.provider).toLowerCase() === "2factor" && f.key === "apiSecret") {
+        return false;
+      }
+      return true;
+    });
+
     const filled = requiredFields.filter(f => config[f.key] && String(config[f.key]).trim().length > 0);
     if (filled.length === 0) return "not_configured";
     if (filled.length < requiredFields.length) return "partial";
