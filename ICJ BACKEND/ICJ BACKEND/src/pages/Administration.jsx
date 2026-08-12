@@ -83,6 +83,52 @@ export default function Administration() {
   const [activities, setActivities] = useState([]);
   const [stats, setStats] = useState(null);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
+
+  // MDM tab state
+  const [mdmTab, setMdmTab] = useState(0);
+  const [mdmForums, setMdmForums] = useState(MasterDataService.getForums());
+  const [mdmSpecialties, setMdmSpecialties] = useState(MasterDataService.getSpecialties());
+  const [mdmSuggestions, setMdmSuggestions] = useState(MasterDataService.getSuggestions());
+
+  // Merge alias modal state
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeTargetType, setMergeTargetType] = useState("forum"); // "forum" | "specialty"
+  const [mergeTargetId, setMergeTargetId] = useState("");
+  const [mergeAliasName, setMergeAliasName] = useState("");
+
+  const refreshMdmData = () => {
+    setMdmForums(MasterDataService.getForums());
+    setMdmSpecialties(MasterDataService.getSpecialties());
+    setMdmSuggestions(MasterDataService.getSuggestions());
+  };
+
+  const handleApproveSugg = (id) => {
+    const res = MasterDataService.approveSuggestion(id);
+    if (res.success) {
+      alert("Suggestion approved and added to Master list!");
+      refreshMdmData();
+    }
+  };
+
+  const handleRejectSugg = (id) => {
+    MasterDataService.rejectSuggestion(id);
+    alert("Suggestion rejected.");
+    refreshMdmData();
+  };
+
+  const handleMergeAlias = () => {
+    if (!mergeAliasName.trim()) {
+      alert("Please enter alias name.");
+      return;
+    }
+    const res = MasterDataService.mergeAlias(mergeTargetType, mergeTargetId, mergeAliasName);
+    if (res.success) {
+      alert("Alias merged successfully!");
+      setMergeAliasName("");
+      setMergeOpen(false);
+      refreshMdmData();
+    }
+  };
   const [newRole, setNewRole] = useState({ name: "", label: "", modules: [] });
   const [saveMsg, setSaveMsg] = useState("");
 
@@ -611,6 +657,123 @@ export default function Administration() {
           })}
         </Grid>
       </Paper>
+
+      {/* ─── SECTION 0.5: MASTER DATA MANAGEMENT (MDM) CONTROL CENTER ─── */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", borderLeft: "6px solid #10b981" }}>
+        <Typography variant="h6" fontWeight="bold" color="#059669" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          🗂️ Canonical Master Data &amp; Suggestions Management
+        </Typography>
+
+        <MuiTabs value={mdmTab} onChange={(e, val) => setMdmTab(val)} sx={{ mb: 2 }}>
+          <MuiTab label="Court Forums Master" />
+          <MuiTab label="Legal Specialties Master" />
+          <MuiTab label="Pending Suggestions" />
+        </MuiTabs>
+
+        {/* Tab 1: Court Forums */}
+        {mdmTab === 0 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Approved Court Forums:</Typography>
+            <Grid container spacing={1} sx={{ maxHeight: 200, overflowY: "auto", p: 1 }}>
+              {mdmForums.map(f => (
+                <Grid item xs={12} sm={6} md={4} key={f.id}>
+                  <Card variant="outlined" sx={{ p: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="bold">{f.name}</Typography>
+                      {f.aliases && f.aliases.length > 0 && (
+                        <Typography variant="caption" color="text.secondary">Aliases: {f.aliases.join(", ")}</Typography>
+                      )}
+                    </Box>
+                    <Button size="small" variant="text" onClick={() => { setMergeTargetType("forum"); setMergeTargetId(f.id); setMergeOpen(true); }}>
+                      Merge
+                    </Button>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Tab 2: Legal Specialties */}
+        {mdmTab === 1 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Approved Legal Specialties:</Typography>
+            <Grid container spacing={1} sx={{ maxHeight: 200, overflowY: "auto", p: 1 }}>
+              {mdmSpecialties.map(s => (
+                <Grid item xs={12} sm={6} md={4} key={s.id}>
+                  <Card variant="outlined" sx={{ p: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="bold">{s.name}</Typography>
+                      <Chip label={s.category} size="small" color="secondary" sx={{ mt: 0.5, fontSize: "0.65rem" }} />
+                      {s.aliases && s.aliases.length > 0 && (
+                        <Typography variant="caption" color="text.secondary" display="block">Aliases: {s.aliases.join(", ")}</Typography>
+                      )}
+                    </Box>
+                    <Button size="small" variant="text" onClick={() => { setMergeTargetType("specialty"); setMergeTargetId(s.id); setMergeOpen(true); }}>
+                      Merge
+                    </Button>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Tab 3: Pending Suggestions */}
+        {mdmTab === 2 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Suggestions Awaiting Review:</Typography>
+            {mdmSuggestions.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">No pending suggestions for review.</Typography>
+            ) : (
+              <Stack spacing={1}>
+                {mdmSuggestions.map(s => (
+                  <Card variant="outlined" key={s.id} sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="bold">{s.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Type: {s.type.toUpperCase()} {s.parentCategory ? "| Category: " + s.parentCategory : ""}
+                      </Typography>
+                    </Box>
+                    <Stack direction="row" spacing={1}>
+                      <Button size="small" variant="contained" color="success" onClick={() => handleApproveSugg(s.id)}>
+                        Approve
+                      </Button>
+                      <Button size="small" variant="outlined" color="error" onClick={() => handleRejectSugg(s.id)}>
+                        Reject
+                      </Button>
+                    </Stack>
+                  </Card>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
+      </Paper>
+
+      {/* ─── MODAL: MERGE ALIAS ───────────────────────── */}
+      <Dialog open={mergeOpen} onClose={() => setMergeOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: "bold" }}>🔗 Merge Alias/Variation to Master</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Typography variant="body2">
+              Merge standard abbreviations, punctuation errors, or spelling variations to resolve to this canonical item.
+            </Typography>
+            <TextField
+              fullWidth
+              label="Alias Name / वर्तनी भिन्नता (e.g. Sup. Court, Crim Law)"
+              value={mergeAliasName}
+              onChange={(e) => setMergeAliasName(e.target.value)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setMergeOpen(false)}>Cancel</Button>
+          <Button variant="contained" color="primary" onClick={handleMergeAlias} sx={{ fontWeight: "bold" }}>
+            MERGE ALIAS
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* ─── SECTION 1: SUPER ADMIN PAN-INDIA MASTER LEGAL INTELLIGENCE & EXCEL TABLE ─── */}
       <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff" }}>
