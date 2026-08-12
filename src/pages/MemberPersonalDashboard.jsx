@@ -60,17 +60,42 @@ export default function MemberPersonalDashboard() {
     setToastMsg("🎁 10 FREE ICJ Welcome Demo Tokens credited to your Wallet by ICJ Trust!");
   };
 
-  const activeCasesCount = user?.activeCasesCount ?? 3;
-  const resolvedCasesCount = user?.resolvedCasesCount ?? 8;
-  const nextHearingDate = user?.nextHearingDate || "12 Aug 2026 (High Court Bench 4)";
-  const walletBalance = user?.wallet_balance ?? 25000;
-  const tokenBalance = (user?.token_balance ?? 10) + extraTokens;
-  const aiDraftsCount = user?.aiDraftsCount ?? 12;
-  const vaultDocsCount = user?.vaultDocsCount ?? 8;
+  // Dynamically query actual cases and documents matching client's memberId
+  const myCases = useMemo(() => {
+    try {
+      const allCases = JSON.parse(localStorage.getItem("icj_legal_cases_v2") || "[]");
+      return allCases.filter(
+        (c) => String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
+      );
+    } catch {
+      return [];
+    }
+  }, [memberId]);
 
-  const seniorMentor = user?.seniorMentor || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)" : "Not Assigned (Independent Practice)");
-  const juniorsList = user?.juniorsList || (user?.username === "ICJMember1234" || user?.member_id === "ICJ/7/MEM-000001/BASIC" ? ["Pooja Verma (Junior Associate)", "Siddharth Mehta (Legal Intern)"] : []);
-  const firmName = user?.organisation || user?.firmName || user?.orgName || (user?.regType === "Organisation" ? user?.name : "Independent Legal Practice");
+  const myDocs = useMemo(() => {
+    try {
+      const allDocs = JSON.parse(localStorage.getItem("icj_vault_documents") || "[]");
+      return allDocs.filter(
+        (d) => String(d.member_id || "").toLowerCase() === String(memberId).toLowerCase()
+      );
+    } catch {
+      return [];
+    }
+  }, [memberId]);
+
+  const activeCasesCount = myCases.length;
+  const resolvedCasesCount = myCases.filter(c => c.status === "Resolved" || c.status === "Closed").length;
+  const nextHearingDate = myCases.length > 0 ? (myCases[0].nextHearing || "Scheduled Soon") : "No Hearings Scheduled";
+  const walletBalance = user?.wallet_balance ?? 0;
+  const tokenBalance = (user?.token_balance ?? 10) + extraTokens;
+  const aiDraftsCount = 0; // Newly registered litigant starts with 0 drafts
+  const vaultDocsCount = myDocs.length;
+
+  const seniorMentor = "Not Assigned (Independent Practice)";
+  const juniorsList = [];
+  const firmName = user?.role === "member" || user?.role === "client"
+    ? "Not Applicable (Individual Litigant)"
+    : (user?.organisation || user?.firmName || user?.orgName || (user?.regType === "Organisation" ? user?.name : "Independent Legal Practice"));
   const officeData = VirtualOfficeService.getOfficeForMember(memberId, memberName);
 
   return (
