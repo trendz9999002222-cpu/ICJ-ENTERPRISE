@@ -78,6 +78,14 @@ function RootDashboard() {
 }
 
 export default function AppRouter() {
+  // Clean old virtual office localStorage cache containing mock junior staff
+  if (typeof window !== "undefined" && window.localStorage) {
+    if (window.localStorage.getItem("icj_virtual_offices_cleaned_v1") !== "true") {
+      window.localStorage.removeItem("icj_virtual_offices");
+      window.localStorage.setItem("icj_virtual_offices_cleaned_v1", "true");
+    }
+  }
+
   return (
     <GlobalErrorBoundary componentName="AppRouter">
       <BrowserRouter>
