@@ -250,21 +250,25 @@ export const LegalEcosystemService = {
   // Case Timeline & Hearing Management
   getCaseTimeline(caseId) {
     const timelines = getItem(STORAGE_KEYS.timelines, {});
-    return timelines[caseId] || [];
+    const list = timelines[caseId] || [];
+    return list.sort((a, b) => new Date(a.date) - new Date(b.date));
   },
 
   addTimelineEvent(caseId, event) {
     const timelines = getItem(STORAGE_KEYS.timelines, {});
     const existing = timelines[caseId] || [];
+    const eventDate = event.date || new Date().toISOString().slice(0, 10);
     const newEvent = {
-      id: `TL-${Date.now()}`,
+      id: event.id || `TL-${Date.now()}`,
       title: event.title,
       description: event.description,
-      date: new Date().toISOString().slice(0, 10),
+      date: eventDate,
       timestamp: new Date().toISOString(),
       by: event.by || "System",
     };
-    timelines[caseId] = [newEvent, ...existing];
+    const updated = [newEvent, ...existing];
+    updated.sort((a, b) => new Date(a.date) - new Date(b.date));
+    timelines[caseId] = updated;
     setItem(STORAGE_KEYS.timelines, timelines);
   },
 

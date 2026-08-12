@@ -393,6 +393,37 @@ export const PaymentBillingService = {
       netAdvocatePayout,
     };
   },
+
+  deductAiCredit(memberId, credits = 1) {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const idx = members.findIndex(m => String(m.member_id || m.id).toLowerCase() === String(memberId).toLowerCase());
+      if (idx !== -1) {
+        const currentBalance = Number(members[idx].token_balance || 0);
+        members[idx].token_balance = Math.max(0, currentBalance - credits);
+        localStorage.setItem("icj_members", JSON.stringify(members));
+        
+        const transactions = this.getTransactions();
+        const newTxn = {
+          transactionId: `TXN-AICREDIT-${Date.now()}`,
+          invoiceNo: "AI-USAGE",
+          caseId: "AI-DIAGNOSIS",
+          clientName: members[idx].name,
+          amount: credits,
+          paymentMethod: "Token Deduction",
+          gateway: "Internal AI Credit Registry",
+          status: "Success",
+          gatewayRef: `AIC-${credits}`,
+          timestamp: new Date().toISOString(),
+        };
+        setItem(KEYS.transactions, [newTxn, ...transactions]);
+        return { success: true, newBalance: members[idx].token_balance };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return { success: false };
+  },
 };
 
 export default PaymentBillingService;

@@ -90,6 +90,39 @@ export default function Administration() {
   const [mdmSpecialties, setMdmSpecialties] = useState(MasterDataService.getSpecialties());
   const [mdmSuggestions, setMdmSuggestions] = useState(MasterDataService.getSuggestions());
 
+  // Client-Advocate Ecosystem states
+  const [ecoTab, setEcoTab] = useState(0);
+  const [ecoClients, setEcoClients] = useState([]);
+  const [ecoAdvocates, setEcoAdvocates] = useState([]);
+  const [ecoStaff, setEcoStaff] = useState([]);
+  const [ecoTxns, setEcoTxns] = useState([]);
+
+  useEffect(() => {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      setEcoClients(members.filter(m => m.role === "member"));
+      
+      const advocates = JSON.parse(localStorage.getItem("icj_advocates") || "[]");
+      setEcoAdvocates(advocates);
+
+      const offices = JSON.parse(localStorage.getItem("icj_virtual_offices") || "[]");
+      const staffList = [];
+      offices.forEach(o => {
+        if (o.juniorsList) {
+          o.juniorsList.forEach(j => {
+            staffList.push({ ...j, advocateName: o.advocateName });
+          });
+        }
+      });
+      setEcoStaff(staffList);
+
+      const txns = JSON.parse(localStorage.getItem("icj_enterprise_transactions") || "[]");
+      setEcoTxns(txns.filter(t => t.paymentMethod === "Token Deduction" || t.invoiceNo === "AI-USAGE"));
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
   // Merge alias modal state
   const [mergeOpen, setMergeOpen] = useState(false);
   const [mergeTargetType, setMergeTargetType] = useState("forum"); // "forum" | "specialty"
@@ -774,6 +807,117 @@ export default function Administration() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ─── SECTION 0.6: CLIENT-ADVOCATE ECOSYSTEM AUDIT & CREDITS ─── */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", borderLeft: "6px solid #3b82f6" }}>
+        <Typography variant="h6" fontWeight="bold" color="#1d4ed8" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+          💼 Client-Advocate Ecosystem &amp; AI Credit Audit Center
+        </Typography>
+
+        <MuiTabs value={ecoTab} onChange={(e, val) => setEcoTab(val)} sx={{ mb: 2 }}>
+          <MuiTab label="Active Clients/Members" />
+          <MuiTab label="Empaneled Advocates" />
+          <MuiTab label="Advocate Staff &amp; Permissions" />
+          <MuiTab label="AI Credit Transaction Log" />
+        </MuiTabs>
+
+        {/* Tab 1: Active Clients */}
+        {ecoTab === 0 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Registered Clients &amp; Wallet Token Balances:</Typography>
+            <Grid container spacing={1} sx={{ maxHeight: 250, overflowY: "auto", p: 1 }}>
+              {ecoClients.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">No registered client members found.</Typography>
+              ) : (
+                ecoClients.map(c => (
+                  <Grid item xs={12} sm={6} md={4} key={c.id || c.member_id}>
+                    <Card variant="outlined" sx={{ p: 1.5 }}>
+                      <Typography variant="body2" fontWeight="bold">{c.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">ID: {c.member_id || c.id}</Typography>
+                      <Chip label={`🪙 Balance: ${c.token_balance || 0} Tokens`} size="small" color="primary" sx={{ mt: 1 }} />
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Tab 2: Empaneled Advocates */}
+        {ecoTab === 1 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Empaneled Registry Advocates:</Typography>
+            <Grid container spacing={1} sx={{ maxHeight: 250, overflowY: "auto", p: 1 }}>
+              {ecoAdvocates.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">No empaneled advocates found.</Typography>
+              ) : (
+                ecoAdvocates.map(a => (
+                  <Grid item xs={12} sm={6} md={4} key={a.id}>
+                    <Card variant="outlined" sx={{ p: 1.5 }}>
+                      <Typography variant="body2" fontWeight="bold">{a.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">Bar Registration: {a.barId || a.barEnrollmentNo}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">Specialization: {a.specialization}</Typography>
+                      <Chip label={`💼 Case Count: ${a.casesAssigned || 0}`} size="small" color="secondary" sx={{ mt: 1 }} />
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Tab 3: Advocate Staff */}
+        {ecoTab === 2 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>Advocate Junior Staff &amp; Action Permissions:</Typography>
+            <Grid container spacing={1} sx={{ maxHeight: 250, overflowY: "auto", p: 1 }}>
+              {ecoStaff.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">No active advocate staff found in chambers.</Typography>
+              ) : (
+                ecoStaff.map(s => (
+                  <Grid item xs={12} sm={6} md={4} key={s.id}>
+                    <Card variant="outlined" sx={{ p: 1.5 }}>
+                      <Typography variant="body2" fontWeight="bold">{s.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">Designation: {s.designation}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">Chamber: {s.assignedOffice || 'N/A'}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">Advocate: {s.advocateName || 'N/A'}</Typography>
+                      <Box sx={{ mt: 1 }}>
+                        {s.permissions && s.permissions.map(p => (
+                          <Chip key={p} label={p} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5, fontSize: '0.65rem' }} />
+                        ))}
+                      </Box>
+                    </Card>
+                  </Grid>
+                ))
+              )}
+            </Grid>
+          </Box>
+        )}
+
+        {/* Tab 4: AI Credit Logs */}
+        {ecoTab === 3 && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: "bold" }}>AI Token/Credit Wallet Transactions:</Typography>
+            <Stack spacing={1} sx={{ maxHeight: 250, overflowY: "auto", p: 1 }}>
+              {ecoTxns.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">No AI credit token transactions logged.</Typography>
+              ) : (
+                ecoTxns.map(t => (
+                  <Card variant="outlined" key={t.transactionId} sx={{ p: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="bold">AI Consultation Diagnosis (Token Debit)</Typography>
+                      <Typography variant="caption" color="text.secondary">Member: {t.clientName} | Trans ID: {t.transactionId}</Typography>
+                    </Box>
+                    <Typography variant="body2" color="error.main" fontWeight="bold">
+                      -{t.amount} Credit
+                    </Typography>
+                  </Card>
+                ))
+              )}
+            </Stack>
+          </Box>
+        )}
+      </Paper>
 
       {/* ─── SECTION 1: SUPER ADMIN PAN-INDIA MASTER LEGAL INTELLIGENCE & EXCEL TABLE ─── */}
       <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff" }}>
