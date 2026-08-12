@@ -1095,9 +1095,14 @@ export default function ClientPortal() {
         {/* TAB 5: PAYMENTS */}
         <TabPanel value={tabIndex} index={5}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Legal Fee Payments & Invoice Ledger
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Typography variant="h6" fontWeight="bold">
+                Legal Fee Payments & Invoice Ledger
+              </Typography>
+              <Button variant="outlined" color="success" onClick={() => navigate("/member-wallet")}>
+                View Wallet &amp; Ledger Passbook
+              </Button>
+            </Stack>
             <Table size="small">
               <TableHead>
                 <TableRow>

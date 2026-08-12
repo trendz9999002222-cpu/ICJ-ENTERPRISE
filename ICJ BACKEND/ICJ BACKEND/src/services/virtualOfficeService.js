@@ -52,10 +52,7 @@ export const VirtualOfficeService = {
         officeLocations: DEFAULT_COURT_OFFICES,
         seniorMentor: "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)",
         teamQuotaLimit: 5,
-        juniorsList: [
-          { id: "JR-01", memberId: "26ICJ08AA0001", name: "Pooja Verma", designation: "Junior Associate", role: "staff", status: "Active", permissions: ["View Client", "View Case", "Upload", "Draft"], assignedOffice: "High Court of Judicature Chamber", barId: "UP/2022/8812", mobile: "+91 9839012345", photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200" },
-          { id: "JR-02", memberId: "26ICJ08AA0002", name: "Siddharth Mehta", designation: "Legal Intern", role: "staff", status: "Active", permissions: ["View Case", "Upload"], assignedOffice: "Supreme Court Practice Office", barId: "DL/2024/1102", mobile: "+91 9123456789", photoUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200" },
-        ],
+        juniorsList: [],
         empanelledBadgeStatus: "VERIFIED_EMPANELLED",
         verificationQrCode: `https://icj.org.in/verify/${memberId || "DEMO"}`,
         officeAddress: "Virtual Chamber #402, ICJ Digital High Court Complex",
