@@ -214,14 +214,45 @@ export const MemberService = {
       aadhar: aadhaarClean,
     };
 
-    return await addMember(newMember);
+    const res = await addMember(newMember);
+
+    // Trigger central event notification
+    import("./notificationService.js").then((mod) => {
+      const ns = mod.default || mod.NotificationService;
+      ns.create({
+        title: "New Member Registered",
+        category: "Members",
+        message: `Member ${newMember.fullName} (ID: ${newMember.memberId}) registered successfully.`,
+        type: "Info",
+        status: "Unread",
+        date: new Date().toLocaleDateString("en-IN"),
+        route: "/membership"
+      }).catch(() => {});
+    });
+
+    return res;
   },
 
   async update(id, data) {
     if (data.verification_status && !VALID_STATUSES.includes(data.verification_status)) {
       throw new Error(`Invalid status: ${data.verification_status}. Valid statuses: ${VALID_STATUSES.join(", ")}`);
     }
-    return await updateMember(id, data);
+    const res = await updateMember(id, data);
+    if (data.verification_status === "Approved") {
+      import("./notificationService.js").then((mod) => {
+        const ns = mod.default || mod.NotificationService;
+        ns.create({
+          title: "Member Verification Approved",
+          category: "Members",
+          message: `Member verification approved for ${id}.`,
+          type: "Info",
+          status: "Unread",
+          date: new Date().toLocaleDateString("en-IN"),
+          route: "/member-verification"
+        }).catch(() => {});
+      });
+    }
+    return res;
   },
 
   async searchLeads(filters = {}) {
