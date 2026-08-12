@@ -462,6 +462,7 @@ export default function PublicOnboarding() {
       setStage("SUCCESS");
     } catch (err) {
       console.error("Public onboarding creation failed", err);
+      alert("Registration failed: " + (err.message || "Unknown error"));
     } finally {
       setSubmitting(false);
     }
@@ -1327,7 +1328,7 @@ Thank you for registering with ICJ Enterprise Platform.
               <Button
                 fullWidth size="large" variant="contained"
                 onClick={handleContinueClick}
-                disabled={!isFormValid}
+                disabled={submitting}
                 endIcon={<ArrowForwardIcon />}
                 sx={{ py: 1.5, fontWeight: "bold", borderRadius: 2, fontSize: "1.05rem" }}
               >
