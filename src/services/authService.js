@@ -71,7 +71,7 @@ const saveStoredUsers = (users) => {
   window.localStorage.setItem("icj_members", JSON.stringify(users));
 };
 
-const persistLocalUser = (user) => {
+export const persistLocalUser = (user) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
 };

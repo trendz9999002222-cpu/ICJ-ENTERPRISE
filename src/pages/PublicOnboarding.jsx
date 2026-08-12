@@ -43,7 +43,7 @@ import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import MemberService, { generateMemberId } from "../services/memberService";
-import AuthService from "../services/authService";
+import AuthService, { persistLocalUser } from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
 import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
@@ -453,7 +453,7 @@ export default function PublicOnboarding() {
       const result = await MemberService.create(payload);
       const finalMember = result || payload;
       // Auto-authenticate newly onboarded member session into local storage and auth context
-      AuthService.persistLocalUser(finalMember);
+      persistLocalUser(finalMember);
       if (setSessionUser) {
         setSessionUser(finalMember);
       }
