@@ -244,13 +244,13 @@ export default function Administration() {
           const juniors = vOffice?.juniorsList || [];
 
           // Extract court presence
-          const distCourt = offices.find(o => o.type === "DistrictCourt")?.name || offices[0]?.name || "District Court";
-          const tehsilCourt = offices.find(o => o.type === "TehsilCourt")?.name || "Sadar Tehsil & SDM Court";
-          const stateName = offices[0]?.state || m.state || "Uttar Pradesh";
-          const districtName = offices[0]?.city || m.district || "Lucknow";
+          const distCourt = offices.find(o => o.type === "DistrictCourt")?.name || (offices.length > 0 ? offices[0]?.name : "Not Selected");
+          const tehsilCourt = offices.find(o => o.type === "TehsilCourt")?.name || (offices.length > 0 ? "Not Selected" : "Not Selected");
+          const stateName = offices[0]?.state || m.state || "Not Selected";
+          const districtName = offices[0]?.city || m.district || "Not Selected";
 
           const forumTypes = offices.map(o => o.type === "SupremeCourt" ? "Supreme Court" : o.type === "HighCourt" ? "High Court" : o.type === "Tribunal" ? "Tribunal (NGT/NCLT)" : o.type === "TehsilCourt" ? "SDM/Tehsil" : "District Court");
-          const forumString = Array.from(new Set(forumTypes)).join(", ");
+          const forumString = offices.length > 0 ? Array.from(new Set(forumTypes)).join(", ") : "Not Selected";
 
           // Demographic category (General, OBC, SC, ST, Minority — No EWS)
           const categories = ["General", "OBC", "SC", "ST", "Minority"];
@@ -265,7 +265,7 @@ export default function Administration() {
           else if (age <= 60) ageBracket = "46-60";
           else ageBracket = "60+";
 
-          const coreSpecialty = rankedSpecs[0]?.name || vOffice?.specializations?.[0] || "Criminal & Civil Litigation";
+          const coreSpecialty = rankedSpecs[0]?.name || vOffice?.specializations?.[0] || "Not Selected";
 
           return {
             rawMember: m,
@@ -276,7 +276,7 @@ export default function Administration() {
             category,
             age,
             ageBracket,
-            mobile: m.mobile || "+91 9839012345",
+            mobile: m.mobile || "Not Provided",
             state: stateName,
             district: districtName,
             tehsil: tehsilCourt,
@@ -284,8 +284,9 @@ export default function Administration() {
             forums: forumString,
             coreSpecialty,
             teamCount: juniors.length,
-            teamQuotaLimit: vOffice?.teamQuotaLimit || 5,
-            planTier: (m.member_level || m.memberLevel || "PRO").toUpperCase(),
+            teamQuotaLimit: vOffice?.teamQuotaLimit || null,
+            planTier: (m.member_level || m.memberLevel || "Not Assigned").toUpperCase(),
+            role: m.role || "MEMBER",
           };
         });
         setMasterRows(rows);
@@ -796,11 +797,11 @@ export default function Administration() {
                     {visibleCols.tehsil && <TableCell>{r.tehsil}</TableCell>}
                     {visibleCols.forums && <TableCell><Typography variant="caption" fontWeight="bold" color="primary.dark">{r.forums}</Typography></TableCell>}
                     {visibleCols.coreSpecialty && <TableCell><Chip label={r.coreSpecialty} size="small" color="error" variant="outlined" sx={{ fontWeight: "bold" }} /></TableCell>}
-                    {visibleCols.teamCount && <TableCell>{r.teamCount} / {r.teamQuotaLimit} Slots</TableCell>}
-                    {visibleCols.planTier && <TableCell><Chip label={r.planTier} size="small" color={r.planTier === "PRO" ? "success" : "default"} /></TableCell>}
+                    {visibleCols.teamCount && <TableCell>{r.teamQuotaLimit ? `${r.teamCount} / ${r.teamQuotaLimit} Slots` : "Not Assigned"}</TableCell>}
+                    {visibleCols.planTier && <TableCell><Chip label={r.planTier === "NOT ASSIGNED" ? "Not Assigned" : r.planTier} size="small" color={r.planTier === "PRO" ? "success" : r.planTier === "BASIC" ? "default" : "default"} variant={r.planTier === "NOT ASSIGNED" ? "outlined" : "filled"} /></TableCell>}
                     <TableCell>
                       <Chip
-                        label={r.role ? r.role.toUpperCase() : "MEMBER"}
+                        label={r.role === "admin" ? (r.rawMember?.user_type === "super_admin" ? "SUPER ADMIN" : "ADMIN") : r.role.toUpperCase()}
                         size="small"
                         color={["admin", "super_admin"].includes(r.role) ? "error" : "primary"}
                         variant={["member"].includes(r.role) ? "outlined" : "filled"}
