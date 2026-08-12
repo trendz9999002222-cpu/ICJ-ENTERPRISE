@@ -543,7 +543,7 @@ Thank you for registering with ICJ Enterprise Platform.
                   <Stack spacing={2}>
                     {/* ROW 1: TITLE (EXPANDED), FIRST NAME, MIDDLE NAME, LAST NAME — ALL IN ONE LINE */}
                     <Grid container spacing={1.5}>
-                      <Grid item xs={12} sm={2.5}>
+                      <Grid item xs={12} sm={2}>
                         <TextField
                           select fullWidth
                           label="Title"
@@ -551,6 +551,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           value={form.namePrefix}
                           onChange={handleChange}
                           SelectProps={{ style: { fontWeight: "bold" } }}
+                          sx={{ minWidth: 110 }}
                         >
                           <MenuItem value="">None</MenuItem>
                           <MenuItem value="Mr.">Mr.</MenuItem>
@@ -561,7 +562,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           <MenuItem value="Prof.">Prof.</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={3.1}>
+                      <Grid item xs={12} sm={4}>
                         <TextField fullWidth required label="First Name *" name="firstName"
                           value={form.firstName} onChange={handleChange} placeholder="First Name..."
                           InputProps={{
@@ -569,7 +570,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3.1}>
+                      <Grid item xs={12} sm={3}>
                         <TextField fullWidth label="Middle Name" name="middleName"
                           value={form.middleName} onChange={handleChange} placeholder="Middle Name (optional)"
                           InputProps={{
@@ -577,7 +578,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3.3}>
+                      <Grid item xs={12} sm={3}>
                         <TextField fullWidth required label="Last Name *" name="lastName"
                           value={form.lastName} onChange={handleChange} placeholder="Last Name..."
                           InputProps={{
@@ -589,7 +590,7 @@ Thank you for registering with ICJ Enterprise Platform.
 
                     {/* DEMOGRAPHICS: GENDER + BIRTH YEAR */}
                     <Grid container spacing={1.5}>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           select fullWidth
                           label="Gender"
@@ -597,7 +598,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           value={form.gender}
                           onChange={handleChange}
                           SelectProps={{ style: { fontWeight: "bold", fontSize: "1rem" } }}
-                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" } }}
+                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" }, minWidth: 140 }}
                         >
                           <MenuItem value="">-- Select Gender --</MenuItem>
                           <MenuItem value="Male">Male</MenuItem>
@@ -605,7 +606,7 @@ Thank you for registering with ICJ Enterprise Platform.
                           <MenuItem value="Other">Other</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           select fullWidth required
                           label="Birth Year *"
