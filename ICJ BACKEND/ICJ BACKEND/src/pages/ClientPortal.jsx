@@ -186,13 +186,21 @@ export default function ClientPortal() {
     );
   }, [documents, clientName, memberId]);
 
-  const activeAdvocate = advocates[0] || {
-    id: "26ICJ08AA0001",
-    memberId: "26ICJ08AA0001",
-    name: "Adv. Rajesh Sharma",
-    barId: "UP/2026/9812",
-    phone: "+91 98390 12345",
-  };
+  const activeAdvocate = useMemo(() => {
+    const caseWithAdv = myCases.find(
+      (c) => c.advocateId && c.advocateName && c.advocateName !== "Unassigned"
+    );
+    if (caseWithAdv) {
+      const reg = advocates.find(a => a.id === caseWithAdv.advocateId);
+      return reg || {
+        id: caseWithAdv.advocateId,
+        name: caseWithAdv.advocateName,
+        specialization: "General Practice",
+        phone: "+91 98390 12345"
+      };
+    }
+    return null; // No assigned advocate!
+  }, [myCases, advocates]);
 
   const handleCreateCase = () => {
     if (!form.title.trim()) {
@@ -318,7 +326,7 @@ export default function ClientPortal() {
           <Grid item xs={12} sm={3}>
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderLeft: "4px solid #9c27b0" }}>
               <Typography variant="caption" color="text.secondary" fontWeight="bold">Assigned Counsel</Typography>
-              <Typography variant="h6" fontWeight="bold" noWrap>{activeAdvocate.name}</Typography>
+              <Typography variant="h6" fontWeight="bold" noWrap>{activeAdvocate ? activeAdvocate.name : "No Counsel Allotted"}</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={3}>
@@ -834,7 +842,7 @@ export default function ClientPortal() {
                     <TableRow key={c.id} hover>
                       <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.caseNumber}</TableCell>
                       <TableCell><Typography fontWeight="bold">{c.title}</Typography></TableCell>
-                      <TableCell>{c.advocateName || activeAdvocate.name}</TableCell>
+                      <TableCell>{c.advocateName || (activeAdvocate ? activeAdvocate.name : "Unassigned")}</TableCell>
                       <TableCell>{c.courtName}</TableCell>
                       <TableCell><Chip label={c.status} color={c.status === "In Hearing" ? "success" : "warning"} size="small" /></TableCell>
                       <TableCell><Chip label={c.trustApprovalStatus || "Approved"} color="success" size="small" variant="outlined" /></TableCell>
@@ -917,31 +925,42 @@ export default function ClientPortal() {
 
         {/* TAB 4: ASSIGNED ADVOCATE & PRACTICE TEAM */}
         <TabPanel value={tabIndex} index={4}>
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
-              <Box>
-                <Typography variant="h6" fontWeight="bold" color="#1e3a8a">
-                  🏛️ My Allotted ICJ Legal Counsel &amp; Practice Collegium
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Complete profile, court jurisdictions, ranked specializations, and verified practice team allotted to your legal matter
-                </Typography>
-              </Box>
-              <Chip label="🔒 ALLOTTED ICJ COUNSEL ONLY" color="primary" sx={{ fontWeight: "bold" }} />
-            </Stack>
+          {!activeAdvocate ? (
+            <Paper sx={{ p: 4, textAlign: "center", bgcolor: "#f8fafc", borderRadius: 3, border: "1px dashed #cbd5e1" }}>
+              <Typography variant="h6" color="text.secondary" fontWeight="bold">
+                ⚖️ No Allotted Counsel
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                You do not have any active legal counsel assigned to your profile.
+                Please file a new matter in the "AI Case Diagnosis" tab or contact ICJ Registry.
+              </Typography>
+            </Paper>
+          ) : (
+            <Paper elevation={3} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" color="#1e3a8a">
+                    🏛️ My Allotted ICJ Legal Counsel &amp; Practice Collegium
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Complete profile, court jurisdictions, ranked specializations, and verified practice team allotted to your legal matter
+                  </Typography>
+                </Box>
+                <Chip label="🔒 ALLOTTED ICJ COUNSEL ONLY" color="primary" sx={{ fontWeight: "bold" }} />
+              </Stack>
 
-            <Divider sx={{ mb: 3 }} />
+              <Divider sx={{ mb: 3 }} />
 
-            {(() => {
-              const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "26ICJ08AA0001";
-              const advocateName = activeAdvocate?.name || "Adv. Rajesh Sharma";
-              const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
-              const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
-              const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
-              const juniors = office?.juniorsList || [];
+              {(() => {
+                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "26ICJ08AA0001";
+                const advocateName = activeAdvocate?.name || "Adv. Rajesh Sharma";
+                const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
+                const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
+                const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
+                const juniors = office?.juniorsList || [];
 
-              return (
-                <Stack spacing={3}>
+                return (
+                  <Stack spacing={3}>
                   {/* ADVOCATE PROFILE SUMMARY */}
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc" }}>
                     <Grid container spacing={3} alignItems="center">
@@ -1070,6 +1089,7 @@ export default function ClientPortal() {
               );
             })()}
           </Paper>
+          )}
         </TabPanel>
 
         {/* TAB 5: PAYMENTS */}
