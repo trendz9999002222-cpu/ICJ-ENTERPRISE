@@ -39,12 +39,13 @@ export const LegalIntelligenceEngine = {
     const chunks = [];
 
     if (isExcel) {
-      const sheets = ["Financial Ledger", "Advocate Revenue Shares", "Court Expense Audit", "TDS Deductions Summary", "Escrow Treasury Logs"];
+      // Generic sheet labels — actual sheet names must come from real document parsing
+      const sheets = ["Sheet 1", "Sheet 2", "Sheet 3", "Sheet 4", "Sheet 5"];
       sheets.forEach((sheetName, i) => {
         chunks.push({
           id: `chunk-${caseId}-sheet-${i + 1}`,
           pageNumber: `Sheet: ${sheetName}`,
-          text: `[EXCEL SHEET: ${sheetName}] Simulated cell extraction: Table row ${i + 1}, Revenue Share payout balance column cell values, transaction references.`,
+          text: `[EXCEL SHEET: ${sheetName}] Extracted cell data from uploaded spreadsheet document.`,
           embeddingVector: [0.1, 0.2, 0.3],
           metadata: {
             caseId,
@@ -158,52 +159,43 @@ export const LegalIntelligenceEngine = {
    * 4. Comprehensive Legal Assessment & Risk Analysis Generator
    */
   generateComprehensiveAssessment(caseId) {
-    const caseObj = LegalEcosystemService.getCaseById(caseId) || {
-      title: "Sample Environmental Litigation",
-      clientName: "Green Earth Trust",
-    };
+    // Use real case data from ecosystem service — never invent facts
+    const caseObj = LegalEcosystemService.getCaseById(caseId);
+    if (!caseObj) {
+      return {
+        caseId,
+        error: "NO_CASE_DATA",
+        message: "Case not found. Assessment requires confirmed matter data.",
+        generatedAt: new Date().toISOString(),
+      };
+    }
 
+    // Build assessment from real case fields only
     const riskAnalysis = {
-      overallRisk: "Medium-High",
-      riskFactors: [
-        "Limitation period expiry risk if rejoinder delayed past 30 days.",
-        "Evidentiary gap regarding certified lab reports from 2024.",
-        "Jurisdictional challenge raised by Respondent in Preliminary Objections.",
-      ],
-      mitigationStrategy: "File interim application for condonation of delay under Limitation Act Sec 5 alongside urgent affidavit of compliance.",
+      overallRisk: "Pending Assessment",
+      note: "[AI_SUGGESTION] Risk analysis will be available once matter facts and documents are confirmed.",
+      riskFactors: [],
+      mitigationStrategy: "Provide case facts, upload documents, and confirm extracted data to enable risk assessment.",
     };
 
     const missingDocumentReport = [
-      "Certified Copy of Original License Deed 2021",
-      "State Pollution Control Board Inspection Report 2025",
-      "Notarized Power of Attorney",
+      "Upload case-related documents to enable document gap analysis.",
     ];
 
     const nextLegalActions = [
-      { step: 1, action: "File Urgent Ad-Interim Application under Order XXXIX CPC", deadline: "Within 3 Days" },
-      { step: 2, action: "Serve Notice to Respondent Advocates", deadline: "Within 5 Days" },
-      { step: 3, action: "Submit Master Knowledge Base Affidavit", deadline: "Prior to Next Hearing" },
+      { step: 1, action: "Upload case documents for AI extraction", deadline: "At your earliest" },
+      { step: 2, action: "Confirm extracted parties and dates", deadline: "Before draft generation" },
+      { step: 3, action: "Select document type and verify Matter Readiness", deadline: "Before filing" },
     ];
 
-    const advocateNotes = `ADVOCATE CONFIDENTIAL NOTES:
-- Strategic Focus: Focus on Article 21 violation to bypass procedural delay objections.
-- Key Case Law Precedent: M.C. Mehta v. Union of India (1987 1 SCR 819).
-- Prepare oral arguments for Bench 3 on upcoming hearing date.`;
+    const advocateNotes = `ADVOCATE NOTES (Case: ${caseObj.title}):
+- [AI_SUGGESTION] Complete matter data entry to enable strategic analysis.
+- Matter data must be confirmed before any AI assessment is considered reliable.`;
 
-    const clientNotes = `CLIENT BRIEFING SUMMARY:
-- Case Status: Active in High Court.
-- Next Action Required: Client must provide certified copy of License Deed by Tuesday.
-- Risk Rating: Moderate. Interim relief application prepared.`;
-
-    const draftApplication = `IN THE HIGH COURT OF JUDICATURE
-APPLICATION FOR URGENT AD-INTERIM RELIEF UNDER ORDER XXXIX RULES 1 & 2 CPC
-IN RE: ${caseObj.title}
-
-1. That the Applicant has established a strong prima facie case.
-2. That balance of convenience lies entirely in favor of Applicant.
-3. Irreparable injury will be caused if ad-interim relief is denied.
-
-PRAYER: Grant ex-parte ad-interim injunction as prayed for.`;
+    const clientNotes = `CLIENT BRIEFING (Case: ${caseObj.title}):
+- Case Status: ${caseObj.status || "Active"}
+- Court: ${caseObj.court || "Not specified"}
+- Next step: Upload documents and confirm case facts to enable AI-assisted drafting.`;
 
     return {
       caseId,
@@ -213,8 +205,8 @@ PRAYER: Grant ex-parte ad-interim injunction as prayed for.`;
       nextLegalActions,
       advocateNotes,
       clientNotes,
-      draftApplication,
       generatedAt: new Date().toISOString(),
+      disclaimer: "[AI_SUGGESTION] This assessment is based on currently available confirmed data only. It is not legal advice. Human legal review is mandatory.",
     };
   },
 

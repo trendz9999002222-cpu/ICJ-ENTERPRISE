@@ -1,25 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
-  Box,
-  Paper,
-  Typography,
-  Grid,
-  TextField,
-  Button,
-  MenuItem,
-  Stack,
-  Divider,
-  Alert,
-  Chip,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-  Tabs,
-  Tab,
-  IconButton,
-  Tooltip,
+  Box, Paper, Typography, Grid, TextField, Button, MenuItem,
+  Stack, Divider, Alert, Chip, Table, TableHead, TableBody,
+  TableRow, TableCell, Tabs, Tab, Tooltip, LinearProgress,
+  IconButton, Collapse, List, ListItem, ListItemIcon, ListItemText,
+  Badge,
 } from "@mui/material";
 
 // Icons
@@ -31,13 +16,21 @@ import HistoryIcon from "@mui/icons-material/History";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
-import QrCode2Icon from "@mui/icons-material/QrCode2";
-import DownloadIcon from "@mui/icons-material/Download";
+import ErrorIcon from "@mui/icons-material/Error";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
+import QuizIcon from "@mui/icons-material/Quiz";
+import FactCheckIcon from "@mui/icons-material/FactCheck";
+import BlockIcon from "@mui/icons-material/Block";
+import DownloadIcon from "@mui/icons-material/Download";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 
 import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
+import LegalMatterDataService from "../services/legalMatterDataService";
+import { DOCUMENT_SCHEMAS } from "../services/legalKnowledgeBase";
 import MainLayout from "../layouts/MainLayout";
 import useAuth from "../hooks/useAuth";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
@@ -51,154 +44,302 @@ function TabPanel(props) {
   );
 }
 
-// Phase B — 16 Legal Document Types
+// 16 Legal Document Templates (structural definitions only — no seed data)
 const DOCUMENT_TYPES = [
-  "Legal Notice",
-  "Civil Suit",
-  "Written Statement",
-  "Affidavit",
-  "RTI Application",
-  "Appeal Petition",
-  "Writ Petition",
-  "Arbitration Petition",
-  "Consumer Complaint",
-  "Criminal Complaint",
-  "Agreement / MOU",
-  "Lease Deed",
-  "Sale Deed",
-  "Power of Attorney",
-  "Trust Deed",
-  "Board Resolution",
+  "Legal Notice", "Civil Suit", "Written Statement", "Affidavit",
+  "RTI Application", "Appeal Petition", "Writ Petition", "Arbitration Petition",
+  "Consumer Complaint", "Criminal Complaint", "Agreement / MOU", "Lease Deed",
+  "Sale Deed", "Power of Attorney", "Trust Deed", "Board Resolution",
 ];
 
+// ─── DRAFT GENERATOR (from confirmed matter data only) ────────────────────────
+function buildDraftFromMatter(caseObj, docType, matterFields, memberId) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+  const autoNumber = `ICJ-DRAFT-${now.getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+
+  // Resolve field: try matterFields first (user-confirmed), then caseObj
+  const resolve = (key, fallbackCaseKey, fallbackLabel) => {
+    const mf = matterFields?.[key];
+    if (mf?.value && mf.status === "CONFIRMED") return mf.value;
+    if (mf?.value) return `[AI_EXTRACTED: ${mf.value}]`;
+    const cv = caseObj?.[fallbackCaseKey];
+    if (cv) return cv;
+    return `[${fallbackLabel}]`;
+  };
+
+  const party1 = resolve("petitioner_name", "clientName", "PETITIONER_NAME_REQUIRED");
+  const party2 = resolve("respondent_name", "respondentName", "RESPONDENT_NAME_REQUIRED");
+  const court = resolve("court_name", "court", "COURT_NAME_REQUIRED");
+  const relief = resolve("relief_sought", "relief", "RELIEF_SOUGHT_REQUIRED");
+  const caseNo = resolve("case_number", "caseNumber", "CASE_NUMBER");
+
+  return `================================================================================
+  DOCUMENT TYPE: ${docType.toUpperCase()}
+  DOCUMENT REGISTRY NO: ${autoNumber}
+  DATE OF EXECUTION: ${dateStr}
+  DATA SOURCE: CONFIRMED MATTER DATA
+  MEMBER ID: ${memberId}
+================================================================================
+
+IN THE MATTER OF:
+
+${docType.toUpperCase()}
+
+CASE/MATTER: ${caseObj?.title || "[MATTER_TITLE_REQUIRED]"}
+CASE NO: ${caseNo}
+COURT/FORUM: ${court}
+
+PARTY (PETITIONER/PLAINTIFF/APPLICANT):
+${party1}
+
+PARTY (RESPONDENT/DEFENDANT/OPPOSITE PARTY):
+${party2}
+
+STATEMENT OF FACTS:
+${caseObj?.description || "[STATEMENT_OF_FACTS_REQUIRED — Please provide matter facts]"}
+
+RELIEF SOUGHT:
+${relief}
+
+DATED: ${dateStr}
+
+================================================================================
+DRAFT STATUS: PRELIMINARY DRAFT — PENDING HUMAN LEGAL REVIEW
+AI ASSISTANCE DISCLAIMER: This draft was generated from confirmed matter data.
+It is NOT legal advice. Human legal review by a qualified advocate is mandatory
+before filing or use.
+All AI_EXTRACTED fields require confirmation before finalization.
+================================================================================`;
+}
+
+// ─── READINESS INDICATOR COMPONENT ───────────────────────────────────────────
+function ReadinessIndicator({ score, threshold, label }) {
+  const color = score >= threshold ? "success" : score >= 50 ? "warning" : "error";
+  return (
+    <Box>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography variant="caption" fontWeight="bold">
+          Matter Readiness: <strong>{score}%</strong>
+        </Typography>
+        <Chip
+          size="small"
+          label={score >= threshold ? "Ready to Draft" : `Need ${threshold}% min`}
+          color={color}
+          variant="outlined"
+        />
+      </Stack>
+      <LinearProgress
+        variant="determinate"
+        value={score}
+        color={color}
+        sx={{ height: 8, borderRadius: 4 }}
+      />
+    </Box>
+  );
+}
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function LegalDrafter() {
-  const [tabIndex, setTabIndex] = useState(0);
-  const [cases, setCases] = useState([]);
-  const [selectedCaseId, setSelectedCaseId] = useState("");
-  const [docType, setDocType] = useState("Legal Notice");
-  const [inputText, setInputText] = useState("");
-  const [generatedDraft, setGeneratedDraft] = useState("");
-  const [analysisResult, setAnalysisResult] = useState(null);
-  const [copied, setCopied] = useState(false);
-  const [search, setSearch] = useState("");
-  const [alertMsg, setAlertMsg] = useState("");
-
-  // Phase D — Version Control & Draft History (starts empty for new litigants)
-  const [draftHistory, setDraftHistory] = useState([]);
-
   const { user } = useAuth();
   const role = String(user?.role || "member").toLowerCase();
   const memberId = user?.member_id || user?.memberId || user?.id || "";
 
+  // ── State ──
+  const [tabIndex, setTabIndex] = useState(0);
+  const [cases, setCases] = useState([]);
+  const [selectedCaseId, setSelectedCaseId] = useState("");
+  const [docType, setDocType] = useState("Legal Notice");
+  const [generatedDraft, setGeneratedDraft] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [alertMsg, setAlertMsg] = useState({ text: "", severity: "success" });
+  const [search, setSearch] = useState("");
+
+  // Draft history (from persistent service)
+  const [draftHistory, setDraftHistory] = useState([]);
+
+  // OCR/Extraction tab
+  const [inputText, setInputText] = useState("");
+  const [extractionResult, setExtractionResult] = useState(null);
+  const [extractionLoading, setExtractionLoading] = useState(false);
+
+  // Matter intelligence
+  const [readiness, setReadiness] = useState(null);
+  const [intelligentQuestions, setIntelligentQuestions] = useState([]);
+  const [questionAnswers, setQuestionAnswers] = useState({});
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [placeholderWarning, setPlaceholderWarning] = useState(null);
+
+  // ── Load Cases (member-scoped) ──
   useEffect(() => {
     const allCases = LegalEcosystemService.getCases();
-    // Litigants only see their own cases; admin/advocate see all
     const filtered = (role === "member" || role === "client")
       ? allCases.filter((c) => String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase())
       : allCases;
     setCases(filtered);
-    if (filtered.length > 0) {
-      setSelectedCaseId(filtered[0].id);
-    }
   }, [role, memberId]);
 
-  const handleAnalyze = () => {
-    const selectedCase = cases.find((c) => c.id === selectedCaseId) || { title: "Legal Matter" };
-    const result = LegalEcosystemService.analyzeCaseDocuments(selectedCase.title, inputText);
-    setAnalysisResult(result);
-    ActivityService.create({ title: `AI Document Analysis Executed for ${selectedCase.title}`, type: "legal" });
-  };
+  // ── Load Draft History from persistent service ──
+  useEffect(() => {
+    if (!memberId) return;
+    const allDrafts = LegalMatterDataService.getAllDraftsForMember(memberId);
+    setDraftHistory(allDrafts);
+  }, [memberId, selectedCaseId]);
 
-  const handleGenerateDraft = () => {
-    const selectedCase = cases.find((c) => c.id === selectedCaseId) || { title: "Legal Matter" };
-    const dateStr = new Date().toLocaleDateString("en-IN");
-    const autoNumber = `ICJ-DRAFT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+  // ── Recalculate readiness whenever case or docType changes ──
+  useEffect(() => {
+    if (!selectedCaseId || !docType) { setReadiness(null); return; }
+    const caseObj = cases.find(c => c.id === selectedCaseId);
+    const r = LegalMatterDataService.calculateReadiness(memberId, selectedCaseId, caseObj, docType);
+    setReadiness(r);
+    const qs = LegalMatterDataService.getIntelligentQuestions(memberId, selectedCaseId, caseObj, docType);
+    setIntelligentQuestions(qs);
+    setQuestionAnswers({});
+    setShowQuestions(qs.length > 0);
+    setGeneratedDraft("");
+    setPlaceholderWarning(null);
+  }, [selectedCaseId, docType, memberId, cases]);
 
-    const draftText = `================================================================================
-IN THE HON'BLE HIGH COURT OF JUDICATURE
-(EXTRAORDINARY ORIGINAL WRIT JURISDICTION)
-DOCUMENT TYPE: ${docType.toUpperCase()}
-DOCUMENT REGISTRY NO: ${autoNumber}
-DATE OF EXECUTION: ${dateStr}
-================================================================================
+  // ── Save user answers to matter data ──
+  const handleSaveAnswer = useCallback((fieldKey, value) => {
+    setQuestionAnswers(prev => ({ ...prev, [fieldKey]: value }));
+    if (value.trim()) {
+      LegalMatterDataService.confirmField(memberId, selectedCaseId, fieldKey, value.trim());
+      // Recalculate readiness after answer
+      const caseObj = cases.find(c => c.id === selectedCaseId);
+      const r = LegalMatterDataService.calculateReadiness(memberId, selectedCaseId, caseObj, docType);
+      setReadiness(r);
+      const qs = LegalMatterDataService.getIntelligentQuestions(memberId, selectedCaseId, caseObj, docType);
+      setIntelligentQuestions(qs);
+    }
+  }, [memberId, selectedCaseId, cases, docType]);
 
-IN THE MATTER OF:
-PETITIONER / APPLICANT:
-${selectedCase.clientName || "Green Earth Trust"}
-Through Empowered Authorised Signatory
+  // ── GENERATE DRAFT (guarded) ──
+  const handleGenerateDraft = useCallback(() => {
+    const caseObj = cases.find(c => c.id === selectedCaseId);
+    const matterData = LegalMatterDataService.getMatterData(memberId, selectedCaseId);
 
-VERSUS
+    // GUARD 1: No case selected
+    if (!selectedCaseId) {
+      setAlertMsg({ text: "कोई केस/मैटर नहीं चुना गया। पहले Active Case File चुनें।", severity: "error" });
+      return;
+    }
 
-RESPONDENT / DEFENDANT:
-Union of India & Ors.
-Through Secretary, Ministry of Environment & Forests
+    // GUARD 2: Generation validation
+    const validation = LegalMatterDataService.canGenerateDraft(memberId, selectedCaseId, caseObj, docType);
+    if (!validation.allowed) {
+      setAlertMsg({ text: validation.message, severity: "error" });
+      setShowQuestions(true);
+      return;
+    }
 
-SUBJECT: MASTER ${docType.toUpperCase()} PURSUANT TO STATUTORY PROVISIONS AND CONSTITUTIONAL REMEDIES.
+    // Generate from confirmed matter data
+    const draft = buildDraftFromMatter(caseObj, docType, matterData.fields, memberId);
 
-1. STATEMENT OF FACTS:
-The Petitioner respectfully submits that the present ${docType} is preferred under relevant statutory provisions to enforce constitutional rights and legal remedies. ${selectedCase.summary || "Facts under judicial review."}
+    // GUARD 3: Placeholder check
+    const placeholderCheck = LegalMatterDataService.checkPlaceholders(draft);
+    if (!placeholderCheck.clean) {
+      setPlaceholderWarning(placeholderCheck);
+      setGeneratedDraft(draft);
+      setAlertMsg({
+        text: `Draft में ${placeholderCheck.count} अनिर्धारित फ़ील्ड हैं: ${placeholderCheck.placeholders.join(", ")} — Finalization blocked.`,
+        severity: "warning",
+      });
+    } else {
+      setPlaceholderWarning(null);
+      setAlertMsg({ text: `AI Legal Draft "${docType}" सफलतापूर्वक तैयार हुआ। Human review आवश्यक है।`, severity: "success" });
+    }
 
-2. STATUTORY PROVISIONS & LEGAL GROUNDS:
-- Article 21 & Article 226 of the Constitution of India.
-- Relevant Rules under Code of Civil Procedure, 1908 / Criminal Procedure Code.
+    setGeneratedDraft(draft);
 
-3. PRAYER / RELIEF SOUGHT:
-It is most respectfully prayed that this Hon'ble Court / Authority may be pleased to:
-a) Issue appropriate writ, order, or direction commanding Respondents to maintain status quo.
-b) Pass such further orders as this Hon'ble Court deems fit in the interest of justice.
-
-DIGITAL SIGNATURE & SHA-256 INTEGRITY CERTIFICATE:
-Digital Signature: SHA256-DIGITAL-SIG-2026-ENCRYPTED-OK
-QR Code Verification Token: https://verify.icj.org/doc/${autoNumber}
-Empaneled Counsel: ${selectedCase.advocateName || "Adv. Rajesh Sharma"} (Bar ID: MAH/12345/2012)
-================================================================================`;
-
-    setGeneratedDraft(draftText);
-
-    const newHistory = {
+    // Save to persistent draft history
+    const autoNumber = `ICJ-DRAFT-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+    const newRecord = {
       id: `v${draftHistory.length + 1}.0`,
-      title: `${docType} - ${selectedCase.title}`,
+      title: `${docType} — ${caseObj?.title || "Matter"}`,
       docType,
       version: `v${draftHistory.length + 1}.0`,
       date: new Date().toISOString().split("T")[0],
-      status: "Draft Created",
+      status: placeholderCheck.clean ? "Draft Created" : "Placeholder Warning",
       hash: `SHA256-DRAFT-${Math.floor(10000 + Math.random() * 90000)}`,
+      draftNumber: autoNumber,
+      caseId: selectedCaseId,
     };
-    setDraftHistory((prev) => [newHistory, ...prev]);
+    LegalMatterDataService.saveDraft(memberId, selectedCaseId, newRecord);
+    setDraftHistory(LegalMatterDataService.getAllDraftsForMember(memberId));
 
-    ActivityService.create({ title: `AI Legal Draft Generated: ${docType} (${autoNumber})`, type: "legal" });
-    setAlertMsg(`AI Legal Draft "${docType}" successfully generated with SHA-256 Digital Verification!`);
-    setTimeout(() => setAlertMsg(""), 3500);
-  };
+    ActivityService.create({
+      title: `AI Legal Draft Generated: ${docType} (${autoNumber}) — Matter: ${caseObj?.title}`,
+      type: "legal",
+    });
+    setTimeout(() => setAlertMsg({ text: "", severity: "success" }), 5000);
+  }, [cases, selectedCaseId, memberId, docType, draftHistory]);
 
+  // ── OCR / DOCUMENT ANALYSIS ──
+  const handleAnalyzeText = useCallback(() => {
+    if (!inputText.trim()) {
+      setAlertMsg({ text: "कोई text नहीं है। Document text paste करें।", severity: "warning" });
+      return;
+    }
+    setExtractionLoading(true);
+    setTimeout(() => {
+      const result = LegalMatterDataService.extractFromText(
+        inputText,
+        "USER_INPUT",
+        "Pasted Document Text"
+      );
+      // Detect conflicts before saving
+      if (selectedCaseId) {
+        const conflicts = LegalMatterDataService.detectConflicts(memberId, selectedCaseId, result);
+        result.conflicts = conflicts;
+        LegalMatterDataService.saveExtraction(memberId, selectedCaseId, result);
+        // Refresh readiness
+        const caseObj = cases.find(c => c.id === selectedCaseId);
+        const r = LegalMatterDataService.calculateReadiness(memberId, selectedCaseId, caseObj, docType);
+        setReadiness(r);
+      }
+      setExtractionResult(result);
+      setExtractionLoading(false);
+      ActivityService.create({ title: `Document Text Extracted: ${result.dates.length} dates, ${result.caseNumbers.length} case nos found`, type: "legal" });
+    }, 600);
+  }, [inputText, selectedCaseId, memberId, cases, docType]);
+
+  // ── COPY DRAFT ──
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedDraft);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Phase G — Multi-field Search Filter
+  // ── DYNAMIC COMPLIANCE CHECKLIST ──
+  const complianceChecklist = useMemo(() => {
+    if (!readiness) return [];
+    const items = [];
+    readiness.available?.forEach(f => items.push({ label: f.label, status: "ok", detail: `Confirmed: ${f.value || "✓"}` }));
+    readiness.missing?.forEach(f => items.push({ label: f.label, status: "warning", detail: "Not yet provided" }));
+    readiness.blocking?.forEach(f => items.push({ label: f.label, status: "error", detail: "REQUIRED — Blocks generation" }));
+    const docReqs = LegalMatterDataService.getDocumentRequirements(docType);
+    docReqs.forEach(req => items.push({ label: req, status: "info", detail: "Document Required" }));
+    return items;
+  }, [readiness, docType]);
+
+  // ── VERSION HISTORY FILTER ──
   const filteredHistory = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return draftHistory;
-    return draftHistory.filter((d) =>
-      [d.title, d.docType, d.version, d.status, d.hash]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term))
+    return draftHistory.filter(d =>
+      [d.title, d.docType, d.version, d.status, d.hash, d.draftNumber]
+        .filter(Boolean).some(v => String(v).toLowerCase().includes(term))
     );
   }, [draftHistory, search]);
 
-  // Phase F — Dashboard Cards (dynamic, no hardcoded fake numbers)
-  const stats = useMemo(() => {
-    const pendingDrafts = draftHistory.filter((d) => d.status === "In Review" || d.status === "Pending").length;
-    const recentActivity = draftHistory.slice(0, 8).length;
-    return {
-      draftsCreated: draftHistory.length,
-      pendingDrafts,
-      templatesAvailable: DOCUMENT_TYPES.length,
-      recentActivity,
-    };
-  }, [draftHistory]);
+  // ── STATS CARDS (dynamic, from real data) ──
+  const stats = useMemo(() => ({
+    draftsCreated: draftHistory.length,
+    pendingDrafts: draftHistory.filter(d => d.status === "In Review" || d.status === "Pending" || d.status === "Placeholder Warning").length,
+    templatesAvailable: DOCUMENT_TYPES.length,
+    recentActivity: draftHistory.slice(0, 8).length,
+  }), [draftHistory]);
 
   const cards = [
     { title: "Drafts Created", value: stats.draftsCreated, color: "#1976d2", icon: <DescriptionIcon /> },
@@ -207,205 +348,381 @@ Empaneled Counsel: ${selectedCase.advocateName || "Adv. Rajesh Sharma"} (Bar ID:
     { title: "Recent AI Runs", value: stats.recentActivity, color: "#2e7d32", icon: <SmartToyIcon /> },
   ];
 
+  const selectedCase = cases.find(c => c.id === selectedCaseId);
+
+  // ── RENDER ──
   return (
     <MainLayout>
       <Box sx={{ p: 3 }}>
+        {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <SmartToyIcon color="primary" sx={{ fontSize: 40 }} />
             <Box>
               <Typography variant="h4" fontWeight="bold">
-                Enterprise AI Legal Drafter & Document Engine
+                AI Legal Matter Intelligence & Document Engine
               </Typography>
               <Typography color="text.secondary">
-                16 Legal Document Generators, Version Control, AI Compliance Checklist & SHA-256 Verification
+                Matter-Driven Drafting · Document Extraction · Privacy-Preserving · 16 Legal Templates
               </Typography>
             </Box>
           </Stack>
         </Stack>
 
-        {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+        {/* Alert */}
+        {alertMsg.text && (
+          <Alert severity={alertMsg.severity} sx={{ mb: 3 }} onClose={() => setAlertMsg({ text: "", severity: "success" })}>
+            {alertMsg.text}
+          </Alert>
+        )}
 
-        {/* Phase F — Dashboard Cards */}
+        {/* Stats Cards */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          {cards.map((item, idx) => (
+          {cards.map((item) => (
             <Grid item xs={12} sm={6} md={3} key={item.title}>
-              <Paper
-                variant="outlined"
-                onClick={() => setTabIndex(idx % 4)}
-                sx={{
-                  p: 2.5,
-                  borderRadius: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  borderLeft: `4px solid ${item.color}`,
-                  cursor: "pointer",
-                  transition: "0.2s",
-                  "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
-                }}
-              >
-                <Box sx={{ color: item.color }}>{item.icon}</Box>
-                <Box>
-                  <Typography color="text.secondary" variant="caption" fontWeight="bold" display="block">
-                    {item.title}
-                  </Typography>
-                  <Typography variant="h5" fontWeight="bold">
-                    {item.value}
-                  </Typography>
-                </Box>
+              <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 3, cursor: "pointer" }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box sx={{ color: item.color }}>{item.icon}</Box>
+                  <Box>
+                    <Typography color="text.secondary" variant="caption" fontWeight="bold" display="block">
+                      {item.title}
+                    </Typography>
+                    <Typography variant="h5" fontWeight="bold">{item.value}</Typography>
+                  </Box>
+                </Stack>
               </Paper>
             </Grid>
           ))}
         </Grid>
 
-        {/* Tabs for Navigation */}
+        {/* Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
           <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)}>
             <Tab icon={<AutoFixHighIcon />} iconPosition="start" label="AI Legal Drafter" />
-            <Tab icon={<SmartToyIcon />} iconPosition="start" label="OCR & Document Analyzer" />
-            <Tab icon={<HistoryIcon />} iconPosition="start" label="Version History & Rollback" />
-            <Tab icon={<VerifiedIcon />} iconPosition="start" label="AI Legal Checklist & Compliance" />
+            <Tab icon={<UploadFileIcon />} iconPosition="start" label="Document Extraction & OCR" />
+            <Tab icon={<HistoryIcon />} iconPosition="start" label="Version History" />
+            <Tab icon={<PlaylistAddCheckIcon />} iconPosition="start" label={
+              <Badge badgeContent={complianceChecklist.filter(c => c.status === "error").length || null} color="error">
+                Compliance Checklist
+              </Badge>
+            } />
           </Tabs>
         </Box>
 
-        {/* TAB 0: AI LEGAL DRAFTER */}
+        {/* ── TAB 0: AI LEGAL DRAFTER (4-step pipeline) ── */}
         <TabPanel value={tabIndex} index={0}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={5}>
-              <Paper sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  1. Template Engine & Variables
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <Stack spacing={2}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Select Active Case File"
-                    value={selectedCaseId}
-                    onChange={(e) => setSelectedCaseId(e.target.value)}
-                  >
-                    {cases.map((c) => (
-                      <MenuItem key={c.id} value={c.id}>
-                        {c.caseNumber} — {c.title}
-                      </MenuItem>
-                    ))}
-                  </TextField>
 
+            {/* LEFT PANEL: Steps 1–3 */}
+            <Grid item xs={12} md={5}>
+              <Stack spacing={2.5}>
+
+                {/* STEP 1: Select Case */}
+                <Paper sx={{ p: 3, borderRadius: 3 }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+                    STEP 1 — Select Active Matter / Case
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+                  {cases.length === 0 ? (
+                    <Alert severity="info" icon={<InfoOutlinedIcon />}>
+                      कोई केस नहीं मिला। पहले Case Management में केस जोड़ें।
+                    </Alert>
+                  ) : (
+                    <TextField
+                      select fullWidth
+                      label="Active Case File"
+                      value={selectedCaseId}
+                      onChange={(e) => setSelectedCaseId(e.target.value)}
+                    >
+                      {cases.map((c) => (
+                        <MenuItem key={c.id} value={c.id}>
+                          {c.caseNumber} — {c.title}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                  {selectedCase && (
+                    <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                      <Chip size="small" label={selectedCase.status || "Active"} color="success" variant="outlined" />
+                      <Chip size="small" label={selectedCase.court || "Court Not Set"} variant="outlined" />
+                    </Stack>
+                  )}
+                </Paper>
+
+                {/* STEP 2: Select Document Type */}
+                <Paper sx={{ p: 3, borderRadius: 3 }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+                    STEP 2 — Select Document Type
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
                   <TextField
-                    select
-                    fullWidth
+                    select fullWidth
                     label="Document Type (16 Templates)"
                     value={docType}
                     onChange={(e) => setDocType(e.target.value)}
                   >
                     {DOCUMENT_TYPES.map((type) => (
-                      <MenuItem key={type} value={type}>
-                        {type}
-                      </MenuItem>
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
                     ))}
                   </TextField>
+
+                  {/* Readiness Indicator */}
+                  {readiness && selectedCaseId && (
+                    <Box sx={{ mt: 2 }}>
+                      <ReadinessIndicator
+                        score={readiness.score}
+                        threshold={readiness.threshold}
+                        label="Matter Readiness"
+                      />
+                    </Box>
+                  )}
+                </Paper>
+
+                {/* STEP 3: Intelligent Questions */}
+                {intelligentQuestions.length > 0 && (
+                  <Paper sx={{ p: 3, borderRadius: 3, border: "1px solid", borderColor: "warning.light" }}>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+                      <QuizIcon color="warning" />
+                      <Typography variant="subtitle2" fontWeight="bold" color="warning.dark">
+                        STEP 3 — Provide Missing Information ({intelligentQuestions.length} fields)
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: "block" }}>
+                      These questions are specific to <strong>{docType}</strong> requirements only.
+                    </Typography>
+                    <Stack spacing={2}>
+                      {intelligentQuestions.slice(0, 5).map((q) => (
+                        <Box key={q.fieldKey}>
+                          <Typography variant="caption" fontWeight="bold" color={q.isBlocking ? "error" : "warning.dark"}>
+                            {q.isBlocking ? "⛔ REQUIRED: " : "⚠️ Important: "}{q.label}
+                          </Typography>
+                          <Typography variant="caption" display="block" color="text.secondary" sx={{ mb: 0.5 }}>
+                            {q.question}
+                          </Typography>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            placeholder={`Enter ${q.label}...`}
+                            value={questionAnswers[q.fieldKey] || ""}
+                            onChange={(e) => setQuestionAnswers(prev => ({ ...prev, [q.fieldKey]: e.target.value }))}
+                            onBlur={(e) => handleSaveAnswer(q.fieldKey, e.target.value)}
+                            multiline={q.inputType === "textarea"}
+                            rows={q.inputType === "textarea" ? 3 : 1}
+                          />
+                        </Box>
+                      ))}
+                      {intelligentQuestions.length > 5 && (
+                        <Typography variant="caption" color="text.secondary">
+                          + {intelligentQuestions.length - 5} more fields in Compliance Checklist tab
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Paper>
+                )}
+
+                {/* STEP 4: Generate Button */}
+                <Paper sx={{ p: 3, borderRadius: 3 }}>
+                  <Typography variant="subtitle2" color="primary" fontWeight="bold" gutterBottom>
+                    STEP 4 — Generate Draft
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  {/* Block indicator */}
+                  {readiness && !readiness.readyToGenerate && selectedCaseId && (
+                    <Alert severity="warning" icon={<BlockIcon />} sx={{ mb: 2 }}>
+                      <strong>Generation Blocked</strong> — Matter Readiness {readiness.score}% (need {readiness.threshold}%).
+                      {readiness.blocking?.length > 0 && ` ${readiness.blocking.length} required field(s) missing.`}
+                    </Alert>
+                  )}
 
                   <Button
                     variant="contained"
                     size="large"
+                    fullWidth
                     startIcon={<AutoFixHighIcon />}
                     onClick={handleGenerateDraft}
+                    disabled={!selectedCaseId || cases.length === 0}
+                    color={readiness?.readyToGenerate ? "primary" : "warning"}
                     sx={{ py: 1.5, fontWeight: "bold" }}
                   >
-                    GENERATE AI LEGAL DRAFT
+                    {readiness?.readyToGenerate ? "GENERATE AI LEGAL DRAFT" : "CHECK & GENERATE DRAFT"}
                   </Button>
-                </Stack>
-              </Paper>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, textAlign: "center" }}>
+                    AI-generated draft is NOT legal advice. Human advocate review mandatory.
+                  </Typography>
+                </Paper>
+              </Stack>
             </Grid>
 
+            {/* RIGHT PANEL: Generated Draft */}
             <Grid item xs={12} md={7}>
-              <Paper sx={{ p: 3, borderRadius: 3 }}>
+              <Paper sx={{ p: 3, borderRadius: 3, height: "100%" }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                   <Typography variant="h6" fontWeight="bold">
-                    2. Generated Legal Draft & Digital Verification
+                    Generated Legal Draft & Digital Verification
                   </Typography>
                   {generatedDraft && (
                     <Stack direction="row" spacing={1}>
                       <Button size="small" variant="outlined" startIcon={<ContentCopyIcon />} onClick={handleCopy}>
-                        {copied ? "Copied!" : "Copy Text"}
+                        {copied ? "Copied!" : "Copy"}
                       </Button>
+                      {placeholderWarning && (
+                        <Chip
+                          size="small"
+                          icon={<ErrorIcon />}
+                          label={`${placeholderWarning.count} Unresolved`}
+                          color="error"
+                          variant="outlined"
+                        />
+                      )}
                     </Stack>
                   )}
                 </Stack>
                 <Divider sx={{ mb: 2 }} />
 
-                <UniversalActionToolbar
-                  title={`${(docType || "Legal Notice").toUpperCase()} - DRAFT`}
-                  content={generatedDraft || ""}
-                  documentId={`ICJ-DRAFT-${Date.now().toString().slice(-6)}`}
-                  version="v1.0-AI"
-                />
+                {generatedDraft && (
+                  <UniversalActionToolbar
+                    title={`${(docType || "Legal Notice").toUpperCase()} - DRAFT`}
+                    content={generatedDraft}
+                    documentId={`ICJ-DRAFT-${Date.now().toString().slice(-6)}`}
+                    version="v1.0-AI"
+                  />
+                )}
+
+                {/* Placeholder warning banner */}
+                {placeholderWarning && !placeholderWarning.clean && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    <strong>Finalization Blocked</strong> — Draft contains {placeholderWarning.count} unresolved field(s):
+                    <br />
+                    <code style={{ fontSize: "11px" }}>{placeholderWarning.placeholders.join(" · ")}</code>
+                    <br />
+                    Provide missing information in Step 3 to resolve.
+                  </Alert>
+                )}
 
                 <TextField
-                  fullWidth
-                  multiline
-                  rows={14}
-                  value={generatedDraft || "Select case file & document type, then click GENERATE AI LEGAL DRAFT..."}
-                  InputProps={{ readOnly: true, style: { fontFamily: "monospace", fontSize: "13px" } }}
+                  fullWidth multiline rows={16}
+                  value={generatedDraft || "Select a case file & document type, answer required questions, then click GENERATE AI LEGAL DRAFT..."}
+                  InputProps={{ readOnly: true, style: { fontFamily: "monospace", fontSize: "12px" } }}
                 />
               </Paper>
             </Grid>
           </Grid>
         </TabPanel>
 
-        {/* TAB 1: OCR & DOCUMENT ANALYZER */}
+        {/* ── TAB 1: DOCUMENT EXTRACTION & OCR ── */}
         <TabPanel value={tabIndex} index={1}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Document Text / OCR Extract Input
+                  Document Text Input / OCR Extract
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  PDF, Image, Word फ़ाइल का text यहाँ paste करें। System automatically extract करेगा:
+                  dates, case numbers, amounts, sections, parties, property IDs, FIR numbers.
                 </Typography>
                 <TextField
-                  fullWidth
-                  multiline
-                  rows={8}
-                  placeholder="Paste legal contract text, facts, or document OCR output here..."
+                  fullWidth multiline rows={10}
+                  placeholder="Paste document text, OCR output, or typed content here..."
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   sx={{ mb: 2 }}
                 />
-                <Button variant="contained" startIcon={<SmartToyIcon />} onClick={handleAnalyze}>
-                  Run AI Document Analysis
-                </Button>
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant="contained"
+                    startIcon={<FactCheckIcon />}
+                    onClick={handleAnalyzeText}
+                    disabled={extractionLoading || !inputText.trim()}
+                  >
+                    {extractionLoading ? "Extracting..." : "Extract & Analyze"}
+                  </Button>
+                  <Button variant="outlined" onClick={() => { setInputText(""); setExtractionResult(null); }}>
+                    Clear
+                  </Button>
+                </Stack>
+                {extractionLoading && <LinearProgress sx={{ mt: 2 }} />}
               </Paper>
             </Grid>
 
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 3, borderRadius: 3 }}>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  AI Analysis & Precedent Findings
+                  Extraction Results
                 </Typography>
-                {analysisResult ? (
-                  <Stack spacing={2}>
-                    <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-                      <Typography variant="subtitle2" fontWeight="bold">Summary:</Typography>
-                      <Typography variant="body2">{analysisResult.summary}</Typography>
-                    </Paper>
-
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight="bold">Chronology of Events:</Typography>
-                      {analysisResult.chronology.map((item, idx) => (
-                        <Typography key={idx} variant="caption" display="block">• {item.date}: {item.event}</Typography>
-                      ))}
-                    </Box>
-                  </Stack>
+                {!extractionResult ? (
+                  <Typography color="text.secondary">
+                    Document text paste करें और Extract & Analyze बटन दबाएं।
+                  </Typography>
                 ) : (
-                  <Typography color="text.secondary">Paste document text and click Run AI Document Analysis...</Typography>
+                  <Stack spacing={2}>
+                    {extractionResult.documentType && (
+                      <Alert severity="info">
+                        Auto-Classified: <strong>{extractionResult.documentType}</strong>
+                      </Alert>
+                    )}
+
+                    {extractionResult.conflicts?.length > 0 && (
+                      <Alert severity="error">
+                        <strong>⚠️ Conflict Detected:</strong> {extractionResult.conflicts.length} date conflict(s) found with existing matter data.
+                      </Alert>
+                    )}
+
+                    {[
+                      { label: "📅 Dates Found", data: extractionResult.dates },
+                      { label: "📋 Case Numbers", data: extractionResult.caseNumbers },
+                      { label: "💰 Amounts", data: extractionResult.amounts },
+                      { label: "⚖️ Legal Sections", data: extractionResult.sections },
+                      { label: "🏠 Property IDs", data: extractionResult.propertyIds },
+                      { label: "🚔 FIR Numbers", data: extractionResult.firNumbers },
+                    ].map(({ label, data }) => data?.length > 0 && (
+                      <Box key={label}>
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary">{label}</Typography>
+                        <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 0.5 }}>
+                          {data.map((item, i) => (
+                            <Chip key={i} label={item} size="small" variant="outlined" color="primary" />
+                          ))}
+                        </Stack>
+                      </Box>
+                    ))}
+
+                    {extractionResult.chronology?.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" fontWeight="bold" color="text.secondary">
+                          📆 Chronology Extracted ({extractionResult.chronology.length} events)
+                        </Typography>
+                        <List dense>
+                          {extractionResult.chronology.slice(0, 5).map((ev, i) => (
+                            <ListItem key={i} sx={{ py: 0.25, pl: 0 }}>
+                              <ListItemIcon sx={{ minWidth: 28 }}>
+                                <HistoryIcon fontSize="small" color="action" />
+                              </ListItemIcon>
+                              <ListItemText
+                                primary={<Typography variant="caption"><strong>{ev.date}</strong>: {ev.event?.slice(0, 100)}</Typography>}
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
+
+                    <Alert severity="warning" icon={<InfoOutlinedIcon />}>
+                      <strong>Pending Confirmation</strong> — These values are EXTRACTED, not yet CONFIRMED.
+                      Go to Step 3 in AI Drafter tab to confirm and use them in draft generation.
+                    </Alert>
+
+                    <Typography variant="caption" color="text.secondary">
+                      Source: {extractionResult.sourceDoc} | Type: {extractionResult.sourceType} | {new Date(extractionResult.extractedAt).toLocaleString("en-IN")}
+                    </Typography>
+                  </Stack>
                 )}
               </Paper>
             </Grid>
           </Grid>
         </TabPanel>
 
-        {/* TAB 2: VERSION CONTROL & ROLLBACK */}
+        {/* ── TAB 2: VERSION HISTORY ── */}
         <TabPanel value={tabIndex} index={2}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -423,61 +740,101 @@ Empaneled Counsel: ${selectedCase.advocateName || "Adv. Rajesh Sharma"} (Bar ID:
                 }}
               />
             </Stack>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Version</TableCell>
-                  <TableCell>Draft Title</TableCell>
-                  <TableCell>Document Type</TableCell>
-                  <TableCell>Date Created</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>SHA-256 Hash</TableCell>
-                  <TableCell align="right">Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredHistory.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell><Chip label={d.version} color="primary" size="small" /></TableCell>
-                    <TableCell><Typography fontWeight="bold">{d.title}</Typography></TableCell>
-                    <TableCell>{d.docType}</TableCell>
-                    <TableCell>{d.date}</TableCell>
-                    <TableCell><Chip label={d.status} color="success" size="small" variant="outlined" /></TableCell>
-                    <TableCell sx={{ fontFamily: "monospace" }}>{d.hash}</TableCell>
-                    <TableCell align="right">
-                      <Button size="small" variant="outlined" color="primary">Rollback</Button>
-                    </TableCell>
+            {filteredHistory.length === 0 ? (
+              <Alert severity="info">
+                कोई draft नहीं बना है अभी तक। AI Legal Drafter tab से draft generate करें।
+              </Alert>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Version</TableCell>
+                    <TableCell>Draft Title</TableCell>
+                    <TableCell>Document Type</TableCell>
+                    <TableCell>Date Created</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>SHA-256 Hash</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {filteredHistory.map((d) => (
+                    <TableRow key={d.id}>
+                      <TableCell><Chip label={d.version} color="primary" size="small" /></TableCell>
+                      <TableCell><Typography fontWeight="bold" variant="body2">{d.title}</Typography></TableCell>
+                      <TableCell>{d.docType}</TableCell>
+                      <TableCell>{d.date}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={d.status}
+                          color={d.status === "Draft Created" ? "success" : d.status === "Placeholder Warning" ? "warning" : "default"}
+                          size="small" variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontFamily: "monospace", fontSize: "11px" }}>{d.hash}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </Paper>
         </TabPanel>
 
-        {/* TAB 3: CHECKLIST & COMPLIANCE */}
+        {/* ── TAB 3: DYNAMIC COMPLIANCE CHECKLIST ── */}
         <TabPanel value={tabIndex} index={3}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Statutory Compliance & Missing Information Checklist
+              Matter Readiness & Compliance Checklist — {docType}
             </Typography>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #2e7d32" }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <CheckCircleIcon color="success" />
-                  <Typography variant="subtitle2" fontWeight="bold">Constitutional Jurisdiction Verified</Typography>
-                </Stack>
-                <Typography variant="body2" sx={{ ml: 4 }}>Petition satisfies Article 226 High Court territorial jurisdiction.</Typography>
-              </Paper>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #ed6c02" }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <WarningIcon color="warning" />
-                  <Typography variant="subtitle2" fontWeight="bold">Missing Document Detected</Typography>
-                </Stack>
-                <Typography variant="body2" sx={{ ml: 4 }}>Certified Copy of Environmental Impact Assessment Certificate 2025 required before filing.</Typography>
-              </Paper>
-            </Stack>
+            {!selectedCaseId ? (
+              <Alert severity="info">पहले AI Legal Drafter tab में Case और Document Type चुनें।</Alert>
+            ) : !readiness ? (
+              <Alert severity="info">Loading checklist...</Alert>
+            ) : (
+              <Stack spacing={1.5}>
+                {/* Readiness score */}
+                <Box sx={{ mb: 2 }}>
+                  <ReadinessIndicator score={readiness.score} threshold={readiness.threshold} />
+                </Box>
+
+                {complianceChecklist.length === 0 ? (
+                  <Alert severity="success">सभी required fields उपलब्ध हैं। Draft generation ready!</Alert>
+                ) : (
+                  complianceChecklist.map((item, idx) => (
+                    <Paper
+                      key={idx}
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        borderLeft: "4px solid",
+                        borderLeftColor:
+                          item.status === "ok" ? "#2e7d32" :
+                          item.status === "warning" ? "#ed6c02" :
+                          item.status === "error" ? "#c62828" : "#1976d2",
+                      }}
+                    >
+                      <Stack direction="row" alignItems="center" spacing={1.5}>
+                        {item.status === "ok" && <CheckCircleIcon color="success" />}
+                        {item.status === "warning" && <WarningIcon color="warning" />}
+                        {item.status === "error" && <ErrorIcon color="error" />}
+                        {item.status === "info" && <InfoOutlinedIcon color="primary" />}
+                        <Box>
+                          <Typography variant="subtitle2" fontWeight="bold">{item.label}</Typography>
+                          <Typography variant="body2" color="text.secondary">{item.detail}</Typography>
+                        </Box>
+                      </Stack>
+                    </Paper>
+                  ))
+                )}
+
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <strong>Note:</strong> This checklist is dynamically computed from your confirmed matter data for <strong>{docType}</strong>.
+                  It is not generic — it reflects only what is required for this specific document type.
+                </Alert>
+              </Stack>
+            )}
           </Paper>
         </TabPanel>
+
       </Box>
     </MainLayout>
   );
