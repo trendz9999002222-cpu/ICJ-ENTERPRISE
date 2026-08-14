@@ -14,6 +14,7 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 import VirtualOfficeService from "../services/virtualOfficeService";
 import useAuth from "../hooks/useAuth";
+import MultiPartyConferenceRoom from "../components/legal/MultiPartyConferenceRoom";
 
 export default function VirtualOffice() {
   const { user } = useAuth();
@@ -163,6 +164,16 @@ export default function VirtualOffice() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* LIVE MULTI-PARTY WEBRTC VIDEO/AUDIO CONSULTATION CHAMBER */}
+        <Box sx={{ mb: 4 }}>
+          <MultiPartyConferenceRoom
+            caseId="CASE-2026-001"
+            clientName="Sh. Ramesh Kumar Verma"
+            advocateName={memberName}
+            currentUserId={memberId}
+          />
+        </Box>
 
         {/* MULTI-COURT OFFICE CHAMBERS BOARD */}
         <Paper elevation={3} sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#fff" }}>

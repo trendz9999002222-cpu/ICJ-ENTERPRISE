@@ -55,6 +55,7 @@ import RoleService from "../services/roleService.js";
 import audioAlertService from "../services/audioAlertService.js";
 import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";
+import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -562,6 +563,11 @@ export default function SuperAdminDashboard() {
             )}
           </Box>
         </Paper>
+
+        {/* 3.5. SUPER ADMIN PHASED LAUNCH & FEATURE CONTROL CENTER */}
+        <Box sx={{ mb: 4 }}>
+          <FeatureControlCenter />
+        </Box>
 
         {/* 4. QUICK LAUNCH DOCK */}
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
