@@ -1,10 +1,15 @@
 /**
  * ClientWorkflowService — ICJ Enterprise Platform
  * Handles Client Problem Submission, Admin Alert Notifications,
- * Advocate Assignment Queue, Free Credit Grants, and Real-time Status Sync.
+ * District Franchisee Geo-Routing, Advocate Assignment Queue, Free Credit Grants, and Real-time Status Sync.
  */
 
+import FranchiseService from "./franchiseService.js";
+import TokenLedgerService from "./tokenLedgerService.js";
+import ActivityService from "./activityService.js";
+
 const PENDING_CLIENT_CASES_KEY = "icj_pending_client_cases";
+const LEGAL_CASES_KEY = "icj_legal_cases_v2";
 
 const getPendingCases = () => {
   try {
@@ -23,35 +28,93 @@ const savePendingCases = (cases) => {
   }
 };
 
+const getLegalCases = () => {
+  try {
+    const raw = localStorage.getItem(LEGAL_CASES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLegalCases = (cases) => {
+  try {
+    localStorage.setItem(LEGAL_CASES_KEY, JSON.stringify(cases));
+  } catch (e) {
+    console.error("Failed to save legal cases", e);
+  }
+};
+
 export const ClientWorkflowService = {
   /**
-   * 1. Client submits a new problem (from ClientPortal)
+   * 1. Client submits a new problem (from ClientPortal or Onboarding)
    */
-  submitProblemRequest({ clientId, clientName, problemText, caseCategory, desiredOutcome, voiceNoteSummary }) {
+  submitProblemRequest({ clientId, clientName, problemText, caseCategory, desiredOutcome, voiceNoteSummary, state, district, pincode }) {
     const requestId = `REQ-${Date.now()}`;
     const timestamp = new Date().toISOString();
 
+    // Auto-match District Franchisee
+    const franchisee = FranchiseService.findFranchiseeForLocation({ state, district, pincode });
+
     const newRequest = {
       requestId,
-      clientId,
+      clientId: clientId || "CL-GUEST",
       clientName: clientName || "Litigant",
       problemText: (problemText || voiceNoteSummary || "").trim(),
       caseCategory: caseCategory || "general",
       desiredOutcome: desiredOutcome || "Legal Consultation & Advocate Assignment",
       timestamp,
       status: "PENDING_ADMIN_REVIEW",
+      franchiseeId: franchisee.id,
+      franchiseeName: franchisee.name,
+      district: district || franchisee.district,
+      state: state || franchisee.state,
       assignedAdvocateId: null,
       assignedAdvocateName: null,
       assignedAt: null,
       grantedCredit: 0,
-      adminNotes: "Submitted. Awaiting Admin review and Advocate appointment.",
+      adminNotes: `Submitted. Auto-assigned to ${franchisee.name}. Awaiting Admin review and Advocate appointment.`,
     };
 
     const cases = getPendingCases();
     cases.unshift(newRequest);
     savePendingCases(cases);
 
-    return newRequest;
+    // Auto-generate Legal Case Record in icj_legal_cases_v2
+    const legalCases = getLegalCases();
+    const caseNumber = `CASE-2026-${String(legalCases.length + 101).padStart(3, "0")}`;
+    const newLegalCase = {
+      id: `CASE-${Date.now()}`,
+      caseNumber,
+      title: `${caseCategory || "General"} Litigation Matter: ${clientName || "Litigant"}`,
+      clientName: clientName || "Litigant",
+      member_id: clientId || "CL-GUEST",
+      advocateName: "Unassigned",
+      advocateId: null,
+      franchiseeId: franchisee.id,
+      franchiseeName: franchisee.name,
+      courtName: "District & Sessions Court",
+      status: "Intake Submitted",
+      trustApprovalStatus: "Pending Trust Review",
+      nextHearing: "Awaiting Schedule",
+      feeAmount: 5000,
+      paidAmount: 0,
+      summary: (problemText || voiceNoteSummary || "").trim(),
+      legalProvisions: ["IPC Section 420", "Civil Procedure Code Order 39"],
+      created_at: timestamp,
+      updated_at: timestamp,
+    };
+
+    legalCases.unshift(newLegalCase);
+    saveLegalCases(legalCases);
+
+    ActivityService.create({
+      title: `New Case Intake Submitted: ${caseNumber}`,
+      type: "legal",
+      details: `Client ${clientName} submitted intake auto-routed to ${franchisee.name}`,
+    });
+
+    return { request: newRequest, legalCase: newLegalCase };
   },
 
   /**
@@ -74,12 +137,17 @@ export const ClientWorkflowService = {
   },
 
   /**
-   * 4. Admin Appoints Advocate to a Client Case
+   * 4. Admin Appoints Advocate to a Client Case (Triggers 50 ICJ Token Reward & Case Sync)
    */
   appointAdvocate({ requestId, advocateId, advocateName, adminUsername }) {
     const cases = getPendingCases();
+    let targetClientId = null;
+    let targetClientName = null;
+
     const updated = cases.map((c) => {
       if (c.requestId === requestId) {
+        targetClientId = c.clientId;
+        targetClientName = c.clientName;
         return {
           ...c,
           status: "ADVOCATE_ASSIGNED",
@@ -87,63 +155,58 @@ export const ClientWorkflowService = {
           assignedAdvocateName: advocateName,
           assignedAt: new Date().toISOString(),
           assignedByAdmin: adminUsername || "Admin",
-          adminNotes: `Advocate ${advocateName} appointed by Admin ${adminUsername || "Admin"}. AI Legal Drafter notified.`,
+          adminNotes: `Advocate ${advocateName} appointed by Admin ${adminUsername || "Admin"}. 50 ICJ Token rewards granted.`,
         };
       }
       return c;
     });
 
     savePendingCases(updated);
+
+    // Sync Legal Case record in icj_legal_cases_v2
+    const legalCases = getLegalCases();
+    const updatedLegal = legalCases.map((lc) => {
+      if (lc.member_id === targetClientId || lc.clientName === targetClientName) {
+        return {
+          ...lc,
+          advocateId,
+          advocateName,
+          status: "Advocate Assigned",
+          trustApprovalStatus: "Approved by Trust Desk",
+          updated_at: new Date().toISOString(),
+        };
+      }
+      return lc;
+    });
+    saveLegalCases(updatedLegal);
+
+    // Grant 50 ICJ Reward Tokens to Litigant and Advocate
+    if (targetClientId) {
+      TokenLedgerService.creditTokens(targetClientId, 50, "REWARD", `50 ICJ Reward Tokens for Advocate Appointment (${advocateName})`);
+    }
+    if (advocateId) {
+      TokenLedgerService.creditTokens(advocateId, 50, "REWARD", `50 ICJ Reward Tokens for Case Appointment (${targetClientName})`);
+    }
+
+    ActivityService.create({
+      title: `Advocate ${advocateName} Appointed`,
+      type: "legal",
+      details: `Appointed to client ${targetClientName || "Litigant"}. 50 ICJ Tokens rewarded.`,
+    });
+
     return { success: true, requestId, advocateName };
   },
 
   /**
-   * 5. Admin Grants Free AI Credit or Requests Recharge
+   * 5. Get workflow statistics summary
    */
-  grantCredits({ requestId, clientId, creditAmount, adminUsername, actionType = "GRANT" }) {
-    // Top up client wallet in storage if member exists
-    try {
-      const rawMembers = localStorage.getItem("icj_members");
-      if (rawMembers) {
-        const members = JSON.parse(rawMembers);
-        const updatedMembers = members.map((m) => {
-          if (m.id === clientId || m.member_id === clientId) {
-            const currentBal = Number(m.wallet_balance || 0);
-            return { ...m, wallet_balance: currentBal + Number(creditAmount) };
-          }
-          return m;
-        });
-        localStorage.setItem("icj_members", JSON.stringify(updatedMembers));
-      }
-    } catch (e) {
-      console.error("Wallet update failed", e);
-    }
-
+  getStats() {
     const cases = getPendingCases();
-    const updated = cases.map((c) => {
-      if (c.requestId === requestId) {
-        return {
-          ...c,
-          grantedCredit: (c.grantedCredit || 0) + Number(creditAmount),
-          adminNotes: actionType === "GRANT" 
-            ? `Admin ${adminUsername || "Admin"} granted ${creditAmount} Free AI Credits to client.`
-            : `Admin ${adminUsername || "Admin"} requested wallet recharge of ₹${creditAmount}.`,
-        };
-      }
-      return c;
-    });
+    const total = cases.length;
+    const pending = cases.filter((c) => c.status === "PENDING_ADMIN_REVIEW").length;
+    const assigned = cases.filter((c) => c.status === "ADVOCATE_ASSIGNED").length;
 
-    savePendingCases(updated);
-    return { success: true, clientId, creditAmount };
-  },
-
-  /**
-   * 6. Get latest status for client portal display
-   */
-  getClientLatestStatus(clientId) {
-    const cases = getPendingCases();
-    const clientCases = cases.filter((c) => c.clientId === clientId);
-    return clientCases[0] || null;
+    return { total, pending, assigned };
   },
 };
 

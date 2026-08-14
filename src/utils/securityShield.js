@@ -9,6 +9,8 @@ export const SecurityShield = {
 
   init() {
     if (typeof window === "undefined" || this.isShieldActive) return;
+    // Allow inspection in development mode so developers can test freely
+    if (import.meta.env && import.meta.env.DEV) return;
 
     this.isShieldActive = true;
 
