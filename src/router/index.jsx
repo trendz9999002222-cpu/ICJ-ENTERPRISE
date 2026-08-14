@@ -38,6 +38,9 @@ import Research from "../pages/Research";
 import Administration from "../pages/Administration";
 import Notifications from "../pages/Notifications";
 import Reports from "../pages/Reports";
+import AdvocateResearchDirectory from "../components/admin/AdvocateResearchDirectory.jsx";
+import SystemSecurityCompliance from "../components/admin/SystemSecurityCompliance.jsx";
+import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
 
 import SuperAdminDashboard from "../pages/SuperAdminDashboard";
 import MemberPersonalDashboard from "../pages/MemberPersonalDashboard";
@@ -181,6 +184,9 @@ export default function AppRouter() {
         <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
         <Route path="/research" element={<ProtectedRoute><Research /></ProtectedRoute>} />
         <Route path="/administration" element={<ProtectedRoute roles={["admin"]}><Administration /></ProtectedRoute>} />
+        <Route path="/advocate-directory" element={<ProtectedRoute roles={["admin"]}><AdvocateResearchDirectory /></ProtectedRoute>} />
+        <Route path="/security-compliance" element={<ProtectedRoute roles={["admin"]}><SystemSecurityCompliance /></ProtectedRoute>} />
+        <Route path="/feature-control" element={<ProtectedRoute roles={["admin"]}><FeatureControlCenter /></ProtectedRoute>} />
         <Route path="/finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
 
         {/* AI Legal Ecosystem Routes */}
