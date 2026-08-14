@@ -107,7 +107,7 @@ function FeatureControlCenter() {
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" fontWeight={800} color="#ffffff">
+                  <Typography variant="body2" fontWeight={800} color="#fcd34d" sx={{ fontSize: "0.88rem" }}>
                     {flag.name}
                   </Typography>
                   <Chip
@@ -117,12 +117,12 @@ function FeatureControlCenter() {
                       bgcolor: flag.enabled ? "#10b981" : "#ef4444",
                       color: "#ffffff",
                       fontWeight: 800,
-                      fontSize: "0.65rem",
+                      fontSize: "0.68rem",
                     }}
                   />
                 </Stack>
 
-                <Typography variant="caption" color="#94a3b8" sx={{ display: "block", mt: 1, minHeight: 36 }}>
+                <Typography variant="caption" color="#ffffff" sx={{ display: "block", mt: 1, minHeight: 36, fontWeight: 600, fontSize: "0.78rem", lineHeight: 1.3 }}>
                   {flag.description}
                 </Typography>
 
@@ -135,11 +135,11 @@ function FeatureControlCenter() {
                     />
                   }
                   label={
-                    <Typography variant="caption" fontWeight={700} color={flag.enabled ? "#6ee7b7" : "#fca5a5"}>
+                    <Typography variant="caption" fontWeight={800} color={flag.enabled ? "#6ee7b7" : "#fca5a5"} sx={{ fontSize: "0.78rem" }}>
                       {flag.enabled ? "Service Active" : "Service Disabled"}
                     </Typography>
                   }
-                  sx={{ mt: 1 }}
+                  sx={{ mt: 1, "& .MuiFormControlLabel-label": { color: flag.enabled ? "#6ee7b7" : "#fca5a5", fontWeight: 800 } }}
                 />
               </Paper>
             </Grid>
