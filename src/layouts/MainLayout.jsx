@@ -1,7 +1,8 @@
- import { Box, Toolbar, Typography } from "@mui/material";
+import { Box, Toolbar, Typography } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import MobileBottomNav from "../components/MobileBottomNav";
+import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 
 function MainLayout({ children }) {
   return (
@@ -31,7 +32,9 @@ function MainLayout({ children }) {
             boxSizing: "border-box",
           }}
         >
-          {children}
+          <GlobalErrorBoundary componentName="MainLayoutPage">
+            {children}
+          </GlobalErrorBoundary>
         </Box>
         <MobileBottomNav />
 
