@@ -121,11 +121,17 @@ export default function Administration() {
 
   useEffect(() => {
     try {
-      const members = JSON.parse(localStorage.getItem("icj_members") || localStorage.getItem("icj_enterprise_users") || "[]");
-      setEcoClients(members.filter(m => !m.role || m.role === "member" || m.role === "litigant" || m.user_type === "member"));
+      const allUsers = JSON.parse(localStorage.getItem("icj_members") || localStorage.getItem("icj_enterprise_users") || "[]");
+      setEcoClients(allUsers.filter(m => !m.role || m.role === "member" || m.role === "litigant" || m.user_type === "member"));
       
-      const advocates = JSON.parse(localStorage.getItem("icj_advocates") || "[]");
-      setEcoAdvocates(advocates);
+      const advocatesList = allUsers.filter(u => u.role === "advocate" || u.user_type === "advocate" || u.profession === "Advocate");
+      const storedAdvocates = JSON.parse(localStorage.getItem("icj_advocates") || "[]");
+      const mergedAdvocatesMap = new Map();
+      [...advocatesList, ...storedAdvocates].forEach(a => {
+        const id = a.id || a.member_id || a.email;
+        if (id) mergedAdvocatesMap.set(String(id).toLowerCase(), a);
+      });
+      setEcoAdvocates(Array.from(mergedAdvocatesMap.values()));
 
       const offices = JSON.parse(localStorage.getItem("icj_virtual_offices") || "[]");
       const staffList = [];
