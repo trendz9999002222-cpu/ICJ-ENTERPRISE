@@ -121,8 +121,8 @@ export default function Administration() {
 
   useEffect(() => {
     try {
-      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
-      setEcoClients(members.filter(m => m.role === "member"));
+      const members = JSON.parse(localStorage.getItem("icj_members") || localStorage.getItem("icj_enterprise_users") || "[]");
+      setEcoClients(members.filter(m => !m.role || m.role === "member" || m.role === "litigant" || m.user_type === "member"));
       
       const advocates = JSON.parse(localStorage.getItem("icj_advocates") || "[]");
       setEcoAdvocates(advocates);

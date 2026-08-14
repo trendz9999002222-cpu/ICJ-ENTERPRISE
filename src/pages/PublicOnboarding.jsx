@@ -452,6 +452,14 @@ export default function PublicOnboarding() {
 
       const result = await MemberService.create(payload);
       const finalMember = result || payload;
+      
+      // Dual-sync into AuthService enterprise user storage for seamless login
+      try {
+        await AuthService.register(payload);
+      } catch (e) {
+        console.log("AuthService sync notice:", e.message);
+      }
+
       // Auto-authenticate newly onboarded member session into local storage and auth context
       persistLocalUser(finalMember);
       if (setSessionUser) {
