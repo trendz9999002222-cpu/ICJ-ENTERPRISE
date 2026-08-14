@@ -1,7 +1,8 @@
 import AuthService from "../services/authService";
 import { Navigate } from "react-router-dom";
-import { CircularProgress, Box } from "@mui/material";
+import { CircularProgress, Box, Typography } from "@mui/material";
 import useAuth from "../hooks/useAuth";
+import MainLayout from "../layouts/MainLayout";
 
 export default function ProtectedRoute({ children, roles = [] }) {
   const { isAuthenticated, loading, user } = useAuth();
@@ -80,22 +81,23 @@ export default function ProtectedRoute({ children, roles = [] }) {
                     user_type: "super_admin",
                     email: "superadmin@icj.org",
                   };
-                  localStorage.setItem("icj_current_user", JSON.stringify(superAdmin));
-                  window.location.href = "/super-admin-dashboard";
+                  AuthService.persistLocalUser(superAdmin);
+                  window.location.reload();
                 }}
               >
-                ⚡ Switch to Super Admin Session
+                Switch to Super Admin
               </button>
               <button
                 style={{
                   padding: "10px 20px",
-                  background: "transparent",
-                  color: "#cbd5e1",
-                  border: "1px solid #475569",
+                  background: "#475569",
+                  color: "#fff",
+                  border: "none",
                   borderRadius: "8px",
                   cursor: "pointer",
                 }}
                 onClick={() => {
+                  AuthService.logout && AuthService.logout();
                   window.location.href = "/login";
                 }}
               >
@@ -108,5 +110,5 @@ export default function ProtectedRoute({ children, roles = [] }) {
     }
   }
 
-  return children;
+  return <MainLayout>{children}</MainLayout>;
 }
