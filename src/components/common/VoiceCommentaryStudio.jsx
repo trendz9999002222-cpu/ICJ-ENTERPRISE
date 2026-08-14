@@ -17,6 +17,10 @@ import PauseIcon from "@mui/icons-material/Pause";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CleaningServicesIcon from "@mui/icons-material/CleaningServices";
+import RecordVoiceOverIcon from "@mui/icons-material/RecordVoiceOver";
+
+import AntigravityVoiceAIEngine from "../../services/antigravityVoiceAIEngine.js";
 
 const MAX_RECORDING_SECONDS = 60; // 60 seconds (1 minute) auto-stop limit
 
@@ -33,6 +37,11 @@ export default function VoiceCommentaryStudio({
   const [voiceNotesList, setVoiceNotesList] = useState([]);
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState(null);
   const [speechStatus, setSpeechStatus] = useState("Ready"); // "Ready" | "Listening" | "Error" | "Blocked"
+
+  // Antigravity AI Refinement States
+  const [isRefiningAI, setIsRefiningAI] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState(null);
+  const [isPlayingTTS, setIsPlayingTTS] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -418,6 +427,105 @@ export default function VoiceCommentaryStudio({
               </Paper>
             ))}
           </Stack>
+        </Paper>
+      )}
+
+      {/* AI Analysis & Speaker Control Toolbar */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} sx={{ mt: 1.5, mb: 1 }}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          {/* Dual Speaker TTS Button */}
+          <Button
+            size="small"
+            variant={isPlayingTTS ? "contained" : "outlined"}
+            color="info"
+            startIcon={isPlayingTTS ? <VolumeUpIcon /> : <RecordVoiceOverIcon />}
+            onClick={() => {
+              if (isPlayingTTS) {
+                AntigravityVoiceAIEngine.stopSpeech();
+                setIsPlayingTTS(false);
+              } else {
+                const textToRead = value.trim() || "कृपया पहले बॉक्स में कुछ टाइप करें या बोलकर दर्ज करें।";
+                setIsPlayingTTS(true);
+                AntigravityVoiceAIEngine.speakText(textToRead, () => setIsPlayingTTS(false));
+              }
+            }}
+            sx={{ fontWeight: "bold" }}
+          >
+            {isPlayingTTS ? "⏸️ 🔊 सुनावना बंद करें (Stop Reader)" : "🔊 आवाज़ सुनाएं (Listen Speech)"}
+          </Button>
+
+          {/* Antigravity AI Refine & Analyze Button */}
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            disabled={isRefiningAI || !value.trim()}
+            startIcon={<AutoAwesomeIcon />}
+            onClick={async () => {
+              if (!value.trim()) {
+                alert("कृपया पहले समस्या या केस विवरण दर्ज करें।");
+                return;
+              }
+              setIsRefiningAI(true);
+              const result = await AntigravityVoiceAIEngine.refineRawSpeech(value);
+              setIsRefiningAI(false);
+              if (result.success) {
+                setAiAnalysisResult(result);
+                // Non-destructive update: Update with refined legal text
+                if (onChange) {
+                  onChange(result.refinedText);
+                }
+              }
+            }}
+            sx={{ fontWeight: "bold", background: "linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%)" }}
+          >
+            {isRefiningAI ? "🤖 AI विश्लेषण जारी है..." : "🤖 AI Legal Auto-Correct & Refine"}
+          </Button>
+        </Stack>
+
+        {/* Clear & Reset Button */}
+        <Button
+          size="small"
+          variant="outlined"
+          color="error"
+          disabled={!value.trim() && !aiAnalysisResult}
+          startIcon={<CleaningServicesIcon />}
+          onClick={() => {
+            if (value.trim()) {
+              if (!window.confirm("क्या आप वाकई इस बॉक्स के विवरण को साफ़ (Clear) करना चाहते हैं?")) {
+                return;
+              }
+            }
+            if (onChange) onChange("");
+            valueRef.current = "";
+            setAiAnalysisResult(null);
+          }}
+          sx={{ fontWeight: "bold" }}
+        >
+          🧹 Clear / Reset Box
+        </Button>
+      </Stack>
+
+      {/* AI Analysis Preview Result Box */}
+      {aiAnalysisResult && (
+        <Paper variant="outlined" sx={{ p: 2, mt: 1.5, bgcolor: "#faf5ff", borderColor: "#c084fc", borderRadius: 2 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+            <Typography variant="subtitle2" fontWeight="bold" color="#6b21a8" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              ✨ Antigravity AI Legal Analysis & Restructured Pleading
+            </Typography>
+            <Chip label={aiAnalysisResult.legalCategory} color="secondary" size="small" sx={{ fontWeight: "bold" }} />
+          </Stack>
+          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", color: "#3b0764", fontWeight: 500 }}>
+            {aiAnalysisResult.refinedText}
+          </Typography>
+          {aiAnalysisResult.suggestedIPCSections?.length > 0 && (
+            <Stack direction="row" spacing={1} mt={1.5} alignItems="center">
+              <Typography variant="caption" fontWeight="bold" color="#6b21a8">अनुशंसित धाराएं:</Typography>
+              {aiAnalysisResult.suggestedIPCSections.map((sec) => (
+                <Chip key={sec} label={sec} color="primary" size="small" variant="outlined" />
+              ))}
+            </Stack>
+          )}
         </Paper>
       )}
 

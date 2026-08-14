@@ -133,6 +133,19 @@ export default function Sidebar() {
           border: "none",
           background: "#0a192f", // Deep Navy Professional Theme
           color: "#fff",
+          "& ::-webkit-scrollbar": {
+            width: "5px",
+          },
+          "& ::-webkit-scrollbar-track": {
+            background: "rgba(0,0,0,0.1)",
+          },
+          "& ::-webkit-scrollbar-thumb": {
+            background: "rgba(255,255,255,0.2)",
+            borderRadius: "4px",
+          },
+          "& ::-webkit-scrollbar-thumb:hover": {
+            background: "rgba(255,255,255,0.4)",
+          },
         },
       }}
     >
