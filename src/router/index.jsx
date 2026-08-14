@@ -156,27 +156,25 @@ export default function AppRouter() {
         <Route path="/identity" element={<ProtectedRoute><MemberIdentity /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><MemberWallet /></ProtectedRoute>} />
-        <Route path="/token" element={<Token />} />
-        {/* Token Exchange Public Portal — visible to all, exchange requires login */}
-        <Route path="/token-exchange" element={<TokenExchange />} />
-        <Route path="/icj-token" element={<TokenExchange />} />
-        {/* System Governance Manual & FAQ Knowledgebase Module */}
-        <Route path="/token-governance-manual" element={<TokenGovernanceManual />} />
-        <Route path="/token-system-faq" element={<TokenGovernanceManual />} />
-        <Route path="/token-manual" element={<TokenGovernanceManual />} />
-        <Route path="/token-faq" element={<TokenGovernanceManual />} />
+        {/* System Governance & Token Routes */}
+        <Route path="/token-exchange" element={<MainLayout><TokenExchange /></MainLayout>} />
+        <Route path="/icj-token" element={<MainLayout><TokenExchange /></MainLayout>} />
+        <Route path="/token-governance-manual" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
+        <Route path="/token-system-faq" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
+        <Route path="/token-manual" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
+        <Route path="/token-faq" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
 
         {/* Unlocked Platform Ecosystem Routes */}
-        <Route path="/campaigns" element={<Campaigns />} />
-        <Route path="/subscription" element={<SubscriptionPlans />} />
-        <Route path="/virtual-office" element={<VirtualOffice />} />
+        <Route path="/campaigns" element={<MainLayout><Campaigns /></MainLayout>} />
+        <Route path="/subscription" element={<MainLayout><SubscriptionPlans /></MainLayout>} />
+        <Route path="/virtual-office" element={<MainLayout><VirtualOffice /></MainLayout>} />
         <Route path="/donation" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><Settings /></ProtectedRoute>} />
         <Route path="/activity-log" element={<ProtectedRoute roles={["admin", "employee"]}><ActivityLog /></ProtectedRoute>} />
         <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
         <Route path="/member-profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/reports" element={<Reports />} />
+        <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
 
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
         <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
@@ -187,13 +185,13 @@ export default function AppRouter() {
         {/* AI Legal Ecosystem Routes */}
         <Route path="/advocate-dashboard" element={<ProtectedRoute roles={["advocate", "admin"]}><AdvocateDashboard /></ProtectedRoute>} />
         <Route path="/client-portal" element={<ProtectedRoute roles={["member", "client", "admin"]}><ClientPortal /></ProtectedRoute>} />
-        <Route path="/trust-dashboard" element={<TrustDashboard />} />
-        <Route path="/court-calendar" element={<CourtCalendar />} />
-        <Route path="/billing" element={<BillingInvoicing />} />
-        <Route path="/billing-invoicing" element={<BillingInvoicing />} />
-        <Route path="/master-finance" element={<Wallet />} />
-        <Route path="/ai-drafter" element={<LegalDrafter />} />
-        <Route path="/payment-management" element={<PaymentManagement />} />
+        <Route path="/trust-dashboard" element={<MainLayout><TrustDashboard /></MainLayout>} />
+        <Route path="/court-calendar" element={<MainLayout><CourtCalendar /></MainLayout>} />
+        <Route path="/billing" element={<MainLayout><BillingInvoicing /></MainLayout>} />
+        <Route path="/billing-invoicing" element={<MainLayout><BillingInvoicing /></MainLayout>} />
+        <Route path="/master-finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
+        <Route path="/ai-drafter" element={<MainLayout><LegalDrafter /></MainLayout>} />
+        <Route path="/payment-management" element={<MainLayout><PaymentManagement /></MainLayout>} />
         <Route path="/location-master" element={<ProtectedRoute roles={["admin"]}><LocationMasterAdmin /></ProtectedRoute>} />
         <Route path="/database-config" element={<ProtectedRoute roles={["admin"]}><DatabaseConfig /></ProtectedRoute>} />
         <Route path="/governance-center" element={<ProtectedRoute roles={["admin"]}><GovernanceCenter /></ProtectedRoute>} />

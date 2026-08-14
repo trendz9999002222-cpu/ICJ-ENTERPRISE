@@ -75,34 +75,8 @@ function Topbar() {
     >
       <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "34px !important", height: 34, px: { xs: 0.6, md: 1.2 } }}>
         
-        {/* ⬅️ LEFT SIDE: 1 STRAIGHT LINE (BACK BUTTON + BRAND + SEARCH) */}
+        {/* ⬅️ LEFT SIDE: 1 STRAIGHT LINE (BRAND + SEARCH) */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          {/* 1-CLICK IN-APP BACK NAVIGATION ENGINE */}
-          <Tooltip title="In-App 1-Click Back (वापसी करें)">
-            <Button
-              variant="contained"
-              color="inherit"
-              size="small"
-              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "0.9rem" }} />}
-              onClick={() => navigate(-1)}
-              sx={{
-                bgcolor: "#f1f5f9",
-                color: "#0f172a",
-                fontWeight: 800,
-                fontSize: "0.68rem",
-                px: 0.8,
-                py: 0.15,
-                minHeight: 24,
-                borderRadius: 1,
-                border: "1px solid #cbd5e1",
-                whiteSpace: "nowrap",
-                "&:hover": { bgcolor: "#e2e8f0" },
-              }}
-            >
-              ◀ BACK
-            </Button>
-          </Tooltip>
-
           {/* BRAND NAME SIDE-BY-SIDE IN SAME STRAIGHT LINE */}
           <Typography
             variant="caption"
@@ -111,9 +85,9 @@ function Topbar() {
               color: "#1976d2",
               lineHeight: 1,
               whiteSpace: "nowrap",
-              fontSize: "0.78rem",
+              fontSize: "0.82rem",
               letterSpacing: 0.2,
-              display: { xs: "none", sm: "block" },
+              mr: 1,
             }}
           >
             ICJ ENTERPRISE
