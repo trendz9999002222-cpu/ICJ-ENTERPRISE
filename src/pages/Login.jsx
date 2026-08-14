@@ -42,6 +42,7 @@ export default function Login() {
   const [mfaPendingUser,         setMfaPendingUser]         = useState(null);
   const [mfaOtpInput,            setMfaOtpInput]            = useState("");
   const [showPassword,           setShowPassword]           = useState(false);
+  const [otpChannel,             setOtpChannel]             = useState("whatsapp");
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -262,6 +263,37 @@ export default function Login() {
                 ),
               }}
             />
+
+            {/* PREFERRED OTP & PASSWORD DISPATCH CHANNEL SELECTOR */}
+            <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" sx={{ mb: 1 }}>
+              📲 OTP / पासवर्ड भेजने का पसंदीदा माध्यम (Select Delivery Option):
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+              <Chip
+                label="💬 WhatsApp"
+                color={otpChannel === "whatsapp" ? "success" : "default"}
+                onClick={() => setOtpChannel("whatsapp")}
+                variant={otpChannel === "whatsapp" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+              <Chip
+                label="📱 SMS"
+                color={otpChannel === "sms" ? "primary" : "default"}
+                onClick={() => setOtpChannel("sms")}
+                variant={otpChannel === "sms" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+              <Chip
+                label="✉️ Email"
+                color={otpChannel === "email" ? "info" : "default"}
+                onClick={() => setOtpChannel("email")}
+                variant={otpChannel === "email" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+            </Stack>
 
             <Button
               fullWidth
