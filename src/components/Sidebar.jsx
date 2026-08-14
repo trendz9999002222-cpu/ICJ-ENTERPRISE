@@ -39,7 +39,7 @@ import {
   Lock,
 } from "@mui/icons-material";
 
-import Navigation from "../core/navigation";
+import Navigation, { getRoleOrderedModules } from "../core/navigation";
 import useAuth from "../hooks/useAuth";
 
 const drawerWidth = 210;
@@ -76,50 +76,9 @@ export default function Sidebar() {
 
   const role = String(user?.role || "member").toLowerCase();
 
-  const allowedByRole = {
-    admin: new Set(Navigation.map((item) => item.id)),
-    employee: new Set([
-      "dashboard",
-      "membership",
-      "member-directory",
-      "member-verification",
-      "member-profile",
-      "legal",
-      "advocate-dashboard",
-      "client-portal",
-      "court-calendar",
-      "ai-drafter",
-      "ai",
-      "billing",
-      "finance",
-      "payment-management",
-      "token",
-      "documents",
-      "research",
-      "notifications",
-      "reports",
-      "activity-log",
-      "settings",
-    ]),
-    member: new Set([
-      "dashboard",
-      "member-profile",
-      "client-portal",
-      "court-calendar",
-      "ai-drafter",
-      "ai",
-      "documents",
-      "finance",
-      "notifications",
-    ]),
-  };
-
-  const visibleNavigation = Navigation.filter((item) =>
-    (allowedByRole[role] || allowedByRole.member).has(item.id)
-  );
-
-  const groupAModules = visibleNavigation.filter((item) => item.group === "A");
-  const groupBModules = visibleNavigation.filter((item) => item.group === "B");
+  const roleOrderedList = getRoleOrderedModules(role);
+  const groupAModules = roleOrderedList.filter((item) => item.group === "A");
+  const groupBModules = roleOrderedList.filter((item) => item.group === "B");
 
   return (
     <Drawer
@@ -253,7 +212,7 @@ export default function Sidebar() {
                     </ListItemIcon>
 
                     <ListItemText
-                      primary={item.name}
+                      primary={`${item.colorClassification?.badgeIcon || "🟢"} ${item.name}`}
                       primaryTypographyProps={{
                         fontSize: "0.85rem",
                         fontWeight: isActive ? 700 : 500,
@@ -354,7 +313,7 @@ export default function Sidebar() {
                     </ListItemIcon>
 
                     <ListItemText
-                      primary={item.name}
+                      primary={`${item.colorClassification?.badgeIcon || "🔵"} ${item.name}`}
                       primaryTypographyProps={{
                         fontSize: "0.85rem",
                         fontWeight: isActive ? 700 : 500,

@@ -61,9 +61,8 @@ import SystemConfigService from "../services/systemConfigService";
 import RoleService from "../services/roleService";
 import MasterDataService from "../services/masterDataService";
 import UserAuditTelemetryService from "../services/userAuditTelemetryService";
-import SystemPurgeAndSimulateScript from "../services/systemPurgeAndSimulateScript";
-import PasswordPolicyAdminConfigurator from "../components/admin/PasswordPolicyAdminConfigurator";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
+import { UNIVERSAL_PERMISSION_COLORS, getRoleOrderedModules, getModuleById } from "../core/navigation";
 
 const ALL_MODULES = [
   "dashboard", "membership", "documents", "legal", "wallet", "token",
@@ -1548,10 +1547,10 @@ export default function Administration() {
 
       {/* Role Management */}
       <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <AdminPanelSettingsIcon color="primary" />
-            <Typography variant="h6" fontWeight="bold">Role Management</Typography>
+            <Typography variant="h6" fontWeight="bold">Role & Universal Permission Governance</Typography>
           </Stack>
           <Stack direction="row" spacing={1}>
             <Button
@@ -1577,12 +1576,27 @@ export default function Administration() {
             </Button>
           </Stack>
         </Stack>
+
+        {/* UNIVERSAL 5-COLOR SYSTEM LEGEND */}
+        <Box sx={{ p: 1.5, mb: 2, bgcolor: "#0f172a", color: "#fff", borderRadius: 2 }}>
+          <Typography variant="caption" fontWeight="bold" color="#94a3b8" display="block" sx={{ mb: 0.8 }}>
+            🎨 UNIVERSAL 5-COLOR PERMISSION CLASSIFICATION SYSTEM (SAME MEANING EVERYWHERE):
+          </Typography>
+          <Stack direction="row" flexWrap="wrap" gap={1}>
+            <Chip size="small" label="🟢 Green = Frequent / Operational" sx={{ bgcolor: "#10b981", color: "#fff", fontWeight: "bold", fontSize: "0.68rem" }} />
+            <Chip size="small" label="🟠 Orange = Normal / Functional" sx={{ bgcolor: "#f97316", color: "#fff", fontWeight: "bold", fontSize: "0.68rem" }} />
+            <Chip size="small" label="🔴 Red = Critical / Restricted" sx={{ bgcolor: "#ef4444", color: "#fff", fontWeight: "bold", fontSize: "0.68rem" }} />
+            <Chip size="small" label="🔵 Blue = System / Reference" sx={{ bgcolor: "#3b82f6", color: "#fff", fontWeight: "bold", fontSize: "0.68rem" }} />
+            <Chip size="small" label="🟣 Violet = Finance / Payment" sx={{ bgcolor: "#8b5cf6", color: "#fff", fontWeight: "bold", fontSize: "0.68rem" }} />
+          </Stack>
+        </Box>
+
         <Divider sx={{ mb: 2 }} />
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell><strong>Role</strong></TableCell>
-              <TableCell><strong>Modules</strong></TableCell>
+              <TableCell><strong>Role Name & Level</strong></TableCell>
+              <TableCell><strong>Color-Coded Module Permissions</strong></TableCell>
               <TableCell align="right"><strong>Actions</strong></TableCell>
             </TableRow>
           </TableHead>
@@ -1592,26 +1606,48 @@ export default function Administration() {
                 <TableCell>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography fontWeight="bold">{role.label}</Typography>
-                    {!role.editable && <Chip label="System" size="small" color="primary" />}
+                    {!role.editable && <Chip label="System Role" size="small" color="primary" />}
                   </Stack>
                   <Typography variant="caption" color="text.secondary">{key}</Typography>
                 </TableCell>
                 <TableCell>
                   {role.modules?.includes("*") ? (
-                    <Chip label="All Modules" color="success" size="small" />
+                    <Chip label="🟢 All Modules Granted (Full Access)" color="success" size="small" sx={{ fontWeight: "bold" }} />
                   ) : (
                     <Stack direction="row" flexWrap="wrap" gap={0.5}>
-                      {ALL_MODULES.map((mod) => (
-                        <Chip
-                          key={mod}
-                          label={mod}
-                          size="small"
-                          color={role.modules?.includes(mod) ? "primary" : "default"}
-                          variant={role.modules?.includes(mod) ? "filled" : "outlined"}
-                          onClick={role.editable ? () => toggleModule(key, mod) : undefined}
-                          sx={{ cursor: role.editable ? "pointer" : "default", fontSize: "0.7rem" }}
-                        />
-                      ))}
+                      {ALL_MODULES.map((modId) => {
+                        const isGranted = role.modules?.includes(modId);
+                        let colorHex = "#64748b";
+                        let badgeIcon = "⚪";
+                        if (["finance", "billing", "payment-management", "wallet", "token", "member-wallet"].includes(modId)) {
+                          colorHex = "#8b5cf6"; badgeIcon = "🟣";
+                        } else if (["administration", "governance-center", "settings", "database-config", "api-config"].includes(modId)) {
+                          colorHex = "#ef4444"; badgeIcon = "🔴";
+                        } else if (["ai", "research", "notifications", "ai-drafter"].includes(modId)) {
+                          colorHex = "#3b82f6"; badgeIcon = "🔵";
+                        } else if (["reports", "activity-log", "member-profile", "location-master"].includes(modId)) {
+                          colorHex = "#f97316"; badgeIcon = "🟠";
+                        } else {
+                          colorHex = "#10b981"; badgeIcon = "🟢";
+                        }
+
+                        return (
+                          <Chip
+                            key={modId}
+                            label={`${badgeIcon} ${modId}`}
+                            size="small"
+                            onClick={role.editable ? () => toggleModule(key, modId) : undefined}
+                            sx={{
+                              cursor: role.editable ? "pointer" : "default",
+                              fontSize: "0.68rem",
+                              fontWeight: "bold",
+                              bgcolor: isGranted ? colorHex : "#e2e8f0",
+                              color: isGranted ? "#ffffff" : "#64748b",
+                              border: isGranted ? "none" : `1px solid ${colorHex}`,
+                            }}
+                          />
+                        );
+                      })}
                     </Stack>
                   )}
                 </TableCell>

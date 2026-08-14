@@ -1,3 +1,49 @@
+/**
+ * UNIVERSAL 5-COLOR PERMISSION CLASSIFICATION CONSTANTS
+ */
+export const UNIVERSAL_PERMISSION_COLORS = {
+  FREQUENT: {
+    code: "FREQUENT",
+    label: "Frequent / Operational",
+    hex: "#10b981", // Green
+    chipColor: "success",
+    badgeIcon: "🟢",
+    description: "Daily work, active cases, today's hearings, client operations",
+  },
+  NORMAL: {
+    code: "NORMAL",
+    label: "Normal / Functional",
+    hex: "#f97316", // Orange
+    chipColor: "warning",
+    badgeIcon: "🟠",
+    description: "Reports, secondary workflows, general administration",
+  },
+  CRITICAL: {
+    code: "CRITICAL",
+    label: "Critical / Restricted",
+    hex: "#ef4444", // Red
+    chipColor: "error",
+    badgeIcon: "🔴",
+    description: "Security, Role & Permission Management, System Configuration, Access Control",
+  },
+  SYSTEM: {
+    code: "SYSTEM",
+    label: "System / Reference",
+    hex: "#3b82f6", // Blue
+    chipColor: "info",
+    badgeIcon: "🔵",
+    description: "System info, Help, Documentation, Reference data",
+  },
+  FINANCE: {
+    code: "FINANCE",
+    label: "Finance / Payment",
+    hex: "#8b5cf6", // Violet
+    chipColor: "secondary",
+    badgeIcon: "🟣",
+    description: "Payments, Transactions, Wallet, Accounts, Billing, Refunds",
+  },
+};
+
 const Modules = [
   // ─── GROUP A: ACTIVE MEMBER MODULES ─────────────────────────────────────────
   {
@@ -12,6 +58,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -27,6 +74,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "create", "edit", "delete"],
   },
@@ -42,6 +90,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 2.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -57,6 +106,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 2.2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "edit"],
   },
@@ -72,6 +122,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 2.3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "edit"],
   },
@@ -89,12 +140,13 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "create", "edit", "delete"],
   },
   {
     id: "advocate-dashboard",
-    name: "Professional Centre",
+    name: "Advocate Centre",
     category: "Legal",
     group: "A",
     route: "/advocate-dashboard",
@@ -104,6 +156,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 3.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -119,6 +172,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 3.2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -134,6 +188,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 3.4,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -151,6 +206,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 4,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -168,6 +224,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 5,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -183,6 +240,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 5.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -198,6 +256,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 5.2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -213,6 +272,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 5.3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -230,11 +290,12 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 6,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "upload", "delete"],
   },
 
-  // ─── GROUP B: UNFROZEN TECHNICAL INFRASTRUCTURE (FULLY UNLOCKED & ACTIVE) ─
+  // ─── GROUP B: UNFROZEN TECHNICAL INFRASTRUCTURE ─────────────────────────────
   {
     id: "trust-dashboard",
     name: "Trust Executive",
@@ -247,6 +308,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 3.3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -262,6 +324,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 4.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -277,6 +340,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 6.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -292,6 +356,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -307,6 +372,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -322,6 +388,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -337,6 +404,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -352,6 +420,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.4,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -367,6 +436,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.5,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -382,6 +452,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 7.6,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -397,6 +468,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 8,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "create"],
   },
@@ -412,6 +484,7 @@ const Modules = [
     dashboard: true,
     searchable: true,
     order: 8.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -427,6 +500,7 @@ const Modules = [
     dashboard: false,
     searchable: false,
     order: 9,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
   },
@@ -442,6 +516,7 @@ const Modules = [
     dashboard: false,
     searchable: false,
     order: 9.1,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
   },
@@ -455,5 +530,50 @@ export const getGroupBModules = () => Modules.filter((m) => m.enabled && m.group
 export const getDashboardModules = () => Modules.filter((m) => m.enabled && m.dashboard);
 export const getSearchModules = () => Modules.filter((m) => m.enabled && m.searchable);
 export const getModuleById = (id) => Modules.find((m) => m.id === id);
+
+/**
+ * ROLE-BASED INTELLIGENT MODULE ORDERING LOGIC
+ */
+export const ROLE_MODULE_PRIORITY = {
+  client: [
+    "dashboard", "client-portal", "member-directory", "documents",
+    "court-calendar", "notifications", "ai-drafter", "finance",
+    "member-profile"
+  ],
+  advocate: [
+    "advocate-dashboard", "legal", "member-directory", "court-calendar",
+    "member-verification", "ai-drafter", "documents", "trust-dashboard",
+    "reports", "member-profile"
+  ],
+  admin: [
+    "dashboard", "member-directory", "member-verification",
+    "legal", "documents", "payment-management", "billing",
+    "administration", "reports", "settings"
+  ],
+  super_admin: [
+    "super-admin-dashboard", "administration", "governance-center",
+    "api-config", "database-config", "member-directory", "legal",
+    "documents", "payment-management", "reports", "activity-log", "settings"
+  ]
+};
+
+export const getRoleOrderedModules = (roleKey = "member") => {
+  const normalized = String(roleKey).toLowerCase();
+  let priorityList = ROLE_MODULE_PRIORITY[normalized];
+  if (!priorityList) {
+    if (normalized.includes("admin") || normalized.includes("super")) priorityList = ROLE_MODULE_PRIORITY.admin;
+    else if (normalized.includes("advocate")) priorityList = ROLE_MODULE_PRIORITY.advocate;
+    else priorityList = ROLE_MODULE_PRIORITY.client;
+  }
+
+  const enabled = getEnabledModules();
+  return [...enabled].sort((a, b) => {
+    const idxA = priorityList.indexOf(a.id);
+    const idxB = priorityList.indexOf(b.id);
+    const posA = idxA !== -1 ? idxA : 999;
+    const posB = idxB !== -1 ? idxB : 999;
+    return posA - posB;
+  });
+};
 
 export default Modules;
