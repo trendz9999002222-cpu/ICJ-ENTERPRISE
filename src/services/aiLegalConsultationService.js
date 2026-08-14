@@ -105,16 +105,41 @@ const callOpenAI = async (prompt, apiKey) => {
   return null;
 };
 
+// ─── Protocol Relevance Check (Blocks Non-Legal / Unrelated Questions) ───────
+export function validateLegalProtocolRelevance(userQueryText = "") {
+  const query = (userQueryText || "").toLowerCase().trim();
+  if (!query) return { isRelevant: true };
+
+  // Common non-legal / off-topic keywords
+  const nonLegalKeywords = [
+    "joke", "chutkula", "cricket", "bollywood", "weather", "recipe", "python",
+    "capital of", "who won", "movie", "song", "gaana", "game", "pubg", "ipl",
+  ];
+
+  const containsOffTopic = nonLegalKeywords.some(kw => query.includes(kw));
+
+  if (containsOffTopic) {
+    return {
+      isRelevant: false,
+      warningMessage: `⚠️ प्रोटोकॉल उल्लंघन चेतावनी (Protocol Violation Warning):\n\nआप ICJ लीगल प्लेटफ़ॉर्म प्रोटोकॉल का उल्लंघन कर रहे हैं। यहाँ केवल अपलोड की गई केस फ़ाइल और आपके कानूनी मामले से संबंधित सवाल पूछने की अनुमति है।\n\nअप्रासंगिक (Unrelated) सवाल बार-बार पूछने पर आपका सब्सक्रिप्शन तुरंत रद्द/वापस लिया जा सकता है।`,
+    };
+  }
+
+  return { isRelevant: true };
+}
+
 // ─── Build AI Prompt from User Input ────────────────────────────────────────
 const buildPrompt = ({ problemText, caseCategory, clientName, desiredOutcome }) => {
   const categoryLabel = CASE_CATEGORIES.find(c => c.value === caseCategory)?.label || caseCategory || "General";
-  return `You are an expert Indian legal advisor. A person has described their legal problem below.
+  return `You are an expert Indian legal advisor strictly bound to legal case matters only.
 
 CLIENT NAME: ${clientName || "Client"}
 CASE CATEGORY: ${categoryLabel}
 PROBLEM DESCRIPTION (in their own words):
 "${problemText}"
 DESIRED OUTCOME: ${desiredOutcome || "Legal advice and next steps"}
+
+STRICT PROTOCOL RULE: If the input is completely unrelated to legal matters or uploaded case files, state: "⚠️ Protocol Violation: Only legal case inquiries are permitted."
 
 Please analyze ONLY the specific situation described above and provide:
 1. Legal Stand: What is the client's legal position based on what they described?
@@ -124,7 +149,6 @@ Please analyze ONLY the specific situation described above and provide:
 5. Recommended Actions: What should the client do next (3-5 specific steps)?
 6. Estimated Trial Duration: Realistic timeframe for this type of case.
 
-IMPORTANT: Base your answer ONLY on the problem described above. Do not use generic templates.
 Respond in Hindi mixed with English legal terms. Be specific to their situation.`;
 };
 
@@ -200,6 +224,36 @@ const AiLegalConsultationService = {
 
     // Use voice note if text is empty
     const effectiveProblemText = (problemText || voiceNoteSummary || "").trim();
+
+    // STRICT PROTOCOL RELEVANCE GUARD
+    const relevance = validateLegalProtocolRelevance(effectiveProblemText);
+    if (!relevance.isRelevant) {
+      return {
+        consultationId,
+        timestamp,
+        error: "PROTOCOL_VIOLATION",
+        legalStand: relevance.warningMessage,
+        sectionsApplicable: ["⛔ प्रोटोकॉल उल्लंघन"],
+        sentenceRisk: "सब्सक्रिप्शन निरस्तीकरण चेतावनी",
+        bailProspects: "N/A",
+        recommendedActions: [
+          "केवल अपनी केस फ़ाइल व कानूनी मामले के संबंध में सवाल पूछें",
+          "अप्रासंगिक (Unrelated) सवाल न पूछें",
+          "प्रोटोकॉल का पालन करें",
+        ],
+        estimatedTrialDuration: "N/A",
+        aiProvider: "SECURITY_PROTOCOL_GUARD",
+        isOngoingCase: false,
+        diagnosis: {
+          legalStand: relevance.warningMessage,
+          sectionsApplicable: ["⛔ प्रोटोकॉल उल्लंघन"],
+          sentenceRisk: "सब्सक्रिप्शन निरस्तीकरण चेतावनी",
+          bailProspects: "N/A",
+          recommendedActions: ["केवल अपनी केस फ़ाइल व कानूनी मामले के संबंध में सवाल पूछें"],
+          estimatedTrialDuration: "N/A",
+        },
+      };
+    }
 
     if (!effectiveProblemText) {
       return {
