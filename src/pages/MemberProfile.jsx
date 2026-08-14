@@ -11,6 +11,7 @@ import {
 	AccordionDetails,
 	Stack,
 	CircularProgress,
+	Chip,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PersonIcon from "@mui/icons-material/Person";
