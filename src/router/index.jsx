@@ -53,6 +53,7 @@ import DeploymentCenter from "../pages/DeploymentCenter";
 import SystemHealth from "../pages/SystemHealth";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 
+import HelpdeskPortal from "../pages/HelpdeskPortal";
 import PublicOnboarding from "../pages/PublicOnboarding";
 import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import useAuth from "../hooks/useAuth";
@@ -195,6 +196,8 @@ export default function AppRouter() {
         <Route path="/api-config" element={<ProtectedRoute roles={["admin"]}><APIConfigCenter /></ProtectedRoute>} />
         <Route path="/deployment-center" element={<ProtectedRoute roles={["admin"]}><DeploymentCenter /></ProtectedRoute>} />
         <Route path="/system-health" element={<ProtectedRoute roles={["admin"]}><SystemHealth /></ProtectedRoute>} />
+        <Route path="/helpdesk" element={<ProtectedRoute><HelpdeskPortal /></ProtectedRoute>} />
+        <Route path="/customer-care" element={<ProtectedRoute><HelpdeskPortal /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
     </GlobalErrorBoundary>
