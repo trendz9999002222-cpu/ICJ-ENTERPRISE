@@ -533,27 +533,42 @@ export const getModuleById = (id) => Modules.find((m) => m.id === id);
 
 /**
  * ROLE-BASED INTELLIGENT MODULE ORDERING LOGIC
+ * Combines Operational Relevancy (#1, #2, #3 daily workflow) with Strict Color Safety Hierarchy:
+ * 🟢 GREEN (Safe / Operational) -> Weight 1 (TOP)
+ * 🔵 BLUE (System / Reference) -> Weight 2
+ * 🟣 VIOLET (Finance / Payments) -> Weight 3
+ * 🟠 ORANGE (Normal / Functional Admin) -> Weight 4
+ * 🔴 RED (Critical / Security / Restricted) -> Weight 5 (STRICTLY LAST AT VERY BOTTOM)
  */
+export const COLOR_SAFETY_WEIGHTS = {
+  FREQUENT: 1, // 🟢 Green
+  SYSTEM: 2,   // 🔵 Blue
+  FINANCE: 3,  // 🟣 Violet
+  NORMAL: 4,   // 🟠 Orange
+  CRITICAL: 5, // 🔴 Red (Strictly at very bottom)
+};
+
 export const ROLE_MODULE_PRIORITY = {
   client: [
     "dashboard", "client-portal", "member-directory", "documents",
-    "court-calendar", "notifications", "ai-drafter", "finance",
+    "court-calendar", "ai-drafter", "notifications", "finance",
     "member-profile"
   ],
   advocate: [
     "advocate-dashboard", "legal", "member-directory", "court-calendar",
-    "member-verification", "ai-drafter", "documents", "trust-dashboard",
-    "reports", "member-profile"
+    "member-verification", "ai-drafter", "research", "documents",
+    "trust-dashboard", "reports", "member-profile"
   ],
   admin: [
     "dashboard", "member-directory", "member-verification",
     "legal", "documents", "payment-management", "billing",
-    "administration", "reports", "settings"
+    "reports", "administration", "settings"
   ],
   super_admin: [
-    "super-admin-dashboard", "administration", "governance-center",
-    "api-config", "database-config", "member-directory", "legal",
-    "documents", "payment-management", "reports", "activity-log", "settings"
+    "super-admin-dashboard", "member-directory", "legal",
+    "documents", "payment-management", "token", "billing",
+    "reports", "activity-log", "administration", "governance-center",
+    "api-config", "database-config", "deployment-center", "settings"
   ]
 };
 
@@ -561,18 +576,34 @@ export const getRoleOrderedModules = (roleKey = "member") => {
   const normalized = String(roleKey).toLowerCase();
   let priorityList = ROLE_MODULE_PRIORITY[normalized];
   if (!priorityList) {
-    if (normalized.includes("admin") || normalized.includes("super")) priorityList = ROLE_MODULE_PRIORITY.admin;
+    if (normalized.includes("super")) priorityList = ROLE_MODULE_PRIORITY.super_admin;
+    else if (normalized.includes("admin")) priorityList = ROLE_MODULE_PRIORITY.admin;
     else if (normalized.includes("advocate")) priorityList = ROLE_MODULE_PRIORITY.advocate;
     else priorityList = ROLE_MODULE_PRIORITY.client;
   }
 
   const enabled = getEnabledModules();
+
   return [...enabled].sort((a, b) => {
+    // Primary Sort: Color Safety Hierarchy (Green 1 -> Blue 2 -> Violet 3 -> Orange 4 -> Red 5)
+    const colorWeightA = COLOR_SAFETY_WEIGHTS[a.colorClassification?.code || "FREQUENT"] || 1;
+    const colorWeightB = COLOR_SAFETY_WEIGHTS[b.colorClassification?.code || "FREQUENT"] || 1;
+
+    if (colorWeightA !== colorWeightB) {
+      return colorWeightA - colorWeightB;
+    }
+
+    // Secondary Sort: Role Operational Relevancy Index (#1, #2, #3 daily workflow)
     const idxA = priorityList.indexOf(a.id);
     const idxB = priorityList.indexOf(b.id);
     const posA = idxA !== -1 ? idxA : 999;
     const posB = idxB !== -1 ? idxB : 999;
-    return posA - posB;
+
+    if (posA !== posB) {
+      return posA - posB;
+    }
+
+    return (a.order || 99) - (b.order || 99);
   });
 };
 

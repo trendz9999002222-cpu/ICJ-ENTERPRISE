@@ -183,8 +183,8 @@ export default function Sidebar() {
         </Typography>
       </Toolbar>
 
-      {/* CLEAN EXECUTIVE NAVIGATION LIST (ZERO DEBUG BANNERS) */}
-      <Box sx={{ overflowY: "auto", px: 1, py: 1.5, flex: 1 }}>
+      {/* CLEAN EXECUTIVE HIGH-DENSITY NAVIGATION LIST (ZERO DEBUG BANNERS) */}
+      <Box sx={{ overflowY: "auto", px: 0.8, py: 1, flex: 1 }}>
         <List disablePadding>
           {roleOrderedList.map((item) => {
             const isActive = location.pathname === item.route;
@@ -195,18 +195,20 @@ export default function Sidebar() {
                 key={item.id}
                 onClick={() => navigate(item.route)}
                 sx={{
-                  mx: 0.5,
-                  mb: 1.2,
-                  p: 1.2,
-                  borderRadius: 2,
+                  mx: 0.3,
+                  mb: 0.5,
+                  py: 0.55,
+                  px: 1,
+                  borderRadius: 1.5,
                   bgcolor: style.bgcolor,
                   borderLeft: style.borderLeft,
                   border: style.border,
-                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.3)" : "none",
-                  transition: "all 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+                  minHeight: 38,
+                  boxShadow: isActive ? "0 2px 8px rgba(0,0,0,0.3)" : "none",
+                  transition: "all 0.18s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
                     bgcolor: style.bgcolor,
-                    transform: "translateX(4px)",
+                    transform: "translateX(3px)",
                     filter: "brightness(1.15)",
                   },
                 }}
@@ -214,7 +216,8 @@ export default function Sidebar() {
                 <ListItemIcon
                   sx={{
                     color: isActive ? "#ffffff" : style.iconColor,
-                    minWidth: 36,
+                    minWidth: 32,
+                    "& .MuiSvgIcon-root": { fontSize: "1.15rem" },
                   }}
                 >
                   {iconMap[item.icon] || <Gavel />}
@@ -222,12 +225,12 @@ export default function Sidebar() {
 
                 <ListItemText
                   primary={
-                    <Stack direction="row" alignItems="center" spacing={0.8}>
+                    <Stack direction="row" alignItems="center" spacing={0.6}>
                       {/* PROMINENT HIGH-CONTRAST MOBILE BADGE ICON */}
                       <Box
                         component="span"
                         sx={{
-                          fontSize: "1.2rem",
+                          fontSize: "1.1rem",
                           lineHeight: 1,
                           display: "inline-flex",
                           alignItems: "center",
@@ -239,25 +242,19 @@ export default function Sidebar() {
                       <Typography
                         component="span"
                         sx={{
-                          fontSize: "0.85rem",
+                          fontSize: "0.78rem",
                           fontWeight: isActive ? 800 : 600,
                           color: style.textColor,
-                          letterSpacing: 0.2,
+                          letterSpacing: 0.1,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
                         }}
                       >
                         {item.name}
                       </Typography>
                     </Stack>
                   }
-                  secondary={item.category}
-                  secondaryTypographyProps={{
-                    sx: {
-                      color: isActive ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
-                      fontSize: 10,
-                      ml: 3.2,
-                      display: { xs: "none", md: "block" },
-                    },
-                  }}
                   sx={{ display: { xs: "none", md: "block" }, my: 0 }}
                 />
               </ListItemButton>
