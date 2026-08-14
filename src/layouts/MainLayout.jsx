@@ -1,10 +1,11 @@
  import { Box, Toolbar, Typography } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 function MainLayout({ children }) {
   return (
-    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden" }}>
+    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden" }} className="mobile-app-container">
       <Sidebar />
 
       <Box
@@ -15,6 +16,7 @@ function MainLayout({ children }) {
           flexDirection: "column",
           minWidth: 0,
           width: "100%",
+          pb: { xs: 8, md: 2 },
         }}
       >
         <Topbar />
@@ -24,13 +26,14 @@ function MainLayout({ children }) {
         <Box
           sx={{
             flex: 1,
-            p: { xs: 1.5, sm: 2, md: 2.5 },
+            p: { xs: 1, sm: 2, md: 2.5 },
             width: "100%",
             boxSizing: "border-box",
           }}
         >
           {children}
         </Box>
+        <MobileBottomNav />
 
         <Box
           component="footer"

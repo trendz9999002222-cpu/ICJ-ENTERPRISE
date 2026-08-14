@@ -651,7 +651,7 @@ export default function Administration() {
           </Button>
         </Stack>
 
-        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: "#1e293b", color: "#fff", borderRadius: 2 }}>
+        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: "#1e293b", color: "#fff", borderRadius: 2, overflowX: "auto", WebkitOverflowScrolling: "touch", maxHeight: { xs: 380, md: 550 } }}>
           <Table size="small">
             <TableHead sx={{ bgcolor: "#334155" }}>
               <TableRow>
