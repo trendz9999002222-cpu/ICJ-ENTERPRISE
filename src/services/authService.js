@@ -1,6 +1,7 @@
 import { supabase } from "./supabase.js";
 import PasswordPolicyService from "./passwordPolicyService.js";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
+import SeedEcosystemService from "./seedEcosystemService.js";
 
 const SESSION_KEY = "icj_user";
 const USERS_STORAGE_KEY = "icj_enterprise_users";
@@ -12,7 +13,7 @@ const canUseSupabaseAuth =
   Boolean(env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 const getStoredUsers = () => {
-  if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
+  if (typeof window === "undefined") return SeedEcosystemService.get26CoreMembers();
   try {
     const rawEnterprise = window.localStorage.getItem(USERS_STORAGE_KEY);
     const initialized = window.localStorage.getItem("icj_users_initialized");
@@ -24,22 +25,16 @@ const getStoredUsers = () => {
           existingUsers = JSON.parse(rawEnterprise);
         } catch {}
       }
-      return existingUsers;
+      if (Array.isArray(existingUsers) && existingUsers.length >= 26) {
+        return existingUsers;
+      }
+      return SeedEcosystemService.resetAndHydrate26CoreMembers();
     } else {
-      // First time initialization: seed the database from ENTERPRISE_SEED_USERS
-      const mergedMap = new Map();
-      ENTERPRISE_SEED_USERS.forEach((u) => {
-        const key = String(u.id || u.member_id || u.email).toLowerCase();
-        mergedMap.set(key, u);
-      });
-      const mergedList = Array.from(mergedMap.values());
-      window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(mergedList));
-      window.localStorage.setItem("icj_members", JSON.stringify(mergedList));
-      window.localStorage.setItem("icj_users_initialized", "true");
-      return mergedList;
+      // First time initialization: seed the database from 26 Core Master Members
+      return SeedEcosystemService.resetAndHydrate26CoreMembers();
     }
   } catch {
-    return ENTERPRISE_SEED_USERS;
+    return SeedEcosystemService.get26CoreMembers();
   }
 };
 
