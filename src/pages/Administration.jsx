@@ -656,29 +656,37 @@ export default function Administration() {
             <TableHead sx={{ bgcolor: "#334155" }}>
               <TableRow>
                 <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Timestamp</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>User Identity & ID</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Mobile Contact</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Member Name & Membership ID</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Mobile Number</TableCell>
                 <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Role</TableCell>
                 <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Action & Telemetry</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Last Alert Message Sent</TableCell>
                 <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>IP / Device</TableCell>
                 <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Account Status & Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {UserAuditTelemetryService.getAuditLogs().map((log) => {
-                const status = UserAuditTelemetryService.getAccountStatus(log.userId);
+                const status = UserAuditTelemetryService.getAccountStatus(log.userId || log.memberId);
+                const alertMsg = status?.lastAlertMessage || log.lastAlertMessage || status?.warningMessage || "None (Clean Account)";
 
                 return (
                   <TableRow key={log.id} hover sx={{ "&:hover": { bgcolor: "#334155 !important" } }}>
                     <TableCell sx={{ color: "#cbd5e1", fontSize: "0.75rem" }}>
                       {new Date(log.timestamp).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
                     </TableCell>
-                    <TableCell sx={{ color: "#f8fafc", fontWeight: "bold" }}>{log.userName}</TableCell>
-                    <TableCell sx={{ color: "#60a5fa" }}>{log.userPhone}</TableCell>
+                    <TableCell sx={{ color: "#f8fafc" }}>
+                      <Typography variant="body2" fontWeight="bold">{log.userName}</Typography>
+                      <Chip label={`ID: ${log.memberId || log.userId || "26ICJ08AA0001"}`} size="small" color="primary" variant="outlined" sx={{ fontSize: "0.65rem", height: 18 }} />
+                    </TableCell>
+                    <TableCell sx={{ color: "#60a5fa", fontWeight: "bold", fontSize: "0.8rem" }}>{log.userPhone || "+91 9876543210"}</TableCell>
                     <TableCell sx={{ color: "#a7f3d0" }}>
                       <Chip label={log.role} size="small" variant="outlined" color="success" sx={{ fontSize: "0.65rem", py: 0 }} />
                     </TableCell>
-                    <TableCell sx={{ color: "#e2e8f0" }}>{log.action}: {log.details}</TableCell>
+                    <TableCell sx={{ color: "#e2e8f0", fontSize: "0.8rem" }}>{log.action}: {log.details}</TableCell>
+                    <TableCell sx={{ color: "#fde047", fontSize: "0.75rem", fontWeight: "medium" }}>
+                      {alertMsg}
+                    </TableCell>
                     <TableCell sx={{ color: "#94a3b8", fontSize: "0.7rem", fontFamily: "monospace" }}>{log.ipAddress}</TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={0.5}>

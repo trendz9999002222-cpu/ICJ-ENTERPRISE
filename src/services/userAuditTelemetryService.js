@@ -9,20 +9,23 @@ const ACCOUNT_STATUS_KEY = "icj_user_account_statuses";
 
 export const UserAuditTelemetryService = {
   /**
-   * Log User Access Telemetry (Who accessed, When, Which device/phone, Actions)
+   * Log User Access Telemetry (Who accessed, When, Which device/phone, Member ID, Actions, Last Alert)
    */
-  logAccess({ userId, userName, userPhone, role, action, details = "" }) {
+  logAccess({ userId, memberId, userName, userPhone, role, action, details = "" }) {
     try {
       const logs = this.getAuditLogs();
+      const accountStatus = this.getAccountStatus(userId || memberId);
       const newEntry = {
         id: `AUDIT-${Date.now()}`,
         timestamp: new Date().toISOString(),
         userId: userId || "GUEST",
+        memberId: memberId || userId || "26ICJ08AA0001",
         userName: userName || "Unknown User",
-        userPhone: userPhone || "N/A",
+        userPhone: userPhone || "+91 9876543210",
         role: role || "Litigant",
         action: action || "PAGE_VIEW",
         details: details || "",
+        lastAlertMessage: accountStatus?.lastAlertMessage || accountStatus?.warningMessage || "None (Clean Account)",
         ipAddress: "192.168.1.1 (Secure Enterprise Session)",
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent.substring(0, 50) : "Browser",
       };
@@ -44,11 +47,13 @@ export const UserAuditTelemetryService = {
           id: "AUDIT-001",
           timestamp: new Date().toISOString(),
           userId: "CLIENT-01",
-          userName: "Client 1 (Ramesh Kumar)",
+          memberId: "26ICJ08AA0001",
+          userName: "Ramesh Kumar (Client)",
           userPhone: "+91 9876543210",
           role: "member",
           action: "AI_CONSULTATION_QUERY",
           details: "Asked about Civil Property Dispute",
+          lastAlertMessage: "⚠️ Low Credit Warning Sent on Aug 14, 2026",
           ipAddress: "103.21.124.5",
           userAgent: "Mozilla/5.0 (Windows NT 10.0)",
         },
@@ -56,11 +61,13 @@ export const UserAuditTelemetryService = {
           id: "AUDIT-002",
           timestamp: new Date(Date.now() - 3600000).toISOString(),
           userId: "ADV-01",
-          userName: "Senior Advocate 1 (Rajesh Sharma)",
+          memberId: "26ICJ08AA0102",
+          userName: "Adv. Rajesh Sharma",
           userPhone: "+91 9811223344",
           role: "advocate",
           action: "1_CLICK_CITATION_MERGE",
           details: "Merged Supreme Court Citation 1992 Supp (1) SCC 335",
+          lastAlertMessage: "None (Clean Account)",
           ipAddress: "115.240.92.14",
           userAgent: "Mozilla/5.0 (Macintosh)",
         },
@@ -77,9 +84,9 @@ export const UserAuditTelemetryService = {
     try {
       const raw = localStorage.getItem(ACCOUNT_STATUS_KEY);
       const map = raw ? JSON.parse(raw) : {};
-      return map[userId] || { status: "ACTIVE", warningMessage: null, warningCount: 0 };
+      return map[userId] || { status: "ACTIVE", warningMessage: null, lastAlertMessage: "None (Clean Account)", warningCount: 0 };
     } catch {
-      return { status: "ACTIVE", warningMessage: null, warningCount: 0 };
+      return { status: "ACTIVE", warningMessage: null, lastAlertMessage: "None (Clean Account)", warningCount: 0 };
     }
   },
 
@@ -100,10 +107,11 @@ export const UserAuditTelemetryService = {
    * Super Admin Action: Send Recharge Warning Popup
    */
   triggerRechargeWarning(userId, customMsg) {
-    const warningMsg = customMsg || "⚠️ चेतावनी: आपका AI क्रेडिट 10% से कम रह गया है। निर्बाध सेवा हेतु तुरंत रीचार्ज करें वरना आपका खाता सस्पेंड कर दिया जाएगा।";
+    const warningMsg = customMsg || `⚠️ Low Credit Balance Warning sent at ${new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
     return this.setAccountStatus(userId, {
       status: "WARNING_SENT",
       warningMessage: warningMsg,
+      lastAlertMessage: warningMsg,
       warningCount: (this.getAccountStatus(userId).warningCount || 0) + 1,
     });
   },
@@ -112,9 +120,11 @@ export const UserAuditTelemetryService = {
    * Super Admin Action: Suspend Account
    */
   suspendAccount(userId, reason = "Excessive Misuse / Payment Overdue") {
+    const alertText = `🛑 Account Suspended: ${reason} (${new Date().toLocaleDateString("en-US")})`;
     return this.setAccountStatus(userId, {
       status: "SUSPENDED",
       suspensionReason: reason,
+      lastAlertMessage: alertText,
       suspendedAt: new Date().toISOString(),
     });
   },
@@ -126,6 +136,7 @@ export const UserAuditTelemetryService = {
     return this.setAccountStatus(userId, {
       status: "ACTIVE",
       warningMessage: null,
+      lastAlertMessage: "🟢 Account Reactivated by Super Admin",
       suspensionReason: null,
       reactivatedAt: new Date().toISOString(),
     });
