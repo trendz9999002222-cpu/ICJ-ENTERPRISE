@@ -345,7 +345,16 @@ function MultiPartyConferenceRoom({ caseId = "CASE-2026-001", clientName = "Liti
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleSendChat()}
-                sx={{ input: { color: "#ffffff" } }}
+                sx={{
+                  input: { color: "#ffffff", fontWeight: 700 },
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#0f172a",
+                    "& fieldset": { borderColor: "#475569" },
+                    "&:hover fieldset": { borderColor: "#3b82f6" },
+                    "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
+                  },
+                  "& .MuiInputBase-input::placeholder": { color: "#94a3b8", opacity: 1 },
+                }}
               />
               <IconButton color="primary" onClick={handleSendChat}>
                 <SendIcon />

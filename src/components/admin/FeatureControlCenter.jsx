@@ -162,7 +162,17 @@ function FeatureControlCenter() {
                 label="Target User ID (e.g. 26ICJ08AA0001)"
                 value={searchUserId}
                 onChange={(e) => setSearchUserId(e.target.value)}
-                sx={{ input: { color: "#ffffff" }, label: { color: "#fcd34d" } }}
+                sx={{
+                  input: { color: "#ffffff", fontWeight: 700 },
+                  label: { color: "#fcd34d", fontWeight: 800 },
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#0f172a",
+                    "& fieldset": { borderColor: "#64748b" },
+                    "&:hover fieldset": { borderColor: "#fcd34d" },
+                    "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": { color: "#fcd34d" },
+                }}
               />
             </Grid>
             <Grid item xs={12} sm={4}>
@@ -172,7 +182,17 @@ function FeatureControlCenter() {
                 label="User Full Name"
                 value={targetUserName}
                 onChange={(e) => setTargetUserName(e.target.value)}
-                sx={{ input: { color: "#ffffff" }, label: { color: "#fcd34d" } }}
+                sx={{
+                  input: { color: "#ffffff", fontWeight: 700 },
+                  label: { color: "#fcd34d", fontWeight: 800 },
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#0f172a",
+                    "& fieldset": { borderColor: "#64748b" },
+                    "&:hover fieldset": { borderColor: "#fcd34d" },
+                    "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
+                  },
+                  "& .MuiInputLabel-root.Mui-focused": { color: "#fcd34d" },
+                }}
               />
             </Grid>
           </Grid>
