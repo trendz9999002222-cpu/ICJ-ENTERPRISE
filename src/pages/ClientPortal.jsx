@@ -62,6 +62,7 @@ import LegalDocumentSorterService from "../services/legalDocumentSorterService.j
 import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
 import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
 import VernacularVoiceAssistantService from "../services/vernacularVoiceAssistantService.js";
+import GuidedCaseIntakeWizard from "../components/common/GuidedCaseIntakeWizard.jsx";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -491,6 +492,17 @@ export default function ClientPortal() {
         </Stack>
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+
+        {/* 🏛️ 4-STEP GUIDED CASE INTAKE WIZARD FOR UNIVERSAL PERSONA ACCESSIBILITY */}
+        <GuidedCaseIntakeWizard
+          activeAdvocate={activeAdvocate}
+          onCompleteCaseIntake={({ problemText, caseCategory }) => {
+            setAiProbText(problemText);
+            setAiCaseCategory(caseCategory);
+            setAlertMsg("🟢 4-Step Case Intake Completed & Submitted for Legal Counsel & AI Diagnosis!");
+            setTimeout(() => setAlertMsg(""), 4000);
+          }}
+        />
 
         {/* 🗣️ VERNACULAR VOICE-FIRST AUDIO GUIDANCE BAR FOR ILLITERATE / RURAL CITIZENS */}
         <Paper elevation={2} className="bigtech-card glass-card" sx={{ p: 2, mb: 3, borderRadius: 3, borderLeft: "6px solid #059669", bgcolor: "#f0fdf4" }}>
