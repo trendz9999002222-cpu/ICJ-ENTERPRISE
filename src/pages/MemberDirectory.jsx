@@ -36,6 +36,7 @@ import useAuth from "../hooks/useAuth";
 import JudiciaryMasterService from "../services/judiciaryMasterService.js";
 import SpecialtyUpgradeModal from "../components/membership/SpecialtyUpgradeModal.jsx";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import SafeAccess from "../utils/safeAccess.js";
 
 const STATUS_FILTERS = ["All", "Verified", "Pending", "Rejected", "Suspended"];
 const CATEGORY_FILTERS = ["All", "Notary & Attestation", "Advocates & Counsel", "Legal Help Requesters", "Franchise Partners"];
@@ -280,40 +281,162 @@ export default function MemberDirectory() {
           <Chip
             icon={<CheckCircleIcon sx={{ color: "#34d399 !important" }} />}
             label={`${categoryStats.total} Total Registered Members`}
-            sx={{ bgcolor: "rgba(255,255,255,0.12)", color: "#ffffff", fontWeight: "bold", px: 1, py: 2.2, borderRadius: 2 }}
+            onClick={() => setCategoryFilter("All")}
+            sx={{
+              bgcolor: categoryFilter === "All" ? "rgba(59, 130, 246, 0.4)" : "rgba(255,255,255,0.12)",
+              color: "#ffffff",
+              fontWeight: "bold",
+              px: 1,
+              py: 2.2,
+              borderRadius: 2,
+              cursor: "pointer",
+              border: categoryFilter === "All" ? "2px solid #60a5fa" : "1px solid rgba(255,255,255,0.2)",
+              "&:hover": { bgcolor: "rgba(59, 130, 246, 0.5)" },
+            }}
           />
         </Stack>
       </Paper>
 
-      {/* SUMMARY CATEGORY METRICS BAR */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      {/* INTERACTIVE SUMMARY CATEGORY METRICS BAR */}
+      <Grid container spacing={2} sx={{ mb: 3 }} id="kpi-stat-cards-container">
         <Grid item xs={6} sm={3}>
-          <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#ecfdf5", border: "1px solid #a7f3d0" }}>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold">NOTARY & ATTESTATION</Typography>
-            <Typography variant="h4" fontWeight="bold" color="success.dark">{categoryStats.notary}</Typography>
+          <Paper
+            onClick={() => {
+              setCategoryFilter(categoryFilter === "Notary & Attestation" ? "All" : "Notary & Attestation");
+              document.getElementById("members-table-container")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: categoryFilter === "Notary & Attestation" ? "#d1fae5" : "#ecfdf5",
+              border: categoryFilter === "Notary & Attestation" ? "2.5px solid #059669" : "1px solid #a7f3d0",
+              boxShadow: categoryFilter === "Notary & Attestation" ? "0 0 15px rgba(16, 185, 129, 0.4)" : "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              "&:hover": { transform: "translateY(-3px)", boxShadow: "0 6px 15px rgba(0,0,0,0.1)" },
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              NOTARY & ATTESTATION
+            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="success.dark">
+                {categoryStats.notary}
+              </Typography>
+              <Typography variant="caption" color="success.main" fontWeight={700}>
+                ({categoryStats.total > 0 ? ((categoryStats.notary / categoryStats.total) * 100).toFixed(1) : 0}%)
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="#059669" fontWeight={700}>
+              {categoryFilter === "Notary & Attestation" ? "✓ Filter Active (Click to Reset)" : "👉 Click to View List"}
+            </Typography>
           </Paper>
         </Grid>
+
         <Grid item xs={6} sm={3}>
-          <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#eff6ff", border: "1px solid #bfdbfe" }}>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold">ADVOCATES & COUNSEL</Typography>
-            <Typography variant="h4" fontWeight="bold" color="primary.dark">{categoryStats.advocate}</Typography>
+          <Paper
+            onClick={() => {
+              setCategoryFilter(categoryFilter === "Advocates & Counsel" ? "All" : "Advocates & Counsel");
+              document.getElementById("members-table-container")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: categoryFilter === "Advocates & Counsel" ? "#dbeafe" : "#eff6ff",
+              border: categoryFilter === "Advocates & Counsel" ? "2.5px solid #2563eb" : "1px solid #bfdbfe",
+              boxShadow: categoryFilter === "Advocates & Counsel" ? "0 0 15px rgba(37, 99, 235, 0.4)" : "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              "&:hover": { transform: "translateY(-3px)", boxShadow: "0 6px 15px rgba(0,0,0,0.1)" },
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              ADVOCATES & COUNSEL
+            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="primary.dark">
+                {categoryStats.advocate}
+              </Typography>
+              <Typography variant="caption" color="primary.main" fontWeight={700}>
+                ({categoryStats.total > 0 ? ((categoryStats.advocate / categoryStats.total) * 100).toFixed(1) : 0}%)
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="#2563eb" fontWeight={700}>
+              {categoryFilter === "Advocates & Counsel" ? "✓ Filter Active (Click to Reset)" : "👉 Click to View List"}
+            </Typography>
           </Paper>
         </Grid>
+
         <Grid item xs={6} sm={3}>
-          <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#fff7ed", border: "1px solid #fed7aa" }}>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold">LEGAL HELP REQUESTERS</Typography>
-            <Typography variant="h4" fontWeight="bold" color="warning.dark">{categoryStats.requester}</Typography>
+          <Paper
+            onClick={() => {
+              setCategoryFilter(categoryFilter === "Legal Help Requesters" ? "All" : "Legal Help Requesters");
+              document.getElementById("members-table-container")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: categoryFilter === "Legal Help Requesters" ? "#fef3c7" : "#fff7ed",
+              border: categoryFilter === "Legal Help Requesters" ? "2.5px solid #d97706" : "1px solid #fed7aa",
+              boxShadow: categoryFilter === "Legal Help Requesters" ? "0 0 15px rgba(217, 119, 6, 0.4)" : "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              "&:hover": { transform: "translateY(-3px)", boxShadow: "0 6px 15px rgba(0,0,0,0.1)" },
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              LEGAL HELP REQUESTERS
+            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="warning.dark">
+                {categoryStats.requester}
+              </Typography>
+              <Typography variant="caption" color="warning.main" fontWeight={700}>
+                ({categoryStats.total > 0 ? ((categoryStats.requester / categoryStats.total) * 100).toFixed(1) : 0}%)
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="#d97706" fontWeight={700}>
+              {categoryFilter === "Legal Help Requesters" ? "✓ Filter Active (Click to Reset)" : "👉 Click to View List"}
+            </Typography>
           </Paper>
         </Grid>
+
         <Grid item xs={6} sm={3}>
-          <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#f5f3ff", border: "1px solid #ddd6fe" }}>
-            <Typography variant="caption" color="text.secondary" fontWeight="bold">FRANCHISE APPLICANTS</Typography>
-            <Typography variant="h4" fontWeight="bold" color="secondary.dark">{categoryStats.franchise}</Typography>
+          <Paper
+            onClick={() => {
+              setCategoryFilter(categoryFilter === "Franchise Partners" ? "All" : "Franchise Partners");
+              document.getElementById("members-table-container")?.scrollIntoView({ behavior: "smooth" });
+            }}
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              bgcolor: categoryFilter === "Franchise Partners" ? "#ede9fe" : "#f5f3ff",
+              border: categoryFilter === "Franchise Partners" ? "2.5px solid #7c3aed" : "1px solid #ddd6fe",
+              boxShadow: categoryFilter === "Franchise Partners" ? "0 0 15px rgba(124, 58, 237, 0.4)" : "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease-in-out",
+              "&:hover": { transform: "translateY(-3px)", boxShadow: "0 6px 15px rgba(0,0,0,0.1)" },
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" fontWeight="bold">
+              FRANCHISE APPLICANTS
+            </Typography>
+            <Stack direction="row" alignItems="baseline" spacing={1}>
+              <Typography variant="h4" fontWeight="bold" color="secondary.dark">
+                {categoryStats.franchise}
+              </Typography>
+              <Typography variant="caption" color="secondary.main" fontWeight={700}>
+                ({categoryStats.total > 0 ? ((categoryStats.franchise / categoryStats.total) * 100).toFixed(1) : 0}%)
+              </Typography>
+            </Stack>
+            <Typography variant="caption" color="#7c3aed" fontWeight={700}>
+              {categoryFilter === "Franchise Partners" ? "✓ Filter Active (Click to Reset)" : "👉 Click to View List"}
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 3, mt: 2 }}>
+      <Paper id="members-table-container" sx={{ p: 3, mt: 2 }}>
         {/* CATEGORY & PURPOSE FILTERS */}
         <Stack spacing={1.5} sx={{ mb: 2 }}>
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
@@ -418,7 +541,7 @@ export default function MemberDirectory() {
                       {JudiciaryMasterService.formatSpecialtyBadges(member.unlockedSpecialties || [member.profession || "CRIMINAL_BAIL"]).map((spec, idx) => (
                         <Chip
                           key={idx}
-                          label={`${spec.rankIcon || "🥇"} ${spec.name.split(" ")[0]}`}
+                          label={`${spec?.rankIcon || "🥇"} ${SafeAccess.splitFirst(spec?.name, " ", "Specialty")}`}
                           size="small"
                           color={idx === 0 ? "success" : "info"}
                           sx={{ fontWeight: 800, fontSize: "0.68rem" }}
