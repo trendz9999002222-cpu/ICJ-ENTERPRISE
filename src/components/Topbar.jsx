@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,9 +17,11 @@ import {
   Divider,
   Stack,
   Chip,
+  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -69,26 +71,47 @@ function Topbar() {
         borderBottom: "1px solid #e0e0e0",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
-        <Box display="flex" alignItems="center" gap={3}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1.2 }}>
-              ICJ ENTERPRISE PLATFORM
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Unified Command Centre & Global Intelligence Layer
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.3, minHeight: "46px !important", px: { xs: 1, md: 2 } }}>
+        <Box display="flex" alignItems="center" gap={1.5}>
+          {/* 1-CLICK IN-APP BACK NAVIGATION ENGINE */}
+          <Tooltip title="In-App 1-Click Back (वापसी करें)">
+            <Button
+              variant="contained"
+              color="inherit"
+              size="small"
+              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "1.1rem" }} />}
+              onClick={() => navigate(-1)}
+              sx={{
+                bgcolor: "#f1f5f9",
+                color: "#0f172a",
+                fontWeight: 800,
+                fontSize: "0.75rem",
+                px: 1.2,
+                py: 0.4,
+                borderRadius: 1.5,
+                border: "1px solid #cbd5e1",
+                "&:hover": { bgcolor: "#e2e8f0" },
+              }}
+            >
+              ◀ BACK
+            </Button>
+          </Tooltip>
+
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1.1 }}>
+              ICJ ENTERPRISE
             </Typography>
           </Box>
 
-          {/* Phase E — Unified Global Enterprise Search */}
+          {/* Unified Global Enterprise Search */}
           <TextField
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
             placeholder="Global Search (Members, Cases, Advocates, Documents, Payments)..."
-            sx={{ width: 420 }}
+            sx={{ width: { xs: 160, sm: 260, md: 360 }, "& .MuiInputBase-root": { height: 32, fontSize: "0.78rem" } }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "1rem" }} /></InputAdornment>,
             }}
           />
 
@@ -97,9 +120,9 @@ function Topbar() {
             anchorEl={searchAnchor}
             open={Boolean(searchAnchor && globalQuery.trim().length >= 2)}
             onClose={() => setSearchAnchor(null)}
-            PaperProps={{ style: { width: 420, maxHeight: 350 } }}
+            PaperProps={{ style: { width: 380, maxHeight: 350 } }}
           >
-            <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED GLOBAL MATCHES FOR "{globalQuery}"</Typography></MenuItem>
+            <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED MATCHES FOR "{globalQuery}"</Typography></MenuItem>
             <Divider />
             <MenuItem onClick={() => handleSearchResultClick(`/membership?search=${encodeURIComponent(globalQuery)}`)}>
               <ListItemIcon><PersonIcon color="primary" fontSize="small" /></ListItemIcon>
@@ -115,37 +138,43 @@ function Topbar() {
             </MenuItem>
             <MenuItem onClick={() => handleSearchResultClick(`/wallet?search=${encodeURIComponent(globalQuery)}`)}>
               <ListItemIcon><AccountBalanceWalletIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary={`Search Payments / Wallet: "${globalQuery}"`} secondary="Finance & Ledger Engine" />
+              <ListItemText primary={`Search Payments: "${globalQuery}"`} secondary="Finance Engine" />
             </MenuItem>
           </Menu>
         </Box>
 
-        <Box display="flex" alignItems="center" gap={2}>
-          <IconButton onClick={() => navigate("/notifications")}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <IconButton size="small" onClick={() => navigate("/notifications")}>
             <Badge badgeContent={12} color="error">
-              <NotificationsIcon color="action" />
+              <NotificationsIcon color="action" fontSize="small" />
             </Badge>
           </IconButton>
 
-          <IconButton onClick={() => navigate("/settings")}>
-            <SettingsIcon color="action" />
+          <IconButton size="small" onClick={() => navigate("/settings")}>
+            <SettingsIcon color="action" fontSize="small" />
           </IconButton>
 
-          {/* TOP RIGHT USER IDENTIFICATION BADGE — VISIBLE ON EVERY PAGE */}
+          {/* UNIVERSAL USER IDENTITY BADGE — PROMINENT ON EVERY SINGLE PAGE */}
           <Box
             display="flex"
             alignItems="center"
-            gap={1.5}
+            gap={1}
             sx={{
-              px: 1.5,
-              py: 0.5,
+              px: 1.2,
+              py: 0.3,
               borderRadius: 2,
-              bgcolor: "rgba(245, 247, 250, 0.9)",
-              border: "1px solid #e2e8f0",
+              bgcolor: "#0f172a",
+              color: "#ffffff",
+              border: "1px solid #1e293b",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
             }}
           >
-            <Box textAlign="right">
-              <Typography variant="body2" sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1.2 }}>
+            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 28, height: 28, fontSize: "0.82rem" }}>
+              {userInitial}
+            </Avatar>
+
+            <Box textAlign="left">
+              <Typography variant="body2" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.78rem", lineHeight: 1.1 }}>
                 {(() => {
                   const prefix = user?.namePrefix || user?.name_prefix || "";
                   const name = user?.fullName || user?.name || user?.username || "Logged User";
@@ -153,7 +182,7 @@ function Topbar() {
                 })()}
               </Typography>
 
-              <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center" sx={{ mt: 0.3 }}>
+              <Stack direction="row" spacing={0.5} alignItems="center">
                 <Chip
                   label={
                     userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
@@ -161,14 +190,14 @@ function Topbar() {
                       : userRole === "admin"
                       ? "🛡️ ADMIN"
                       : userRole === "employee"
-                      ? "💼 ICJ STAFF"
+                      ? "💼 STAFF"
                       : "🟢 MEMBER"
                   }
                   size="small"
                   sx={{
                     fontWeight: 800,
-                    fontSize: "0.65rem",
-                    height: 18,
+                    fontSize: "0.6rem",
+                    height: 16,
                     bgcolor:
                       userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
                         ? "#7c3aed"
@@ -180,27 +209,20 @@ function Topbar() {
                     color: "#ffffff",
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: "0.68rem", color: "#64748b", fontFamily: "monospace" }}>
-                  {user?.member_id || user?.memberId || user?.id || ""}
-                </Typography>
               </Stack>
             </Box>
 
-            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 36, height: 36, fontSize: "0.95rem" }}>
-              {userInitial}
-            </Avatar>
-
             <Button
-              variant="outlined"
+              variant="contained"
               size="small"
               color="error"
               onClick={async () => {
                 await logout();
                 navigate("/login");
               }}
-              sx={{ fontWeight: "bold", ml: 0.5, px: 1, minWidth: 60 }}
+              sx={{ fontWeight: 800, ml: 0.5, px: 0.8, py: 0.2, minWidth: 50, fontSize: "0.68rem" }}
             >
-              Logout
+              Exit
             </Button>
           </Box>
         </Box>

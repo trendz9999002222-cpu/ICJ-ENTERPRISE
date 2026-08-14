@@ -264,45 +264,41 @@ export default function SuperAdminDashboard() {
           </Paper>
         )}
 
-        {/* 1. DASHBOARD HOME: WELCOME BANNER */}
+        {/* 1. DASHBOARD HOME: COMPACT 1-LINE EXECUTIVE STATUS BAR (ZERO WASTED MARGIN) */}
         <Paper
-          elevation={3}
+          elevation={2}
           sx={{
-            p: { xs: 1.5, sm: 2.5, md: 3 },
-            mb: 3,
-            borderRadius: 3,
+            p: 1.5,
+            mb: 2,
+            borderRadius: 2,
             background: "linear-gradient(135deg, #0B5ED7 0%, #084298 100%)",
             color: "#ffffff",
           }}
         >
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar sx={{ bgcolor: "#ffffff", color: "#0B5ED7", width: 52, height: 52, fontWeight: "bold" }}>
-                  SA
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" fontWeight="bold">
-                    Welcome, {user?.fullName || "Super Admin"}!
-                  </Typography>
-                  <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Logged in as <strong>Super Admin ({user?.username || "ICJSuperAdmin1234"})</strong> | Role Governance Active
-                  </Typography>
-                </Box>
-              </Stack>
-            </Grid>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Avatar sx={{ bgcolor: "#ffffff", color: "#0B5ED7", width: 34, height: 34, fontWeight: "bold", fontSize: "0.85rem" }}>
+                SA
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ lineHeight: 1.1 }}>
+                  👤 Active Workspace: {user?.fullName || "Pawan Kumar"} (Super Admin)
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.9, fontSize: "0.68rem" }}>
+                  Role Governance Active | User: <strong>{user?.username || "ICJSuperAdmin1234"}</strong> | Logged in & Active
+                </Typography>
+              </Box>
+            </Stack>
 
-            <Grid item xs={12} md={4} sx={{ textAlign: { xs: "left", md: "right" } }}>
-              <Stack direction="row" spacing={1} justifyContent={{ xs: "flex-start", md: "flex-end" }} sx={{ mb: 1 }}>
-                <Chip icon={<StorageIcon style={{ color: "#fff" }} />} label="Server Status: 🟢 Online" color="success" size="small" />
-                <Chip label="v2.1.0 Enterprise" color="secondary" size="small" />
-              </Stack>
-              <Typography variant="caption" sx={{ display: "block", opacity: 0.85 }}>
-                <AccessTimeIcon fontSize="inherit" sx={{ mr: 0.5, verticalAlign: "middle" }} />
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Chip icon={<StorageIcon style={{ color: "#fff", fontSize: "0.85rem" }} />} label="🟢 Online" color="success" size="small" sx={{ height: 22, fontSize: "0.65rem", fontWeight: "bold" }} />
+              <Chip label="v2.1.0 Enterprise" color="secondary" size="small" sx={{ height: 22, fontSize: "0.65rem", fontWeight: "bold" }} />
+              <Typography variant="caption" sx={{ opacity: 0.85, fontSize: "0.68rem" }}>
+                <AccessTimeIcon fontSize="inherit" sx={{ mr: 0.3, verticalAlign: "middle" }} />
                 {currentTime}
               </Typography>
-            </Grid>
-          </Grid>
+            </Stack>
+          </Stack>
         </Paper>
 
         <Box sx={{ mb: 3 }}>
