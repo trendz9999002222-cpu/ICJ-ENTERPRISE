@@ -33,7 +33,7 @@
   }
 }
 
-/* BIG-TECH GLOBAL DESIGN UTILITIES */
+/* BIG-TECH GLOBAL DESIGN UTILITIES (META / GOOGLE / MICROSOFT STANDARDS) */
 .bigtech-card {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -46,6 +46,24 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+/* META / GOOGLE CRISP TYPOGRAPHY & ICON CONTAINERS */
+.meta-text-crisp {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.015em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bigtech-icon-container {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f1f5f9;
 }
 
 @media (prefers-color-scheme: dark) {
