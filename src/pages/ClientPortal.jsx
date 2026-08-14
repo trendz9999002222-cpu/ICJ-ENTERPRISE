@@ -220,9 +220,37 @@ export default function ClientPortal() {
   const [ongoingPrevLawyer, setOngoingPrevLawyer] = useState("");
 
   // Messages list
-  // Messages list
   const [messages, setMessages] = useState([]);
   const [clientMsgInput, setClientMsgInput] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      const allCases = LegalEcosystemService.getCases() || [];
+      const allAdvocates = LegalEcosystemService.getAdvocates() || [];
+      const allDocs = await getDocuments().catch(() => []);
+
+      if (isMounted) {
+        setCases(allCases);
+        setAdvocates(allAdvocates);
+        setDocuments(Array.isArray(allDocs) ? allDocs : []);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter client's legal cases strictly matching client Name or Member ID (Declared before useEffect hooks)
+  const myCases = useMemo(() => {
+    const term = clientName.toLowerCase();
+    return cases.filter(
+      (c) =>
+        (c.clientName && c.clientName.toLowerCase() === term) ||
+        String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
+    );
+  }, [cases, clientName, memberId]);
 
   useEffect(() => {
     if (activePortalCaseId) {
@@ -267,35 +295,6 @@ export default function ClientPortal() {
       setTimelineActions(acts);
     }
   }, [activePortalCaseId, tabIndex, myCases]);
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      const allCases = LegalEcosystemService.getCases() || [];
-      const allAdvocates = LegalEcosystemService.getAdvocates() || [];
-      const allDocs = await getDocuments().catch(() => []);
-
-      if (isMounted) {
-        setCases(allCases);
-        setAdvocates(allAdvocates);
-        setDocuments(Array.isArray(allDocs) ? allDocs : []);
-      }
-    }
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Filter client's legal cases strictly matching client Name or Member ID
-  const myCases = useMemo(() => {
-    const term = clientName.toLowerCase();
-    return cases.filter(
-      (c) =>
-        (c.clientName && c.clientName.toLowerCase() === term) ||
-        String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
-    );
-  }, [cases, clientName, memberId]);
 
   useEffect(() => {
     if (myCases.length > 0 && !activePortalCaseId) {
