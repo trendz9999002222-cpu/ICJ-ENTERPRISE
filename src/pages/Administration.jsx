@@ -46,7 +46,9 @@ import DashboardService from "../services/dashboardService";
 import MemberService from "../services/memberService";
 import VirtualOfficeService from "../services/virtualOfficeService";
 import SystemConfigService from "../services/systemConfigService";
+import RoleService from "../services/roleService";
 import MasterDataService from "../services/masterDataService";
+import UserAuditTelemetryService from "../services/userAuditTelemetryService";
 import PasswordPolicyAdminConfigurator from "../components/admin/PasswordPolicyAdminConfigurator";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
@@ -608,6 +610,92 @@ export default function Administration() {
           {saveMsg}
         </Alert>
       )}
+
+      {/* ─── SECTION: ZERO-TRUST USER ACCESS AUDIT & 1-CLICK SUSPENSION CONSOLE ─── */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#0f172a", color: "#fff", borderLeft: "6px solid #ef4444" }}>
+        <Typography variant="h6" fontWeight="bold" color="#f87171" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          📊 Enterprise Access Audit, IP Telemetry & 1-Click Account Suspension Control
+        </Typography>
+        <Typography variant="caption" color="#94a3b8" display="block" mb={2}>
+          किस यूजर ने कब, किस मोबाइल/IP से लॉगिन किया। अत्यधिक उपयोग या दुरुपयोग पर यहाँ से 1-क्लिक में रीचार्ज चेतावनी भेजें या खाता सस्पेंड करें।
+        </Typography>
+
+        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: "#1e293b", color: "#fff", borderRadius: 2 }}>
+          <Table size="small">
+            <TableHead sx={{ bgcolor: "#334155" }}>
+              <TableRow>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>समय / तारीख</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>यूजर का नाम व आईडी</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>मोबाइल नंबर</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>रोल</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>एक्शन व विवरण</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>IP / डिवाइस</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>खाता स्थिति व 1-क्लिक ऐक्शन्स</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {UserAuditTelemetryService.getAuditLogs().map((log) => {
+                const status = UserAuditTelemetryService.getAccountStatus(log.userId);
+
+                return (
+                  <TableRow key={log.id} hover sx={{ "&:hover": { bgcolor: "#334155 !important" } }}>
+                    <TableCell sx={{ color: "#cbd5e1", fontSize: "0.75rem" }}>
+                      {new Date(log.timestamp).toLocaleString("hi-IN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
+                    </TableCell>
+                    <TableCell sx={{ color: "#f8fafc", fontWeight: "bold" }}>{log.userName}</TableCell>
+                    <TableCell sx={{ color: "#60a5fa" }}>{log.userPhone}</TableCell>
+                    <TableCell sx={{ color: "#a7f3d0" }}>
+                      <Chip label={log.role} size="small" variant="outlined" color="success" sx={{ fontSize: "0.65rem", py: 0 }} />
+                    </TableCell>
+                    <TableCell sx={{ color: "#e2e8f0" }}>{log.action}: {log.details}</TableCell>
+                    <TableCell sx={{ color: "#94a3b8", fontSize: "0.7rem", fontFamily: "monospace" }}>{log.ipAddress}</TableCell>
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="warning"
+                          onClick={() => {
+                            UserAuditTelemetryService.triggerRechargeWarning(log.userId);
+                            alert(`💳 Recharge Warning Popup Sent to ${log.userName}!`);
+                          }}
+                          sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
+                        >
+                          💳 [चेतावनी दें]
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="error"
+                          onClick={() => {
+                            UserAuditTelemetryService.suspendAccount(log.userId);
+                            alert(`🛑 Account ${log.userName} SUSPENDED/STAYED!`);
+                          }}
+                          sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
+                        >
+                          🛑 [सस्पेंड करें]
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="success"
+                          onClick={() => {
+                            UserAuditTelemetryService.reactivateAccount(log.userId);
+                            alert(`🟢 Account ${log.userName} Reactivated!`);
+                          }}
+                          sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
+                        >
+                          🟢 [एक्टिव करें]
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       {/* ─── SECTION 0: MASTER PARTNER PLAN LAUNCH SWITCHBOARD ─── */}
       <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", borderLeft: "6px solid #7c3aed" }}>
