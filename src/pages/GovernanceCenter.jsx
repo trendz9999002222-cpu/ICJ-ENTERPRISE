@@ -36,6 +36,7 @@ import {
 } from "../services/governanceEngine";
 import ActivityService from "../services/activityService";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
+import StatutoryComplianceService from "../services/statutoryComplianceService.js";
 
 // ─── Helpers ────────────────────────────────────────────────
 function TabPanel({ children, value, index }) {
@@ -267,6 +268,93 @@ export default function GovernanceCenter() {
       </Stack>
 
       {alertMsg && <Alert severity={alertSev} sx={{ mb: 2.5 }}>{alertMsg}</Alert>}
+
+      {/* 📜 1-CLICK GOVERNMENT & STATUTORY COMPLIANCE CONSOLE (SEC 63 BSA, DPDP & GST) */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#0f172a", color: "#fff", borderLeft: "6px solid #10b981" }}>
+        <Typography variant="h6" fontWeight="bold" color="#34d399" gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          📜 1-Click Government & Statutory Compliance Control Console
+        </Typography>
+        <Typography variant="caption" color="#94a3b8" display="block" mb={2}>
+          भारतीय साक्ष्य अधिनियम 2023 धारा 63 प्रमाण पत्र (Sec 65B Certificate), DPDP डेटा प्राइवेसी अधिनियम व जीएसटी (SAC 998311) अनुपालन।
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: "#1e293b", color: "#fff", borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="#60a5fa" gutterBottom>
+                ⚖️ धारा 63 BS Act (Sec 65B Evidence Act) प्रमाण पत्र
+              </Typography>
+              <Typography variant="caption" color="#cbd5e1" display="block" mb={1.5}>
+                कोर्ट केस फाइलों व ऑडियो बयानों हेतु 1-क्लिक इलेक्ट्रॉनिक्स साक्ष्य प्रमाण पत्र जनरेट करें।
+              </Typography>
+              <Button
+                variant="contained"
+                color="info"
+                size="small"
+                fullWidth
+                onClick={() => {
+                  const cert = StatutoryComplianceService.generateSec63Certificate({
+                    documentTitle: "Digital Case Petition File",
+                    fileName: "Signed_Plaint_Dossier_2026.pdf",
+                    sha256Hash: "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+                    clientName: "Ramesh Kumar",
+                    courtName: "High Court of Judicature",
+                  });
+                  alert(cert);
+                }}
+              >
+                📜 [Sec 63 BSA साक्ष्य प्रमाण पत्र जनरेट करें]
+              </Button>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: "#1e293b", color: "#fff", borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="#34d399" gutterBottom>
+                🧾 GST SAC Code 998311 टैक्स अनुपालन
+              </Typography>
+              <Typography variant="caption" color="#cbd5e1" display="block" mb={1.5}>
+                लीगल टेक सर्विसेज (SAC 998311 - 18% GST) की मासिक B2B/B2C टैक्स रिपोर्ट प्राप्त करें।
+              </Typography>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                fullWidth
+                onClick={() => {
+                  const gst = StatutoryComplianceService.getGSTTaxSummary();
+                  alert(`🧾 GST Tax Audit Summary:\n\nSAC Code: ${gst.sacCode}\nStatus: ${gst.complianceStatus}\nTaxable Revenue: ${gst.totalTaxableAmount}\nGST Collected: ${gst.totalGSTCollected}`);
+                }}
+              >
+                🧾 [मासिक GST Audit Report देखें]
+              </Button>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: "#1e293b", color: "#fff", borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="#f59e0b" gutterBottom>
+                ⚖️ Bar Council (BCI) नॉन-सॉलिसिटेशन शील्ड
+              </Typography>
+              <Typography variant="caption" color="#cbd5e1" display="block" mb={1.5}>
+                बार काउंसिल ऑफ इंडिया नियम 36 के अनुसार सॉफ़्टवेयर को 100% आचार-संहिता मुक्त रखना।
+              </Typography>
+              <Button
+                variant="outlined"
+                color="warning"
+                size="small"
+                fullWidth
+                onClick={() => {
+                  const bci = StatutoryComplianceService.getBCIComplianceShield();
+                  alert(`⚖️ BCI Ethics Certificate:\n\nMode: ${bci.complianceMode}\nStatus: ${bci.status}\nDetails: ${bci.details}`);
+                }}
+              >
+                ⚖️ [BCI Ethics Compliance देखें]
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {/* ── Summary Cards ───────────────────────────────────── */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
