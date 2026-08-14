@@ -47,6 +47,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SecurityIcon from "@mui/icons-material/Security";
+import ClientEmpowermentService from "../services/clientEmpowermentService.js";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
