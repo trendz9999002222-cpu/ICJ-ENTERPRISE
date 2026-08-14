@@ -54,6 +54,7 @@ import SystemHealth from "../pages/SystemHealth";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 
 import HelpdeskPortal from "../pages/HelpdeskPortal";
+import LegalCommunityFeed from "../pages/LegalCommunityFeed";
 import PublicOnboarding from "../pages/PublicOnboarding";
 import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import useAuth from "../hooks/useAuth";
@@ -198,6 +199,9 @@ export default function AppRouter() {
         <Route path="/system-health" element={<ProtectedRoute roles={["admin"]}><SystemHealth /></ProtectedRoute>} />
         <Route path="/helpdesk" element={<ProtectedRoute><HelpdeskPortal /></ProtectedRoute>} />
         <Route path="/customer-care" element={<ProtectedRoute><HelpdeskPortal /></ProtectedRoute>} />
+        <Route path="/community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
+        <Route path="/feed" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
+        <Route path="/legal-tribe" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
     </GlobalErrorBoundary>
