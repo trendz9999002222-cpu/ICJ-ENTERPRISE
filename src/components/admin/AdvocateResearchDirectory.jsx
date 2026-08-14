@@ -22,6 +22,8 @@ import MemberService from "../../services/memberService.js";
 import JudiciaryMasterService from "../../services/judiciaryMasterService.js";
 import MemberBatchImporter from "../membership/MemberBatchImporter.jsx";
 import SpecialtyUpgradeModal from "../membership/SpecialtyUpgradeModal.jsx";
+import SafeAccess from "../../utils/safeAccess.js";
+import SchemaValidator from "../../utils/schemaValidator.js";
 
 export default function AdvocateResearchDirectory() {
   const [members, setMembers] = useState([]);
@@ -38,9 +40,11 @@ export default function AdvocateResearchDirectory() {
   const loadMembers = async () => {
     try {
       const data = await MemberService.getAll();
-      setMembers(data || []);
+      const sanitized = SchemaValidator.sanitizeMemberList(data);
+      setMembers(sanitized);
     } catch (e) {
       console.error(e);
+      setMembers([]);
     }
   };
 
@@ -134,7 +138,7 @@ export default function AdvocateResearchDirectory() {
                 <TableCell>
                   <Stack direction="row" spacing={0.5}>
                     {JudiciaryMasterService.formatSpecialtyBadges(m.unlockedSpecialties || ["CRIMINAL_BAIL"]).map((spec, idx) => (
-                      <Chip key={idx} label={`${spec.rankIcon} ${spec.name.split(" ")[0]}`} size="small" color="success" sx={{ fontWeight: 800 }} />
+                      <Chip key={idx} label={`${spec?.rankIcon || "🥇"} ${SafeAccess.splitFirst(spec?.name, " ", "Specialty")}`} size="small" color="success" sx={{ fontWeight: 800 }} />
                     ))}
                   </Stack>
                 </TableCell>

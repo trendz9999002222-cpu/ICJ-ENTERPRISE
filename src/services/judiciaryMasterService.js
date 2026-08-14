@@ -46,7 +46,12 @@ export const JudiciaryMasterService = {
     }
     return specialtyIdsArray.map((id) => {
       const found = CORE_SPECIALTIES.find((s) => s.id === id || s.name === id);
-      return found || { id, name: id, rankIcon: "⚖️" };
+      if (found) return found;
+      return {
+        id: String(id || "SPECIALTY"),
+        name: String(id || "General Practice"),
+        rankIcon: "⚖️",
+      };
     });
   },
 };
