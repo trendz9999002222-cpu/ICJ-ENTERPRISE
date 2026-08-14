@@ -34,8 +34,10 @@ import PaymentIcon from "@mui/icons-material/Payment";
 import ChatIcon from "@mui/icons-material/Chat";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import VideocamIcon from "@mui/icons-material/Videocam";
+import CallIcon from "@mui/icons-material/Call";
 import CameraDocumentScanner from "../components/common/CameraDocumentScanner.jsx";
 import VideoConsultationModal from "../components/common/VideoConsultationModal.jsx";
+import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
 import SendIcon from "@mui/icons-material/Send";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -140,9 +142,10 @@ export default function ClientPortal() {
   // Appointments list
   const [appointments, setAppointments] = useState([]);
 
-  // Camera Document Scanner & Video Consultation Modal State
+  // Camera Document Scanner & Video/Audio Consultation Modal State
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [audioModalOpen, setAudioModalOpen] = useState(false);
 
   // AI Consultation & Case Diagnosis State
   const [aiCaseCat, setAiCaseCat] = useState("CRIMINAL_FIR");
@@ -556,6 +559,25 @@ export default function ClientPortal() {
               }}
             >
               📹 Video Call
+            </Button>
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<CallIcon />}
+              onClick={() => setAudioModalOpen(true)}
+              sx={{
+                fontWeight: "bold",
+                background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                boxShadow: "0 4px 14px rgba(139, 92, 246, 0.4)",
+                color: "#fff",
+                textTransform: "none",
+                borderRadius: 2,
+                px: 1.8,
+                "&:hover": { opacity: 0.95 },
+              }}
+            >
+              📞 Voice Call
             </Button>
 
             <Button variant="outlined" size="small" startIcon={<UploadFileIcon />} onClick={() => setOpenDocUploadModal(true)}>
@@ -2305,6 +2327,16 @@ export default function ClientPortal() {
         onClose={() => setVideoModalOpen(false)}
         advocateName="Adv. Vikramaditya Singh"
         advocateRole="Assigned Senior Advocate"
+        clientName={clientName}
+      />
+
+      {/* ─── ENCRYPTED VOICE AUDIO CONSULTATION MODAL ───────────────────────── */}
+      <AudioConsultationModal
+        open={audioModalOpen}
+        onClose={() => setAudioModalOpen(false)}
+        advocateName="Adv. Vikramaditya Singh"
+        advocateRole="Assigned Senior Advocate"
+        clientName={clientName}
       />
     </MainLayout>
   );

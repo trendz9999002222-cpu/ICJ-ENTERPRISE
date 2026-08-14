@@ -19,14 +19,20 @@ import CallEndIcon from "@mui/icons-material/CallEnd";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import SecurityIcon from "@mui/icons-material/Security";
 import CloseIcon from "@mui/icons-material/Close";
+import PrintIcon from "@mui/icons-material/Print";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import Paper from "@mui/material/Paper";
+import ConsultationRecordingService from "../../services/consultationRecordingService.js";
 
-export default function VideoConsultationModal({ open, onClose, advocateName = "Adv. Vikramaditya Singh", advocateRole = "Assigned Senior Advocate" }) {
+export default function VideoConsultationModal({ open, onClose, advocateName = "Adv. Vikramaditya Singh", advocateRole = "Assigned Senior Advocate", clientName = "Ramesh Kumar" }) {
   const localVideoRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [micActive, setMicActive] = useState(true);
   const [videoActive, setVideoActive] = useState(true);
   const [callDuration, setCallDuration] = useState(0);
   const [snapshotTaken, setSnapshotTaken] = useState(false);
+  const [callEnded, setCallEnded] = useState(false);
+  const [aiSummary, setAiSummary] = useState(null);
 
   useEffect(() => {
     let durationTimer;
@@ -92,6 +98,20 @@ export default function VideoConsultationModal({ open, onClose, advocateName = "
 
   const handleEndCall = () => {
     stopVideo();
+    setCallEnded(true);
+    const summary = ConsultationRecordingService.deduplicateAndSummarize(
+      "Client states property boundary dispute started 12-May-2026. Opposite party filed injunction suit. Advocate advised counter affidavit within 7 days. Client title deeds ready.",
+      clientName,
+      advocateName
+    );
+    setAiSummary(summary);
+  };
+
+  const handleCloseAll = () => {
+    stopVideo();
+    setCallEnded(false);
+    setAiSummary(null);
+    setCallDuration(0);
     onClose();
   };
 
