@@ -73,6 +73,26 @@ export const SecurityShield = {
         "color: #ef4444; font-size: 12px; font-weight: bold;"
       );
     } catch {}
+
+    // 4. Automatic 15-Minute Inactivity Session Lock
+    let inactivityTimer;
+    const resetTimer = () => {
+      clearTimeout(inactivityTimer);
+      // 15 Minutes Inactivity Lock (900,000 ms)
+      inactivityTimer = setTimeout(() => {
+        const isAuth = localStorage.getItem("icj_auth_user");
+        if (isAuth) {
+          localStorage.removeItem("icj_auth_user");
+          console.warn("🔒 SECURITY LOCKDOWN: Session locked due to 15-minute inactivity.");
+          window.location.reload();
+        }
+      }, 15 * 60 * 1000);
+    };
+
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keypress", resetTimer);
+    window.addEventListener("click", resetTimer);
+    resetTimer();
   },
 
   triggerSecurityAlert(reason) {
