@@ -92,6 +92,7 @@ function SecretField({ label, value, onChange, placeholder }) {
       type={show ? "text" : "password"}
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
+      autoComplete="new-password"
       placeholder={placeholder}
       InputProps={{
         endAdornment: (

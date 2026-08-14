@@ -237,6 +237,7 @@ export default function Login() {
               value={form.email}
               onChange={onChange}
               required
+              autoComplete="off"
               placeholder="yourname@gmail.com"
               sx={{ mb: 2 }}
               helperText="वही Email डालें जो Registration के समय दी थी"
@@ -249,6 +250,7 @@ export default function Login() {
               value={form.password}
               onChange={onChange}
               required
+              autoComplete="new-password"
               sx={{ mb: 3 }}
               InputProps={{
                 endAdornment: (
