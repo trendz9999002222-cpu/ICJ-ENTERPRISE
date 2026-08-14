@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import MobileBottomNav from "../components/MobileBottomNav";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
+import FloatingInAppBackButton from "../components/common/FloatingInAppBackButton";
 
 function MainLayout({ children }) {
   return (
@@ -35,6 +36,9 @@ function MainLayout({ children }) {
           </GlobalErrorBoundary>
         </Box>
         <MobileBottomNav />
+
+        {/* UNIVERSAL FLOATING IN-APP BACK NAVIGATION BUTTON — FLOATING ON ALL 52 PAGES */}
+        <FloatingInAppBackButton />
 
         <Box
           component="footer"
