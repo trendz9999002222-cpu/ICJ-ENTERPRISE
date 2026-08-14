@@ -26,6 +26,7 @@ import BlockIcon from "@mui/icons-material/Block";
 import DownloadIcon from "@mui/icons-material/Download";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
