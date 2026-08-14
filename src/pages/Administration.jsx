@@ -632,7 +632,7 @@ export default function Administration() {
               📊 Enterprise Access Audit, IP Telemetry & 1-Click Account Suspension Control
             </Typography>
             <Typography variant="caption" color="#94a3b8" display="block">
-              किस यूजर ने कब, किस मोबाइल/IP से लॉगिन किया। अत्यधिक उपयोग या दुरुपयोग पर यहाँ से 1-क्लिक में रीचार्ज चेतावनी भेजें या खाता सस्पेंड करें।
+              Audit log tracking user session logins, device fingerprints, and IP telemetry. Issue recharge warnings or suspend access in 1 click.
             </Typography>
           </Box>
           <Button
@@ -641,11 +641,11 @@ export default function Administration() {
             size="small"
             onClick={async () => {
               const res = await SystemPurgeAndSimulateScript.runFull5DimensionAudit();
-              alert(`🔬 Google/Microsoft Grade 5-Dimension Audit Passed! All 5 Dimensions 100% Verified Clean!`);
+              alert(`🔬 5-Dimension Security Audit Passed! All 5 Dimensions 100% Verified Clean.`);
             }}
             sx={{ fontWeight: "bold" }}
           >
-            🔬 5-Dimension Big-Tech Audit टेस्ट चलाएं
+            🔬 Run 5-Dimension Security Audit
           </Button>
         </Stack>
 
@@ -653,13 +653,13 @@ export default function Administration() {
           <Table size="small">
             <TableHead sx={{ bgcolor: "#334155" }}>
               <TableRow>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>समय / तारीख</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>यूजर का नाम व आईडी</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>मोबाइल नंबर</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>रोल</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>एक्शन व विवरण</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>IP / डिवाइस</TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>खाता स्थिति व 1-क्लिक ऐक्शन्स</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Timestamp</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>User Identity & ID</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Mobile Contact</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Role</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Action & Telemetry</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>IP / Device</TableCell>
+                <TableCell sx={{ color: "#94a3b8", fontWeight: "bold" }}>Account Status & Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -669,7 +669,7 @@ export default function Administration() {
                 return (
                   <TableRow key={log.id} hover sx={{ "&:hover": { bgcolor: "#334155 !important" } }}>
                     <TableCell sx={{ color: "#cbd5e1", fontSize: "0.75rem" }}>
-                      {new Date(log.timestamp).toLocaleString("hi-IN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
+                      {new Date(log.timestamp).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
                     </TableCell>
                     <TableCell sx={{ color: "#f8fafc", fontWeight: "bold" }}>{log.userName}</TableCell>
                     <TableCell sx={{ color: "#60a5fa" }}>{log.userPhone}</TableCell>
@@ -690,7 +690,7 @@ export default function Administration() {
                           }}
                           sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
                         >
-                          💳 [चेतावनी दें]
+                          💳 Warn User
                         </Button>
                         <Button
                           size="small"
@@ -698,11 +698,11 @@ export default function Administration() {
                           color="error"
                           onClick={() => {
                             UserAuditTelemetryService.suspendAccount(log.userId);
-                            alert(`🛑 Account ${log.userName} SUSPENDED/STAYED!`);
+                            alert(`🛑 Account ${log.userName} SUSPENDED!`);
                           }}
                           sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
                         >
-                          🛑 [सस्पेंड करें]
+                          🛑 Suspend
                         </Button>
                         <Button
                           size="small"
@@ -714,7 +714,7 @@ export default function Administration() {
                           }}
                           sx={{ fontSize: "0.65rem", py: 0.2, px: 0.8 }}
                         >
-                          🟢 [एक्टिव करें]
+                          🟢 Activate
                         </Button>
                       </Stack>
                     </TableCell>
@@ -935,19 +935,19 @@ export default function Administration() {
               <Stack spacing={1}>
                 <FormControlLabel
                   control={<Switch defaultChecked color="primary" />}
-                  label="🤝 Advocate Appointment Authority (वकील नियुक्त करने का अधिकार)"
+                  label="🤝 Advocate Appointment Authority"
                 />
                 <FormControlLabel
                   control={<Switch defaultChecked color="secondary" />}
-                  label="🎁 Credit Grant Authority (मुफ़्त AI क्रेडिट देने का अधिकार)"
+                  label="🎁 AI Credit Grant Authority"
                 />
                 <FormControlLabel
                   control={<Switch defaultChecked color="success" />}
-                  label="🏢 Franchise Approval Authority (फ़्रैंचाइज़ी एक्शन लेने का अधिकार)"
+                  label="🏢 Franchise Governance Authority"
                 />
                 <FormControlLabel
                   control={<Switch color="warning" />}
-                  label="🛡️ Sub-Admin Re-Delegation Authority (आगे पावर देने का अधिकार)"
+                  label="🛡️ Sub-Admin Power Re-Delegation"
                 />
               </Stack>
             </Paper>

@@ -25,7 +25,7 @@ export default function ProtectedRoute({ children, roles = [] }) {
     console.warn("Guest Admin session has expired!");
     // Auto logout
     AuthService.logout && AuthService.logout();
-    alert("आपका गेस्ट एडमिन सत्र (Session) समाप्त हो चुका है।");
+    alert("Your Guest Admin session has expired. Please sign in again.");
     return <Navigate to="/login" replace />;
   }
 

@@ -302,10 +302,10 @@ export default function VoiceCommentaryStudio({
       <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} mb={1.5}>
         <Box>
           <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            🎙️ Voice Commentary Studio (वॉयस रिकॉर्डिंग)
+            🎙️ Voice Commentary Studio
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            बोलकर क्लिप रिकॉर्ड करें — रिकॉर्डिंग बंद होने पर आटोमैटिक टाइपिंग आपके बॉक्स में आ जाएगी। (अधिकतम 60 सेकंड प्रति क्लिप)
+            Speak to record clips — Automatic transcription occurs upon completion. (Max 60 seconds per clip)
           </Typography>
         </Box>
 
@@ -374,7 +374,7 @@ export default function VoiceCommentaryStudio({
       {voiceNotesList.length > 0 && (
         <Paper variant="outlined" sx={{ p: 1.5, mb: 1.5, bgcolor: "#f0fdf4", borderColor: "#bbf7d0", borderRadius: 1 }}>
           <Typography variant="caption" fontWeight="bold" color="#166534" gutterBottom sx={{ display: "block", mb: 1 }}>
-            📁 Saved Voice Files (प्लेलिस्ट):
+            📁 Saved Voice Files:
           </Typography>
           <Stack spacing={1}>
             {voiceNotesList.map((note) => (
@@ -406,7 +406,7 @@ export default function VoiceCommentaryStudio({
                       onClick={() => {
                         const txt = (note.transcript || "").trim();
                         if (!txt) {
-                          alert("वॉयस ट्रांसक्रिप्शन खाली है। कृपया सुनिश्चित करें कि आपने माइक को अनुमति दी है और आवाज़ रिकॉर्ड की है।");
+                          alert("Transcription is empty. Please verify microphone access and input.");
                           return;
                         }
                         const existing = valueRef.current ? valueRef.current.trim() : "";
@@ -416,7 +416,7 @@ export default function VoiceCommentaryStudio({
                       }}
                       sx={{ fontWeight: "bold", fontSize: "0.7rem", py: 0.4 }}
                     >
-                      Convert to Text / यहाँ टाइप करें
+                      Convert to Text
                     </Button>
 
                     <IconButton size="small" color="error" onClick={() => deleteVoiceNote(note.id)}>
@@ -444,14 +444,14 @@ export default function VoiceCommentaryStudio({
                 AntigravityVoiceAIEngine.stopSpeech();
                 setIsPlayingTTS(false);
               } else {
-                const textToRead = value.trim() || "कृपया पहले बॉक्स में कुछ टाइप करें या बोलकर दर्ज करें।";
+                const textToRead = value.trim() || "Please input text first.";
                 setIsPlayingTTS(true);
                 AntigravityVoiceAIEngine.speakText(textToRead, () => setIsPlayingTTS(false));
               }
             }}
             sx={{ fontWeight: "bold" }}
           >
-            {isPlayingTTS ? "⏸️ 🔊 सुनावना बंद करें (Stop Reader)" : "🔊 आवाज़ सुनाएं (Listen Speech)"}
+            {isPlayingTTS ? "⏸️ Stop Reader" : "🔊 Read Aloud"}
           </Button>
 
           {/* Antigravity AI Refine & Analyze Button */}
@@ -463,7 +463,7 @@ export default function VoiceCommentaryStudio({
             startIcon={<AutoAwesomeIcon />}
             onClick={async () => {
               if (!value.trim()) {
-                alert("कृपया पहले समस्या या केस विवरण दर्ज करें।");
+                alert("Please enter case details before analysis.");
                 return;
               }
               setIsRefiningAI(true);
@@ -479,7 +479,7 @@ export default function VoiceCommentaryStudio({
             }}
             sx={{ fontWeight: "bold", background: "linear-gradient(90deg, #7c3aed 0%, #4f46e5 100%)" }}
           >
-            {isRefiningAI ? "🤖 AI विश्लेषण जारी है..." : "🤖 AI Legal Auto-Correct & Refine"}
+            {isRefiningAI ? "🤖 Analyzing..." : "🤖 AI Legal Refine"}
           </Button>
         </Stack>
 
@@ -492,7 +492,7 @@ export default function VoiceCommentaryStudio({
           startIcon={<CleaningServicesIcon />}
           onClick={() => {
             if (value.trim()) {
-              if (!window.confirm("क्या आप वाकई इस बॉक्स के विवरण को साफ़ (Clear) करना चाहते हैं?")) {
+              if (!window.confirm("Clear all content from the editor?")) {
                 return;
               }
             }
@@ -502,7 +502,7 @@ export default function VoiceCommentaryStudio({
           }}
           sx={{ fontWeight: "bold" }}
         >
-          🧹 Clear / Reset Box
+          🧹 Clear All
         </Button>
       </Stack>
 
@@ -511,7 +511,7 @@ export default function VoiceCommentaryStudio({
         <Paper variant="outlined" sx={{ p: 2, mt: 1.5, bgcolor: "#faf5ff", borderColor: "#c084fc", borderRadius: 2 }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
             <Typography variant="subtitle2" fontWeight="bold" color="#6b21a8" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              ✨ Antigravity AI Legal Analysis & Restructured Pleading
+              ✨ AI Legal Analysis
             </Typography>
             <Chip label={aiAnalysisResult.legalCategory} color="secondary" size="small" sx={{ fontWeight: "bold" }} />
           </Stack>
@@ -520,7 +520,7 @@ export default function VoiceCommentaryStudio({
           </Typography>
           {aiAnalysisResult.suggestedIPCSections?.length > 0 && (
             <Stack direction="row" spacing={1} mt={1.5} alignItems="center">
-              <Typography variant="caption" fontWeight="bold" color="#6b21a8">अनुशंसित धाराएं:</Typography>
+              <Typography variant="caption" fontWeight="bold" color="#6b21a8">Suggested Statutes:</Typography>
               {aiAnalysisResult.suggestedIPCSections.map((sec) => (
                 <Chip key={sec} label={sec} color="primary" size="small" variant="outlined" />
               ))}
