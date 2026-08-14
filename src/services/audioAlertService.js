@@ -8,6 +8,8 @@
 class AudioAlertService {
   constructor() {
     this.audioCtx = null;
+    this.loopInterval = null;
+    this.isLooping = false;
   }
 
   initAudioContext() {
@@ -20,6 +22,55 @@ class AudioAlertService {
     if (this.audioCtx && this.audioCtx.state === "suspended") {
       this.audioCtx.resume();
     }
+  }
+
+  /**
+   * Check if Continuous Emergency Siren Loop is Currently Running
+   */
+  isLoopingActive() {
+    return Boolean(this.isLooping);
+  }
+
+  /**
+   * Start Continuous Emergency Siren Audio Loop (Rings until stopContinuousLoop is called)
+   */
+  startContinuousLoop() {
+    if (this.isLooping) return;
+    this.isLooping = true;
+    this.playSLAWarningChime();
+
+    this.loopInterval = setInterval(() => {
+      if (this.isLooping) {
+        this.playSLAWarningChime();
+      } else {
+        this.stopContinuousLoop();
+      }
+    }, 1800);
+  }
+
+  /**
+   * Stop Continuous Emergency Siren Audio Loop
+   */
+  stopContinuousLoop() {
+    this.isLooping = false;
+    if (this.loopInterval) {
+      clearInterval(this.loopInterval);
+      this.loopInterval = null;
+    }
+  }
+
+  /**
+   * Play Double Beep Chime (High Priority Alert)
+   */
+  playBeepSound() {
+    this.playSLAWarningChime();
+  }
+
+  /**
+   * Play Gentle Single Chime (Routine Info)
+   */
+  playGentleChime() {
+    this.playNewMemberChime();
   }
 
   /**
