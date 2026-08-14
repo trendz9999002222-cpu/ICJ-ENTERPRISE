@@ -4,6 +4,7 @@ import {
   updateMember,
   deleteMember,
 } from "./database.js";
+import SeedEcosystemService from "./seedEcosystemService.js";
 
 const VALID_STATUSES = [
   "Draft",
@@ -140,7 +141,11 @@ export const MemberService = {
   },
 
   async getAll() {
-    return await getMembers();
+    const list = await getMembers();
+    if (!Array.isArray(list) || list.length === 0) {
+      return SeedEcosystemService.get26CoreMembers();
+    }
+    return list;
   },
 
   async create(member) {

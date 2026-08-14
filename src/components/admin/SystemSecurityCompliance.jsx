@@ -31,6 +31,7 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 
 import AuthService from "../../services/authService.js";
 import LegalGovernanceService from "../../services/legalGovernanceService.js";
+import SeedEcosystemService from "../../services/seedEcosystemService.js";
 
 export default function SystemSecurityCompliance() {
   const [users, setUsers] = useState([]);
@@ -124,15 +125,33 @@ export default function SystemSecurityCompliance() {
             </Box>
           </Stack>
 
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PersonAddIcon />}
-            onClick={() => setCreateOpen(true)}
-            sx={{ fontWeight: 800, py: 1.2, px: 2.5 }}
-          >
-            ➕ Create New Admin / Role
-          </Button>
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={() => {
+                if (window.confirm("Execute Master Reset & Re-hydrate 26 Core Master Members? (Temporary data will clear, 26 Core Members remain 100% intact)")) {
+                  SeedEcosystemService.resetAndHydrate26CoreMembers();
+                  setStatusMsg("⚡ Successfully Executed Master Reset & Re-hydrated 26 Core Ecosystem Members!");
+                  loadUsers();
+                  setTimeout(() => setStatusMsg(""), 4000);
+                }
+              }}
+              sx={{ fontWeight: 800, py: 1.2, px: 2 }}
+            >
+              🔄 Reset & Auto-Hydrate 26 Core Members
+            </Button>
+
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setCreateOpen(true)}
+              sx={{ fontWeight: 800, py: 1.2, px: 2.5 }}
+            >
+              ➕ Create New Admin / Role
+            </Button>
+          </Stack>
         </Stack>
       </Paper>
 
