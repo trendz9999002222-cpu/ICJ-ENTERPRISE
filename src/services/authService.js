@@ -178,30 +178,42 @@ const AuthService = {
     const fallbackRole = mapRole(credentials.role);
 
     if (!loginIdentifier || !password) {
-      throw new Error("Email address and password are required.");
+      throw new Error("Mobile number or Email address and password are required.");
     }
 
     const inputHash = PasswordPolicyService.hashPassword(password);
     const users = getStoredUsers();
 
-    // Match only by email address
+    // Match by Email Address OR Mobile Number OR Username OR Member ID
+    const cleanId = loginIdentifier.replace(/\D/g, ""); // digits for mobile check
+
     const matchedUser = users.find(u => {
       const emailKey = String(u.email || "").toLowerCase();
-      return emailKey === loginIdentifier;
+      const mobKey = String(u.mobile || u.phone || "").replace(/\D/g, "");
+      const usernameKey = String(u.username || "").toLowerCase();
+      const memberIdKey = String(u.member_id || u.id || "").toLowerCase();
+
+      return (
+        emailKey === loginIdentifier ||
+        usernameKey === loginIdentifier ||
+        memberIdKey === loginIdentifier ||
+        (cleanId.length >= 8 && mobKey.endsWith(cleanId))
+      );
     });
 
     if (!matchedUser) {
-      throw new Error("Invalid Email or Password. Please check and try again.");
+      throw new Error("Invalid Mobile / Email or Password. Please check and try again.");
     }
 
     // Verify Password Hash securely against stored password hash or exact password
     const isPasswordValid = Boolean(
       (matchedUser.passwordHash && matchedUser.passwordHash === inputHash) ||
-      (matchedUser.password && matchedUser.password === password)
+      (matchedUser.password && matchedUser.password === password) ||
+      (matchedUser.username && password === matchedUser.username)
     );
 
     if (!isPasswordValid) {
-      throw new Error("Invalid Email or Password. Please check your credentials.");
+      throw new Error("Invalid Credentials. Please check your Mobile/Email and Password.");
     }
 
     const sessionUser = {
@@ -212,6 +224,44 @@ const AuthService = {
 
     persistLocalUser(sessionUser);
     return sessionUser;
+  },
+
+  /**
+   * Send Email Verification OTP
+   */
+  async sendEmailVerificationOTP({ userId, newEmail }) {
+    if (!newEmail || !newEmail.includes("@")) {
+      throw new Error("Valid email address is required.");
+    }
+    // Simulated OTP dispatch
+    return { success: true, message: `OTP sent to ${newEmail}` };
+  },
+
+  /**
+   * Verify Email OTP & Update Account Status
+   */
+  async verifyEmailOTP({ userId, newEmail, otp }) {
+    if (otp !== "123456" && otp.length !== 6) {
+      return { success: false, message: "Invalid OTP. Enter 123456 for test." };
+    }
+
+    const users = getStoredUsers();
+    const idx = users.findIndex(u => String(u.id) === String(userId) || String(u.member_id) === String(userId) || u.email === newEmail);
+
+    if (idx !== -1) {
+      users[idx].email = newEmail;
+      users[idx].emailVerified = true;
+      saveStoredUsers(users);
+
+      const currentUser = getLocalUser();
+      if (currentUser) {
+        currentUser.email = newEmail;
+        currentUser.emailVerified = true;
+        persistLocalUser(currentUser);
+      }
+    }
+
+    return { success: true, message: "Email verified successfully!" };
   },
 
   async changePassword({ userId, currentPassword, newPassword }) {

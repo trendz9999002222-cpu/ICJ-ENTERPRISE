@@ -233,16 +233,16 @@ export default function Login() {
           <>
             <TextField
               fullWidth
-              label="Email Address"
+              label="Registered Mobile Number or Email Address"
               name="email"
-              type="email"
+              type="text"
               value={form.email}
               onChange={onChange}
               required
               autoComplete="off"
-              placeholder="yourname@gmail.com"
+              placeholder="Enter Mobile (+91) or Email (e.g. 9876543210 or user@icj.law)"
               sx={{ mb: 2 }}
-              helperText="वही Email डालें जो Registration के समय दी थी"
+              helperText="मोबाइल नंबर या Email दोनों में से कुछ भी डालकर लॉगिन करें"
             />
             <TextField
               fullWidth

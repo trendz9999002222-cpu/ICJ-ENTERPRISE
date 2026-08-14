@@ -38,6 +38,7 @@ import ProfileTabs from "../components/memberprofile/ProfileTabs";
 import PersonalInfo from "../components/memberprofile/PersonalInfo";
 import AddressCard from "../components/memberprofile/AddressCard";
 import MembershipCard from "../components/memberprofile/MembershipCard";
+import EmailVerificationStudio from "../components/common/EmailVerificationStudio.jsx";
 import KYCCard from "../components/memberprofile/KYCCard";
 import ProfessionalCard from "../components/memberprofile/ProfessionalCard";
 import LegalCasesCard from "../components/memberprofile/LegalCasesCard";
@@ -305,6 +306,11 @@ export default function MemberProfile() {
 								✏️ Edit Profile
 							</Button>
 						</Stack>
+					</Grid>
+
+					{/* POST-LOGIN EMAIL SELF-CORRECTION & VERIFICATION WIDGET */}
+					<Grid item xs={12}>
+						<EmailVerificationStudio user={current} onUpdateUser={(updated) => setSelected(updated.id)} />
 					</Grid>
 
 					{/* DYNAMIC SECTION TABS */}
