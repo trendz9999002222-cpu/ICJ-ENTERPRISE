@@ -2245,9 +2245,12 @@ export default function ClientPortal() {
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 0.5 }}>
               <Grid item xs={12}>
-                <TextField select fullWidth label="Select Advocate" value={aptForm.advocateName} onChange={(e) => setAptForm({ ...aptForm, advocateName: e.target.value })}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: "#1e293b", display: "block", mb: 0.3, fontSize: "0.75rem" }}>
+                  ⚖️ Select Advocate & Legal Counsel:
+                </Typography>
+                <TextField select fullWidth value={aptForm.advocateName} onChange={(e) => setAptForm({ ...aptForm, advocateName: e.target.value })} size="small" sx={{ bgcolor: "#ffffff", borderRadius: 1 }}>
                   {advocates.map((a) => (
-                    <MenuItem key={a.id} value={a.name}>
+                    <MenuItem key={a.id} value={a.name} sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
                       {a.name} ({a.specialization || "Empaneled Counsel"})
                     </MenuItem>
                   ))}

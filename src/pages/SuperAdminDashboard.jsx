@@ -222,27 +222,31 @@ export default function SuperAdminDashboard() {
               </Box>
 
               <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                <TextField
-                  select
-                  size="small"
-                  label="Select Advocate"
-                  value={selectedAdvocateId}
-                  onChange={(e) => setSelectedAdvocateId(e.target.value)}
-                  sx={{ bgcolor: "#fff", borderRadius: 1, minWidth: 200, maxWidth: "100%" }}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        sx: { maxWidth: 360, overflowX: "hidden" }
+                <Box>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: "#fcd34d", display: "block", mb: 0.3, fontSize: "0.72rem" }}>
+                    ⚖️ Select Empaneled Advocate:
+                  </Typography>
+                  <TextField
+                    select
+                    size="small"
+                    value={selectedAdvocateId}
+                    onChange={(e) => setSelectedAdvocateId(e.target.value)}
+                    sx={{ bgcolor: "#ffffff", borderRadius: 1, minWidth: 220, maxWidth: "100%", "& .MuiSelect-select": { py: 0.6, fontWeight: 800, color: "#0f172a" } }}
+                    SelectProps={{
+                      MenuProps: {
+                        PaperProps: {
+                          sx: { maxWidth: 360, overflowX: "hidden" }
+                        }
                       }
-                    }
-                  }}
-                >
-                  <MenuItem value="26ICJ08AA0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
-                  <MenuItem value="26ICJ08AA0106" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Meenakshi Sundaram (AoR SC)</MenuItem>
-                  <MenuItem value="26ICJ08AA0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
-                  <MenuItem value="26ICJ08AA0108" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Ananya Roy (WB HC)</MenuItem>
-                  <MenuItem value="26ICJ08AA0109" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Gurpreet Singh (Punjab HC)</MenuItem>
-                </TextField>
+                    }}
+                  >
+                    <MenuItem value="26ICJ08AA0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
+                    <MenuItem value="26ICJ08AA0106" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Meenakshi Sundaram (AoR SC)</MenuItem>
+                    <MenuItem value="26ICJ08AA0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
+                    <MenuItem value="26ICJ08AA0108" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Ananya Roy (WB HC)</MenuItem>
+                    <MenuItem value="26ICJ08AA0109" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Gurpreet Singh (Punjab HC)</MenuItem>
+                  </TextField>
+                </Box>
 
                 <Button
                   variant="contained"
