@@ -217,7 +217,7 @@ export default function SuperAdminDashboard() {
                   Applicant: {popupAlert.name} ({popupAlert.memberId})
                 </Typography>
                 <Typography variant="caption" color="#94a3b8" display="block">
-                  Purpose: {popupAlert.purpose} | Registered At: {new Date(popupAlert.registeredAt).toLocaleTimeString()}
+                  Purpose: {popupAlert.purpose} | Registered At: {new Date(popupAlert.registeredAt).toLocaleTimeString()} | <strong>Routed To: 2 Active Admins (Super Admin & Ops Desk)</strong>
                 </Typography>
               </Box>
 

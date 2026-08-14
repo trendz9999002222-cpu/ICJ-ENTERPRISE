@@ -30,9 +30,15 @@ export const PushNotificationService = {
     }
   },
 
-  async sendBackgroundPush({ title, body, url = "/super-admin-dashboard" }) {
+  async sendBackgroundPush({ title, body, eventType = "NEW_MEMBER_JOINED", url = "/super-admin-dashboard" }) {
     try {
-      // 1. Play Web Audio Bell Chime through browser speaker
+      // 1. Check Notification Routing Divert rules and active Admin recipients
+      import("./notificationRoutingService.js").then((mod) => {
+        const nrs = mod.default || mod.NotificationRoutingService;
+        nrs.broadcastEventDivert(eventType, { title, body, url });
+      });
+
+      // 2. Play Web Audio Bell Chime through browser speaker
       import("./audioAlertService.js").then((mod) => {
         const audio = mod.default || mod.audioAlertService;
         audio.playNewMemberChime();

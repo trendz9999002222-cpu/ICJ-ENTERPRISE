@@ -643,6 +643,74 @@ export default function Administration() {
               Audit log tracking user session logins, device fingerprints, and IP telemetry. Issue recharge warnings or suspend access in 1 click.
             </Typography>
           </Box>
+        </Stack>
+      </Paper>
+
+      {/* ─── SECTION: MULTI-ADMIN NOTIFICATION ROUTING & DIVERT CONTROL CENTER ─── */}
+      <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, mb: 4, borderRadius: 3, bgcolor: "#001e3c", color: "#fff", borderLeft: "6px solid #00b0ff" }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="#38bdf8" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              🔔 Multi-Admin Notification Routing & Divert Control Center (Super Admin Recipient Rights)
+            </Typography>
+            <Typography variant="caption" color="#94a3b8" display="block">
+              Super Admin Rights: Select which specific Admins & Staff Members receive instant Push Notifications, Audio Bell Chimes, and SMS Alerts on their devices when members join or SLA events occur.
+            </Typography>
+          </Box>
+          <Chip label="👑 Super Admin Governance Active" color="primary" size="small" sx={{ fontWeight: "bold" }} />
+        </Stack>
+
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: "#0a192f", color: "#fff", borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="#38bdf8" sx={{ mb: 1 }}>
+                📱 Active Designated Recipient Admins (Check to Divert Alerts)
+              </Typography>
+              <Stack spacing={1}>
+                <FormControlLabel control={<Switch defaultChecked color="info" />} label="👑 ICJ Super Admin (icjsuperadmin1234@icj.org)" />
+                <FormControlLabel control={<Switch defaultChecked color="info" />} label="🛡️ ICJ Operations Admin (icjadmin1234@icj.org)" />
+                <FormControlLabel control={<Switch defaultChecked color="info" />} label="⚖️ Senior Duty Advocate Desk (adv.vikramaditya@icjconsortium.org)" />
+                <FormControlLabel control={<Switch defaultChecked color="info" />} label="📜 Duty Notary & Oath Desk (adv.rajeshwar@icjconsortium.org)" />
+              </Stack>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <Paper variant="outlined" sx={{ p: 2, bgcolor: "#0a192f", color: "#fff", borderRadius: 2 }}>
+              <Typography variant="subtitle2" fontWeight="bold" color="#38bdf8" sx={{ mb: 1 }}>
+                🎯 Event-Wise Notification Routing Toggles
+              </Typography>
+              <Stack spacing={1}>
+                <FormControlLabel control={<Switch defaultChecked color="success" />} label="📝 New Member Registration Alert (NEW_MEMBER_JOINED)" />
+                <FormControlLabel control={<Switch defaultChecked color="warning" />} label="⏱️ 15-Min SLA Timer Expiration Alert (SLA_15MIN_EXPIRATION)" />
+                <FormControlLabel control={<Switch defaultChecked color="error" />} label="⚖️ Urgent Litigant Case Submission (LEGAL_ISSUE_SUBMITTED)" />
+                <FormControlLabel control={<Switch defaultChecked color="secondary" />} label="🚗 Doorstep Notary & Oath Home Visit Request" />
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        <Button
+          variant="contained"
+          color="info"
+          size="small"
+          onClick={() => alert("✅ Notification Routing & Divert Target Preferences Saved! All selected Admins will receive instant alerts.")}
+          sx={{ fontWeight: "bold" }}
+        >
+          💾 Save Notification Divert Rights
+        </Button>
+      </Paper>
+
+      <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, mb: 4, borderRadius: 3, bgcolor: "#0f172a", color: "#fff", borderLeft: "6px solid #ef4444" }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={1}>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="#f87171" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              📊 Enterprise Access Audit, IP Telemetry & 1-Click Account Suspension Control
+            </Typography>
+            <Typography variant="caption" color="#94a3b8" display="block">
+              Audit log tracking user session logins, device fingerprints, and IP telemetry. Issue recharge warnings or suspend access in 1 click.
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             color="secondary"
