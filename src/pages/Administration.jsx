@@ -25,6 +25,9 @@ import {
   FormControlLabel,
   MenuItem,
   Switch,
+  TableContainer,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import SecurityIcon from "@mui/icons-material/Security";
@@ -949,11 +952,11 @@ export default function Administration() {
           🗂️ Canonical Master Data &amp; Suggestions Management
         </Typography>
 
-        <MuiTabs value={mdmTab} onChange={(e, val) => setMdmTab(val)} sx={{ mb: 2 }}>
-          <MuiTab label="Court Forums Master" />
-          <MuiTab label="Legal Specialties Master" />
-          <MuiTab label="Pending Suggestions" />
-        </MuiTabs>
+        <Tabs value={mdmTab} onChange={(e, val) => setMdmTab(val)} sx={{ mb: 2 }}>
+          <Tab label="Court Forums Master" />
+          <Tab label="Legal Specialties Master" />
+          <Tab label="Pending Suggestions" />
+        </Tabs>
 
         {/* Tab 1: Court Forums */}
         {mdmTab === 0 && (
@@ -1066,12 +1069,12 @@ export default function Administration() {
           💼 Client-Advocate Ecosystem &amp; AI Credit Audit Center
         </Typography>
 
-        <MuiTabs value={ecoTab} onChange={(e, val) => setEcoTab(val)} sx={{ mb: 2 }}>
-          <MuiTab label="Active Clients/Members" />
-          <MuiTab label="Empaneled Advocates" />
-          <MuiTab label="Advocate Staff &amp; Permissions" />
-          <MuiTab label="AI Credit Transaction Log" />
-        </MuiTabs>
+        <Tabs value={ecoTab} onChange={(e, val) => setEcoTab(val)} sx={{ mb: 2 }}>
+          <Tab label="Active Clients/Members" />
+          <Tab label="Empaneled Advocates" />
+          <Tab label="Advocate Staff &amp; Permissions" />
+          <Tab label="AI Credit Transaction Log" />
+        </Tabs>
 
         {/* Tab 1: Active Clients */}
         {ecoTab === 0 && (
