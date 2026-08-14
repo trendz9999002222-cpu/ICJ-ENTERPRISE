@@ -460,6 +460,18 @@ export default function PublicOnboarding() {
         console.log("AuthService sync notice:", e.message);
       }
 
+      // Dispatch Background Web Push Notification & Audio Sound Chime to Super Admin
+      try {
+        import("../services/pushNotificationService.js").then((mod) => {
+          const pns = mod.default || mod.PushNotificationService;
+          pns.sendBackgroundPush({
+            title: "🔔 New Member Registered!",
+            body: `Applicant ${finalMember.fullName} (ID: ${finalMember.member_id || finalMember.id}) registered — Assign Advocate Now (15m SLA)`,
+            url: "/super-admin-dashboard",
+          });
+        });
+      } catch (e) {}
+
       // Auto-authenticate newly onboarded member session into local storage and auth context
       persistLocalUser(finalMember);
       if (setSessionUser) {
