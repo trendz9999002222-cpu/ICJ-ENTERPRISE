@@ -99,22 +99,24 @@ function FeatureControlCenter() {
           {Object.values(globalFlags).map((flag) => (
             <Grid item xs={12} sm={6} md={4} key={flag.id}>
               <Paper
+                elevation={2}
                 sx={{
                   p: 2,
-                  bgcolor: flag.enabled ? "#1e293b" : "#450a0a",
-                  border: flag.enabled ? "1px solid #3b82f6" : "1px solid #ef4444",
-                  borderRadius: 2,
+                  bgcolor: flag.enabled ? "#ffffff" : "#fef2f2",
+                  border: flag.enabled ? "2px solid #cbd5e1" : "2px solid #fca5a5",
+                  borderRadius: 2.5,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 }}
               >
                 <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" fontWeight={800} color="#fcd34d" sx={{ fontSize: "0.88rem" }}>
+                  <Typography variant="body2" fontWeight={800} color="#0f172a" sx={{ fontSize: "0.92rem" }}>
                     {flag.name}
                   </Typography>
                   <Chip
                     label={flag.enabled ? "GLOBAL ON" : "GLOBAL OFF"}
                     size="small"
                     sx={{
-                      bgcolor: flag.enabled ? "#10b981" : "#ef4444",
+                      bgcolor: flag.enabled ? "#059669" : "#dc2626",
                       color: "#ffffff",
                       fontWeight: 800,
                       fontSize: "0.68rem",
@@ -122,7 +124,7 @@ function FeatureControlCenter() {
                   />
                 </Stack>
 
-                <Typography variant="caption" color="#ffffff" sx={{ display: "block", mt: 1, minHeight: 36, fontWeight: 600, fontSize: "0.78rem", lineHeight: 1.3 }}>
+                <Typography variant="caption" color="#334155" sx={{ display: "block", mt: 1, minHeight: 38, fontWeight: 600, fontSize: "0.82rem", lineHeight: 1.35 }}>
                   {flag.description}
                 </Typography>
 
@@ -131,15 +133,15 @@ function FeatureControlCenter() {
                     <Switch
                       checked={Boolean(flag.enabled)}
                       onChange={() => handleGlobalToggle(flag.id, flag.enabled)}
-                      color="primary"
+                      color="success"
                     />
                   }
                   label={
-                    <Typography variant="caption" fontWeight={800} color={flag.enabled ? "#6ee7b7" : "#fca5a5"} sx={{ fontSize: "0.78rem" }}>
-                      {flag.enabled ? "Service Active" : "Service Disabled"}
+                    <Typography variant="caption" fontWeight={800} color={flag.enabled ? "#047857" : "#b91c1c"} sx={{ fontSize: "0.82rem" }}>
+                      {flag.enabled ? "Service Active (चालू)" : "Service Disabled (बंद)"}
                     </Typography>
                   }
-                  sx={{ mt: 1, "& .MuiFormControlLabel-label": { color: flag.enabled ? "#6ee7b7" : "#fca5a5", fontWeight: 800 } }}
+                  sx={{ mt: 1, "& .MuiFormControlLabel-label": { color: flag.enabled ? "#047857" : "#b91c1c", fontWeight: 800 } }}
                 />
               </Paper>
             </Grid>
