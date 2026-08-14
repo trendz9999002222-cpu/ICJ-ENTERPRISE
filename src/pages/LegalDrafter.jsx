@@ -508,6 +508,59 @@ export default function LegalDrafter() {
                             onBlur={(e) => handleSaveAnswer(q.fieldKey, e.target.value)}
                             multiline={q.inputType === "textarea"}
                             rows={q.inputType === "textarea" ? 3 : 1}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <Stack direction="row" spacing={0.5}>
+                                    <Button
+                                      size="small"
+                                      sx={{ minWidth: 0, p: 0.5, fontSize: "1rem" }}
+                                      title="Listen to question"
+                                      onClick={() => {
+                                        if ('speechSynthesis' in window) {
+                                          window.speechSynthesis.cancel();
+                                          const utterance = new SpeechSynthesisUtterance(q.question);
+                                          utterance.lang = 'hi-IN'; // hindi/english bilingual support
+                                          window.speechSynthesis.speak(utterance);
+                                        } else {
+                                          alert("Speech synthesis not supported in this browser.");
+                                        }
+                                      }}
+                                    >
+                                      🔊
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      sx={{ minWidth: 0, p: 0.5, fontSize: "1rem" }}
+                                      title="Speak answer"
+                                      onClick={() => {
+                                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                                        if (SpeechRec) {
+                                          const rec = new SpeechRec();
+                                          rec.lang = 'hi-IN'; // hindi/english input
+                                          rec.onstart = () => {
+                                            alert(`🎙️ Listening. Speak answer for "${q.label}" now...`);
+                                          };
+                                          rec.onresult = (e) => {
+                                            const voiceVal = e.results[0][0].transcript;
+                                            setQuestionAnswers(prev => ({ ...prev, [q.fieldKey]: voiceVal }));
+                                            handleSaveAnswer(q.fieldKey, voiceVal);
+                                          };
+                                          rec.onerror = () => {
+                                            alert("Microphone connection failed or timed out.");
+                                          };
+                                          rec.start();
+                                        } else {
+                                          alert("Speech recognition not supported in this browser.");
+                                        }
+                                      }}
+                                    >
+                                      🎤
+                                    </Button>
+                                  </Stack>
+                                </InputAdornment>
+                              )
+                            }}
                           />
                         </Box>
                       ))}

@@ -15,51 +15,29 @@ const getStoredUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
     const rawEnterprise = window.localStorage.getItem(USERS_STORAGE_KEY);
-    const rawMembers = window.localStorage.getItem("icj_members");
+    const initialized = window.localStorage.getItem("icj_users_initialized");
 
-    let existingUsers = [];
-    if (rawEnterprise) {
-      try {
-        const parsed = JSON.parse(rawEnterprise);
-        if (Array.isArray(parsed)) existingUsers = [...existingUsers, ...parsed];
-      } catch {
-        // ignore invalid json
+    if (initialized === "true") {
+      let existingUsers = [];
+      if (rawEnterprise) {
+        try {
+          existingUsers = JSON.parse(rawEnterprise);
+        } catch {}
       }
-    }
-    if (rawMembers) {
-      try {
-        const parsed = JSON.parse(rawMembers);
-        if (Array.isArray(parsed)) existingUsers = [...existingUsers, ...parsed];
-      } catch {
-        // ignore invalid json
-      }
-    }
-
-    const mergedMap = new Map();
-    // Seed users baseline
-    ENTERPRISE_SEED_USERS.forEach((u) => {
-      const key = String(u.id || u.member_id || u.email).toLowerCase();
-      mergedMap.set(key, u);
-    });
-
-    // Custom & newly registered members
-    if (Array.isArray(existingUsers)) {
-      existingUsers.forEach((u) => {
-        if (u && (u.id || u.member_id || u.email)) {
-          const key = String(u.id || u.member_id || u.email).toLowerCase();
-          // Filter out legacy default admin users to maintain a single Super Admin account
-          if (["icjadmin1234", "icjadmin2234", "icjadmin3234", "icjadmin4234"].includes(String(u.username || "").toLowerCase())) {
-            return;
-          }
-          mergedMap.set(key, { ...(mergedMap.get(key) || {}), ...u });
-        }
+      return existingUsers;
+    } else {
+      // First time initialization: seed the database from ENTERPRISE_SEED_USERS
+      const mergedMap = new Map();
+      ENTERPRISE_SEED_USERS.forEach((u) => {
+        const key = String(u.id || u.member_id || u.email).toLowerCase();
+        mergedMap.set(key, u);
       });
+      const mergedList = Array.from(mergedMap.values());
+      window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(mergedList));
+      window.localStorage.setItem("icj_members", JSON.stringify(mergedList));
+      window.localStorage.setItem("icj_users_initialized", "true");
+      return mergedList;
     }
-
-    const mergedList = Array.from(mergedMap.values());
-    window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(mergedList));
-    window.localStorage.setItem("icj_members", JSON.stringify(mergedList));
-    return mergedList;
   } catch {
     return ENTERPRISE_SEED_USERS;
   }

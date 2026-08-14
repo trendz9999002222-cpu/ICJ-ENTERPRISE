@@ -24,8 +24,10 @@ import {
   Checkbox,
   FormControlLabel,
   MenuItem,
+  Switch,
 } from "@mui/material";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import SecurityIcon from "@mui/icons-material/Security";
 import StorageIcon from "@mui/icons-material/Storage";
 import HistoryIcon from "@mui/icons-material/History";
 import AddIcon from "@mui/icons-material/Add";
@@ -80,6 +82,10 @@ const loadRoles = () => {
 
 export default function Administration() {
   const [roles, setRoles] = useState(loadRoles());
+  const [masterProvider, setMasterProvider] = useState(() => localStorage.getItem("icj_master_api_provider") || "gemini");
+  const [masterGeminiKey, setMasterGeminiKey] = useState(() => localStorage.getItem("icj_master_gemini_key") || "");
+  const [masterOpenaiKey, setMasterOpenaiKey] = useState(() => localStorage.getItem("icj_master_openai_key") || "");
+  const [masterAnthropicKey, setMasterAnthropicKey] = useState(() => localStorage.getItem("icj_master_anthropic_key") || "");
   const [activities, setActivities] = useState([]);
   const [stats, setStats] = useState(null);
   const [addRoleOpen, setAddRoleOpen] = useState(false);
@@ -688,6 +694,146 @@ export default function Administration() {
               </Grid>
             );
           })}
+        </Grid>
+      </Paper>
+
+      {/* ─── SECTION 0.2: MASTER SYSTEM API STORE ─── */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", borderLeft: "6px solid #2563eb" }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="#1e3a8a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              🔌 Master System API Store &amp; Master Credentials
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Set the Master API key for users who do not have their own keys. All dynamic calls will default to this provider, deducting credits from the user's wallet.
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Divider sx={{ mb: 2.5 }} />
+
+        <Grid container spacing={2.5}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Master System Provider"
+              value={masterProvider}
+              onChange={(e) => {
+                const val = e.target.value;
+                setMasterProvider(val);
+                localStorage.setItem("icj_master_api_provider", val);
+              }}
+            >
+              <MenuItem value="gemini">Google Gemini (Default)</MenuItem>
+              <MenuItem value="openai">OpenAI ChatGPT (GPT-4o-mini)</MenuItem>
+              <MenuItem value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</MenuItem>
+            </TextField>
+          </Grid>
+
+          <Grid item xs={12} md={8}>
+            {masterProvider === "gemini" && (
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="password"
+                  label="Master Gemini API Key"
+                  placeholder="AIzaSy..."
+                  value={masterGeminiKey}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMasterGeminiKey(val);
+                    localStorage.setItem("icj_master_gemini_key", val);
+                  }}
+                />
+                {masterGeminiKey && (
+                  <Button size="small" variant="outlined" color="error" onClick={() => { setMasterGeminiKey(""); localStorage.removeItem("icj_master_gemini_key"); }}>Clear</Button>
+                )}
+              </Stack>
+            )}
+
+            {masterProvider === "openai" && (
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="password"
+                  label="Master OpenAI ChatGPT API Key"
+                  placeholder="sk-proj-..."
+                  value={masterOpenaiKey}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMasterOpenaiKey(val);
+                    localStorage.setItem("icj_master_openai_key", val);
+                  }}
+                />
+                {masterOpenaiKey && (
+                  <Button size="small" variant="outlined" color="error" onClick={() => { setMasterOpenaiKey(""); localStorage.removeItem("icj_master_openai_key"); }}>Clear</Button>
+                )}
+              </Stack>
+            )}
+
+            {masterProvider === "anthropic" && (
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type="password"
+                  label="Master Anthropic Claude API Key"
+                  placeholder="sk-ant-..."
+                  value={masterAnthropicKey}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMasterAnthropicKey(val);
+                    localStorage.setItem("icj_master_anthropic_key", val);
+                  }}
+                />
+                {masterAnthropicKey && (
+                  <Button size="small" variant="outlined" color="error" onClick={() => { setMasterAnthropicKey(""); localStorage.removeItem("icj_master_anthropic_key"); }}>Clear</Button>
+                )}
+              </Stack>
+            )}
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* SUPER ADMIN POWER DELEGATION CONTROLS */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#fff", border: "2px solid #7c3aed" }}>
+        <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom display="flex" alignItems="center" gap={1}>
+          <SecurityIcon /> 🛡️ Super Admin Power & Role Delegation Controls
+        </Typography>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Super Admin can grant or revoke specific authority toggles to Sub-Admins. Designated admins can perform actions on behalf of Super Admin.
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "#f8fafc" }}>
+              <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                Admin Power Toggles (Default Admin)
+              </Typography>
+              <Stack spacing={1}>
+                <FormControlLabel
+                  control={<Switch defaultChecked color="primary" />}
+                  label="🤝 Advocate Appointment Authority (वकील नियुक्त करने का अधिकार)"
+                />
+                <FormControlLabel
+                  control={<Switch defaultChecked color="secondary" />}
+                  label="🎁 Credit Grant Authority (मुफ़्त AI क्रेडिट देने का अधिकार)"
+                />
+                <FormControlLabel
+                  control={<Switch defaultChecked color="success" />}
+                  label="🏢 Franchise Approval Authority (फ़्रैंचाइज़ी एक्शन लेने का अधिकार)"
+                />
+                <FormControlLabel
+                  control={<Switch color="warning" />}
+                  label="🛡️ Sub-Admin Re-Delegation Authority (आगे पावर देने का अधिकार)"
+                />
+              </Stack>
+            </Paper>
+          </Grid>
         </Grid>
       </Paper>
 

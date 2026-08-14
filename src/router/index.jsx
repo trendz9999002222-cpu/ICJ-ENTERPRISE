@@ -116,6 +116,16 @@ export default function AppRouter() {
           )}
         />
 
+        {/* /admin alias — same as /super-admin-dashboard */}
+        <Route
+          path="/admin"
+          element={(
+            <ProtectedRoute roles={["admin"]}>
+              <SuperAdminDashboard />
+            </ProtectedRoute>
+          )}
+        />
+
         <Route
           path="/membership"
           element={(

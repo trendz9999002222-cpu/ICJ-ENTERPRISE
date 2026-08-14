@@ -295,32 +295,28 @@ const readUnifiedUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
     const rawEnt = window.localStorage.getItem("icj_enterprise_users");
-    const rawMem = window.localStorage.getItem("icj_members");
+    const initialized = window.localStorage.getItem("icj_users_initialized");
 
-    let list = [];
-    if (rawEnt) {
-      try { const p = JSON.parse(rawEnt); if (Array.isArray(p)) list = [...list, ...p]; } catch {}
-    }
-    if (rawMem) {
-      try { const p = JSON.parse(rawMem); if (Array.isArray(p)) list = [...list, ...p]; } catch {}
-    }
-
-    const map = new Map();
-    ENTERPRISE_SEED_USERS.forEach((u) => {
-      const k = String(u.id || u.member_id || u.email).toLowerCase();
-      map.set(k, u);
-    });
-    list.forEach((u) => {
-      if (u && (u.id || u.member_id || u.email)) {
-        const k = String(u.id || u.member_id || u.email).toLowerCase();
-        map.set(k, { ...(map.get(k) || {}), ...u });
+    if (initialized === "true") {
+      let list = [];
+      if (rawEnt) {
+        try {
+          list = JSON.parse(rawEnt);
+        } catch {}
       }
-    });
-
-    const merged = Array.from(map.values());
-    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
-    window.localStorage.setItem("icj_members", JSON.stringify(merged));
-    return merged;
+      return list;
+    } else {
+      const map = new Map();
+      ENTERPRISE_SEED_USERS.forEach((u) => {
+        const k = String(u.id || u.member_id || u.email).toLowerCase();
+        map.set(k, u);
+      });
+      const merged = Array.from(map.values());
+      window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
+      window.localStorage.setItem("icj_members", JSON.stringify(merged));
+      window.localStorage.setItem("icj_users_initialized", "true");
+      return merged;
+    }
   } catch {
     return ENTERPRISE_SEED_USERS;
   }

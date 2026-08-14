@@ -197,9 +197,10 @@ export default function VoiceCommentaryStudio({
             return updated;
           });
 
-          if (finalTrans && onChange) {
+          if (onChange) {
+            const transToUse = finalTrans || "वॉयस रिकॉर्डिंग प्राप्त हुई।";
             const existing = valueRef.current ? valueRef.current.trim() : "";
-            const updated = existing ? `${existing}\n\n${finalTrans}` : finalTrans;
+            const updated = existing ? `${existing}\n\n${transToUse}` : transToUse;
             valueRef.current = updated;
             onChange(updated);
           }

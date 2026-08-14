@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -38,6 +38,7 @@ import VideoCallIcon from "@mui/icons-material/VideoCall";
 import SendIcon from "@mui/icons-material/Send";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import BadgeIcon from "@mui/icons-material/Badge";
 import MicIcon from "@mui/icons-material/Mic";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -54,6 +55,9 @@ import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
+import MatterCommunicationService from "../services/matterCommunicationService.js";
+import MatterTimelineService from "../services/matterTimelineService.js";
+import LegalMatterDataService from "../services/legalMatterDataService.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -70,6 +74,7 @@ export default function ClientPortal() {
   const memberId = user?.memberId || user?.id || "MEM-LKO-9812";
 
   const [tabIndex, setTabIndex] = useState(0);
+  const [activePortalCaseId, setActivePortalCaseId] = useState("");
   const [cases, setCases] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [advocates, setAdvocates] = useState([]);
@@ -135,6 +140,72 @@ export default function ClientPortal() {
   const [aiOutcome, setAiOutcome] = useState("");
   const [aiRecording, setAiRecording] = useState(false);
   const [aiDiagnosisResult, setAiDiagnosisResult] = useState(null);
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem("icj_gemini_api_key") || "");
+  const [openaiApiKey, setOpenaiApiKey] = useState(() => localStorage.getItem("icj_openai_api_key") || "");
+  const [anthropicApiKey, setAnthropicApiKey] = useState(() => localStorage.getItem("icj_anthropic_api_key") || "");
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem("icj_ai_provider") || "gemini");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // Recharge Pre-paid Token States
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [openRechargeModal, setOpenRechargeModal] = useState(false);
+  const [selectedPack, setSelectedPack] = useState({ credits: 100, price: 100, label: "Starter Pack" });
+  const [uploadedReceipt, setUploadedReceipt] = useState(null);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [verificationStep, setVerificationStep] = useState(0);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [receiptUtr, setReceiptUtr] = useState("");
+
+  const loadTokenBalance = useCallback(() => {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const current = members.find(m => String(m.member_id || m.id).toLowerCase() === String(memberId).toLowerCase());
+      setTokenBalance(current?.token_balance || 0);
+    } catch (e) {
+      console.debug(e);
+    }
+  }, [memberId]);
+
+  useEffect(() => {
+    loadTokenBalance();
+  }, [loadTokenBalance]);
+
+  const handleReceiptUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedReceipt(file);
+    } else {
+      setUploadedReceipt({ name: "payment_receipt_screenshot.png" });
+    }
+  };
+
+  const executeRechargeVerification = async () => {
+    if (!uploadedReceipt) {
+      alert("कृपया भुगतान स्क्रीनशॉट अपलोड करें।");
+      return;
+    }
+    setIsVerifyingPayment(true);
+    setVerificationStep(1);
+    await new Promise(r => setTimeout(r, 1500));
+    setVerificationStep(2);
+    await new Promise(r => setTimeout(r, 1500));
+    setVerificationStep(3);
+    await new Promise(r => setTimeout(r, 1200));
+
+    const generatedUtr = "UPI" + Math.floor(100000000000 + Math.random() * 900000000000);
+    setReceiptUtr(generatedUtr);
+
+    import("../services/paymentBillingService.js").then((mod) => {
+      const pb = mod.default || mod.PaymentBillingService;
+      const res = pb.rechargeCredits(memberId, selectedPack.credits, selectedPack.price, generatedUtr);
+      if (res.success) {
+        loadTokenBalance();
+        setPaymentSuccess(true);
+      }
+    }).catch(err => console.error(err));
+    setIsVerifyingPayment(false);
+  };
 
   // Ongoing Case Rescue State
   const [isOngoingCaseToggle, setIsOngoingCaseToggle] = useState(false);
@@ -143,10 +214,53 @@ export default function ClientPortal() {
   const [ongoingPrevLawyer, setOngoingPrevLawyer] = useState("");
 
   // Messages list
-  const [messages, setMessages] = useState([
-    { id: "m1", sender: "Adv. Rajesh Sharma", text: `Welcome to the ICJ Client Legal Portal, ${clientName}. Your PIL case WP/2026/1042 is listed for Aug 20, 2026.`, timestamp: new Date().toLocaleTimeString("en-IN") },
-  ]);
+  // Messages list
+  const [messages, setMessages] = useState([]);
   const [clientMsgInput, setClientMsgInput] = useState("");
+
+  useEffect(() => {
+    if (activePortalCaseId) {
+      const msgs = MatterCommunicationService.getMessages(activePortalCaseId);
+      if (msgs.length === 0) {
+        const caseObj = myCases.find(c => c.id === activePortalCaseId);
+        const seedMsg = {
+          id: "m1",
+          senderName: caseObj?.advocateName && caseObj.advocateName !== "Unassigned" ? caseObj.advocateName : "ICJ Advocate Team",
+          senderRole: "advocate",
+          text: `Welcome to the ICJ Client Legal Portal, ${clientName}. I will be representing you in this matter. Please share any documents or record voice updates.`,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages([seedMsg]);
+      } else {
+        setMessages(msgs);
+      }
+    }
+  }, [activePortalCaseId, tabIndex, myCases, clientName]);
+
+  const [timelineEvents, setTimelineEvents] = useState([]);
+  const [timelineActions, setTimelineActions] = useState([]);
+
+  useEffect(() => {
+    if (activePortalCaseId) {
+      const evs = MatterTimelineService.getEvents(activePortalCaseId);
+      const acts = MatterTimelineService.getActions(activePortalCaseId);
+      if (evs.length === 0) {
+        const caseObj = myCases.find(c => c.id === activePortalCaseId);
+        const seedEv = {
+          id: "seed-ev-1",
+          date: caseObj?.incidentDate || new Date().toISOString().slice(0, 10),
+          eventType: "SYSTEM",
+          title: "Matter Registered & Intaked",
+          description: `Case "${caseObj?.title || 'Matter'}" successfully created and submitted to ICJ registry.`,
+          sourceType: "USER_ENTRY",
+        };
+        setTimelineEvents([seedEv]);
+      } else {
+        setTimelineEvents(evs);
+      }
+      setTimelineActions(acts);
+    }
+  }, [activePortalCaseId, tabIndex, myCases]);
 
   useEffect(() => {
     let isMounted = true;
@@ -176,6 +290,12 @@ export default function ClientPortal() {
         String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
     );
   }, [cases, clientName, memberId]);
+
+  useEffect(() => {
+    if (myCases.length > 0 && !activePortalCaseId) {
+      setActivePortalCaseId(myCases[0].id);
+    }
+  }, [myCases, activePortalCaseId]);
 
   // Filter client's documents
   const myDocs = useMemo(() => {
@@ -228,12 +348,14 @@ export default function ClientPortal() {
       return;
     }
 
+    const targetCaseId = docUploadForm.caseId || activePortalCaseId || (myCases[0] ? myCases[0].id : "GENERAL");
+
     const docPayload = {
       name: docUploadForm.name,
       owner: clientName,
       member_id: memberId,
       category: docUploadForm.category,
-      case_id: docUploadForm.caseId || (myCases[0] ? myCases[0].id : "GENERAL"),
+      case_id: targetCaseId,
       uploaded_at: new Date().toISOString(),
       file_size: "1.2 MB",
       sha256: `SHA256-${Date.now().toString(36).toUpperCase()}`,
@@ -242,10 +364,43 @@ export default function ClientPortal() {
     };
 
     await addDocument(docPayload);
-    ActivityService.create({ title: `Document "${docUploadForm.name}" uploaded to Vault`, type: "document" });
+
+    // Simulate OCR text extraction for AI Analysis
+    let mockText = "";
+    if (docUploadForm.category === "Agreement/Contract") {
+      mockText = `LEASE DEED AGREEMENT: This lease deed is made on 12-May-2026 between Pooja Verma (Lessor) and Ramesh Kumar (Lessee) for the residential property located at Gomti Nagar, Lucknow. The lease is for 11 months with monthly rent of ₹18,000 and security deposit of ₹36,000.`;
+    } else if (docUploadForm.category === "FIR" || docUploadForm.name.toLowerCase().includes("fir")) {
+      mockText = `FIRST INFORMATION REPORT (Section 154 CrPC): FIR No. 412/2026 registered at Gomti Nagar Police Station on 10-Jun-2026. Complainant: Pooja Verma. Accused: Ramesh Kumar. Offence under IPC Sections 420 and 406 (Cheating and Criminal Breach of Trust). Details of incident on 15-May-2026.`;
+    } else if (docUploadForm.category === "Legal Notice" || docUploadForm.name.toLowerCase().includes("notice")) {
+      mockText = `LEGAL NOTICE FOR RECOVERY: Sent on 14-Jul-2026 by Advocate Rajesh Sharma on behalf of client Pooja Verma to noticee Ramesh Kumar. Demanding payment of outstanding balance amount of ₹35,000 within 15 days from receipt of this notice.`;
+    } else {
+      mockText = `LEGAL PLEADING SHEET: In the Court of District Judge, Lucknow. Suit No. CS-9812/2026. Pooja Verma v. Ramesh Kumar. Next hearing listed on 20-Aug-2026. Matter relates to breach of commercial agreement signed on 15-Jan-2026.`;
+    }
+
+    if (targetCaseId && targetCaseId !== "GENERAL") {
+      // Analyze text and extract structured facts
+      const extraction = LegalMatterDataService.extractFromText(mockText, "OCR_EXTRACTED", docUploadForm.name);
+      LegalMatterDataService.saveExtraction(memberId, targetCaseId, extraction);
+
+      // Add to case timeline
+      MatterTimelineService.addEvent(targetCaseId, {
+        eventType: "DOCUMENT",
+        title: `Document Uploaded & Analyzed: ${docUploadForm.name}`,
+        description: `Auto-extracted metadata: ${extraction.dates.length} dates and ${extraction.caseNumbers.length || extraction.firNumbers.length || 0} reference numbers found.`,
+        sourceType: "DOCUMENT",
+        sourceId: docPayload.sha256,
+        speaker: clientName,
+      });
+
+      // Recalculate timeline
+      const evs = MatterTimelineService.getEvents(targetCaseId);
+      setTimelineEvents(evs);
+    }
+
+    ActivityService.create({ title: `Document "${docUploadForm.name}" uploaded to Vault & Analyzed`, type: "document" });
     setOpenDocUploadModal(false);
     setDocUploadForm({ name: "", category: "Legal Pleading", fileObj: null, caseId: "" });
-    setAlertMsg("Document uploaded successfully to Vault and indexed for AI Pipeline!");
+    setAlertMsg("Document uploaded successfully. AI fact extraction & timeline indexing completed!");
     setTimeout(() => setAlertMsg(""), 4000);
     const updatedDocs = await getDocuments().catch(() => []);
     setDocuments(Array.isArray(updatedDocs) ? updatedDocs : []);
@@ -270,13 +425,21 @@ export default function ClientPortal() {
 
   const handleSendMessage = () => {
     if (!clientMsgInput.trim()) return;
-    const msg = {
-      id: `m-${Date.now()}`,
-      sender: `${clientName} (Client)`,
-      text: clientMsgInput,
-      timestamp: new Date().toLocaleTimeString("en-IN"),
-    };
-    setMessages((prev) => [...prev, msg]);
+    if (!activePortalCaseId) {
+      alert("Please select an active Case / Matter first to send a message.");
+      return;
+    }
+    
+    // Save message via service
+    MatterCommunicationService.sendMessage(activePortalCaseId, memberId, clientName, 'client', {
+      type: 'TEXT',
+      text: clientMsgInput
+    });
+    
+    // Reload messages
+    const msgs = MatterCommunicationService.getMessages(activePortalCaseId);
+    setMessages(msgs);
+    
     ActivityService.create({ title: `Client Message Sent: "${clientMsgInput.substring(0, 30)}..."`, type: "legal" });
     setClientMsgInput("");
   };
@@ -284,7 +447,7 @@ export default function ClientPortal() {
   return (
     <MainLayout>
       <Box sx={{ p: 3 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} flexWrap="wrap" gap={2}>
           <Box>
             <Typography variant="h4" fontWeight="bold">
               Client & Member Personal Workspace
@@ -294,7 +457,23 @@ export default function ClientPortal() {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" gap={1}>
+            {myCases.length > 0 && (
+              <TextField
+                select
+                size="small"
+                label="Selected Active Case"
+                value={activePortalCaseId}
+                onChange={(e) => setActivePortalCaseId(e.target.value)}
+                sx={{ width: 220, bgcolor: "#fff" }}
+              >
+                {myCases.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.caseNumber} — {c.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
             <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setOpenDocUploadModal(true)}>
               Upload Document
             </Button>
@@ -350,6 +529,7 @@ export default function ClientPortal() {
             <Tab icon={<ChatIcon />} iconPosition="start" label="Messages & Communication" />
             <Tab icon={<PersonIcon />} iconPosition="start" label="My Profile & KYC" />
             <Tab icon={<SecurityIcon sx={{ color: "#059669" }} />} iconPosition="start" label="🤝 ICJ Partner & E-Gov Desk" sx={{ fontWeight: "bold", color: "#059669" }} />
+            <Tab icon={<SettingsSuggestIcon sx={{ color: "#2563eb" }} />} iconPosition="start" label="🔌 My API Store (माई API स्टोर)" sx={{ fontWeight: "bold", color: "#2563eb" }} />
           </Tabs>
         </Box>
 
@@ -375,6 +555,22 @@ export default function ClientPortal() {
                   <Typography variant="subtitle1" fontWeight="bold" color="#1e3a8a" mb={2}>
                     📝 1. अपनी समस्या या चल रहा केस दर्ज करें
                   </Typography>
+                  
+                  {/* API CONFIGURATION WIDGET REDIRECT */}
+                  <Paper sx={{ p: 2, mb: 2.5, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #cbd5e1" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2" color="text.secondary">
+                        🌐 AI Model: <strong>{aiProvider.toUpperCase()}</strong> (
+                        {aiProvider === "openai" ? (openaiApiKey ? "Live 🟢" : "Local Mode ⚠️") :
+                         aiProvider === "anthropic" ? (anthropicApiKey ? "Live 🟢" : "Local Mode ⚠️") :
+                         (geminiApiKey ? "Live 🟢" : "Local Mode ⚠️")}
+                        )
+                      </Typography>
+                      <Button size="small" onClick={() => setTabIndex(10)} sx={{ textTransform: "none", fontWeight: "bold" }}>
+                        ⚙️ Configure Keys
+                      </Button>
+                    </Stack>
+                  </Paper>
 
                   {/* Ongoing Case vs New Case Toggle */}
                   <Stack direction="row" spacing={1} mb={2}>
@@ -525,39 +721,76 @@ export default function ClientPortal() {
                     variant="contained"
                     size="large"
                     color={isOngoingCaseToggle ? "error" : "primary"}
-                    onClick={() => {
+                    disabled={aiLoading}
+                    onClick={async () => {
+                      setAiLoading(true);
                       // Deduct AI credit
                       import("../services/paymentBillingService.js").then((mod) => {
                         const pb = mod.default || mod.PaymentBillingService;
                         const deduct = pb.deductAiCredit(memberId, 1);
                         if (deduct.success) {
                           alert(`1 AI Token/Credit Deducted! New Wallet Balance: ${deduct.newBalance} Tokens.`);
+                          loadTokenBalance();
                         }
                       }).catch(e => console.error(e));
 
-                      if (isOngoingCaseToggle) {
-                        const res = AiLegalConsultationService.diagnoseOngoingCase({
-                          clientId: memberId,
-                          clientName,
-                          caseNumber: ongoingCaseNo || "UPHC-01-004812-2024",
-                          courtName: ongoingCourtName || "Sessions Court Lucknow",
-                          previousAdvocate: ongoingPrevLawyer || "Adv. P.K. Verma",
-                          caseStatusSummary: aiProbText || "पुराना वकील तारीखों पर नहीं जाता, केस अटका पड़ा है।",
-                          nextHearingDate: "2026-08-22",
-                          uploadedDocumentNames: myDocs.map(d => d.name || "Case_Order_Copy.pdf"),
-                        });
-                        setAiDiagnosisResult(res);
-                      } else {
-                        const res = AiLegalConsultationService.diagnoseCase({
-                          clientId: memberId,
-                          clientName,
-                          caseCategory: aiCaseCat,
-                          problemText: aiProbText || "मेरे खिलाफ एफआईआर दर्ज हुई है, जमानत की कानूनी सलाह चाहिए।",
-                          voiceNoteSummary: aiVoiceNote,
-                          uploadedDocumentNames: myDocs.map(d => d.name || "FIR_Copy.pdf"),
-                          desiredOutcome: aiOutcome,
-                        });
-                        setAiDiagnosisResult(res);
+                      try {
+                        if (!aiProbText.trim() && !aiVoiceNote) {
+                          alert("कृपया अपनी समस्या दर्ज करें या वॉयस रिकॉर्डिंग करें।");
+                          setAiLoading(false);
+                          return;
+                        }
+
+                        if (isOngoingCaseToggle) {
+                          const res = await AiLegalConsultationService.diagnoseOngoingCase({
+                            clientId: memberId,
+                            clientName,
+                            caseNumber: ongoingCaseNo || "",
+                            courtName: ongoingCourtName || "",
+                            previousAdvocate: ongoingPrevLawyer || "",
+                            caseStatusSummary: aiProbText.trim(),
+                            nextHearingDate: "2026-08-22",
+                            uploadedDocumentNames: myDocs.map(d => d.name || "Case_Order_Copy.pdf"),
+                            provider: aiProvider,
+                            apiKey: aiProvider === "openai" ? openaiApiKey : aiProvider === "anthropic" ? anthropicApiKey : geminiApiKey,
+                          });
+                          setAiDiagnosisResult(res);
+                        } else {
+                          const res = await AiLegalConsultationService.diagnoseCase({
+                            clientId: memberId,
+                            clientName,
+                            caseCategory: aiCaseCat,
+                            problemText: aiProbText.trim(),
+                            voiceNoteSummary: aiVoiceNote,
+                            uploadedDocumentNames: myDocs.map(d => d.name || "FIR_Copy.pdf"),
+                            desiredOutcome: aiOutcome,
+                            provider: aiProvider,
+                            apiKey: aiProvider === "openai" ? openaiApiKey : aiProvider === "anthropic" ? anthropicApiKey : geminiApiKey,
+                          });
+                          setAiDiagnosisResult(res);
+
+                          // Trigger Real-Time Admin Workflow Request & Queue Alert
+                          try {
+                            import("../services/clientWorkflowService.js").then((mod) => {
+                              const cws = mod.default || mod.ClientWorkflowService;
+                              cws.submitProblemRequest({
+                                clientId: memberId,
+                                clientName,
+                                problemText: aiProbText.trim(),
+                                caseCategory: aiCaseCat,
+                                desiredOutcome: aiOutcome,
+                                voiceNoteSummary: aiVoiceNote,
+                              });
+                            });
+                          } catch (e) {
+                            console.error("Workflow submission failed", e);
+                          }
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert("AI analysis encountered an error.");
+                      } finally {
+                        setAiLoading(false);
                       }
                     }}
                     startIcon={<AutoAwesomeIcon />}
@@ -570,7 +803,26 @@ export default function ClientPortal() {
 
               {/* Right Column: AI Legal Diagnosis Result & Advice */}
               <Grid item xs={12} md={7}>
-                {!aiDiagnosisResult ? (
+                {aiLoading ? (
+                  <Paper sx={{ p: 4, textAlign: "center", bgcolor: "#fff", borderRadius: 3, border: "1px dashed #7c3aed" }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: 2 }}>
+                      <Typography variant="h6" color="primary" fontWeight="bold">🤖 AI Engine Analyzing Case Context...</Typography>
+                      <Typography variant="body2" color="text.secondary">कानूनी धाराएं, संभावित सजा का जोखिम, जमानत की शर्तें व एक्शन प्लान निकाला जा रहा है।</Typography>
+                      <Box sx={{
+                        width: 50,
+                        height: 50,
+                        border: "5px solid #ede9fe",
+                        borderTop: "5px solid #7c3aed",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                        "@keyframes spin": {
+                          "0%": { transform: "rotate(0deg)" },
+                          "100%": { transform: "rotate(360deg)" }
+                        }
+                      }} />
+                    </Box>
+                  </Paper>
+                ) : !aiDiagnosisResult ? (
                   <Paper sx={{ p: 4, textAlign: "center", bgcolor: "#fff", borderRadius: 3, border: "1px dashed #cbd5e1" }}>
                     <AutoAwesomeIcon sx={{ fontSize: 60, color: "#cbd5e1", mb: 2 }} />
                     <Typography variant="h6" color="text.secondary">
@@ -582,9 +834,34 @@ export default function ClientPortal() {
                   </Paper>
                 ) : (
                   <Paper elevation={4} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff", border: "2px solid #7c3aed" }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Chip label="AI LEGAL DIAGNOSIS COMPLETE ✅" color="secondary" sx={{ fontWeight: "bold" }} />
-                      <Typography variant="caption" color="text.secondary">ID: {aiDiagnosisResult.consultationId}</Typography>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip label="AI LEGAL DIAGNOSIS COMPLETE ✅" color="secondary" sx={{ fontWeight: "bold" }} />
+                        <Chip 
+                          label={aiDiagnosisResult.isLiveAi ? `🟢 Live LLM (${aiDiagnosisResult.providerName || 'AI'})` : "⚡ Dynamic NLP Engine"} 
+                          color={aiDiagnosisResult.isLiveAi ? "success" : "info"} 
+                          size="small"
+                          sx={{ fontWeight: "bold" }} 
+                        />
+                      </Stack>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="caption" color="text.secondary">ID: {aiDiagnosisResult.consultationId}</Typography>
+                        <Button 
+                          size="small" 
+                          color="error" 
+                          variant="outlined" 
+                          onClick={() => {
+                            setAiDiagnosisResult(null);
+                            setAiProbText("");
+                            setAiVoiceNote("");
+                            setAiOutcome("");
+                            try { localStorage.removeItem("icj_ai_legal_consultations"); } catch(e){}
+                          }}
+                          sx={{ fontSize: "0.7rem", py: 0.2, px: 1, fontWeight: "bold" }}
+                        >
+                          🗑️ रीसेट करें (Reset & Clear)
+                        </Button>
+                      </Stack>
                     </Stack>
 
                     {/* Legal Stand / Ongoing Case Audit */}
@@ -855,23 +1132,97 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 2: CASE TIMELINE */}
+        {/* TAB 2: CASE TIMELINE & ACTIONS */}
         <TabPanel value={tabIndex} index={2}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Interactive Case Progress Timeline & Milestones
-            </Typography>
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #2e7d32" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="success.main">Aug 20, 2026 • Upcoming Court Hearing</Typography>
-                <Typography variant="body2">High Court of Judicature — Final Arguments listed in Bench 3.</Typography>
+          <Grid container spacing={3}>
+            {/* Timeline Column */}
+            <Grid item xs={12} md={7}>
+              <Paper sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Interactive Case Progress Timeline & Milestones
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                {!activePortalCaseId ? (
+                  <Alert severity="info">Please select a case to view its progress timeline.</Alert>
+                ) : (
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {timelineEvents.map((ev) => {
+                      const isHearing = ev.eventType === "HEARING";
+                      const isVoice = ev.eventType === "VOICE_UPDATE";
+                      const isInstruction = ev.eventType === "ADVOCATE_INSTRUCTION";
+                      
+                      let borderColor = "#1976d2"; // Primary blue
+                      let titleColor = "primary.main";
+                      if (isHearing) {
+                        borderColor = "#2e7d32"; // Green
+                        titleColor = "success.main";
+                      } else if (isVoice) {
+                        borderColor = "#9c27b0"; // Purple
+                        titleColor = "secondary.main";
+                      } else if (isInstruction) {
+                        borderColor = "#ed6c02"; // Orange
+                        titleColor = "warning.main";
+                      }
+
+                      return (
+                        <Paper key={ev.id} variant="outlined" sx={{ p: 2, borderLeft: `4px solid ${borderColor}`, borderRadius: 2 }}>
+                          <Typography variant="subtitle2" fontWeight="bold" color={titleColor}>
+                            {new Date(ev.date || ev.timestamp).toLocaleDateString("en-IN")} • {ev.title}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            {ev.description}
+                          </Typography>
+                          {ev.speaker && (
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                              Source: {ev.sourceType || "Voice Note"} | Recorded By: {ev.speaker}
+                            </Typography>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                )}
               </Paper>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #1976d2" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="primary.main">Jan 15, 2026 • Matter Intaked & Registered</Typography>
-                <Typography variant="body2">Legal Matter WP/2026/1042 intaked and submitted to ICJ Panel.</Typography>
+            </Grid>
+
+            {/* Actions / Tasks Column */}
+            <Grid item xs={12} md={5}>
+              <Paper sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  ✅ Required Actions &amp; Assignments
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                {!activePortalCaseId ? (
+                  <Alert severity="info">Please select a case to view pending tasks.</Alert>
+                ) : timelineActions.length === 0 ? (
+                  <Typography color="text.secondary" sx={{ mt: 2 }}>No pending tasks or action items for this case.</Typography>
+                ) : (
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {timelineActions.map((act) => (
+                      <Paper key={act.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                          <Chip
+                            label={act.status || "PENDING"}
+                            color={act.status === "COMPLETED" ? "success" : act.status === "REJECTED" ? "error" : "warning"}
+                            size="small"
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            Due: {act.dueDate}
+                          </Typography>
+                        </Stack>
+                        <Typography variant="body2" fontWeight="bold" gutterBottom>
+                          {act.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Responsible: <strong>{act.responsible?.toUpperCase()}</strong>
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Stack>
+                )}
               </Paper>
-            </Stack>
-          </Paper>
+            </Grid>
+          </Grid>
         </TabPanel>
 
         {/* TAB 3: DOCUMENT VAULT & UPLOAD (Phase 9 & 10) */}
@@ -1178,33 +1529,112 @@ export default function ClientPortal() {
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Direct Messaging with Legal Counsel
             </Typography>
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {messages.map((m) => (
-                <Paper key={m.id} variant="outlined" sx={{ p: 2, bgcolor: m.audioUrl ? "#f0fdf4" : "#f8f9fa", borderColor: m.audioUrl ? "#86efac" : "#e2e8f0" }}>
-                  <Typography variant="caption" color="primary" fontWeight="bold">{m.sender} • {m.timestamp}</Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>{m.text}</Typography>
-                  {m.audioUrl && (
-                    <Box sx={{ mt: 1 }}>
-                      <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, borderRadius: 8 }} />
-                    </Box>
-                  )}
-                </Paper>
-              ))}
-            </Stack>
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                placeholder="Type message to advocate..."
-                value={clientMsgInput}
-                onChange={(e) => setClientMsgInput(e.target.value)}
-                InputProps={{
-                  endAdornment: <VoiceInputAdornment onTranscript={(txt) => setClientMsgInput((p) => p + " " + txt)} value={clientMsgInput} />,
-                }}
-              />
-              <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMessage}>
-                Send
-              </Button>
-            </Stack>
+            <Divider sx={{ mb: 2 }} />
+            
+            {!activePortalCaseId ? (
+              <Alert severity="info">Please select an active Case / Matter first to view and send messages.</Alert>
+            ) : (
+              <>
+                <Stack spacing={2} sx={{ mb: 3, maxHeight: "400px", overflowY: "auto", p: 1 }}>
+                  {messages.map((m) => {
+                    const isVoice = m.type === "VOICE";
+                    const isClient = m.senderRole === "client" || String(m.sender).includes("Client");
+                    return (
+                      <Paper 
+                        key={m.id} 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: isClient ? "#f8fafc" : "#faf5ff", 
+                          borderColor: isClient ? "#cbd5e1" : "#e9d5ff",
+                          borderRadius: 2.5,
+                          alignSelf: isClient ? "flex-end" : "flex-start",
+                          width: "80%"
+                        }}
+                      >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" color="primary" fontWeight="bold">
+                            {m.senderName || m.sender || "System"} ({m.senderRole || "advocate"})
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {m.timestamp ? new Date(m.timestamp).toLocaleTimeString("en-IN", {hour: '2-digit', minute:'2-digit'}) : ""}
+                          </Typography>
+                        </Stack>
+                        <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-line" }}>
+                          {isVoice ? `🎙️ [Voice Note Transcript]: ${m.text}` : m.text}
+                        </Typography>
+                        {m.audioUrl && (
+                          <Box sx={{ mt: 1.5 }}>
+                            <audio controls src={m.audioUrl} style={{ width: "100%", height: 36 }} />
+                          </Box>
+                        )}
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+                
+                {/* Voice Recorder & Input Section */}
+                <Box sx={{ p: 2, border: "1px solid #e2e8f0", borderRadius: 3, bg: "#f8fafc" }}>
+                  <Stack direction="row" spacing={2} alignItems="center" mb={1.5}>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Send Voice Note or Message:
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      placeholder="Type your message or click microphone to record voice..."
+                      value={clientMsgInput}
+                      onChange={(e) => setClientMsgInput(e.target.value)}
+                    />
+                    <Stack spacing={1}>
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        startIcon={<SendIcon />} 
+                        onClick={handleSendMessage}
+                        sx={{ height: "45px", fontWeight: "bold" }}
+                      >
+                        Send
+                      </Button>
+                    </Stack>
+                  </Stack>
+
+                  {/* Micro voice record bar */}
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      startIcon={<MicIcon />}
+                      onClick={() => {
+                        alert("🎙️ Speech Recognition activated! Please speak into your microphone to type.");
+                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (SpeechRec) {
+                          const rec = new SpeechRec();
+                          rec.lang = "hi-IN";
+                          rec.onresult = (e) => {
+                            const val = e.results[0][0].transcript;
+                            setClientMsgInput(prev => prev ? prev + " " + val : val);
+                          };
+                          rec.start();
+                        } else {
+                          alert("Speech Recognition not supported in this browser.");
+                        }
+                      }}
+                      sx={{ textTransform: "none", fontSize: "0.75rem" }}
+                    >
+                      🎤 Speak to Type (हिंदी/English)
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">
+                      Context-aware recognition: Civil/Criminal legal context enabled.
+                    </Typography>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Paper>
         </TabPanel>
 
@@ -1413,6 +1843,142 @@ export default function ClientPortal() {
                 </Grid>
               );
             })()}
+          </Paper>
+        </TabPanel>
+
+        {/* TAB 10: MY API STORE */}
+        <TabPanel value={tabIndex} index={10}>
+          <Paper sx={{ p: 4, borderRadius: 3, border: "2px solid #2563eb", background: "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)" }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+              <SettingsSuggestIcon sx={{ color: "#2563eb", fontSize: 36 }} />
+              <Box>
+                <Typography variant="h5" fontWeight="bold" color="#1e3a8a">
+                  माई API स्टोर (My API Store)
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  अपने खुद के ChatGPT (OpenAI), Google Gemini या Anthropic Claude API चाबियों को इंटीग्रेट करें।
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <strong>0-सेकंड ऑटो-इंटीग्रेशन:</strong> यहाँ कॉन्फ़िगर की गई API चाबियाँ आपके ब्राउज़र में सुरक्षित रूप से सेव हो जाएंगी। जब भी आप पूरे पोर्टल पर कोई भी AI फीचर इस्तेमाल करेंगे (जैसे ड्राफ्टिंग, डायग्नोसिस या चैटिंग), तो आपके चुने हुए प्रोवाइडर और चाबी का उपयोग किया जाएगा।
+            </Alert>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
+                    1. चुनें पसंदीदा AI मॉडल
+                  </Typography>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    value={aiProvider}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAiProvider(val);
+                      localStorage.setItem("icj_ai_provider", val);
+                    }}
+                    sx={{ mt: 1.5 }}
+                  >
+                    <MenuItem value="gemini">Google Gemini (Default)</MenuItem>
+                    <MenuItem value="openai">OpenAI ChatGPT (GPT-4o-mini)</MenuItem>
+                    <MenuItem value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</MenuItem>
+                  </TextField>
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    2. अपनी API चाबी दर्ज करें
+                  </Typography>
+                  
+                  <Box sx={{ mt: 2 }}>
+                    {aiProvider === "gemini" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Google Gemini API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="AIzaSy..."
+                            value={geminiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setGeminiApiKey(val);
+                              localStorage.setItem("icj_gemini_api_key", val);
+                              localStorage.setItem("icj_master_gemini_key", val);
+                            }}
+                          />
+                          {geminiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setGeminiApiKey(""); localStorage.removeItem("icj_gemini_api_key"); localStorage.removeItem("icj_master_gemini_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          गूगल एआई स्टूडियो (Google AI Studio) से फ्री या पे-एस-यू-गो (Pay-as-you-go) की लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "openai" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>OpenAI ChatGPT API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-proj-..."
+                            value={openaiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOpenaiApiKey(val);
+                              localStorage.setItem("icj_openai_api_key", val);
+                            }}
+                          />
+                          {openaiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setOpenaiApiKey(""); localStorage.removeItem("icj_openai_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          ओपनएआई प्लेटफार्म (platform.openai.com) से क्रेडिट लोड की हुई sk-proj चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "anthropic" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Anthropic Claude API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-ant-..."
+                            value={anthropicApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAnthropicApiKey(val);
+                              localStorage.setItem("icj_anthropic_api_key", val);
+                            }}
+                          />
+                          {anthropicApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setAnthropicApiKey(""); localStorage.removeItem("icj_anthropic_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          एंथ्रोपिक कंसोल (console.anthropic.com) से sk-ant चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
           </Paper>
         </TabPanel>
 

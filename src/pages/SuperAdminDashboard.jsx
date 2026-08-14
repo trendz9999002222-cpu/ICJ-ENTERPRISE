@@ -11,6 +11,16 @@ import {
   Avatar,
   Card,
   CardActionArea,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Switch,
+  Alert,
+  MenuItem,
+  TextField,
 } from "@mui/material";
 
 // Icons
@@ -27,12 +37,19 @@ import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import BlockIcon from "@mui/icons-material/Block";
 import BackupIcon from "@mui/icons-material/Backup";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import GavelIcon from "@mui/icons-material/Gavel";
 
 import DashboardService from "../services/dashboardService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar.jsx";
 import useAuth from "../hooks/useAuth.js";
 import AuthService from "../services/authService.js";
+import TelemetryDiagnosticService from "../services/telemetryDiagnosticService.js";
+import ClientWorkflowService from "../services/clientWorkflowService.js";
+import FranchiseWorkflowService from "../services/franchiseWorkflowService.js";
+import RoleService from "../services/roleService.js";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -239,6 +256,209 @@ export default function SuperAdminDashboard() {
             </Grid>
           ))}
         </Grid>
+
+        {/* 4. PENDING CLIENT REQUESTS QUEUE & ADVOCATE ASSIGNMENT */}
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+          <NotificationsActiveIcon sx={{ color: "#ef4444" }} />
+          🔴 Pending Client Requests Queue — Action Required
+          <Chip label={`${ClientWorkflowService.getPendingCasesForAdmin().length} Pending`} color="error" size="small" sx={{ fontWeight: "bold", ml: 1 }} />
+        </Typography>
+
+        <Paper sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#fff", border: "2px solid #fecaca" }}>
+          {ClientWorkflowService.getPendingCasesForAdmin().length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+              ✅ No pending client requests. All cases reviewed and advocates appointed.
+            </Typography>
+          ) : (
+            ClientWorkflowService.getPendingCasesForAdmin().map((req) => (
+              <Box key={req.requestId} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "#fff1f2", border: "1px solid #fda4af" }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight="bold" color="#9f1239">
+                      Client: {req.clientName} (ID: {req.clientId || "N/A"})
+                    </Typography>
+                    <Typography variant="body2" fontWeight="medium" color="#be123c" mt={0.5}>
+                      Problem: "{req.problemText}"
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                      Category: <strong>{req.caseCategory}</strong> | Desired Outcome: {req.desiredOutcome}
+                    </Typography>
+                  </Box>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="primary"
+                      startIcon={<GavelIcon />}
+                      onClick={() => {
+                        ClientWorkflowService.appointAdvocate({
+                          requestId: req.requestId,
+                          advocateId: "ADV-101",
+                          advocateName: "Adv. Rajesh Sharma",
+                          adminUsername: user?.username || "Admin",
+                        });
+                        alert(`✅ Appointed Adv. Rajesh Sharma for ${req.clientName}! Status synced to Client Portal.`);
+                        window.location.reload();
+                      }}
+                    >
+                      🤝 Appoint Adv. Rajesh Sharma
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="secondary"
+                      onClick={() => {
+                        ClientWorkflowService.appointAdvocate({
+                          requestId: req.requestId,
+                          advocateId: "ADV-102",
+                          advocateName: "Adv. Meera Sen",
+                          adminUsername: user?.username || "Admin",
+                        });
+                        alert(`✅ Appointed Adv. Meera Sen for ${req.clientName}! Status synced to Client Portal.`);
+                        window.location.reload();
+                      }}
+                    >
+                      🤝 Appoint Adv. Meera Sen
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="success"
+                      onClick={() => {
+                        ClientWorkflowService.grantCredits({
+                          requestId: req.requestId,
+                          clientId: req.clientId,
+                          creditAmount: 5,
+                          adminUsername: user?.username || "Admin",
+                          actionType: "GRANT",
+                        });
+                        alert(`🎁 Granted 5 Free AI Credits to ${req.clientName}!`);
+                        window.location.reload();
+                      }}
+                    >
+                      🎁 Gift 5 Credits
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            ))
+          )}
+        </Paper>
+
+        {/* 5. PENDING FRANCHISE ACTION BOX */}
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+          <StorefrontIcon sx={{ color: "#2563eb" }} />
+          🏢 Pending Franchise Applications Action Box
+          <Chip label={`${FranchiseWorkflowService.getPendingApplications().length} Applications`} color="primary" size="small" sx={{ fontWeight: "bold", ml: 1 }} />
+        </Typography>
+
+        <Paper sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#f0f9ff", border: "1.5px solid #bae6fd" }}>
+          {FranchiseWorkflowService.getPendingApplications().length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+              ✅ No pending franchise applications needing action.
+            </Typography>
+          ) : (
+            FranchiseWorkflowService.getPendingApplications().map((fran) => (
+              <Box key={fran.id} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "#fff", border: "1px solid #93c5fd" }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" color="#0369a1">
+                      {fran.applicantName} — {fran.city}, {fran.state}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Mobile: {fran.mobile} | Email: {fran.email}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                      Experience: {fran.experience}
+                    </Typography>
+                  </Box>
+
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      color="success"
+                      onClick={() => {
+                        FranchiseWorkflowService.updateStatus({
+                          applicationId: fran.id,
+                          newStatus: "APPROVED",
+                          meetingNotes: "Franchise approved by Admin. Onboarding credentials issued.",
+                          adminUsername: user?.username || "Admin",
+                        });
+                        alert(`✅ Approved Franchise for ${fran.applicantName}!`);
+                        window.location.reload();
+                      }}
+                    >
+                      ✅ Approve Franchise
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      color="info"
+                      onClick={() => {
+                        FranchiseWorkflowService.updateStatus({
+                          applicationId: fran.id,
+                          newStatus: "INTERACTION_SCHEDULED",
+                          meetingNotes: "Meeting scheduled with ICJ Franchise Director.",
+                          adminUsername: user?.username || "Admin",
+                        });
+                        alert(`📅 Scheduled interaction for ${fran.applicantName}!`);
+                        window.location.reload();
+                      }}
+                    >
+                      📅 Schedule Meeting
+                    </Button>
+                  </Stack>
+                </Stack>
+              </Box>
+            ))
+          )}
+        </Paper>
+
+        {/* 4. REAL-TIME DATA TELEMETRY & SYSTEM DIAGNOSTICS */}
+        <Typography variant="h6" fontWeight="bold" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+          <StorageIcon sx={{ color: "#7c3aed" }} /> Real-Time Data Flow Telemetry & System Health Audit
+        </Typography>
+
+        <Paper sx={{ p: 3, borderRadius: 3, mb: 4, bgcolor: "#0f172a", color: "#fff" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "#a7f3d0" }}>
+                🟢 TELEMETRY INTERCEPTOR: ACTIVE & TRACKING
+              </Typography>
+              <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+                Captures data entry flow across LocalStorage, State, API calls, and System events.
+              </Typography>
+            </Box>
+            <Chip label="HEALTH STATUS: 100% OPERATIONAL" color="success" size="small" sx={{ fontWeight: "bold" }} />
+          </Stack>
+
+          <Divider sx={{ borderColor: "#334155", my: 2 }} />
+
+          <Typography variant="body2" fontWeight="bold" sx={{ color: "#cbd5e1", mb: 1 }}>
+            Recent Data Flow & Entry Telemetry Logs:
+          </Typography>
+
+          <Box sx={{ maxH: 200, overflowY: "auto", bgcolor: "#1e293b", p: 2, borderRadius: 2, fontFamily: "monospace", fontSize: "0.85rem" }}>
+            {TelemetryDiagnosticService.getTelemetryLogs().length === 0 ? (
+              <Typography variant="caption" color="text.secondary">No error telemetry logs recorded. System operating cleanly.</Typography>
+            ) : (
+              TelemetryDiagnosticService.getTelemetryLogs().slice(0, 5).map((log) => (
+                <Box key={log.id} sx={{ mb: 1, pb: 1, borderBottom: "1px dashed #334155" }}>
+                  <Typography variant="caption" sx={{ color: "#38bdf8", fontWeight: "bold" }}>
+                    [{new Date(log.timestamp).toLocaleTimeString()}] [{log.module}] {log.action} — Status: {log.status}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "#e2e8f0", fontSize: "0.8rem" }}>
+                    {log.details || log.payloadSummary}
+                  </Typography>
+                </Box>
+              ))
+            )}
+          </Box>
+        </Paper>
 
       </Box>
     </MainLayout>

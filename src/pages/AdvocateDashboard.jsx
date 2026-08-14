@@ -41,6 +41,9 @@ import ActivityService from "../services/activityService.js";
 import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
+import MatterCommunicationService from "../services/matterCommunicationService.js";
+import MatterTimelineService from "../services/matterTimelineService.js";
+import MatterUpdateConfirmation from "../components/common/MatterUpdateConfirmation.jsx";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -71,6 +74,11 @@ export default function AdvocateDashboard() {
   const [aiConsultations, setAiConsultations] = useState([]);
   const [search, setSearch] = useState("");
   const [alertMsg, setAlertMsg] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem("icj_gemini_api_key") || "");
+  const [openaiApiKey, setOpenaiApiKey] = useState(() => localStorage.getItem("icj_openai_api_key") || "");
+  const [anthropicApiKey, setAnthropicApiKey] = useState(() => localStorage.getItem("icj_anthropic_api_key") || "");
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem("icj_ai_provider") || "gemini");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
   const [customPleadingText, setCustomPleadingText] = useState("");
 
   // Appointments state
@@ -272,6 +280,7 @@ export default function AdvocateDashboard() {
             <Tab icon={<PersonIcon />} iconPosition="start" label="Total Client Directory" value={ADVOCATE_TABS.CLIENT_LIST} />
             <Tab icon={<CheckCircleIcon />} iconPosition="start" label="Active Clients List" value={ADVOCATE_TABS.ACTIVE_CLIENTS} />
             <Tab icon={<BadgeIcon />} iconPosition="start" label="Empaneled Advocate Roster" value={ADVOCATE_TABS.EMPANELED_ADVOCATES} />
+            <Tab icon={<SettingsSuggestIcon sx={{ color: "#2563eb" }} />} iconPosition="start" label="🔌 My API Store" value={ADVOCATE_TABS.API_STORE} />
           </Tabs>
         </Box>
 
@@ -592,32 +601,132 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB: COMMUNICATION ENGINE */}
+                {/* TAB: COMMUNICATION ENGINE */}
         <TabPanel value={activeTab} index={ADVOCATE_TABS.COMMUNICATION}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Internal Communication Engine & Message Queues
+              Internal Communication Engine & Case Message Queues
             </Typography>
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {messages.map((m) => (
-                <Paper key={m.id} variant="outlined" sx={{ p: 2, bgcolor: "#f8f9fa" }}>
-                  <Typography variant="caption" color="primary" fontWeight="bold">{m.sender} • {m.timestamp}</Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>{m.text}</Typography>
-                  <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                    <Chip label="Email Queue: Sent" size="small" color="success" variant="outlined" />
-                    <Chip label="SMS Queue: Sent" size="small" color="success" variant="outlined" />
-                    <Chip label="WhatsApp Queue: Delivered" size="small" color="success" variant="outlined" />
-                  </Stack>
-                </Paper>
-              ))}
-            </Stack>
+            <Divider sx={{ mb: 2 }} />
+            
+            {cases.length > 0 && (
+              <TextField
+                select
+                size="small"
+                label="Select Case context for Messaging"
+                value={activeAdvocateCaseId}
+                onChange={(e) => setActiveAdvocateCaseId(e.target.value)}
+                sx={{ mb: 3, width: 350, bgcolor: "#fff" }}
+              >
+                {cases.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.caseNumber} — {c.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
 
-            <Stack direction="row" spacing={2}>
-              <TextField fullWidth placeholder="Type internal note or message to client..." value={newMessageText} onChange={(e) => setNewMessageText(e.target.value)} />
-              <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMessage}>
-                Dispatch
-              </Button>
-            </Stack>
+            {!activeAdvocateCaseId ? (
+              <Alert severity="info">Please select a case context to load messaging queues.</Alert>
+            ) : (
+              <>
+                <Stack spacing={2.5} sx={{ mb: 3, maxHeight: "400px", overflowY: "auto", p: 1 }}>
+                  {messages.map((m) => {
+                    const isVoice = m.type === "VOICE";
+                    const isClient = m.senderRole === "client" || String(m.sender).includes("Client");
+                    return (
+                      <Paper 
+                        key={m.id} 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: isClient ? "#faf5ff" : "#f8fafc", 
+                          borderColor: isClient ? "#e9d5ff" : "#cbd5e1",
+                          borderRadius: 2.5,
+                          width: "85%",
+                          alignSelf: isClient ? "flex-start" : "flex-end"
+                        }}
+                      >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" color="primary" fontWeight="bold">
+                            {m.senderName || m.sender} ({m.senderRole || "client"})
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {m.timestamp ? new Date(m.timestamp).toLocaleTimeString("en-IN", {hour: '2-digit', minute:'2-digit'}) : ""}
+                          </Typography>
+                        </Stack>
+                        <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-line" }}>
+                          {isVoice ? `🎙️ [Client Voice Intake Transcript]: ${m.text}` : m.text}
+                        </Typography>
+                        {m.audioUrl && (
+                          <Box sx={{ mt: 1.5 }}>
+                            <audio controls src={m.audioUrl} style={{ width: "100%", height: 36 }} />
+                          </Box>
+                        )}
+
+                        {/* Propose AI updates */}
+                        {m.aiExtractions && m.aiExtractions.map((ext, idx) => (
+                          <Box sx={{ mt: 2, maxWidth: "500px" }} key={idx}>
+                            <MatterUpdateConfirmation
+                              extraction={ext}
+                              onConfirm={(key, val) => handleConfirmExtraction(m.id, key, val)}
+                              onReject={(key) => handleRejectExtraction(m.id, key)}
+                            />
+                          </Box>
+                        ))}
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+
+                <Box sx={{ p: 2, border: "1px solid #e2e8f0", borderRadius: 3, bg: "#f8fafc" }}>
+                  <Stack direction="row" spacing={2}>
+                    <TextField 
+                      fullWidth 
+                      multiline 
+                      rows={2} 
+                      placeholder="Type internal note or reply to client..." 
+                      value={newMessageText} 
+                      onChange={(e) => setNewMessageText(e.target.value)} 
+                    />
+                    <Button 
+                      variant="contained" 
+                      startIcon={<SendIcon />} 
+                      onClick={handleSendMessage}
+                      sx={{ height: "55px", fontWeight: "bold" }}
+                    >
+                      Dispatch
+                    </Button>
+                  </Stack>
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      startIcon={<MicIcon />}
+                      onClick={() => {
+                        alert("🎙️ Advocate Speech Recognition activated. Speak into microphone to dictate note.");
+                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (SpeechRec) {
+                          const rec = new SpeechRec();
+                          rec.lang = "hi-IN";
+                          rec.onresult = (e) => {
+                            const val = e.results[0][0].transcript;
+                            setNewMessageText(prev => prev ? prev + " " + val : val);
+                          };
+                          rec.start();
+                        } else {
+                          alert("Speech Recognition not supported in this browser.");
+                        }
+                      }}
+                      sx={{ textTransform: "none", fontSize: "0.75rem" }}
+                    >
+                      🎤 Speak to Type Note (हिंदी/English)
+                    </Button>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Paper>
         </TabPanel>
 
@@ -625,33 +734,94 @@ export default function AdvocateDashboard() {
         <TabPanel value={activeTab} index={ADVOCATE_TABS.TASKS}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pending Task List & Hearing Deadlines ({pendingTasksList.length})
+              Pending Task List & Hearing Deadlines ({tasks.length})
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>S.No.</strong></TableCell>
-                  <TableCell><strong>Task Description</strong></TableCell>
-                  <TableCell><strong>Due Date</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {pendingTasksList.map((t, idx) => (
-                  <TableRow key={t.id}>
-                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                    <TableCell>{t.title}</TableCell>
-                    <TableCell>{t.dueDate}</TableCell>
-                    <TableCell><Chip label={t.status} color="warning" size="small" /></TableCell>
-                  </TableRow>
+
+            {cases.length > 0 && (
+              <TextField
+                select
+                size="small"
+                label="Case context for tasks"
+                value={activeAdvocateCaseId}
+                onChange={(e) => setActiveAdvocateCaseId(e.target.value)}
+                sx={{ mb: 3, width: 350, bgcolor: "#fff" }}
+              >
+                {cases.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.caseNumber} — {c.title}
+                  </MenuItem>
                 ))}
-              </TableBody>
-            </Table>
+              </TextField>
+            )}
+
+            {!activeAdvocateCaseId ? (
+              <Alert severity="info">Please select a case context to load tasks.</Alert>
+            ) : tasks.length === 0 ? (
+              <Typography color="text.secondary">No tasks found for this case.</Typography>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>S.No.</strong></TableCell>
+                    <TableCell><strong>Task Description</strong></TableCell>
+                    <TableCell><strong>Responsible</strong></TableCell>
+                    <TableCell><strong>Due Date</strong></TableCell>
+                    <TableCell><strong>Status</strong></TableCell>
+                    <TableCell align="right"><strong>Action</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {tasks.map((t, idx) => (
+                    <TableRow key={t.id} hover>
+                      <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
+                      <TableCell><Typography fontWeight="bold">{t.title}</Typography></TableCell>
+                      <TableCell>{t.responsible?.toUpperCase()}</TableCell>
+                      <TableCell>{t.dueDate}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={t.status} 
+                          color={t.status === "COMPLETED" ? "success" : t.status === "REJECTED" ? "error" : "warning"} 
+                          size="small" 
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          onClick={() => {
+                            MatterTimelineService.updateActionStatus(activeAdvocateCaseId, t.id, "COMPLETED");
+                            setTasks(MatterTimelineService.getActions(activeAdvocateCaseId));
+                          }}
+                          disabled={t.status === "COMPLETED"}
+                          sx={{ mr: 1, textTransform: "none", fontSize: "0.7rem", py: 0.2 }}
+                        >
+                          Complete
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => {
+                            MatterTimelineService.updateActionStatus(activeAdvocateCaseId, t.id, "REJECTED");
+                            setTasks(MatterTimelineService.getActions(activeAdvocateCaseId));
+                          }}
+                          disabled={t.status === "REJECTED"}
+                          sx={{ textTransform: "none", fontSize: "0.7rem", py: 0.2 }}
+                        >
+                          Reject
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </Paper>
         </TabPanel>
 
-        {/* TAB: CLIENT LIST */}
+{/* TAB: CLIENT LIST */}
         <TabPanel value={activeTab} index={ADVOCATE_TABS.CLIENT_LIST}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
@@ -765,6 +935,141 @@ export default function AdvocateDashboard() {
                 ))}
               </TableBody>
             </Table>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB: MY API STORE */}
+        <TabPanel value={activeTab} index={ADVOCATE_TABS.API_STORE}>
+          <Paper sx={{ p: 4, borderRadius: 3, border: "2px solid #2563eb", background: "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)" }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+              <SettingsSuggestIcon sx={{ color: "#2563eb", fontSize: 36 }} />
+              <Box>
+                <Typography variant="h5" fontWeight="bold" color="#1e3a8a">
+                  माई API स्टोर (My API Store)
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  अपने खुद के ChatGPT (OpenAI), Google Gemini या Anthropic Claude API चाबियों को इंटीग्रेट करें।
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <strong>0-सेकंड ऑटो-इंटीग्रेशन:</strong> यहाँ कॉन्फ़िगर की गई API चाबियाँ आपके ब्राउज़र में सुरक्षित रूप से सेव हो जाएंगी। जब भी आप पूरे पोर्टल पर कोई भी AI फीचर इस्तेमाल करेंगे, तो आपके चुने हुए प्रोवाइडर और चाबी का उपयोग किया जाएगा।
+            </Alert>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
+                    1. चुनें पसंदीदा AI मॉडल
+                  </Typography>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    value={aiProvider}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAiProvider(val);
+                      localStorage.setItem("icj_ai_provider", val);
+                    }}
+                    sx={{ mt: 1.5 }}
+                  >
+                    <MenuItem value="gemini">Google Gemini (Default)</MenuItem>
+                    <MenuItem value="openai">OpenAI ChatGPT (GPT-4o-mini)</MenuItem>
+                    <MenuItem value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</MenuItem>
+                  </TextField>
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    2. अपनी API चाबी दर्ज करें
+                  </Typography>
+                  
+                  <Box sx={{ mt: 2 }}>
+                    {aiProvider === "gemini" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Google Gemini API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="AIzaSy..."
+                            value={geminiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setGeminiApiKey(val);
+                              localStorage.setItem("icj_gemini_api_key", val);
+                            }}
+                          />
+                          {geminiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setGeminiApiKey(""); localStorage.removeItem("icj_gemini_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          गूगल एआई स्टूडियो (Google AI Studio) से फ्री या पे-एस-यू-गो (Pay-as-you-go) की लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "openai" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>OpenAI ChatGPT API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-proj-..."
+                            value={openaiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOpenaiApiKey(val);
+                              localStorage.setItem("icj_openai_api_key", val);
+                            }}
+                          />
+                          {openaiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setOpenaiApiKey(""); localStorage.removeItem("icj_openai_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          ओपनएआई प्लेटफार्म (platform.openai.com) से क्रेडिट लोड की हुई sk-proj चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "anthropic" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Anthropic Claude API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-ant-..."
+                            value={anthropicApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAnthropicApiKey(val);
+                              localStorage.setItem("icj_anthropic_api_key", val);
+                            }}
+                          />
+                          {anthropicApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setAnthropicApiKey(""); localStorage.removeItem("icj_anthropic_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          एंथ्रोपिक कंसोल (console.anthropic.com) से sk-ant चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
           </Paper>
         </TabPanel>
       </Box>

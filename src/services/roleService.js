@@ -132,6 +132,48 @@ const RoleService = {
     );
     localStorage.setItem(ROLES_KEY, JSON.stringify(toSave));
   },
+
+  /**
+   * Super Admin Power Delegation Methods
+   */
+  getAdminPowers(username) {
+    try {
+      const raw = localStorage.getItem("icj_admin_powers");
+      const map = raw ? JSON.parse(raw) : {};
+      return map[username] || {
+        canAppointAdvocates: true,
+        canGrantCredits: true,
+        canProcessFranchise: true,
+        canRedelegate: false,
+      };
+    } catch {
+      return {
+        canAppointAdvocates: true,
+        canGrantCredits: true,
+        canProcessFranchise: true,
+        canRedelegate: false,
+      };
+    }
+  },
+
+  setAdminPowers(username, powers) {
+    try {
+      const raw = localStorage.getItem("icj_admin_powers");
+      const map = raw ? JSON.parse(raw) : {};
+      map[username] = { ...this.getAdminPowers(username), ...powers, updatedBy: "SuperAdmin", updatedAt: new Date().toISOString() };
+      localStorage.setItem("icj_admin_powers", JSON.stringify(map));
+      return map[username];
+    } catch (e) {
+      console.error("Failed to set admin powers", e);
+      return null;
+    }
+  },
+
+  hasPower(username, isSuperAdmin, powerKey) {
+    if (isSuperAdmin || username === "ICJSuperAdmin1234") return true;
+    const powers = this.getAdminPowers(username);
+    return Boolean(powers[powerKey]);
+  },
 };
 
 export default RoleService;

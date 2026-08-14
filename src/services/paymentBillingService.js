@@ -394,6 +394,37 @@ export const PaymentBillingService = {
     };
   },
 
+  rechargeCredits(memberId, credits = 100, amount = 100, utr = "") {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const idx = members.findIndex(m => String(m.member_id || m.id).toLowerCase() === String(memberId).toLowerCase());
+      if (idx !== -1) {
+        const currentBalance = Number(members[idx].token_balance || 0);
+        members[idx].token_balance = currentBalance + credits;
+        localStorage.setItem("icj_members", JSON.stringify(members));
+
+        const transactions = this.getTransactions();
+        const newTxn = {
+          transactionId: "TXN-RECHARGE-" + Date.now(),
+          invoiceNo: "RECHARGE-" + Date.now(),
+          caseId: "CREDIT-BUY",
+          clientName: members[idx].name,
+          amount: amount,
+          paymentMethod: "UPI QR Screenshot Verification",
+          gateway: "Reconciliation Engine (UPI)",
+          status: "Success",
+          gatewayRef: utr || ("UTR-" + Date.now()),
+          timestamp: new Date().toISOString(),
+        };
+        setItem(KEYS.transactions, [newTxn, ...transactions]);
+        return { success: true, newBalance: members[idx].token_balance };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return { success: false };
+  },
+
   deductAiCredit(memberId, credits = 1) {
     try {
       const members = JSON.parse(localStorage.getItem("icj_members") || "[]");

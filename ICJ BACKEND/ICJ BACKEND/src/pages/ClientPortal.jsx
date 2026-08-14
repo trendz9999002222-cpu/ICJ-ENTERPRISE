@@ -539,10 +539,10 @@ export default function ClientPortal() {
                         const res = AiLegalConsultationService.diagnoseOngoingCase({
                           clientId: memberId,
                           clientName,
-                          caseNumber: ongoingCaseNo || "UPHC-01-004812-2024",
-                          courtName: ongoingCourtName || "Sessions Court Lucknow",
-                          previousAdvocate: ongoingPrevLawyer || "Adv. P.K. Verma",
-                          caseStatusSummary: aiProbText || "पुराना वकील तारीखों पर नहीं जाता, केस अटका पड़ा है।",
+                          caseNumber: ongoingCaseNo || "",
+                          courtName: ongoingCourtName || "",
+                          previousAdvocate: ongoingPrevLawyer || "",
+                          caseStatusSummary: aiProbText || "",
                           nextHearingDate: "2026-08-22",
                           uploadedDocumentNames: myDocs.map(d => d.name || "Case_Order_Copy.pdf"),
                         });
@@ -552,7 +552,7 @@ export default function ClientPortal() {
                           clientId: memberId,
                           clientName,
                           caseCategory: aiCaseCat,
-                          problemText: aiProbText || "मेरे खिलाफ एफआईआर दर्ज हुई है, जमानत की कानूनी सलाह चाहिए।",
+                          problemText: aiProbText || "",
                           voiceNoteSummary: aiVoiceNote,
                           uploadedDocumentNames: myDocs.map(d => d.name || "FIR_Copy.pdf"),
                           desiredOutcome: aiOutcome,

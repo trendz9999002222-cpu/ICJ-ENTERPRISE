@@ -38,49 +38,14 @@ const setItem = (key, val) => {
 const seedDefaultData = () => {
   if (getItem(STORAGE_KEYS.advocates).length === 0) {
     setItem(STORAGE_KEYS.advocates, [
-      { id: "ADV-101", name: "Adv. Rajesh Sharma", barId: "MAH/1234/2012", specialization: "Constitutional & Civil Law", casesAssigned: 4, status: "Active", phone: "+91 98201 12345" },
-      { id: "ADV-102", name: "Adv. Meera Sen", barId: "DEL/5678/2015", specialization: "Corporate & Financial Law", casesAssigned: 2, status: "Active", phone: "+91 98100 54321" },
-      { id: "ADV-103", name: "Adv. Amit Varma", barId: "KAR/9012/2018", specialization: "Criminal & Human Rights", casesAssigned: 3, status: "Active", phone: "+91 97400 98765" },
+      { id: "ADV-101", name: "Adv. Rajesh Sharma", barId: "MAH/1234/2012", specialization: "Constitutional & Civil Law", casesAssigned: 1, status: "Active", phone: "+91 98201 12345" },
+      { id: "ADV-102", name: "Adv. Meera Sen", barId: "DEL/5678/2015", specialization: "Corporate & Financial Law", casesAssigned: 1, status: "Active", phone: "+91 98100 54321" },
+      { id: "ADV-103", name: "Adv. Amit Varma", barId: "KAR/9012/2018", specialization: "Criminal & Human Rights", casesAssigned: 0, status: "Active", phone: "+91 97400 98765" },
     ]);
   }
 
   if (getItem(STORAGE_KEYS.cases).length === 0) {
     setItem(STORAGE_KEYS.cases, [
-      {
-        id: "CASE-4YR-RESCUE-001",
-        caseNumber: "UPHC-01-004812-2022",
-        title: "Sh. Ramesh Kumar vs State of UP & Ors (Land Title & Criminal Dispute)",
-        clientName: "Sh. Ramesh Kumar (Litigant ID: MEM-LKO-9812)",
-        advocateName: "Adv. Rajesh Sharma (Current ICJ Advocate)",
-        advocateId: "ADV-101",
-        courtName: "District & Sessions Court, Lucknow",
-        status: "In Hearing (Transferred to ICJ)",
-        trustApprovalStatus: "Approved & Escrow Protected",
-        nextHearing: "2026-08-22",
-        filingDate: "2022-04-12", // 4 Years Ago!
-        icjTransferDate: "2025-08-10", // 1 Year Ago Transferred to ICJ!
-        is4YearOldCase: true,
-        previousLawyer: "Adv. P.K. Verma (Dismissed due to 8 missed hearings & ₹45,000 fee taken with no progress)",
-        summary: "4 साल पुराना सिविल व क्रिमिनल मामला। 1 साल पहले पुराने वकील की लापरवाही से दुखी होकर ICJ में स्थानांतरित हुआ।",
-        legalProvisions: ["BNSS 2023 Sec 482 (Anticipatory Bail)", "CPC Order 39 Rule 1&2 (Stay Order)", "BNS 2023 Sec 352"],
-        feeAmount: 65000,
-        paidAmount: 50000,
-        advocateSharePaid: 35000, // 70% Released to Advocate for Arguments
-        trustSharePaid: 15000,   // 30% ICJ Trust Service Charge (80G Tax Receipt ICJ-80G-2025-9812)
-        escrowBalance: 15000,    // Locked in ICJ Escrow Treasury
-        hearingsStats: {
-          totalInIcj: 12,
-          advocateAttended: 5,  // High stakes argument dates
-          clientSelfAttended: 7, // Routine dates ("अपनी वकालत खुद करें")
-          travelFeeSaved: 24500, // INR saved for Client!
-        },
-        vaultDocs: [
-          { name: "FIR_Copy_Crime_412_2022.pdf", uploaded: "2025-08-10", drm: "Locked (OTP Protected)" },
-          { name: "SaleDeed_Plot42_Lucknow.pdf", uploaded: "2025-08-12", drm: "Locked (OTP Protected)" },
-          { name: "HighCourt_Interim_StayOrder_Jan2026.pdf", uploaded: "2026-01-14", drm: "Locked (OTP Protected)" },
-          { name: "Vakalatnama_Adv_Rajesh_Sharma.pdf", uploaded: "2025-08-15", drm: "e-Signed" },
-        ],
-      },
       {
         id: "CASE-2026-001",
         caseNumber: "WP/2026/1042",
@@ -93,29 +58,11 @@ const seedDefaultData = () => {
         trustApprovalStatus: "Approved",
         nextHearing: "2026-08-20",
         filingDate: "2026-01-15",
-        summary: "PIL seeking injunctive relief against unauthorized deforestation in protected bio-reserves.",
-        missingDocs: ["Environmental Impact Assessment Certificate 2025"],
-        legalProvisions: ["Article 21 (Right to Clean Environment)", "Environment Protection Act Sec 3"],
+        summary: "Public interest litigation seeking environmental protection orders.",
+        missingDocs: [],
+        legalProvisions: ["Article 21 (Right to Clean Environment)"],
         feeAmount: 45000,
         paidAmount: 30000,
-      },
-      {
-        id: "CASE-2026-002",
-        caseNumber: "CS/2026/0488",
-        title: "Commercial Contract Recovery & Arbitration",
-        clientName: "Apex Technovations Pvt Ltd",
-        advocateName: "Adv. Meera Sen",
-        advocateId: "ADV-102",
-        courtName: "District Commercial Court",
-        status: "Pending Approval",
-        trustApprovalStatus: "Under Review",
-        nextHearing: "2026-08-28",
-        filingDate: "2026-03-10",
-        summary: "Recovery petition under Arbitration and Conciliation Act for non-payment of software licensing fees.",
-        missingDocs: ["Certified Copy of SLA Agreement"],
-        legalProvisions: ["Arbitration & Conciliation Act Sec 9", "Indian Contract Act Sec 73"],
-        feeAmount: 75000,
-        paidAmount: 25000,
       },
     ]);
   }
@@ -123,7 +70,6 @@ const seedDefaultData = () => {
   if (getItem(STORAGE_KEYS.hearings).length === 0) {
     setItem(STORAGE_KEYS.hearings, [
       { id: "H-1", caseId: "CASE-2026-001", caseTitle: "PIL: Environment Conservation", hearingDate: "2026-08-20", court: "High Court Bench 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Final Arguments", status: "Scheduled" },
-      { id: "H-2", caseId: "CASE-2026-002", caseTitle: "Commercial Contract Recovery", hearingDate: "2026-08-28", court: "Commercial Court 2", judge: "Hon'ble Judge V. Nair", purpose: "Admission & Interim Relief", status: "Scheduled" },
     ]);
   }
 };
