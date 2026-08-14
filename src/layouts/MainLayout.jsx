@@ -25,7 +25,7 @@ function MainLayout({ children }) {
         <Box
           sx={{
             flex: 1,
-            p: { xs: 1, sm: 1.5, md: 1.8 },
+            p: { xs: 0.8, sm: 1, md: 1.2 },
             width: "100%",
             boxSizing: "border-box",
           }}

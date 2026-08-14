@@ -64,31 +64,34 @@ function Topbar() {
   return (
     <AppBar
       position="static"
-      elevation={1}
+      elevation={0}
       sx={{
         background: "#ffffff",
         color: "#212529",
-        borderBottom: "1px solid #e0e0e0",
+        borderBottom: "1px solid #e2e8f0",
+        m: 0,
+        p: 0,
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.3, minHeight: "46px !important", px: { xs: 1, md: 2 } }}>
-        <Box display="flex" alignItems="center" gap={1.5}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "38px !important", px: { xs: 0.8, md: 1.5 } }}>
+        <Box display="flex" alignItems="center" gap={1}>
           {/* 1-CLICK IN-APP BACK NAVIGATION ENGINE */}
           <Tooltip title="In-App 1-Click Back (वापसी करें)">
             <Button
               variant="contained"
               color="inherit"
               size="small"
-              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "1.1rem" }} />}
+              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "0.95rem" }} />}
               onClick={() => navigate(-1)}
               sx={{
                 bgcolor: "#f1f5f9",
                 color: "#0f172a",
                 fontWeight: 800,
-                fontSize: "0.75rem",
-                px: 1.2,
-                py: 0.4,
-                borderRadius: 1.5,
+                fontSize: "0.7rem",
+                px: 0.8,
+                py: 0.2,
+                minHeight: 26,
+                borderRadius: 1,
                 border: "1px solid #cbd5e1",
                 "&:hover": { bgcolor: "#e2e8f0" },
               }}
@@ -98,7 +101,7 @@ function Topbar() {
           </Tooltip>
 
           <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1.1 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1 }}>
               ICJ ENTERPRISE
             </Typography>
           </Box>
@@ -108,10 +111,10 @@ function Topbar() {
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
-            placeholder="Global Search (Members, Cases, Advocates, Documents, Payments)..."
-            sx={{ width: { xs: 160, sm: 260, md: 360 }, "& .MuiInputBase-root": { height: 32, fontSize: "0.78rem" } }}
+            placeholder="Global Search (Members, Cases, Documents)..."
+            sx={{ width: { xs: 150, sm: 220, md: 320 }, "& .MuiInputBase-root": { height: 26, fontSize: "0.75rem" } }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "1rem" }} /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.9rem" }} /></InputAdornment>,
             }}
           />
 
