@@ -38,6 +38,7 @@ import Visibility     from "@mui/icons-material/Visibility";
 import VisibilityOff  from "@mui/icons-material/VisibilityOff";
 import LockIcon       from "@mui/icons-material/Lock";
 import SecurityIcon   from "@mui/icons-material/Security";
+import PlatformLegalTermsModal from "../components/common/PlatformLegalTermsModal.jsx";
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
@@ -125,6 +126,7 @@ export default function PublicOnboarding() {
 
   // Tech Showcase & Privacy Modal State
   const [techShowcaseOpen, setTechShowcaseOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
 
   // ─── Form State ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -1340,9 +1342,17 @@ Thank you for registering with ICJ Enterprise Platform.
                 }
                 label={
                   <Typography variant="body2">
-                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setTechShowcaseOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline" }}>DRM Privacy Policy &amp; IT Act Sec 79 Intermediary Terms</Button>, and verification process.
+                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setLegalModalOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline", fontWeight: "bold" }}>IT Act Sec 79 Intermediary Immunity, DPDP Act 2023 & Push Alert Consent</Button>, and verification process.
                   </Typography>
                 }
+              />
+
+              <PlatformLegalTermsModal
+                open={legalModalOpen}
+                onClose={() => setLegalModalOpen(false)}
+                onAccept={() => setForm(p => ({ ...p, termsAccepted: true }))}
+                mode="litigant"
+                userName={`${form.firstName} ${form.lastName}`}
               />
 
               <Button

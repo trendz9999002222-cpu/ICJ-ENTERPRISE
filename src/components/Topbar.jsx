@@ -31,12 +31,18 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
 import useAuth from "../hooks/useAuth";
+import NotificationRoutingService from "../services/notificationRoutingService.js";
+import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
 function Topbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
+  const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
+  const [isSirenActive, setIsSirenActive] = useState(NotificationRoutingService.isSirenActive());
 
   const userInitial = String(user?.fullName || user?.name || user?.username || user?.email || "U")
     .trim()
@@ -131,6 +137,28 @@ function Topbar() {
 
         {/* ➡️ RIGHT SIDE: 1 STRAIGHT INLINE LINE (USER IDENTITY + ROLE + LOGOUT) */}
         <Stack direction="row" alignItems="center" spacing={0.8}>
+          {isSirenActive && (
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              startIcon={<VolumeOffIcon />}
+              onClick={() => {
+                NotificationRoutingService.silenceSiren();
+                setIsSirenActive(false);
+              }}
+              sx={{ fontWeight: 800, fontSize: "0.7rem", px: 1, py: 0.2, animation: "pulse 1.5s infinite" }}
+            >
+              🔕 Silence Siren
+            </Button>
+          )}
+
+          <Tooltip title="Sender-Assigned Notification Dispatcher">
+            <IconButton size="small" onClick={() => setDispatchModalOpen(true)} sx={{ p: 0.3, color: "#f59e0b" }}>
+              <CampaignIcon sx={{ fontSize: "1.1rem" }} />
+            </IconButton>
+          </Tooltip>
+
           <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ p: 0.3 }}>
             <Badge badgeContent={12} color="error">
               <NotificationsIcon color="action" sx={{ fontSize: "1rem" }} />
@@ -210,6 +238,12 @@ function Topbar() {
           </Box>
         </Stack>
 
+        <NotificationDispatcherModal
+          open={dispatchModalOpen}
+          onClose={() => setDispatchModalOpen(false)}
+          senderName={user?.name || user?.username || "Super Admin"}
+          senderRole={user?.user_type || userRole || "super_admin"}
+        />
       </Toolbar>
     </AppBar>
   );

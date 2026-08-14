@@ -1,10 +1,31 @@
+/* eslint-disable no-restricted-globals */
 /**
- * Background Service Worker — ICJ Enterprise Platform
- * Handles background push notifications when browser tab is closed or phone screen is locked.
+ * ICJ Enterprise Background Service Worker (sw.js)
+ * Handles background Web Push API payloads, system-level heads-up banners,
+ * and emergency audio sirens even when the browser or app tab is closed.
  */
 
+self.addEventListener("install", (event) => {
+  console.log("⚙️ [ICJ Service Worker] Installed successfully.");
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("🟢 [ICJ Service Worker] Activated & listening for VAPID push signals.");
+  event.waitUntil(self.clients.claim());
+});
+
+/**
+ * Handle incoming Web Push Notifications from VAPID / FCM Server
+ */
 self.addEventListener("push", (event) => {
-  let data = { title: "ICJ Enterprise Alert", body: "New Member Registered. Tap to assign Advocate." };
+  let data = {
+    title: "🚨 ICJ Emergency Legal Notification",
+    body: "New urgent litigation intake received.",
+    icon: "/favicon.ico",
+    priority: "CRITICAL",
+  };
+
   try {
     if (event.data) {
       data = event.data.json();
@@ -14,34 +35,44 @@ self.addEventListener("push", (event) => {
   }
 
   const options = {
-    body: data.body || "New Litigant Registered — Assign Advocate Now (15m SLA)",
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
-    vibrate: [200, 100, 200],
+    body: data.body,
+    icon: data.icon || "/favicon.ico",
+    badge: "/favicon.ico",
+    vibrate: [300, 100, 300, 100, 300], // Emergency vibration pattern
+    tag: `icj-alert-${Date.now()}`,
+    renotify: true,
     data: {
-      url: data.url || "/super-admin-dashboard",
+      url: data.url || "/notifications",
+      priority: data.priority || "NORMAL",
     },
     actions: [
-      { action: "open", title: "Open Control Panel 🚀" },
+      { action: "respond", title: "🚨 Respond / Silence Siren" },
+      { action: "close", title: "Close" },
     ],
   };
 
-  event.waitUntil(self.registration.showNotification(data.title || "🔔 ICJ Platform Alert", options));
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
 });
 
+/**
+ * Handle Notification Click Event
+ */
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/super-admin-dashboard";
+
+  const targetUrl = event.notification.data?.url || "/notifications";
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
         if (client.url.includes(targetUrl) && "focus" in client) {
           return client.focus();
         }
       }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
       }
     })
   );
