@@ -627,7 +627,7 @@ export default function Administration() {
       )}
 
       {/* ─── SECTION: ZERO-TRUST USER ACCESS AUDIT & 1-CLICK SUSPENSION CONSOLE ─── */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, bgcolor: "#0f172a", color: "#fff", borderLeft: "6px solid #ef4444" }}>
+      <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2.5, md: 3 }, mb: 4, borderRadius: 3, bgcolor: "#0f172a", color: "#fff", borderLeft: "6px solid #ef4444" }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={1}>
           <Box>
             <Typography variant="h6" fontWeight="bold" color="#f87171" sx={{ display: "flex", alignItems: "center", gap: 1 }}>

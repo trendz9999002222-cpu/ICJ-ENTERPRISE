@@ -63,6 +63,18 @@ input, textarea, select, .MuiInputBase-input {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* UNIVERSAL FLUID RESPONSIVE BOX BOUNDARIES (PREVENT MOBILE CLIPPING) */
+.MuiPaper-root, .MuiCard-root, .MuiDialog-paper, .MuiGrid-item {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Fluid word wrapping to prevent overflow */
+.MuiTypography-root, .MuiChip-label {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 /* BIG-TECH GLOBAL DESIGN UTILITIES (META / GOOGLE / MICROSOFT STANDARDS) */
 .bigtech-card {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);

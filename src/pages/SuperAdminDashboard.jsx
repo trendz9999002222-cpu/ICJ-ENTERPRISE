@@ -155,13 +155,13 @@ export default function SuperAdminDashboard() {
 
   return (
     <MainLayout>
-      <Box sx={{ p: { xs: 2, md: 3 } }}>
+      <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
 
         {/* 1. DASHBOARD HOME: WELCOME BANNER */}
         <Paper
           elevation={3}
           sx={{
-            p: 3,
+            p: { xs: 1.5, sm: 2.5, md: 3 },
             mb: 3,
             borderRadius: 3,
             background: "linear-gradient(135deg, #0B5ED7 0%, #084298 100%)",

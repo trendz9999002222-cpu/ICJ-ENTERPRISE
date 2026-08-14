@@ -506,7 +506,7 @@ Thank you for registering with ICJ Enterprise Platform.
 
         {/* BRANDING HEADER */}
         <Paper elevation={0} sx={{
-          p: 4, mb: 3, bgcolor: "#002855", color: "#fff",
+          p: { xs: 2, sm: 3, md: 4 }, mb: 3, bgcolor: "#002855", color: "#fff",
           borderRadius: 3, textAlign: "center",
           boxShadow: "0 8px 32px rgba(0,40,85,0.12)",
         }}>
