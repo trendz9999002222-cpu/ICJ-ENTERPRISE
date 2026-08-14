@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LinearProgress } from "@mui/material";
 
 import ProtectedRoute from "./ProtectedRoute";
+import MainLayout from "../layouts/MainLayout";
 import Login from "../pages/Login";
 import Recovery from "../pages/Recovery";
 
