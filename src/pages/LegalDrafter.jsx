@@ -155,6 +155,11 @@ export default function LegalDrafter() {
   const [alertMsg, setAlertMsg] = useState({ text: "", severity: "success" });
   const [search, setSearch] = useState("");
 
+  // Advocate Strategy Interrogation & Refinement States
+  const [advocateIntentModalOpen, setAdvocateIntentModalOpen] = useState(false);
+  const [advocateIntentText, setAdvocateIntentText] = useState("");
+  const [customRefinementInstruction, setCustomRefinementInstruction] = useState("");
+
   // Draft history (from persistent service)
   const [draftHistory, setDraftHistory] = useState([]);
 
@@ -631,6 +636,71 @@ export default function LegalDrafter() {
                     </Stack>
                   )}
                 </Stack>
+
+                {/* MULTI-TURN ADVOCATE REFINEMENT & TUNE BOX */}
+                {generatedDraft && (
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#f8fafc", border: "1.5px solid #7c3aed" }}>
+                    <Typography variant="subtitle2" fontWeight="bold" color="#7c3aed" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                      <AutoFixHighIcon fontSize="small" /> 💬 Multi-Turn Advocate Refinement Protocol (बहु-चरणीय ट्यूनिंग)
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                      वकील के निर्देशानुसार ड्राफ्ट में बदलाव करें। (उदा. विवरण बढ़ाएं, छोटा करें, या धाराएं जोड़ें)
+                    </Typography>
+
+                    <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} mb={2}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                            const gen = mod.default || mod.MultiForumApplicationGenerator;
+                            const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "EXPAND_DETAILS" });
+                            setGeneratedDraft(updated);
+                            setAlertMsg({ text: "➕ Draft details expanded based on advocate instruction.", severity: "info" });
+                          });
+                        }}
+                      >
+                        ➕ विवरण बढ़ाएं (Expand Details)
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => {
+                          import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                            const gen = mod.default || mod.MultiForumApplicationGenerator;
+                            const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "REDUCE_LENGTH" });
+                            setGeneratedDraft(updated);
+                            setAlertMsg({ text: "➖ Draft concise summary applied.", severity: "info" });
+                          });
+                        }}
+                      >
+                        ➖ छोटा करें (Reduce Length)
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                        onClick={() => {
+                          const customSec = prompt("जोड़ी जाने वाली विशेष कानूनी धारा/नजीर (Precedent) लिखें:");
+                          if (customSec) {
+                            import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                              const gen = mod.default || mod.MultiForumApplicationGenerator;
+                              const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "ADD_SECTION_PRECEDENT", customInstruction: customSec });
+                              setGeneratedDraft(updated);
+                              setAlertMsg({ text: `⚖️ Statutory section/precedent '${customSec}' attached to draft.`, severity: "success" });
+                            });
+                          }
+                        }}
+                      >
+                        ⚖️ नजीर / धारा जोड़ें (Add Precedent)
+                      </Button>
+                    </Stack>
+                  </Paper>
+                )}
                 <Divider sx={{ mb: 2 }} />
 
                 {generatedDraft && (

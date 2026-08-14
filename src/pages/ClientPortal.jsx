@@ -58,6 +58,7 @@ import useAuth from "../hooks/useAuth.js";
 import MatterCommunicationService from "../services/matterCommunicationService.js";
 import MatterTimelineService from "../services/matterTimelineService.js";
 import LegalMatterDataService from "../services/legalMatterDataService.js";
+import LegalDocumentSorterService from "../services/legalDocumentSorterService.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -1247,27 +1248,64 @@ export default function ClientPortal() {
                     <TableCell>Document Name</TableCell>
                     <TableCell>Category</TableCell>
                     <TableCell>SHA-256 Hash</TableCell>
-                    <TableCell>File Storage Status</TableCell>
-                    <TableCell>AI Pipeline Status</TableCell>
+                    <TableCell>Document Name (Procedural Legal Stage)</TableCell>
+                    <TableCell>Legal Classification</TableCell>
+                    <TableCell>Per-Document Voice Commentary</TableCell>
+                    <TableCell>Storage Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {myDocs.map((d, idx) => (
-                    <TableRow key={d.id || idx} hover>
-                      <TableCell><Typography fontWeight="bold">{d.name || d.title}</Typography></TableCell>
-                      <TableCell><Chip label={d.category || "Legal Pleading"} size="small" variant="outlined" color="primary" /></TableCell>
-                      <TableCell sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}>{d.sha256 || "SHA256-8F9B1A2C3D4E5F6"}</TableCell>
-                      <TableCell><Chip icon={<VerifiedIcon />} label={d.status || "File Saved & Verified"} color="success" size="small" /></TableCell>
-                      <TableCell><Chip label={d.aiStatus || "Ready for AI Pipeline"} color="info" size="small" variant="outlined" /></TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
-                          <Button size="small" variant="outlined" color="secondary" onClick={() => handleRequestAction('Print', d.name || d.title)}>Print</Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {(() => {
+                    // Procedural Legal Sorting
+                    const sorted = LegalDocumentSorterService.sortDocumentsProcedurally(myDocs);
+                    return sorted.map((d, idx) => {
+                      const dual = LegalDocumentSorterService.getDualNaming(d, "client");
+                      return (
+                        <TableRow key={d.id || idx} hover>
+                          <TableCell>
+                            <Typography fontWeight="bold" color="#0f172a">
+                              {dual.clientDisplayName}
+                            </Typography>
+                            <Chip
+                              label={dual.stageInfo.title}
+                              size="small"
+                              sx={{ bgcolor: "#e0e7ff", color: "#3730a3", fontSize: "0.7rem", fontWeight: "bold", mt: 0.5 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}>
+                              Advocate View: {dual.advocateCanonicalName}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={d.category || dual.stageInfo.shortCode} size="small" variant="outlined" color="primary" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ maxWidth: 220 }}>
+                              <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                                🎙️ इस पेपर पर बयान:
+                              </Typography>
+                              <VoiceCommentaryStudio
+                                value={d.commentary || ""}
+                                onChange={(txt) => {
+                                  d.commentary = txt;
+                                }}
+                                label=""
+                                placeholder="इस पेपर के बारे में बोलें..."
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip icon={<VerifiedIcon />} label={d.status || "Saved & Verified"} color="success" size="small" />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                  })()}
                 </TableBody>
               </Table>
             )}
