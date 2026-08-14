@@ -43,6 +43,8 @@ import PlatformLegalTermsModal from "../components/common/PlatformLegalTermsModa
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
+import JudiciaryMasterService from "../services/judiciaryMasterService.js";
+import ForumAllocationEngine from "../services/forumAllocationEngine.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService, { persistLocalUser } from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
