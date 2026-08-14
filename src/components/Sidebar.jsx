@@ -42,7 +42,7 @@ import {
 import Navigation from "../core/navigation";
 import useAuth from "../hooks/useAuth";
 
-const drawerWidth = 270;
+const drawerWidth = 210;
 
 const iconMap = {
   dashboard: <Dashboard />,

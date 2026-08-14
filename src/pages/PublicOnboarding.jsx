@@ -129,7 +129,7 @@ export default function PublicOnboarding() {
   // ─── Form State ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     regType:           "Individual",
-    namePrefix:        "",
+    namePrefix:        "Mr.",
     firstName:         "",
     middleName:        "",
     lastName:          "",
@@ -137,7 +137,7 @@ export default function PublicOnboarding() {
     repFirstName:      "",
     repMiddleName:     "",
     repLastName:       "",
-    gender:            "",
+    gender:            "Male",
     birthYear:         String(2000 + (new Date().getFullYear() - 2026)),           // Default Birth Year rule
     mobile:            "",
     mobileCountryCode: "+91",

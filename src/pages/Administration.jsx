@@ -190,7 +190,9 @@ export default function Administration() {
   // Create User / Admin Modal State
   const [createUserOpen, setCreateUserOpen] = useState(false);
   const [newUserForm, setNewUserForm] = useState({
+    salutation: "Mr.",
     fullName: "",
+    gender: "Male",
     email: "",
     password: "",
     role: "member",
