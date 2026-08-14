@@ -33,6 +33,9 @@ import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import { MemberService } from "../services/memberService";
 import ActivityService from "../services/activityService";
 import useAuth from "../hooks/useAuth";
+import JudiciaryMasterService from "../services/judiciaryMasterService.js";
+import SpecialtyUpgradeModal from "../components/membership/SpecialtyUpgradeModal.jsx";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
 const STATUS_FILTERS = ["All", "Verified", "Pending", "Rejected", "Suspended"];
 const CATEGORY_FILTERS = ["All", "Notary & Attestation", "Advocates & Counsel", "Legal Help Requesters", "Franchise Partners"];
@@ -70,6 +73,7 @@ export default function MemberDirectory() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [editOpen, setEditOpen] = useState(false);
+  const [specialtyModalOpen, setSpecialtyModalOpen] = useState(false);
   const [editMember, setEditMember] = useState(null);
   const [editForm, setEditForm] = useState({});
 
@@ -372,6 +376,7 @@ export default function MemberDirectory() {
               <TableCell>Member ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Purpose / Service Request</TableCell>
+              <TableCell>🥇 Core Specialty Badges</TableCell>
               <TableCell>Gender</TableCell>
               <TableCell>DOB / Age</TableCell>
               <TableCell>Email</TableCell>
@@ -384,7 +389,7 @@ export default function MemberDirectory() {
           <TableBody>
             {filteredMembers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} align="center">
+                <TableCell colSpan={11} align="center">
                   No matching members found for selected service category filter.
                 </TableCell>
               </TableRow>
@@ -406,6 +411,20 @@ export default function MemberDirectory() {
                       color="primary"
                       sx={{ fontWeight: "bold", fontSize: "0.72rem" }}
                     />
+                  </TableCell>
+                  {/* CORE SPECIALTY STACKED BADGES */}
+                  <TableCell>
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                      {JudiciaryMasterService.formatSpecialtyBadges(member.unlockedSpecialties || [member.profession || "CRIMINAL_BAIL"]).map((spec, idx) => (
+                        <Chip
+                          key={idx}
+                          label={`${spec.rankIcon || "🥇"} ${spec.name.split(" ")[0]}`}
+                          size="small"
+                          color={idx === 0 ? "success" : "info"}
+                          sx={{ fontWeight: 800, fontSize: "0.68rem" }}
+                        />
+                      ))}
+                    </Stack>
                   </TableCell>
                   <TableCell>{member.gender || "—"}</TableCell>
                   <TableCell>
@@ -543,6 +562,15 @@ export default function MemberDirectory() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <SpecialtyUpgradeModal
+        open={specialtyModalOpen}
+        onClose={() => setSpecialtyModalOpen(false)}
+        onSuccess={() => refreshData()}
+        memberId={getMemberId(editMember || {})}
+        memberName={getMemberName(editMember || {})}
+        initialSpecialties={editMember?.unlockedSpecialties || ["CRIMINAL_BAIL"]}
+      />
     </Box>
   );
 }
