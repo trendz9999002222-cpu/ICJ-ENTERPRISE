@@ -24,6 +24,7 @@ import MemberBatchImporter from "../membership/MemberBatchImporter.jsx";
 import SpecialtyUpgradeModal from "../membership/SpecialtyUpgradeModal.jsx";
 import SafeAccess from "../../utils/safeAccess.js";
 import SchemaValidator from "../../utils/schemaValidator.js";
+import CommunicationDispatcherService from "../../services/communicationDispatcherService.js";
 
 export default function AdvocateResearchDirectory() {
   const [members, setMembers] = useState([]);
@@ -145,18 +146,38 @@ export default function AdvocateResearchDirectory() {
                 <TableCell sx={{ color: "#cbd5e1" }}>{m.mobile || "—"}</TableCell>
                 <TableCell sx={{ color: "#cbd5e1" }}>{m.city || m.district || "Lucknow"}, {m.state || "UP"}</TableCell>
                 <TableCell align="right">
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="warning"
-                    onClick={() => {
-                      setSelectedMember(m);
-                      setSpecialtyModalOpen(true);
-                    }}
-                    sx={{ fontWeight: 800 }}
-                  >
-                    Upgrade Badges
-                  </Button>
+                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="success"
+                      onClick={() => CommunicationDispatcherService.sendIDCardLink({ advocatePhone: m.mobile, advocateName: m.fullName || m.name, memberId: m.member_id || m.id })}
+                      sx={{ fontWeight: 800, fontSize: "0.72rem" }}
+                    >
+                      💬 WhatsApp
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="info"
+                      onClick={() => CommunicationDispatcherService.launchEmail({ email: m.email, subject: "ICJ Advocate Empanelement Update", body: `Hello ${m.fullName || m.name},\n\nYour ICJ Executive Empanelement status is active.` })}
+                      sx={{ fontWeight: 800, fontSize: "0.72rem" }}
+                    >
+                      ✉️ Email
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="warning"
+                      onClick={() => {
+                        setSelectedMember(m);
+                        setSpecialtyModalOpen(true);
+                      }}
+                      sx={{ fontWeight: 800, fontSize: "0.72rem" }}
+                    >
+                      Upgrade Badges
+                    </Button>
+                  </Stack>
                 </TableCell>
               </TableRow>
             ))}
