@@ -61,6 +61,7 @@ import SystemConfigService from "../services/systemConfigService";
 import RoleService from "../services/roleService";
 import MasterDataService from "../services/masterDataService";
 import UserAuditTelemetryService from "../services/userAuditTelemetryService";
+import PasswordPolicyAdminConfigurator from "../components/admin/PasswordPolicyAdminConfigurator";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 import { UNIVERSAL_PERMISSION_COLORS, getRoleOrderedModules, getModuleById } from "../core/navigation";
 
