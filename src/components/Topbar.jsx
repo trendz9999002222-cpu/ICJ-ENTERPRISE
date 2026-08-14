@@ -68,31 +68,34 @@ function Topbar() {
       sx={{
         background: "#ffffff",
         color: "#212529",
-        borderBottom: "1px solid #e2e8f0",
+        borderBottom: "1px solid #cbd5e1",
         m: 0,
         p: 0,
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "38px !important", px: { xs: 0.8, md: 1.5 } }}>
-        <Box display="flex" alignItems="center" gap={1}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "34px !important", height: 34, px: { xs: 0.6, md: 1.2 } }}>
+        
+        {/* ⬅️ LEFT SIDE: 1 STRAIGHT LINE (BACK BUTTON + BRAND + SEARCH) */}
+        <Stack direction="row" alignItems="center" spacing={1}>
           {/* 1-CLICK IN-APP BACK NAVIGATION ENGINE */}
           <Tooltip title="In-App 1-Click Back (वापसी करें)">
             <Button
               variant="contained"
               color="inherit"
               size="small"
-              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "0.95rem" }} />}
+              startIcon={<ArrowBackIcon sx={{ color: "#2563eb", fontSize: "0.9rem" }} />}
               onClick={() => navigate(-1)}
               sx={{
                 bgcolor: "#f1f5f9",
                 color: "#0f172a",
                 fontWeight: 800,
-                fontSize: "0.7rem",
+                fontSize: "0.68rem",
                 px: 0.8,
-                py: 0.2,
-                minHeight: 26,
+                py: 0.15,
+                minHeight: 24,
                 borderRadius: 1,
                 border: "1px solid #cbd5e1",
+                whiteSpace: "nowrap",
                 "&:hover": { bgcolor: "#e2e8f0" },
               }}
             >
@@ -100,21 +103,31 @@ function Topbar() {
             </Button>
           </Tooltip>
 
-          <Box sx={{ display: { xs: "none", sm: "block" } }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1 }}>
-              ICJ ENTERPRISE
-            </Typography>
-          </Box>
+          {/* BRAND NAME SIDE-BY-SIDE IN SAME STRAIGHT LINE */}
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 800,
+              color: "#1976d2",
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+              fontSize: "0.78rem",
+              letterSpacing: 0.2,
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            ICJ ENTERPRISE
+          </Typography>
 
-          {/* Unified Global Enterprise Search */}
+          {/* Unified Global Search */}
           <TextField
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
             placeholder="Global Search (Members, Cases, Documents)..."
-            sx={{ width: { xs: 150, sm: 220, md: 320 }, "& .MuiInputBase-root": { height: 26, fontSize: "0.75rem" } }}
+            sx={{ width: { xs: 140, sm: 200, md: 300 }, "& .MuiInputBase-root": { height: 24, fontSize: "0.72rem" } }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.9rem" }} /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.85rem" }} /></InputAdornment>,
             }}
           />
 
@@ -123,7 +136,7 @@ function Topbar() {
             anchorEl={searchAnchor}
             open={Boolean(searchAnchor && globalQuery.trim().length >= 2)}
             onClose={() => setSearchAnchor(null)}
-            PaperProps={{ style: { width: 380, maxHeight: 350 } }}
+            PaperProps={{ style: { width: 350, maxHeight: 320 } }}
           >
             <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED MATCHES FOR "{globalQuery}"</Typography></MenuItem>
             <Divider />
@@ -139,81 +152,74 @@ function Topbar() {
               <ListItemIcon><FolderIcon color="info" fontSize="small" /></ListItemIcon>
               <ListItemText primary={`Search Documents: "${globalQuery}"`} secondary="Master Digital Vault" />
             </MenuItem>
-            <MenuItem onClick={() => handleSearchResultClick(`/wallet?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><AccountBalanceWalletIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary={`Search Payments: "${globalQuery}"`} secondary="Finance Engine" />
-            </MenuItem>
           </Menu>
-        </Box>
+        </Stack>
 
-        <Box display="flex" alignItems="center" gap={1}>
-          <IconButton size="small" onClick={() => navigate("/notifications")}>
+        {/* ➡️ RIGHT SIDE: 1 STRAIGHT INLINE LINE (USER IDENTITY + ROLE + LOGOUT) */}
+        <Stack direction="row" alignItems="center" spacing={0.8}>
+          <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ p: 0.3 }}>
             <Badge badgeContent={12} color="error">
-              <NotificationsIcon color="action" fontSize="small" />
+              <NotificationsIcon color="action" sx={{ fontSize: "1rem" }} />
             </Badge>
           </IconButton>
 
-          <IconButton size="small" onClick={() => navigate("/settings")}>
-            <SettingsIcon color="action" fontSize="small" />
+          <IconButton size="small" onClick={() => navigate("/settings")} sx={{ p: 0.3 }}>
+            <SettingsIcon color="action" sx={{ fontSize: "1rem" }} />
           </IconButton>
 
-          {/* UNIVERSAL USER IDENTITY BADGE — PROMINENT ON EVERY SINGLE PAGE */}
+          {/* 1 STRAIGHT LINE USER IDENTITY BADGE */}
           <Box
-            display="flex"
-            alignItems="center"
-            gap={1}
             sx={{
-              px: 1.2,
-              py: 0.3,
-              borderRadius: 2,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.8,
+              px: 1,
+              py: 0.2,
+              borderRadius: 1.5,
               bgcolor: "#0f172a",
               color: "#ffffff",
               border: "1px solid #1e293b",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              whiteSpace: "nowrap",
             }}
           >
-            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 28, height: 28, fontSize: "0.82rem" }}>
+            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 22, height: 22, fontSize: "0.75rem" }}>
               {userInitial}
             </Avatar>
 
-            <Box textAlign="left">
-              <Typography variant="body2" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.78rem", lineHeight: 1.1 }}>
-                {(() => {
-                  const prefix = user?.namePrefix || user?.name_prefix || "";
-                  const name = user?.fullName || user?.name || user?.username || "Logged User";
-                  return prefix && !name.startsWith(prefix) ? `${prefix} ${name}` : name;
-                })()}
-              </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+              {(() => {
+                const prefix = user?.namePrefix || user?.name_prefix || "";
+                const name = user?.fullName || user?.name || user?.username || "Logged User";
+                return prefix && !name.startsWith(prefix) ? `${prefix} ${name}` : name;
+              })()}
+            </Typography>
 
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <Chip
-                  label={
-                    userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
-                      ? "👑 SUPER ADMIN"
-                      : userRole === "admin"
-                      ? "🛡️ ADMIN"
-                      : userRole === "employee"
-                      ? "💼 STAFF"
-                      : "🟢 MEMBER"
-                  }
-                  size="small"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: "0.6rem",
-                    height: 16,
-                    bgcolor:
-                      userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
-                        ? "#7c3aed"
-                        : userRole === "admin"
-                        ? "#1d4ed8"
-                        : userRole === "employee"
-                        ? "#d97706"
-                        : "#059669",
-                    color: "#ffffff",
-                  }}
-                />
-              </Stack>
-            </Box>
+            <Chip
+              label={
+                userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                  ? "👑 SUPER ADMIN"
+                  : userRole === "admin"
+                  ? "🛡️ ADMIN"
+                  : userRole === "employee"
+                  ? "💼 STAFF"
+                  : "🟢 MEMBER"
+              }
+              size="small"
+              sx={{
+                fontWeight: 800,
+                fontSize: "0.58rem",
+                height: 16,
+                bgcolor:
+                  userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                    ? "#7c3aed"
+                    : userRole === "admin"
+                    ? "#1d4ed8"
+                    : userRole === "employee"
+                    ? "#d97706"
+                    : "#059669",
+                color: "#ffffff",
+              }}
+            />
 
             <Button
               variant="contained"
@@ -223,12 +229,13 @@ function Topbar() {
                 await logout();
                 navigate("/login");
               }}
-              sx={{ fontWeight: 800, ml: 0.5, px: 0.8, py: 0.2, minWidth: 50, fontSize: "0.68rem" }}
+              sx={{ fontWeight: 800, px: 0.6, py: 0.1, minWidth: 42, height: 20, fontSize: "0.62rem" }}
             >
               Exit
             </Button>
           </Box>
-        </Box>
+        </Stack>
+
       </Toolbar>
     </AppBar>
   );
