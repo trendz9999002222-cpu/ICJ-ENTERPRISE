@@ -8,8 +8,6 @@ import {
   ListItemText,
   Typography,
   Box,
-  Chip,
-  Divider,
   Stack,
 } from "@mui/material";
 
@@ -36,10 +34,9 @@ import {
   Notifications,
   ReceiptLong,
   LocationOn,
-  Lock,
 } from "@mui/icons-material";
 
-import Navigation, { getRoleOrderedModules } from "../core/navigation";
+import { getRoleOrderedModules, UNIVERSAL_PERMISSION_COLORS } from "../core/navigation";
 import useAuth from "../hooks/useAuth";
 
 const drawerWidth = 210;
@@ -69,16 +66,66 @@ const iconMap = {
   notifications: <Notifications />,
 };
 
+// Helper for rich pill background & border styling based on Universal 5-Color System
+const getPillStyle = (item, isActive) => {
+  const code = item.colorClassification?.code || "FREQUENT";
+  switch (code) {
+    case "CRITICAL":
+      return {
+        bgcolor: isActive ? "#dc2626" : "rgba(239, 68, 68, 0.16)",
+        borderLeft: "4px solid #ef4444",
+        border: isActive ? "1px solid #f87171" : "1px solid rgba(239, 68, 68, 0.3)",
+        textColor: isActive ? "#ffffff" : "#fca5a5",
+        iconColor: "#ef4444",
+        badge: "🔴",
+      };
+    case "FINANCE":
+      return {
+        bgcolor: isActive ? "#7c3aed" : "rgba(139, 92, 246, 0.16)",
+        borderLeft: "4px solid #8b5cf6",
+        border: isActive ? "1px solid #c084fc" : "1px solid rgba(139, 92, 246, 0.3)",
+        textColor: isActive ? "#ffffff" : "#d8b4fe",
+        iconColor: "#a855f7",
+        badge: "🟣",
+      };
+    case "NORMAL":
+      return {
+        bgcolor: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.14)",
+        borderLeft: "4px solid #f97316",
+        border: isActive ? "1px solid #fb923c" : "1px solid rgba(249, 115, 22, 0.3)",
+        textColor: isActive ? "#ffffff" : "#fdba74",
+        iconColor: "#f97316",
+        badge: "🟠",
+      };
+    case "SYSTEM":
+      return {
+        bgcolor: isActive ? "#2563eb" : "rgba(59, 130, 246, 0.14)",
+        borderLeft: "4px solid #3b82f6",
+        border: isActive ? "1px solid #60a5fa" : "1px solid rgba(59, 130, 246, 0.3)",
+        textColor: isActive ? "#ffffff" : "#93c5fd",
+        iconColor: "#3b82f6",
+        badge: "🔵",
+      };
+    case "FREQUENT":
+    default:
+      return {
+        bgcolor: isActive ? "#059669" : "rgba(16, 185, 129, 0.14)",
+        borderLeft: "4px solid #10b981",
+        border: isActive ? "1px solid #34d399" : "1px solid rgba(16, 185, 129, 0.3)",
+        textColor: isActive ? "#ffffff" : "#6ee7b7",
+        iconColor: "#10b981",
+        badge: "🟢",
+      };
+  }
+};
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
 
   const role = String(user?.role || "member").toLowerCase();
-
   const roleOrderedList = getRoleOrderedModules(role);
-  const groupAModules = roleOrderedList.filter((item) => item.group === "A");
-  const groupBModules = roleOrderedList.filter((item) => item.group === "B");
 
   return (
     <Drawer
@@ -136,223 +183,87 @@ export default function Sidebar() {
         </Typography>
       </Toolbar>
 
-      <Box sx={{ overflowY: "auto", px: 1, py: 1, flex: 1 }}>
+      {/* CLEAN EXECUTIVE NAVIGATION LIST (ZERO DEBUG BANNERS) */}
+      <Box sx={{ overflowY: "auto", px: 1, py: 1.5, flex: 1 }}>
+        <List disablePadding>
+          {roleOrderedList.map((item) => {
+            const isActive = location.pathname === item.route;
+            const style = getPillStyle(item, isActive);
 
-        {/* ─── GROUP A: ACTIVE MEMBER MODULES (EMERALD GREEN ACCENT) ───────── */}
-        {groupAModules.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Box
-              sx={{
-                mx: 1,
-                my: 1,
-                px: 1.5,
-                py: 0.6,
-                borderRadius: 1.5,
-                bgcolor: "rgba(16, 185, 129, 0.12)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                variant="caption"
+            return (
+              <ListItemButton
+                key={item.id}
+                onClick={() => navigate(item.route)}
                 sx={{
-                  fontWeight: 800,
-                  letterSpacing: 1,
-                  color: "#34d399",
-                  fontSize: "0.72rem",
-                  textTransform: "uppercase",
+                  mx: 0.5,
+                  mb: 1.2,
+                  p: 1.2,
+                  borderRadius: 2,
+                  bgcolor: style.bgcolor,
+                  borderLeft: style.borderLeft,
+                  border: style.border,
+                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.3)" : "none",
+                  transition: "all 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+                  "&:hover": {
+                    bgcolor: style.bgcolor,
+                    transform: "translateX(4px)",
+                    filter: "brightness(1.15)",
+                  },
                 }}
               >
-                GROUP A — MEMBER DATA
-              </Typography>
-              <Chip
-                label="ACTIVE WORKFLOW"
-                size="small"
-                sx={{
-                  bgcolor: "#059669",
-                  color: "#ffffff",
-                  fontWeight: 800,
-                  fontSize: "0.62rem",
-                  height: 18,
-                }}
-              />
-            </Box>
-
-            <List disablePadding>
-              {groupAModules.map((item) => {
-                const isActive = location.pathname === item.route;
-                return (
-                  <ListItemButton
-                    key={item.id}
-                    onClick={() => navigate(item.route)}
-                    sx={{
-                      mx: 0.5,
-                      mb: 0.5,
-                      borderRadius: 1.5,
-                      color: isActive ? "#ffffff" : "#94a3b8",
-                      bgcolor: isActive ? "#059669" : "transparent",
-                      borderLeft: isActive ? "3px solid #34d399" : "3px solid transparent",
-                      transition: "all 0.18s ease",
-                      "&:hover": {
-                        bgcolor: isActive ? "#047857" : "rgba(16, 185, 129, 0.15)",
-                        color: "#ffffff",
-                        transform: "translateX(3px)",
-                      },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        color: isActive ? "#ffffff" : "#10b981",
-                        minWidth: 38,
-                      }}
-                    >
-                      {iconMap[item.icon] || <Gavel />}
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary={`${item.colorClassification?.badgeIcon || "🟢"} ${item.name}`}
-                      primaryTypographyProps={{
-                        fontSize: "0.85rem",
-                        fontWeight: isActive ? 700 : 500,
-                      }}
-                      secondary={item.category}
-                      secondaryTypographyProps={{
-                        sx: {
-                          color: isActive ? "rgba(255,255,255,0.85)" : "#64748b",
-                          fontSize: 10,
-                          display: { xs: "none", md: "block" },
-                        },
-                      }}
-                      sx={{ display: { xs: "none", md: "block" } }}
-                    />
-                  </ListItemButton>
-                );
-              })}
-            </List>
-          </Box>
-        )}
-
-        <Divider sx={{ my: 1.5, borderColor: "rgba(255,255,255,0.08)" }} />
-
-        {/* ─── GROUP B: UNLOCKED INFRASTRUCTURE MODULES (ACTIVE BLUE ACCENT) ─ */}
-        {groupBModules.length > 0 && (
-          <Box sx={{ mb: 2 }}>
-            <Box
-              sx={{
-                mx: 1,
-                my: 1,
-                px: 1.5,
-                py: 0.6,
-                borderRadius: 1.5,
-                bgcolor: "rgba(37, 99, 235, 0.12)",
-                border: "1px solid rgba(37, 99, 235, 0.3)",
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <VerifiedUser sx={{ fontSize: 13, color: "#60a5fa" }} />
-                <Typography
-                  variant="caption"
+                <ListItemIcon
                   sx={{
-                    fontWeight: 800,
-                    letterSpacing: 1,
-                    color: "#60a5fa",
-                    fontSize: "0.72rem",
-                    textTransform: "uppercase",
+                    color: isActive ? "#ffffff" : style.iconColor,
+                    minWidth: 36,
                   }}
                 >
-                  GROUP B — INFRASTRUCTURE
-                </Typography>
-              </Stack>
-              <Chip
-                label="UNFROZEN 🔓"
-                size="small"
-                sx={{
-                  bgcolor: "#1d4ed8",
-                  color: "#ffffff",
-                  fontWeight: 800,
-                  fontSize: "0.62rem",
-                  height: 18,
-                }}
-              />
-            </Box>
+                  {iconMap[item.icon] || <Gavel />}
+                </ListItemIcon>
 
-            <List disablePadding>
-              {groupBModules.map((item) => {
-                const isActive = location.pathname === item.route;
-                return (
-                  <ListItemButton
-                    key={item.id}
-                    onClick={() => navigate(item.route)}
-                    sx={{
-                      mx: 0.5,
-                      mb: 0.5,
-                      borderRadius: 1.5,
-                      color: isActive ? "#ffffff" : "#cbd5e1",
-                      bgcolor: isActive ? "#1d4ed8" : "transparent",
-                      borderLeft: isActive ? "3px solid #60a5fa" : "3px solid transparent",
-                      transition: "all 0.18s ease",
-                      "&:hover": {
-                        bgcolor: isActive ? "#1e40af" : "rgba(37, 99, 235, 0.15)",
-                        color: "#ffffff",
-                        transform: "translateX(3px)",
-                      },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        color: isActive ? "#ffffff" : "#60a5fa",
-                        minWidth: 38,
-                      }}
-                    >
-                      {iconMap[item.icon] || <Gavel />}
-                    </ListItemIcon>
-
-                    <ListItemText
-                      primary={`${item.colorClassification?.badgeIcon || "🔵"} ${item.name}`}
-                      primaryTypographyProps={{
-                        fontSize: "0.85rem",
-                        fontWeight: isActive ? 700 : 500,
-                      }}
-                      secondary={item.category}
-                      secondaryTypographyProps={{
-                        sx: {
-                          color: isActive ? "rgba(255,255,255,0.7)" : "#475569",
-                          fontSize: 10,
-                          display: { xs: "none", md: "block" },
-                        },
-                      }}
-                      sx={{ display: { xs: "none", md: "block" } }}
-                    />
-                    <Lock sx={{ fontSize: 13, color: "#475569", ml: "auto", display: { xs: "none", md: "block" } }} />
-                  </ListItemButton>
-                );
-              })}
-            </List>
-          </Box>
-        )}
-
-      </Box>
-
-      {/* FOOTER */}
-      <Box
-        sx={{
-          mt: "auto",
-          p: 2,
-          borderTop: "1px solid rgba(255,255,255,.08)",
-          bgcolor: "rgba(0,0,0,0.2)",
-        }}
-      >
-        <Typography variant="caption" color="#64748b" display="block">
-          ICJ Enterprise Platform
-        </Typography>
-        <Typography variant="body2" sx={{ fontWeight: "bold", color: "#34d399" }}>
-          Group A: Active | Group B: Active 🟢
-        </Typography>
+                <ListItemText
+                  primary={
+                    <Stack direction="row" alignItems="center" spacing={0.8}>
+                      {/* PROMINENT HIGH-CONTRAST MOBILE BADGE ICON */}
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "1.2rem",
+                          lineHeight: 1,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))",
+                        }}
+                      >
+                        {style.badge}
+                      </Box>
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: "0.85rem",
+                          fontWeight: isActive ? 800 : 600,
+                          color: style.textColor,
+                          letterSpacing: 0.2,
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
+                    </Stack>
+                  }
+                  secondary={item.category}
+                  secondaryTypographyProps={{
+                    sx: {
+                      color: isActive ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
+                      fontSize: 10,
+                      ml: 3.2,
+                      display: { xs: "none", md: "block" },
+                    },
+                  }}
+                  sx={{ display: { xs: "none", md: "block" }, my: 0 }}
+                />
+              </ListItemButton>
+            );
+          })}
+        </List>
       </Box>
     </Drawer>
   );
