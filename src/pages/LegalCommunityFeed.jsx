@@ -127,7 +127,7 @@ export default function LegalCommunityFeed() {
               </Box>
               <Box>
                 <Typography variant="h5" fontWeight="bold" color="#065f46" display="flex" alignItems="center" gap={1}>
-                  ⚖️ ICJ Enterprise Legal Community Portal (LawTribe Feed)
+                  ⚖️ ICJ Enterprise Legal Community Portal
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   सत्यापित अधिवक्ताओं, कम्युनिटी वॉलंटियर्स व नागरिकों का सुरक्षित कानूनी मंच। 100% BCI नियम व AI ऑटो-मॉडरेशन।

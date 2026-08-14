@@ -201,7 +201,7 @@ export default function AppRouter() {
         <Route path="/customer-care" element={<ProtectedRoute><HelpdeskPortal /></ProtectedRoute>} />
         <Route path="/community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/feed" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
-        <Route path="/legal-tribe" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
+        <Route path="/legal-community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
     </GlobalErrorBoundary>

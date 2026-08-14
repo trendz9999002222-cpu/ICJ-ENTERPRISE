@@ -1,6 +1,6 @@
 /**
  * LegalCommunityService — ICJ Enterprise Platform
- * Provides LawTribe / LinkedIn Level Professional Legal Community Engine,
+ * Provides ICJ Enterprise Professional Legal Community Engine,
  * AI Policy Auto-Moderation, and Instant Account Suspension Rules.
  */
 
