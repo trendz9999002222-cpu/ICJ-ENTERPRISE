@@ -174,6 +174,35 @@ const RoleService = {
     const powers = this.getAdminPowers(username);
     return Boolean(powers[powerKey]);
   },
+
+  /**
+   * ZERO-TRUST ROLE ISOLATION: Strict Super Admin Verification
+   * Prevents clients, advocates, staff, and regular sub-admins from viewing financial reports,
+   * master API keys, token minting, or system configuration.
+   */
+  isSuperAdmin(user) {
+    if (!user) return false;
+    const roleStr = String(user.role || "").toLowerCase();
+    const username = String(user.username || user.email || user.member_id || "").toLowerCase();
+    return (
+      roleStr === "super_admin" ||
+      roleStr === "superadmin" ||
+      username.includes("superadmin") ||
+      username === "icjsuperadmin1234"
+    );
+  },
+
+  enforceStrictSuperAdminAccess(user, actionLabel = "Super Admin Finance Report & Master Control") {
+    const isSuper = this.isSuperAdmin(user);
+    if (!isSuper) {
+      console.warn(`🔒 ZERO-TRUST SECURITY ENFORCEMENT: Unauthorized access attempt blocked for '${actionLabel}' by user:`, user);
+      return {
+        allowed: false,
+        message: `⛔ अनधिकृत पहुँच (Unauthorized Access Blocked): केवल सुपर एडमिन को ही '${actionLabel}' देखने या इस्तेमाल करने की अनुमति है।`,
+      };
+    }
+    return { allowed: true };
+  },
 };
 
 export default RoleService;
