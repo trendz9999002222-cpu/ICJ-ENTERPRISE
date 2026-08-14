@@ -1212,11 +1212,11 @@ export default function Administration() {
               ) : (
                 ecoAdvocates.map(a => (
                   <Grid item xs={12} sm={6} md={4} key={a.id}>
-                    <Card variant="outlined" sx={{ p: 1.5 }}>
-                      <Typography variant="body2" fontWeight="bold">{a.name}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">Bar Registration: {a.barId || a.barEnrollmentNo}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">Specialization: {a.specialization}</Typography>
-                      <Chip label={`💼 Case Count: ${a.casesAssigned || 0}`} size="small" color="secondary" sx={{ mt: 1 }} />
+                    <Card variant="outlined" sx={{ p: 1.5, overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                      <Typography variant="body2" fontWeight="bold" sx={{ wordBreak: "break-word" }}>{a.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>Bar Registration: {a.barId || a.barEnrollmentNo}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>Specialization: {a.specialization}</Typography>
+                      <Chip label={`💼 Case Count: ${a.casesAssigned || 0}`} size="small" color="secondary" sx={{ mt: 1, maxWidth: "100%" }} />
                     </Card>
                   </Grid>
                 ))
@@ -1235,11 +1235,11 @@ export default function Administration() {
               ) : (
                 ecoStaff.map(s => (
                   <Grid item xs={12} sm={6} md={4} key={s.id}>
-                    <Card variant="outlined" sx={{ p: 1.5 }}>
-                      <Typography variant="body2" fontWeight="bold">{s.name}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">Designation: {s.designation}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">Chamber: {s.assignedOffice || 'N/A'}</Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">Advocate: {s.advocateName || 'N/A'}</Typography>
+                    <Card variant="outlined" sx={{ p: 1.5, overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                      <Typography variant="body2" fontWeight="bold" sx={{ wordBreak: "break-word" }}>{s.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>Designation: {s.designation}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>Chamber: {s.assignedOffice || 'N/A'}</Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>Advocate: {s.advocateName || 'N/A'}</Typography>
                       <Box sx={{ mt: 1 }}>
                         {s.permissions && s.permissions.map(p => (
                           <Chip key={p} label={p} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5, fontSize: '0.65rem' }} />

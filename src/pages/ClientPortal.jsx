@@ -1505,17 +1505,17 @@ export default function ClientPortal() {
                 return (
                   <Stack spacing={3}>
                   {/* ADVOCATE PROFILE SUMMARY */}
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc" }}>
+                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc", overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
                     <Grid container spacing={3} alignItems="center">
-                      <Grid item xs={12} sm={3} textAlign="center">
+                      <Grid item xs={12} sm={3} textAlign="center" sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
                         <BadgeIcon sx={{ fontSize: 75, color: "#1e3a8a" }} />
-                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1, wordBreak: "break-word" }}>
                           {advocateName}
                         </Typography>
-                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5 }} />
+                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5, maxWidth: "100%" }} />
                       </Grid>
-                      <Grid item xs={12} sm={9}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom>
+                      <Grid item xs={12} sm={9} sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom sx={{ wordBreak: "break-word" }}>
                           📜 Bar Registration &amp; Credential: {office.barEnrollmentNo || "UP/2026/9812"}
                         </Typography>
 
@@ -1535,13 +1535,15 @@ export default function ClientPortal() {
                                   fontWeight: "bold",
                                   width: "100%",
                                   justifyContent: "flex-start",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
                                 }}
                               />
                             </Grid>
                           ))}
                         </Grid>
 
-                        <Typography variant="caption" color="text.secondary" display="block">
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>
                           📍 Office Address: {office.officeAddress} | ⏰ Hours: {office.workingHours}
                         </Typography>
                       </Grid>

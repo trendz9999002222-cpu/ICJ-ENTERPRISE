@@ -228,13 +228,20 @@ export default function SuperAdminDashboard() {
                   label="Select Advocate"
                   value={selectedAdvocateId}
                   onChange={(e) => setSelectedAdvocateId(e.target.value)}
-                  sx={{ bgcolor: "#fff", borderRadius: 1, minWidth: 180 }}
+                  sx={{ bgcolor: "#fff", borderRadius: 1, minWidth: 200, maxWidth: "100%" }}
+                  SelectProps={{
+                    MenuProps: {
+                      PaperProps: {
+                        sx: { maxWidth: 360, overflowX: "hidden" }
+                      }
+                    }
+                  }}
                 >
-                  <MenuItem value="26ICJ08AA0105">Adv. Vikramaditya Singh (Delhi)</MenuItem>
-                  <MenuItem value="26ICJ08AA0106">Adv. Meenakshi Sundaram (AoR)</MenuItem>
-                  <MenuItem value="26ICJ08AA0107">Adv. Rajeshwar Sharma (UP)</MenuItem>
-                  <MenuItem value="26ICJ08AA0108">Adv. Ananya Roy (WB)</MenuItem>
-                  <MenuItem value="26ICJ08AA0109">Adv. Gurpreet Singh (Punjab)</MenuItem>
+                  <MenuItem value="26ICJ08AA0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
+                  <MenuItem value="26ICJ08AA0106" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Meenakshi Sundaram (AoR SC)</MenuItem>
+                  <MenuItem value="26ICJ08AA0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
+                  <MenuItem value="26ICJ08AA0108" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Ananya Roy (WB HC)</MenuItem>
+                  <MenuItem value="26ICJ08AA0109" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Gurpreet Singh (Punjab HC)</MenuItem>
                 </TextField>
 
                 <Button
@@ -400,16 +407,16 @@ export default function SuperAdminDashboard() {
                   </Typography>
                 ) : (
                   ClientWorkflowService.getPendingCasesForAdmin().map((req) => (
-                    <Box key={req.requestId} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "#fff1f2", border: "1px solid #fda4af" }}>
+                    <Box key={req.requestId} sx={{ p: 2, mb: 2, borderRadius: 2, bgcolor: "#fff1f2", border: "1px solid #fda4af", overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
                       <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={2}>
-                        <Box sx={{ flex: 1, minWidth: 260 }}>
-                          <Typography variant="subtitle2" fontWeight="bold" color="#9f1239">
+                        <Box sx={{ flex: 1, minWidth: 240, maxWidth: "100%", overflow: "hidden", wordBreak: "break-word" }}>
+                          <Typography variant="subtitle2" fontWeight="bold" color="#9f1239" sx={{ wordBreak: "break-word" }}>
                             Client: {req.clientName} (ID: {req.clientId || "N/A"})
                           </Typography>
-                          <Typography variant="body2" fontWeight="medium" color="#be123c" mt={0.5}>
+                          <Typography variant="body2" fontWeight="medium" color="#be123c" mt={0.5} sx={{ wordBreak: "break-word" }}>
                             Problem: "{req.problemText}"
                           </Typography>
-                          <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
+                          <Typography variant="caption" color="text.secondary" display="block" mt={0.5} sx={{ wordBreak: "break-word" }}>
                             Category: <strong>{req.caseCategory}</strong> | Outcome: {req.desiredOutcome}
                           </Typography>
                         </Box>
