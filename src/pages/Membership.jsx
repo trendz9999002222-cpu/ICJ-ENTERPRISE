@@ -17,6 +17,10 @@ import MemberTable from "../components/membership/MemberTable";
 import MemberProfileDialog from "../components/membership/MemberProfileDialog";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 import MainLayout from "../layouts/MainLayout";
+import MemberBatchImporter from "../components/membership/MemberBatchImporter.jsx";
+import MemberBatchService from "../services/memberBatchService.js";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import LinkIcon from "@mui/icons-material/Link";
 
 export default function Membership() {
   const [members, setMembers] = useState([]);
@@ -304,20 +308,32 @@ export default function Membership() {
     return matchesSearch && matchesRole && matchesPlan && matchesStatus && matchesVerification;
   });
 
+  const [batchImporterOpen, setBatchImporterOpen] = useState(false);
+
   return (
     <MainLayout>
       <Box sx={{ p: { xs: 2, md: 3 } }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }} flexWrap="wrap" gap={1}>
           <Box>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
-              Enterprise Master Membership Engine
+              Enterprise Master Member Registry & Executive Onboarding Studio
             </Typography>
             <Typography color="text.secondary">
-              Master User Repository, 7-Tab Member Profile Governance & Audit Trail
+              Offline & Executive Member Onboarding, Shareable Self-Registration Links & Excel/CSV Batch Auto-Importer
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<FileUploadIcon />}
+              onClick={() => setBatchImporterOpen(true)}
+              sx={{ fontWeight: "bold" }}
+            >
+              📊 Excel / CSV Batch Auto-Importer
+            </Button>
+
             <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setShowAddForm(!showAddForm)}>
               {showAddForm ? "Hide Member Form" : "+ Add New Member"}
             </Button>
@@ -378,6 +394,12 @@ export default function Membership() {
             onSave={handleSaveProfileDialog}
           />
         )}
+
+        <MemberBatchImporter
+          open={batchImporterOpen}
+          onClose={() => setBatchImporterOpen(false)}
+          onImportSuccess={() => refreshMembers()}
+        />
       </Box>
     </MainLayout>
   );
