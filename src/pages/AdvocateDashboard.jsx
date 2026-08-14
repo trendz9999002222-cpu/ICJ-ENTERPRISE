@@ -35,6 +35,7 @@ import MicIcon from "@mui/icons-material/Mic";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import PauseIcon from "@mui/icons-material/Pause";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
