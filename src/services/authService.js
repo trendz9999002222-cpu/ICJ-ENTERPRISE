@@ -194,20 +194,14 @@ const AuthService = {
       throw new Error("Invalid Email or Password. Please check and try again.");
     }
 
-    // Verify Password Hash (or initial seed/reset password match)
-    const isPasswordValid = (matchedUser.password && matchedUser.password === password) ||
-                            (matchedUser.passwordHash && matchedUser.passwordHash === inputHash) ||
-                            (matchedUser.username && password === matchedUser.username) ||
-                            (password === "ICJSuperAdmin1234") ||
-                            (password === "ICJAdmin1234") ||
-                            (password === "ICJAdmin2234") ||
-                            (password === "ICJAdmin3234") ||
-                            (password === "ICJAdmin4234") ||
-                            (password === "ICJMember1234") ||
-                            (password === "Ramesh@1234");
+    // Verify Password Hash securely against stored password hash or exact password
+    const isPasswordValid = Boolean(
+      (matchedUser.passwordHash && matchedUser.passwordHash === inputHash) ||
+      (matchedUser.password && matchedUser.password === password)
+    );
 
     if (!isPasswordValid) {
-      throw new Error("Invalid Member ID, Email, Mobile or Password.");
+      throw new Error("Invalid Email or Password. Please check your credentials.");
     }
 
     const sessionUser = {

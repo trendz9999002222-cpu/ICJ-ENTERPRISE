@@ -1,42 +1,25 @@
-import {
-  getLegalCases,
-  addLegalCase,
-  updateLegalCase,
-  deleteLegalCase,
-} from "./database";
+import LegalMatterDataService from "./legalMatterDataService";
 
+/**
+ * Consolidated LegalService
+ * Forwarding to single source of truth: legalMatterDataService.js
+ */
 const LegalService = {
-
   async getAll() {
-    return await getLegalCases();
+    return LegalMatterDataService.getMatters();
   },
 
   async create(caseData = {}) {
-
-    const legalCase = {
-      id: Date.now(),
-      caseNumber: "CASE-" + Date.now(),
-      title: caseData.title || "",
-      clientName: caseData.clientName || "",
-      advocateName: caseData.advocateName || "",
-      courtName: caseData.courtName || "",
-      status: caseData.status || "Pending",
-      nextHearing: caseData.nextHearing || "",
-      createdAt: new Date().toISOString(),
-      ...caseData,
-    };
-
-    return await addLegalCase(legalCase);
+    return LegalMatterDataService.createMatter(caseData);
   },
 
   async update(id, values) {
-    await updateLegalCase(id, values);
+    return LegalMatterDataService.updateMatter(id, values);
   },
 
   async remove(id) {
-    await deleteLegalCase(id);
+    return LegalMatterDataService.deleteMatter(id);
   },
-
 };
 
 export default LegalService;

@@ -66,9 +66,9 @@ function RootDashboard() {
   }
 
   const isCustomAdmin = (r) => {
-    if (["admin", "super_admin"].includes(r)) return true;
-    if (["member", "client", "advocate"].includes(r)) return false;
-    return true;
+    const roleStr = String(r || "").toLowerCase();
+    const DYNAMIC_ADMIN_ROLES = ["admin", "super_admin", "superadmin", "trustee", "volunteer", "employee", "branch_admin"];
+    return DYNAMIC_ADMIN_ROLES.includes(roleStr);
   };
 
   if (isCustomAdmin(role)) {
@@ -150,7 +150,7 @@ export default function AppRouter() {
 
         <Route path="/identity" element={<ProtectedRoute><MemberIdentity /></ProtectedRoute>} />
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-        <Route path="/wallet" element={<Wallet />} />
+        <Route path="/wallet" element={<ProtectedRoute><MemberWallet /></ProtectedRoute>} />
         <Route path="/token" element={<Token />} />
         {/* Token Exchange Public Portal — visible to all, exchange requires login */}
         <Route path="/token-exchange" element={<TokenExchange />} />

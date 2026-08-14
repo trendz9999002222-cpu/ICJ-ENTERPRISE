@@ -31,11 +31,11 @@ export default function ProtectedRoute({ children, roles = [] }) {
 
   const allowedRoles = roles.map((r) => String(r).toLowerCase());
   
-  // Helper to identify custom dynamic admin roles (Trustee, Volunteer, Employee, etc.)
+  // Helper to identify custom dynamic admin roles (Trustee, Volunteer, Employee, Branch Admin)
   const isCustomAdmin = (r) => {
-    if (["admin", "super_admin"].includes(r)) return true;
-    if (["member", "client"].includes(r)) return false;
-    return true; // trustee, volunteer, employee, branch_admin are dynamic admin roles
+    const roleStr = String(r || "").toLowerCase();
+    const DYNAMIC_ADMIN_ROLES = ["admin", "super_admin", "superadmin", "trustee", "volunteer", "employee", "branch_admin"];
+    return DYNAMIC_ADMIN_ROLES.includes(roleStr);
   };
 
   if (allowedRoles.length > 0) {
