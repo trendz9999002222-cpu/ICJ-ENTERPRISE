@@ -80,7 +80,7 @@ const Modules = [
   },
   {
     id: "member-directory",
-    name: "Member Directory",
+    name: "Mem. Directory",
     category: "Membership",
     group: "A",
     route: "/member-directory",
@@ -96,7 +96,7 @@ const Modules = [
   },
   {
     id: "member-verification",
-    name: "Member Verification",
+    name: "Mem. Verif.",
     category: "Membership",
     group: "A",
     route: "/member-verification",
@@ -112,7 +112,7 @@ const Modules = [
   },
   {
     id: "member-profile",
-    name: "Member Profile",
+    name: "Mem. Profile",
     category: "Membership",
     group: "A",
     route: "/member-profile",
@@ -146,7 +146,7 @@ const Modules = [
   },
   {
     id: "advocate-dashboard",
-    name: "Advocate Centre",
+    name: "Advocate Desk",
     category: "Legal",
     group: "A",
     route: "/advocate-dashboard",
@@ -214,7 +214,7 @@ const Modules = [
   // FINANCE & WALLET (MEMBER DATA FLOW)
   {
     id: "billing",
-    name: "Billing & Revenue",
+    name: "Billing & Rev.",
     category: "Finance",
     group: "A",
     route: "/billing",
@@ -246,7 +246,7 @@ const Modules = [
   },
   {
     id: "payment-management",
-    name: "Payment Management",
+    name: "Payment Mgmt.",
     category: "Finance",
     group: "A",
     route: "/payment-management",
@@ -262,7 +262,7 @@ const Modules = [
   },
   {
     id: "token",
-    name: "Token Governance",
+    name: "Token Gov.",
     category: "Finance",
     group: "A",
     route: "/token",
@@ -346,7 +346,7 @@ const Modules = [
   },
   {
     id: "administration",
-    name: "Administration Desk",
+    name: "Admin. Desk",
     category: "Admin",
     group: "B",
     route: "/administration",
@@ -362,7 +362,7 @@ const Modules = [
   },
   {
     id: "governance-center",
-    name: "Governance Center",
+    name: "Gov. Center",
     category: "Admin",
     group: "B",
     route: "/governance-center",
@@ -378,7 +378,7 @@ const Modules = [
   },
   {
     id: "location-master",
-    name: "Location Master",
+    name: "Loc. Master",
     category: "Admin",
     group: "B",
     route: "/location-master",
@@ -394,7 +394,7 @@ const Modules = [
   },
   {
     id: "database-config",
-    name: "Database Config",
+    name: "DB Config",
     category: "Admin",
     group: "B",
     route: "/database-config",
@@ -410,7 +410,7 @@ const Modules = [
   },
   {
     id: "api-config",
-    name: "API Gateway & Config",
+    name: "API Gateway",
     category: "Admin",
     group: "B",
     route: "/api-config",
@@ -426,7 +426,7 @@ const Modules = [
   },
   {
     id: "deployment-center",
-    name: "Deployment Center",
+    name: "Deploy Center",
     category: "Admin",
     group: "B",
     route: "/deployment-center",
@@ -442,7 +442,7 @@ const Modules = [
   },
   {
     id: "system-health",
-    name: "System Health & Metrics",
+    name: "System Health",
     category: "Admin",
     group: "B",
     route: "/system-health",

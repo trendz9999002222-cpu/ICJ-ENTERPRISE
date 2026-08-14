@@ -72,47 +72,47 @@ const getPillStyle = (item, isActive) => {
   switch (code) {
     case "CRITICAL":
       return {
-        bgcolor: isActive ? "#dc2626" : "rgba(239, 68, 68, 0.16)",
+        bgcolor: isActive ? "#dc2626" : "rgba(239, 68, 68, 0.25)",
         borderLeft: "4px solid #ef4444",
-        border: isActive ? "1px solid #f87171" : "1px solid rgba(239, 68, 68, 0.3)",
-        textColor: isActive ? "#ffffff" : "#fca5a5",
+        border: isActive ? "1px solid #f87171" : "1px solid rgba(239, 68, 68, 0.4)",
+        textColor: "#ffffff",
         iconColor: "#ef4444",
         badge: "🔴",
       };
     case "FINANCE":
       return {
-        bgcolor: isActive ? "#7c3aed" : "rgba(139, 92, 246, 0.16)",
+        bgcolor: isActive ? "#7c3aed" : "rgba(139, 92, 246, 0.25)",
         borderLeft: "4px solid #8b5cf6",
-        border: isActive ? "1px solid #c084fc" : "1px solid rgba(139, 92, 246, 0.3)",
-        textColor: isActive ? "#ffffff" : "#d8b4fe",
+        border: isActive ? "1px solid #c084fc" : "1px solid rgba(139, 92, 246, 0.4)",
+        textColor: "#ffffff",
         iconColor: "#a855f7",
         badge: "🟣",
       };
     case "NORMAL":
       return {
-        bgcolor: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.14)",
+        bgcolor: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.22)",
         borderLeft: "4px solid #f97316",
-        border: isActive ? "1px solid #fb923c" : "1px solid rgba(249, 115, 22, 0.3)",
-        textColor: isActive ? "#ffffff" : "#fdba74",
+        border: isActive ? "1px solid #fb923c" : "1px solid rgba(249, 115, 22, 0.4)",
+        textColor: "#ffffff",
         iconColor: "#f97316",
         badge: "🟠",
       };
     case "SYSTEM":
       return {
-        bgcolor: isActive ? "#2563eb" : "rgba(59, 130, 246, 0.14)",
+        bgcolor: isActive ? "#2563eb" : "rgba(59, 130, 246, 0.22)",
         borderLeft: "4px solid #3b82f6",
-        border: isActive ? "1px solid #60a5fa" : "1px solid rgba(59, 130, 246, 0.3)",
-        textColor: isActive ? "#ffffff" : "#93c5fd",
+        border: isActive ? "1px solid #60a5fa" : "1px solid rgba(59, 130, 246, 0.4)",
+        textColor: "#ffffff",
         iconColor: "#3b82f6",
         badge: "🔵",
       };
     case "FREQUENT":
     default:
       return {
-        bgcolor: isActive ? "#059669" : "rgba(16, 185, 129, 0.14)",
+        bgcolor: isActive ? "#059669" : "rgba(16, 185, 129, 0.22)",
         borderLeft: "4px solid #10b981",
-        border: isActive ? "1px solid #34d399" : "1px solid rgba(16, 185, 129, 0.3)",
-        textColor: isActive ? "#ffffff" : "#6ee7b7",
+        border: isActive ? "1px solid #34d399" : "1px solid rgba(16, 185, 129, 0.4)",
+        textColor: "#ffffff",
         iconColor: "#10b981",
         badge: "🟢",
       };
