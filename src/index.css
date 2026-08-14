@@ -56,6 +56,13 @@ body {
   width: 100%;
 }
 
+/* MOBILE KEYBOARD FOCUS AUTO-SCROLL OFFSET */
+input, textarea, select, .MuiInputBase-input {
+  scroll-margin-top: 120px;
+  scroll-margin-bottom: 120px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* BIG-TECH GLOBAL DESIGN UTILITIES (META / GOOGLE / MICROSOFT STANDARDS) */
 .bigtech-card {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);

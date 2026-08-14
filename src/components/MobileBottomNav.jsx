@@ -7,12 +7,15 @@ import PersonIcon from "@mui/icons-material/Person";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 
 import useAuth from "../hooks/useAuth";
+import useMobileKeyboardHandler from "../hooks/useMobileKeyboardHandler";
 
-export default function MobileBottomNav() {
+export default function MobileBottomNav({ isKeyboardActive = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { isKeyboardOpen } = useMobileKeyboardHandler();
 
+  const hideNav = isKeyboardActive || isKeyboardOpen;
   const role = String(user?.role || "member").toLowerCase();
 
   // Determine current active tab
@@ -40,6 +43,8 @@ export default function MobileBottomNav() {
           overflow: "hidden",
           borderTop: "1px solid rgba(229, 231, 235, 0.8)",
           bgcolor: "#0a192f",
+          transform: hideNav ? "translateY(100%)" : "translateY(0)",
+          transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         <BottomNavigation
