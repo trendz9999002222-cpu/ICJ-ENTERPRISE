@@ -59,6 +59,8 @@ import MatterCommunicationService from "../services/matterCommunicationService.j
 import MatterTimelineService from "../services/matterTimelineService.js";
 import LegalMatterDataService from "../services/legalMatterDataService.js";
 import LegalDocumentSorterService from "../services/legalDocumentSorterService.js";
+import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
+import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;

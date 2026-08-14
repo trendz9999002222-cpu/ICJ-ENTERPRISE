@@ -38,6 +38,8 @@ import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
+import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
+import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
 import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
