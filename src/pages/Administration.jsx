@@ -1105,10 +1105,21 @@ export default function Administration() {
               ) : (
                 ecoClients.map(c => (
                   <Grid item xs={12} sm={6} md={4} key={c.id || c.member_id}>
-                    <Card variant="outlined" sx={{ p: 1.5 }}>
+                    <Card variant="outlined" sx={{ p: 1.5, borderLeft: "4px solid #3b82f6" }}>
                       <Typography variant="body2" fontWeight="bold">{c.name}</Typography>
                       <Typography variant="caption" color="text.secondary" display="block">ID: {c.member_id || c.id}</Typography>
-                      <Chip label={`🪙 Balance: ${c.token_balance || 0} Tokens`} size="small" color="primary" sx={{ mt: 1 }} />
+                      <Typography variant="caption" color="primary.main" fontWeight="bold" display="block" sx={{ mt: 0.5 }}>
+                        🎯 Purpose: {c.purpose || "General Onboarding"}
+                      </Typography>
+                      {c.problemCategories && c.problemCategories.length > 0 && (
+                        <Typography variant="caption" color="error.main" display="block" sx={{ fontSize: "0.68rem" }}>
+                          Issues: {Array.isArray(c.problemCategories) ? c.problemCategories.join(", ") : c.problemCategories}
+                        </Typography>
+                      )}
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+                        <Chip label={`🪙 Balance: ${c.token_balance || 0} Tokens`} size="small" color="primary" sx={{ fontSize: "0.65rem" }} />
+                        <Chip label={c.status || "Active"} size="small" color="success" variant="outlined" sx={{ fontSize: "0.65rem" }} />
+                      </Stack>
                     </Card>
                   </Grid>
                 ))

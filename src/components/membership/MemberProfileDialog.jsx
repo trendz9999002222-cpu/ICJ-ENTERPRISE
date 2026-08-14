@@ -260,6 +260,55 @@ export default function MemberProfileDialog({ open = false, member = null, onClo
             <Grid item xs={12} md={3}>
               <TextField fullWidth label="PIN Code" name="pincode" value={formData.pincode || ""} onChange={handleChange} />
             </Grid>
+
+            {/* ONBOARDING INTENT & PURPOSE CARD */}
+            <Grid item xs={12}>
+              <Box sx={{ p: 2, bgcolor: "#f0fdf4", borderRadius: 2, border: "1px solid #bbf7d0" }}>
+                <Typography variant="subtitle2" fontWeight="bold" color="#15803d" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                  🎯 Onboarding Purpose & Selected Intent
+                </Typography>
+                <Typography variant="body2" fontWeight="bold" gutterBottom>
+                  Purpose Selected: <Chip label={formData.purpose || member?.purpose || "General Membership"} color="success" size="small" sx={{ fontWeight: "bold" }} />
+                </Typography>
+
+                {(formData.problemCategories || member?.problemCategories) && (formData.problemCategories || member?.problemCategories).length > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" fontWeight="bold">
+                      Selected Legal Problem Categories:
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
+                      {(Array.isArray(formData.problemCategories || member?.problemCategories) ? (formData.problemCategories || member?.problemCategories) : [formData.problemCategories || member?.problemCategories]).map((cat, i) => (
+                        <Chip key={i} label={cat} size="small" color="error" variant="outlined" sx={{ fontSize: "0.7rem" }} />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                {(formData.solutionServices || member?.solutionServices) && (formData.solutionServices || member?.solutionServices).length > 0 && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" fontWeight="bold">
+                      Selected Solution Services Required:
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
+                      {(Array.isArray(formData.solutionServices || member?.solutionServices) ? (formData.solutionServices || member?.solutionServices) : [formData.solutionServices || member?.solutionServices]).map((srv, i) => (
+                        <Chip key={i} label={srv} size="small" color="primary" variant="outlined" sx={{ fontSize: "0.7rem" }} />
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                {(formData.franchiseState || member?.franchiseState) && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" fontWeight="bold">
+                      Franchise Application Territory:
+                    </Typography>
+                    <Typography variant="body2" color="primary.main" fontWeight="bold">
+                      {formData.franchiseState || member?.franchiseState} — {formData.franchiseDistrict || member?.franchiseDistrict} ({formData.franchiseCity || member?.franchiseCity})
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Grid>
           </Grid>
         </TabPanel>
 
