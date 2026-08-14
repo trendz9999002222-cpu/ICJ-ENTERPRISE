@@ -31,6 +31,9 @@ import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
 import LegalMatterDataService from "../services/legalMatterDataService";
 import JudicialVictoryEngine from "../services/judicialVictoryEngine";
+import TacticalLegalAdvisoryService from "../services/tacticalLegalAdvisoryService";
+import StageAwareButtonService from "../services/stageAwareButtonService";
+import SmartCitationSelectorService from "../services/smartCitationSelectorService";
 import { DOCUMENT_SCHEMAS } from "../services/legalKnowledgeBase";
 import MainLayout from "../layouts/MainLayout";
 import useAuth from "../hooks/useAuth";
@@ -669,7 +672,74 @@ export default function LegalDrafter() {
                   )}
                 </Stack>
 
-                {/* MULTI-TURN ADVOCATE REFINEMENT & TUNE BOX */}
+                {/* STAGE-AWARE DYNAMIC 1-CLICK ACTION BUTTONS */}
+                <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#eff6ff", border: "1.5px solid #2563eb" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" color="#1d4ed8" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                    <AutoAwesomeIcon fontSize="small" /> ⚡ 1-Click Stage Procedural Petitions (बिना टाइप किए अर्जी जनरेट करें)
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                    {StageAwareButtonService.getStageButtons(docType).map((btn) => (
+                      <Button
+                        key={btn.id}
+                        size="small"
+                        variant="contained"
+                        color={btn.color}
+                        onClick={() => {
+                          const userReason = prompt(btn.promptText, btn.defaultReason);
+                          if (userReason !== null) {
+                            const petitionDraft = StageAwareButtonService.generateProceduralPetition({
+                              buttonId: btn.id,
+                              caseTitle: selectedCase?.title || "Legal Matter",
+                              clientName: selectedCase?.clientName || "Litigant",
+                              courtName: selectedCase?.courtName || "Hon'ble Court",
+                              reasonText: userReason,
+                            });
+                            setGeneratedDraft(petitionDraft);
+                            setAlertMsg({ text: `🟢 1-Second Ready Petition Created: ${btn.label}`, severity: "success" });
+                          }
+                        }}
+                      >
+                        {btn.label}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Paper>
+
+                {/* ZERO-TYPING SMART CITATION SELECTOR MATRIX (4-6 SC/HC RULINGS) */}
+                <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#fffbeb", border: "1.5px solid #d97706" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" color="#b45309" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                    📜 Smart Citation Selector Matrix (1-क्लिक नज़ीर जोड़ें)
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                    बिना टाइप किए बटन दबाकर प्रासंगिक सुप्रीम कोर्ट / हाईकोर्ट नज़ीर ड्राफ्ट में शामिल करें:
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {SmartCitationSelectorService.getPrecedentsForCase(docType).map((cit) => (
+                      <Grid item xs={12} sm={6} key={cit.id}>
+                        <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: "#fff" }}>
+                          <Typography variant="caption" fontWeight="bold" color="#92400e" display="block">
+                            {cit.citation}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: "0.7rem", my: 0.5 }}>
+                            {cit.ratio}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            onClick={() => {
+                              setGeneratedDraft((prev) => (prev ? prev + cit.mergeSnippet : cit.mergeSnippet));
+                              setAlertMsg({ text: `➕ Added Citation '${cit.citation}' to Draft!`, severity: "success" });
+                            }}
+                            sx={{ fontSize: "0.65rem", py: 0.2 }}
+                          >
+                            ➕ [ड्राफ्ट में जोड़ें]
+                          </Button>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
                 {generatedDraft && (
                   <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#f8fafc", border: "1.5px solid #7c3aed" }}>
                     <Typography variant="subtitle2" fontWeight="bold" color="#7c3aed" gutterBottom display="flex" alignItems="center" gap={0.5}>
