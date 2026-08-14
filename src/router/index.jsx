@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LinearProgress } from "@mui/material";
 
 import ProtectedRoute from "./ProtectedRoute";
 import Login from "../pages/Login";
@@ -91,7 +93,8 @@ export default function AppRouter() {
   return (
     <GlobalErrorBoundary componentName="AppRouter">
       <BrowserRouter>
-        <Routes>
+        <Suspense fallback={<LinearProgress color="primary" sx={{ height: 3, bgcolor: "rgba(59, 130, 246, 0.2)" }} />}>
+          <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/demo-leads-portal" element={<DemoLeadsPortal />} />
         <Route path="/loginAuthentication" element={<Navigate to="/login" replace />} />
@@ -203,7 +206,8 @@ export default function AppRouter() {
         <Route path="/feed" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/legal-community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
       </Routes>
-    </BrowserRouter>
+        </Suspense>
+      </BrowserRouter>
     </GlobalErrorBoundary>
   );
 }
