@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 import PasswordPolicyService from "./passwordPolicyService.js";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 import SeedEcosystemService from "./seedEcosystemService.js";
+import ProductionHardeningService from "./productionHardeningService.js";
 
 const SESSION_KEY = "icj_user";
 const USERS_STORAGE_KEY = "icj_enterprise_users";
@@ -223,7 +224,12 @@ const AuthService = {
       );
     });
 
+    // Tier 4 brute-force limiter. It existed in ProductionHardeningService but
+    // nothing ever called it, so the 5-attempt lockout did not apply to login.
+    ProductionHardeningService.checkRateLimit(loginIdentifier);
+
     if (!matchedUser) {
+      ProductionHardeningService.recordFailedLogin(loginIdentifier);
       throw new Error("Invalid Mobile / Email or Password. Please check and try again.");
     }
 
@@ -236,8 +242,11 @@ const AuthService = {
     );
 
     if (!isPasswordValid) {
+      ProductionHardeningService.recordFailedLogin(loginIdentifier);
       throw new Error("Invalid Credentials. Please check your Mobile/Email and Password.");
     }
+
+    ProductionHardeningService.resetLoginLock(loginIdentifier);
 
     const sessionUser = {
       ...matchedUser,
