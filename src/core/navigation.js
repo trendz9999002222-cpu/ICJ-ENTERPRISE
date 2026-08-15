@@ -620,6 +620,50 @@ export const ROLE_MODULE_PRIORITY = {
   ]
 };
 
+/**
+ * Which roles may see each module in the sidebar. Mirrors the route guards in
+ * src/router/index.jsx — keep the two in step.
+ *
+ * Modules absent from this map are available to any signed-in user. Previously
+ * there was no filter at all here: getRoleOrderedModules only *sorted*, so every
+ * member saw Administration, API Config, Database Config and System Health in
+ * the navigation and could click straight through to them.
+ */
+export const MODULE_ROLE_ACCESS = {
+  membership: ["admin", "employee"],
+  "member-directory": ["admin", "employee"],
+  "member-verification": ["admin", "employee"],
+  "activity-log": ["admin", "employee"],
+  "advocate-dashboard": ["advocate", "admin"],
+  "client-portal": ["member", "client", "admin"],
+  billing: ["admin", "advocate"],
+  administration: ["admin"],
+  "security-compliance": ["admin"],
+  "advocate-directory": ["admin"],
+  "feature-control": ["admin"],
+  "governance-center": ["admin"],
+  "location-master": ["admin"],
+  "database-config": ["admin"],
+  "api-config": ["admin"],
+  "deployment-center": ["admin"],
+  "system-health": ["admin"],
+  "trust-dashboard": ["admin"],
+  "payment-management": ["admin"],
+  finance: ["admin"],
+  reports: ["admin"],
+  settings: ["admin"],
+};
+
+const ADMIN_ROLES = ["admin", "super_admin", "superadmin"];
+
+export const canRoleAccessModule = (roleKey, moduleId) => {
+  const allowed = MODULE_ROLE_ACCESS[moduleId];
+  if (!allowed) return true;
+  const role = String(roleKey || "").toLowerCase();
+  if (allowed.includes(role)) return true;
+  return allowed.includes("admin") && ADMIN_ROLES.includes(role);
+};
+
 export const getRoleOrderedModules = (roleKey = "member") => {
   const normalized = String(roleKey).toLowerCase();
   let priorityList = ROLE_MODULE_PRIORITY[normalized];
@@ -630,7 +674,7 @@ export const getRoleOrderedModules = (roleKey = "member") => {
     else priorityList = ROLE_MODULE_PRIORITY.client;
   }
 
-  const enabled = getEnabledModules();
+  const enabled = getEnabledModules().filter((m) => canRoleAccessModule(normalized, m.id));
 
   return [...enabled].sort((a, b) => {
     // Primary Sort: Color Safety Hierarchy (Green 1 -> Blue 2 -> Violet 3 -> Orange 4 -> Red 5)

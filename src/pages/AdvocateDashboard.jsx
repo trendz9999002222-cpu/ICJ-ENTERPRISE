@@ -18,6 +18,7 @@ import {
   Tabs,
   Tab,
   Alert,
+  MenuItem,
 } from "@mui/material";
 
 // Icons
@@ -103,6 +104,34 @@ export default function AdvocateDashboard() {
   });
   const [newMessageText, setNewMessageText] = useState("");
   const [activeAdvocateCaseId, setActiveAdvocateCaseId] = useState("");
+
+  // Accept or dismiss an AI-proposed matter update attached to a client message.
+  // MatterUpdateConfirmation called these two handlers, but neither existed —
+  // clicking Confirm or Reject threw a ReferenceError and killed the tab.
+  const setExtractionStatus = (messageId, key, status, value) => {
+    setMessages((prev) => {
+      const next = prev.map((msg) => (
+        String(msg.id) !== String(messageId) ? msg : {
+          ...msg,
+          aiExtractions: (msg.aiExtractions || []).map((ext) => (
+            ext.key !== key ? ext : { ...ext, status, ...(value === undefined ? {} : { value }) }
+          )),
+        }
+      ));
+      try {
+        localStorage.setItem("icj_client_messages", JSON.stringify(next));
+      } catch {
+        // Storage full or unavailable — keep the in-memory update.
+      }
+      return next;
+    });
+  };
+
+  const handleConfirmExtraction = (messageId, key, value) =>
+    setExtractionStatus(messageId, key, "CONFIRMED", value);
+
+  const handleRejectExtraction = (messageId, key) =>
+    setExtractionStatus(messageId, key, "REJECTED");
 
   // Tasks state
   const [tasks, setTasks] = useState([

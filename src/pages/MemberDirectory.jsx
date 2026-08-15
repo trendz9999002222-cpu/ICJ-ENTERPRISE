@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Paper,
@@ -86,6 +86,14 @@ export default function MemberDirectory() {
       console.error("Failed to load members", error);
     }
   };
+
+  // Named so the specialty-upgrade modal can re-pull the directory on success.
+  // It called refreshData(), which was never defined.
+  const refreshData = useCallback(() => {
+    return MemberService.getAll()
+      .then((list) => setMembers(Array.isArray(list) ? list : []))
+      .catch((error) => console.error("Failed to load members", error));
+  }, []);
 
   useEffect(() => {
     let isMounted = true;

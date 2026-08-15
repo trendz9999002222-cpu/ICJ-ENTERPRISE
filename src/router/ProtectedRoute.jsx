@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AuthService from "../services/authService";
 import { Navigate } from "react-router-dom";
 import { CircularProgress, Box, Typography } from "@mui/material";
@@ -6,6 +7,25 @@ import MainLayout from "../layouts/MainLayout";
 
 export default function ProtectedRoute({ children, roles = [] }) {
   const { isAuthenticated, loading, user } = useAuth();
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Guest Admin sessions carry an expiry. The check runs in an effect rather
+  // than during render, where it used to fire logout() and alert() as render
+  // side effects. Polling also ends the session while the page sits idle,
+  // instead of only on the next navigation.
+  const expiryTime = user?.expiryTime;
+  useEffect(() => {
+    if (!expiryTime) return undefined;
+    const check = () => {
+      if (Date.now() > Number(expiryTime)) {
+        setSessionExpired(true);
+        AuthService.logout();
+      }
+    };
+    check();
+    const timer = setInterval(check, 30000);
+    return () => clearInterval(timer);
+  }, [expiryTime]);
 
   if (loading) {
     return (
@@ -19,46 +39,38 @@ export default function ProtectedRoute({ children, roles = [] }) {
     return <Navigate to="/login" replace />;
   }
 
-  const userRole = String(user?.role || "member").toLowerCase();
-  
-  // ─── GUEST ADMIN SESSION TIME-LIMIT SECURITY CHECK ───
-  if (user?.expiryTime && Date.now() > Number(user.expiryTime)) {
-    console.warn("Guest Admin session has expired!");
-    // Auto logout
-    AuthService.logout && AuthService.logout();
-    alert("Your Guest Admin session has expired. Please sign in again.");
+  if (sessionExpired) {
     return <Navigate to="/login" replace />;
   }
 
+  const userRole = String(user?.role || "member").toLowerCase();
+
   const allowedRoles = roles.map((r) => String(r).toLowerCase());
-  
-  // Helper to identify custom dynamic admin roles (Trustee, Volunteer, Employee, Branch Admin)
-  const isCustomAdmin = (r) => {
-    const roleStr = String(r || "").toLowerCase();
-    const DYNAMIC_ADMIN_ROLES = ["admin", "super_admin", "superadmin", "trustee", "volunteer", "employee", "branch_admin"];
-    return DYNAMIC_ADMIN_ROLES.includes(roleStr) || String(user?.email || "").includes("superadmin") || String(user?.username || "").includes("ICJSuperAdmin");
-  };
+
+  // Only genuine administrator roles satisfy an `admin` route. This previously
+  // also accepted trustee/volunteer/employee, and granted admin to anyone whose
+  // email merely *contained* "superadmin" — which any self-registered user can set.
+  const isAdminRole = (r) =>
+    ["admin", "super_admin", "superadmin"].includes(String(r || "").toLowerCase());
 
   if (allowedRoles.length > 0) {
-    const hasAccess = allowedRoles.includes(userRole) || 
-                      (allowedRoles.includes("admin") && isCustomAdmin(userRole));
+    const hasAccess = allowedRoles.includes(userRole) ||
+                      (allowedRoles.includes("admin") && isAdminRole(userRole));
     if (!hasAccess) {
-      // If user is trying to access an Admin route without Admin credentials,
-      // present a clean 1-click Super Admin login helper instead of redirecting to Public Onboarding!
+      // Plain access denial. This screen previously printed the master account
+      // name and offered a one-click button that wrote a super_admin session to
+      // localStorage — any signed-in member could promote themselves with it.
       return (
         <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", p: 3, bgcolor: "#0f172a", color: "#fff" }}>
-          <Box sx={{ maxWidth: 500, width: "100%", p: 4, bgcolor: "#1e293b", borderRadius: 3, textAlign: "center", border: "1.5px solid #3b82f6" }}>
-            <Typography variant="h5" fontWeight="bold" color="#60a5fa" gutterBottom>
-              🔑 Super Admin Privilege Required
+          <Box sx={{ maxWidth: 500, width: "100%", p: 4, bgcolor: "#1e293b", borderRadius: 3, textAlign: "center", border: "1.5px solid #334155" }}>
+            <Typography variant="h5" fontWeight="bold" color="#f87171" gutterBottom>
+              Access Denied
             </Typography>
             <Typography variant="body2" color="#94a3b8" sx={{ mb: 3 }}>
-              You are currently logged in as <strong>{user?.fullName || user?.username || "Member"} ({userRole})</strong>. The requested page requires Super Admin credentials.
+              You are signed in as <strong>{user?.fullName || user?.username || "Member"} ({userRole})</strong>.
+              This page requires additional privileges. If you believe you should have
+              access, contact your administrator.
             </Typography>
-
-            <Box sx={{ p: 2, mb: 3, bgcolor: "#0f172a", borderRadius: 2, textAlign: "left", fontFamily: "monospace", fontSize: "0.85rem" }}>
-              <Typography color="#34d399">Master Account: ICJSuperAdmin1234</Typography>
-              <Typography color="#94a3b8">Role: Super Admin (Zero-Trust Master)</Typography>
-            </Box>
 
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
               <button
@@ -71,21 +83,9 @@ export default function ProtectedRoute({ children, roles = [] }) {
                   fontWeight: "bold",
                   cursor: "pointer",
                 }}
-                onClick={async () => {
-                  const seedUsers = AuthService.getSeedUsers();
-                  const superAdmin = seedUsers.find(u => u.username === "ICJSuperAdmin1234") || {
-                    id: "usr-superadmin",
-                    username: "ICJSuperAdmin1234",
-                    fullName: "Super Admin",
-                    role: "super_admin",
-                    user_type: "super_admin",
-                    email: "superadmin@icj.org",
-                  };
-                  AuthService.persistLocalUser(superAdmin);
-                  window.location.reload();
-                }}
+                onClick={() => { window.location.href = "/"; }}
               >
-                Switch to Super Admin
+                Go to My Dashboard
               </button>
               <button
                 style={{
@@ -96,12 +96,12 @@ export default function ProtectedRoute({ children, roles = [] }) {
                   borderRadius: "8px",
                   cursor: "pointer",
                 }}
-                onClick={() => {
-                  AuthService.logout && AuthService.logout();
+                onClick={async () => {
+                  await AuthService.logout();
                   window.location.href = "/login";
                 }}
               >
-                Sign Out & Login
+                Sign Out
               </button>
             </Box>
           </Box>

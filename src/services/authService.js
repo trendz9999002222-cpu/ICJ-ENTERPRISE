@@ -12,8 +12,25 @@ const canUseSupabaseAuth =
   Boolean(env.VITE_SUPABASE_URL) &&
   Boolean(env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
+// A record can only be signed into if it carries a hash or a literal password.
+const hasLoginCredential = (u) => Boolean(u?.passwordHash || u?.password);
+
+// The 26-member registry and the 7 documented enterprise accounts are distinct
+// sets (different emails). Both must be present or their credentials won't work.
+const withEnterpriseAccounts = (members) => {
+  const seen = new Set(
+    members.map((u) => String(u.email || "").trim().toLowerCase()).filter(Boolean)
+  );
+  const missing = ENTERPRISE_SEED_USERS.filter(
+    (u) => !seen.has(String(u.email || "").trim().toLowerCase())
+  );
+  return [...members, ...missing];
+};
+
 const getStoredUsers = () => {
-  if (typeof window === "undefined") return SeedEcosystemService.get26CoreMembers();
+  if (typeof window === "undefined") {
+    return withEnterpriseAccounts(SeedEcosystemService.get26CoreMembers());
+  }
   try {
     const rawEnterprise = window.localStorage.getItem(USERS_STORAGE_KEY);
     const initialized = window.localStorage.getItem("icj_users_initialized");
@@ -23,18 +40,24 @@ const getStoredUsers = () => {
       if (rawEnterprise) {
         try {
           existingUsers = JSON.parse(rawEnterprise);
-        } catch {}
+        } catch {
+          existingUsers = [];
+        }
       }
-      if (Array.isArray(existingUsers) && existingUsers.length >= 26) {
-        return existingUsers;
-      }
-      return SeedEcosystemService.resetAndHydrate26CoreMembers();
-    } else {
-      // First time initialization: seed the database from 26 Core Master Members
-      return SeedEcosystemService.resetAndHydrate26CoreMembers();
+      // Re-hydrate if the cached copy predates login credentials being added to
+      // the seed registry — otherwise those accounts can never authenticate.
+      const usable =
+        Array.isArray(existingUsers) &&
+        existingUsers.length >= 26 &&
+        existingUsers.some(hasLoginCredential);
+
+      if (usable) return withEnterpriseAccounts(existingUsers);
+      return withEnterpriseAccounts(SeedEcosystemService.resetAndHydrate26CoreMembers());
     }
+    // First time initialization: seed the database from 26 Core Master Members
+    return withEnterpriseAccounts(SeedEcosystemService.resetAndHydrate26CoreMembers());
   } catch {
-    return SeedEcosystemService.get26CoreMembers();
+    return withEnterpriseAccounts(SeedEcosystemService.get26CoreMembers());
   }
 };
 
@@ -137,7 +160,12 @@ const AuthService = {
       }
     }
 
+    // Caller-supplied extras first, so the validated fields below always win.
+    // Previously `...payload` came last and could override role/passwordHash/status.
+    const { password: _pw, ...safePayload } = payload;
+
     const newUser = {
+      ...safePayload,
       id: `ICJ-USER-${Date.now()}`,
       member_id: `ICJ-USER-${Date.now()}`,
       username: payload.username || email,
@@ -156,7 +184,6 @@ const AuthService = {
       forcePasswordChange: true,
       passwordHash,
       created_at: new Date().toISOString(),
-      ...payload,
     };
 
     const updatedUsers = [newUser, ...users];
@@ -200,11 +227,12 @@ const AuthService = {
       throw new Error("Invalid Mobile / Email or Password. Please check and try again.");
     }
 
-    // Verify Password Hash securely against stored password hash or exact password
+    // Verify against the stored hash, or the seed record's literal password.
+    // Never accept the username as a password — usernames are listed in the
+    // member directory, which made every account trivially accessible.
     const isPasswordValid = Boolean(
       (matchedUser.passwordHash && matchedUser.passwordHash === inputHash) ||
-      (matchedUser.password && matchedUser.password === password) ||
-      (matchedUser.username && password === matchedUser.username)
+      (matchedUser.password && matchedUser.password === password)
     );
 
     if (!isPasswordValid) {
@@ -274,9 +302,11 @@ const AuthService = {
     const user = users[userIndex];
     const currentHash = PasswordPolicyService.hashPassword(currentPassword);
 
-    // Verify current password
-    const isCurrentValid = (user.passwordHash && user.passwordHash === currentHash) ||
-                           (user.username && currentPassword === user.username);
+    // Verify current password (username is not an accepted credential)
+    const isCurrentValid = Boolean(
+      (user.passwordHash && user.passwordHash === currentHash) ||
+      (user.password && user.password === currentPassword)
+    );
 
     if (!isCurrentValid) {
       throw new Error("Current password is incorrect.");
@@ -329,23 +359,9 @@ const AuthService = {
   },
 
   async getCurrentUser() {
-    let local = getLocalUser();
-    if (!local && typeof window !== "undefined") {
-      // Auto-seed default Super Admin session for seamless instant access
-      local = {
-        id: "26ICJ08AA0001",
-        member_id: "26ICJ08AA0001",
-        username: "ICJSuperAdmin1234",
-        fullName: "Pawan Kumar",
-        name: "Pawan Kumar",
-        email: "admin@icj.org",
-        role: "admin",
-        user_type: "super_admin",
-        status: "Approved",
-      };
-      persistLocalUser(local);
-    }
-    return local;
+    // Return the stored session only. Never fabricate one: auto-seeding a
+    // Super Admin here logged every first-time visitor in as an administrator.
+    return getLocalUser();
   },
 
   async requestRecovery(payload = {}) {

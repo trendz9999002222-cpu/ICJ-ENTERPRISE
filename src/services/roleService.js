@@ -182,14 +182,15 @@ const RoleService = {
    */
   isSuperAdmin(user) {
     if (!user) return false;
+    // Match on the account's declared type only. This previously returned true
+    // when the username *or email* merely contained "superadmin", so anyone who
+    // self-registered as superadmin@<anything> gained financial reports, master
+    // API keys and token minting. `user_type` is checked because mapRole()
+    // rewrites the session role from "super_admin" to "admin".
     const roleStr = String(user.role || "").toLowerCase();
-    const username = String(user.username || user.email || user.member_id || "").toLowerCase();
-    return (
-      roleStr === "super_admin" ||
-      roleStr === "superadmin" ||
-      username.includes("superadmin") ||
-      username === "icjsuperadmin1234"
-    );
+    const typeStr = String(user.user_type || "").toLowerCase();
+    return ["super_admin", "superadmin"].includes(roleStr) ||
+           ["super_admin", "superadmin"].includes(typeStr);
   },
 
   enforceStrictSuperAdminAccess(user, actionLabel = "Super Admin Finance Report & Master Control") {

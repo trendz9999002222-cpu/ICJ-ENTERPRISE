@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -47,6 +48,9 @@ import MicIcon from "@mui/icons-material/Mic";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SecurityIcon from "@mui/icons-material/Security";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import PersonIcon from "@mui/icons-material/Person";
+import VideoCallIcon from "@mui/icons-material/VideoCall";
 import ClientEmpowermentService from "../services/clientEmpowermentService.js";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
@@ -80,6 +84,7 @@ function TabPanel(props) {
 
 export default function ClientPortal() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const clientName = user?.fullName || user?.name || "Sh. Ramesh Kumar";
   const memberId = user?.memberId || user?.id || "MEM-LKO-9812";
 
@@ -597,7 +602,7 @@ export default function ClientPortal() {
           activeAdvocate={activeAdvocate}
           onCompleteCaseIntake={({ problemText, caseCategory }) => {
             setAiProbText(problemText);
-            setAiCaseCategory(caseCategory);
+            setAiCaseCat(caseCategory);
             setAlertMsg("🟢 4-Step Case Intake Completed & Submitted for Legal Counsel & AI Diagnosis!");
             setTimeout(() => setAlertMsg(""), 4000);
           }}

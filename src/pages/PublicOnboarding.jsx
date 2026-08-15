@@ -176,6 +176,7 @@ export default function PublicOnboarding() {
   const [otpChannel,   setOtpChannel]   = useState("SMS");
   const [createdMember,setCreatedMember]= useState(null);
   const [submitting,   setSubmitting]   = useState(false);
+  const [error,        setError]        = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   // ─── Phone config (for maxDigits / placeholder) ──────────────────────────
@@ -1356,6 +1357,12 @@ Thank you for registering with ICJ Enterprise Platform.
                 mode="litigant"
                 userName={`${form.firstName} ${form.lastName}`}
               />
+
+              {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+                  {error}
+                </Alert>
+              )}
 
               <Button
                 fullWidth size="large" variant="contained"

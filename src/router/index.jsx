@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LinearProgress } from "@mui/material";
 
 import ProtectedRoute from "./ProtectedRoute";
-import MainLayout from "../layouts/MainLayout";
 import Login from "../pages/Login";
 import Recovery from "../pages/Recovery";
 
@@ -73,13 +72,9 @@ function RootDashboard() {
     return <AdvocateDashboard />;
   }
 
-  const isCustomAdmin = (r) => {
-    const roleStr = String(r || "").toLowerCase();
-    const DYNAMIC_ADMIN_ROLES = ["admin", "super_admin", "superadmin", "trustee", "volunteer", "employee", "branch_admin"];
-    return DYNAMIC_ADMIN_ROLES.includes(roleStr);
-  };
-
-  if (isCustomAdmin(role)) {
+  // Only true admin roles get the Super Admin dashboard. Trustee/volunteer/
+  // employee are ordinary staff roles and previously landed here by mistake.
+  if (["admin", "super_admin", "superadmin"].includes(role)) {
     return <SuperAdminDashboard />;
   }
   return <MemberPersonalDashboard />;
@@ -161,24 +156,24 @@ export default function AppRouter() {
         <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><MemberWallet /></ProtectedRoute>} />
         {/* System Governance & Token Routes */}
-        <Route path="/token-exchange" element={<MainLayout><TokenExchange /></MainLayout>} />
-        <Route path="/icj-token" element={<MainLayout><TokenExchange /></MainLayout>} />
-        <Route path="/token-governance-manual" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
-        <Route path="/token-system-faq" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
-        <Route path="/token-manual" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
-        <Route path="/token-faq" element={<MainLayout><TokenGovernanceManual /></MainLayout>} />
+        <Route path="/token-exchange" element={<ProtectedRoute><TokenExchange /></ProtectedRoute>} />
+        <Route path="/icj-token" element={<ProtectedRoute><TokenExchange /></ProtectedRoute>} />
+        <Route path="/token-governance-manual" element={<ProtectedRoute><TokenGovernanceManual /></ProtectedRoute>} />
+        <Route path="/token-system-faq" element={<ProtectedRoute><TokenGovernanceManual /></ProtectedRoute>} />
+        <Route path="/token-manual" element={<ProtectedRoute><TokenGovernanceManual /></ProtectedRoute>} />
+        <Route path="/token-faq" element={<ProtectedRoute><TokenGovernanceManual /></ProtectedRoute>} />
 
-        {/* Unlocked Platform Ecosystem Routes */}
-        <Route path="/campaigns" element={<MainLayout><Campaigns /></MainLayout>} />
-        <Route path="/subscription" element={<MainLayout><SubscriptionPlans /></MainLayout>} />
-        <Route path="/virtual-office" element={<MainLayout><VirtualOffice /></MainLayout>} />
+        {/* Platform Ecosystem Routes — sign-in required */}
+        <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+        <Route path="/subscription" element={<ProtectedRoute><SubscriptionPlans /></ProtectedRoute>} />
+        <Route path="/virtual-office" element={<ProtectedRoute><VirtualOffice /></ProtectedRoute>} />
         <Route path="/donation" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute roles={["admin"]}><Settings /></ProtectedRoute>} />
         <Route path="/activity-log" element={<ProtectedRoute roles={["admin", "employee"]}><ActivityLog /></ProtectedRoute>} />
         <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
         <Route path="/member-profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-        <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+        <Route path="/reports" element={<ProtectedRoute roles={["admin"]}><Reports /></ProtectedRoute>} />
 
         <Route path="/legal" element={<ProtectedRoute><Legal /></ProtectedRoute>} />
         <Route path="/ai" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
@@ -192,13 +187,13 @@ export default function AppRouter() {
         {/* AI Legal Ecosystem Routes */}
         <Route path="/advocate-dashboard" element={<ProtectedRoute roles={["advocate", "admin"]}><AdvocateDashboard /></ProtectedRoute>} />
         <Route path="/client-portal" element={<ProtectedRoute roles={["member", "client", "admin"]}><ClientPortal /></ProtectedRoute>} />
-        <Route path="/trust-dashboard" element={<MainLayout><TrustDashboard /></MainLayout>} />
-        <Route path="/court-calendar" element={<MainLayout><CourtCalendar /></MainLayout>} />
-        <Route path="/billing" element={<MainLayout><BillingInvoicing /></MainLayout>} />
-        <Route path="/billing-invoicing" element={<MainLayout><BillingInvoicing /></MainLayout>} />
+        <Route path="/trust-dashboard" element={<ProtectedRoute roles={["admin"]}><TrustDashboard /></ProtectedRoute>} />
+        <Route path="/court-calendar" element={<ProtectedRoute><CourtCalendar /></ProtectedRoute>} />
+        <Route path="/billing" element={<ProtectedRoute roles={["admin", "advocate"]}><BillingInvoicing /></ProtectedRoute>} />
+        <Route path="/billing-invoicing" element={<ProtectedRoute roles={["admin", "advocate"]}><BillingInvoicing /></ProtectedRoute>} />
         <Route path="/master-finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
-        <Route path="/ai-drafter" element={<MainLayout><LegalDrafter /></MainLayout>} />
-        <Route path="/payment-management" element={<MainLayout><PaymentManagement /></MainLayout>} />
+        <Route path="/ai-drafter" element={<ProtectedRoute><LegalDrafter /></ProtectedRoute>} />
+        <Route path="/payment-management" element={<ProtectedRoute roles={["admin"]}><PaymentManagement /></ProtectedRoute>} />
         <Route path="/location-master" element={<ProtectedRoute roles={["admin"]}><LocationMasterAdmin /></ProtectedRoute>} />
         <Route path="/database-config" element={<ProtectedRoute roles={["admin"]}><DatabaseConfig /></ProtectedRoute>} />
         <Route path="/governance-center" element={<ProtectedRoute roles={["admin"]}><GovernanceCenter /></ProtectedRoute>} />
@@ -210,6 +205,9 @@ export default function AppRouter() {
         <Route path="/community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/feed" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/legal-community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
+
+        {/* Unknown URLs previously rendered a blank page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
         </Suspense>
       </BrowserRouter>
