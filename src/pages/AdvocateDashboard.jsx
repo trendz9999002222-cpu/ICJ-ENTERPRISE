@@ -102,12 +102,13 @@ export default function AdvocateDashboard() {
     }
   });
   const [newMessageText, setNewMessageText] = useState("");
+  const [activeAdvocateCaseId, setActiveAdvocateCaseId] = useState("");
 
   // Tasks state
-  const [tasks] = useState([
-    { id: "t1", title: "Review Rejoinder for WP/2026/1042", status: "In Progress", dueDate: "Today" },
-    { id: "t2", title: "Verify Bar Association Enrollment Certificate", status: "Completed", dueDate: "Today" },
-    { id: "t3", title: "Prepare Cause List for Court Hall 3", status: "Pending", dueDate: "Tomorrow" },
+  const [tasks, setTasks] = useState([
+    { id: "t1", title: "Review Rejoinder for WP/2026/1042", status: "In Progress", dueDate: "Today", responsible: "Advocate" },
+    { id: "t2", title: "Verify Bar Association Enrollment Certificate", status: "Completed", dueDate: "Today", responsible: "Registrar" },
+    { id: "t3", title: "Prepare Cause List for Court Hall 3", status: "Pending", dueDate: "Tomorrow", responsible: "Advocate" },
   ]);
 
   useEffect(() => {
@@ -117,9 +118,13 @@ export default function AdvocateDashboard() {
       const allAdvocates = LegalEcosystemService.getAdvocates();
       const allConsultations = AiLegalConsultationService.getConsultationsForAdvocate ? AiLegalConsultationService.getConsultationsForAdvocate("26ICJ08AA0001") : [];
       if (isMounted) {
-        setCases(Array.isArray(allCases) ? allCases : []);
+        const casesList = Array.isArray(allCases) ? allCases : [];
+        setCases(casesList);
         setAdvocates(Array.isArray(allAdvocates) ? allAdvocates : []);
         setAiConsultations(Array.isArray(allConsultations) ? allConsultations : []);
+        if (casesList.length > 0) {
+          setActiveAdvocateCaseId(casesList[0].id || casesList[0].caseNumber || "");
+        }
       }
     }
     loadRepo();
