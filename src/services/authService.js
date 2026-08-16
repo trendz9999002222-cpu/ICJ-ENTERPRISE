@@ -68,6 +68,28 @@ const saveStoredUsers = (users) => {
   window.localStorage.setItem("icj_members", JSON.stringify(users));
 };
 
+// Earlier builds fabricated a Super Admin session — in getCurrentUser() and
+// again in database.js's import-time self-heal. Those sessions were written to
+// localStorage, so deleting the code does not remove them: any browser that
+// already opened the app stays signed in as an administrator forever. Clear the
+// session once per browser so everyone re-authenticates against the fixed code.
+const SESSION_TRUST_KEY = "icj_session_trust_version";
+const SESSION_TRUST_VERSION = "2026-08-16-auth-fix";
+
+const purgeUntrustedSession = () => {
+  if (typeof window === "undefined") return;
+  try {
+    if (window.localStorage.getItem(SESSION_TRUST_KEY) !== SESSION_TRUST_VERSION) {
+      window.localStorage.removeItem(SESSION_KEY);
+      window.localStorage.setItem(SESSION_TRUST_KEY, SESSION_TRUST_VERSION);
+    }
+  } catch {
+    // localStorage unavailable — nothing to purge.
+  }
+};
+
+purgeUntrustedSession();
+
 export const persistLocalUser = (user) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));

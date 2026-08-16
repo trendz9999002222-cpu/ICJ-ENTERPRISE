@@ -550,11 +550,13 @@ export const selfHealDatabaseState = () => {
       localStorage.setItem("icj_enterprise_users", JSON.stringify(members));
     }
 
-    // 2. Ensure Super Admin session user exists
-    const superAdmin = members.find(m => m.role === "admin" || m.email === "admin@icj.org");
-    if (superAdmin && !localStorage.getItem("icj_user")) {
-      localStorage.setItem("icj_user", JSON.stringify(superAdmin));
-    }
+    // 2. Do NOT create a session here.
+    //
+    // This block used to write the first admin it found into "icj_user" when no
+    // session existed. Because selfHealDatabaseState() runs on module import,
+    // merely loading this file signed the visitor in as Super Admin — the admin
+    // pages opened without anyone entering a password. Seeding data is this
+    // function's job; authenticating is AuthService.login's.
 
     console.log(`🛡️ [SelfHealingDatabase] Audit clean! Total verified records: ${members.length} members.`);
   } catch (e) {
