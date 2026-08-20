@@ -1061,6 +1061,62 @@ export const MASTER_26_USERS = [
     "problemCategories": [
       "Advocate (Cyber & Financial Crime Defense)"
     ]
+  },
+  {
+    "id": "26FRZ08AA0032",
+    "member_id": "26FRZ08AA0032",
+    "memberId": "26FRZ08AA0032",
+    "username": "frz_lucknow_hq",
+    "email": "franchise.lucknow@icj.org",
+    "mobile": "9839099887",
+    "password": "FranchisePassword@123",
+    "name": "ICJ Regional Franchise Center (Lucknow HQ)",
+    "fullName": "ICJ Regional Franchise Center (Lucknow HQ)",
+    "role": "franchise",
+    "user_type": "franchise",
+    "member_type": "organisation",
+    "member_level": "EXECUTIVE",
+    "status": "Active",
+    "verification_status": "Approved",
+    "email_verified": true,
+    "mobile_verified": true,
+    "ready_for_login": true,
+    "state": "Uttar Pradesh",
+    "city": "Lucknow",
+    "problemCategory": "Franchise Partner (Regional HQ)",
+    "problemCategories": [
+      "Franchise Partner (Regional HQ)"
+    ],
+    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "created_at": "2026-08-15T10:00:00.000Z"
+  },
+  {
+    "id": "26FRZ08AA0033",
+    "member_id": "26FRZ08AA0033",
+    "memberId": "26FRZ08AA0033",
+    "username": "frz_delhi_ncr",
+    "email": "franchise.delhi@icj.org",
+    "mobile": "9810088776",
+    "password": "FranchisePassword@123",
+    "name": "ICJ District Franchise Center (Delhi NCR)",
+    "fullName": "ICJ District Franchise Center (Delhi NCR)",
+    "role": "franchise",
+    "user_type": "franchise",
+    "member_type": "organisation",
+    "member_level": "PRO",
+    "status": "Active",
+    "verification_status": "Approved",
+    "email_verified": true,
+    "mobile_verified": true,
+    "ready_for_login": true,
+    "state": "Delhi",
+    "city": "New Delhi",
+    "problemCategory": "Franchise Partner (District Branch)",
+    "problemCategories": [
+      "Franchise Partner (District Branch)"
+    ],
+    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "created_at": "2026-08-16T10:00:00.000Z"
   }
 ];
 

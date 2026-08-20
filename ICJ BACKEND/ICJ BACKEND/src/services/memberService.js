@@ -56,17 +56,20 @@ const alphaGroupToIndex = (code = "AA") => {
  * @param {Array}  existingList  - Array of all current member objects
  * @returns {string}  New unique Member Serial ID
  */
-export const generateMemberId = (existingList = []) => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const prefix = `ICJ-${year}-MEM-`;
+export const generateMemberId = (existingList = [], role = "member") => {
+  const total = (Array.isArray(existingList) ? existingList.length : 0) + 1;
+  const seq = String(total).padStart(4, "0");
 
-  const monthMembers = (Array.isArray(existingList) ? existingList : []).filter(
-    (m) => String(m.member_id || m.id || "").startsWith("ICJ-")
-  );
-
-  const seq = String(monthMembers.length + 1).padStart(4, "0");
-  return `${prefix}${seq}`; // e.g. "ICJ-2026-MEM-0001"
+  if (role === "franchise") {
+    return `26FRZ08AA${seq}`;
+  }
+  if (role === "advocate") {
+    return `26ICJ08AA${seq}`;
+  }
+  if (role === "admin" || role === "super_admin") {
+    return role === "super_admin" ? `26SAD08AA${seq}` : `26ADM08AA${seq}`;
+  }
+  return `26CLT08AA${seq}`;
 };
 
 // Keep the old ID normalizer for backward compatibility with existing records
