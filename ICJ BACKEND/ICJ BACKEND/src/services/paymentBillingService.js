@@ -1,11 +1,12 @@
 /**
  * PaymentBillingService — Enterprise Payment, Billing & Revenue Management Engine for ICJ Enterprise Platform
  * Provides complete support for Multi-Gateway Payments, UPI QR Generation, 18% GST Tax Calculations,
- * Coupon Validation, Ledger Management, 70:30 Advocate vs Trust Revenue Splits, TDS Deductions,
+ * Coupon Validation, Ledger Management, 70:20:10 Advocate vs Trust vs Franchisee Revenue Splits, TDS Deductions,
  * Refunds, and Auto Reconciliation.
  */
 
 import ActivityService from "./activityService.js";
+import FranchiseService from "./franchiseService.js";
 
 const KEYS = {
   invoices: "icj_enterprise_invoices",
@@ -48,104 +49,7 @@ const DEFAULT_COUPONS = {
   TRUSTFREE: { code: "TRUSTFREE", discountPercent: 100, maxDiscount: 50000, active: true },
 };
 
-// Initial Seed Data
-const seedInitialData = () => {
-  if (getItem(KEYS.invoices).length === 0) {
-    setItem(KEYS.invoices, [
-      {
-        invoiceNo: "INV-2026-101",
-        caseId: "CASE-2026-001",
-        caseTitle: "Public Interest Litigation: Environment Conservation",
-        clientName: "Green Earth Conservation Trust",
-        clientId: "CL-101",
-        advocateName: "Adv. Rajesh Sharma",
-        advocateId: "ADV-101",
-        feeBreakdown: {
-          caseFee: 30000,
-          aiProcessingFee: 2000,
-          documentAnalysisFee: 3000,
-          advocateConsultationFee: 5000,
-          draftingFee: 3000,
-          courtAppearanceFee: 2000,
-          miscellaneous: 0,
-        },
-        subtotal: 45000,
-        discountAmount: 4500,
-        couponCode: "ICJEARLY10",
-        taxableAmount: 40500,
-        gstAmount: 7290, // 18% GST
-        totalAmount: 47790,
-        paidAmount: 47790,
-        outstandingBalance: 0,
-        status: "Paid",
-        paymentMethod: "UPI QR (Google Pay)",
-        transactionId: "TXN-UPI-982173981273",
-        createdAt: "2026-08-01T10:00:00.000Z",
-      },
-      {
-        invoiceNo: "INV-2026-102",
-        caseId: "CASE-2026-002",
-        caseTitle: "Commercial Contract Recovery Arbitration",
-        clientName: "Apex Technovations Pvt Ltd",
-        clientId: "CL-102",
-        advocateName: "Adv. Meera Sen",
-        advocateId: "ADV-102",
-        feeBreakdown: {
-          caseFee: 50000,
-          aiProcessingFee: 3000,
-          documentAnalysisFee: 5000,
-          advocateConsultationFee: 10000,
-          draftingFee: 5000,
-          courtAppearanceFee: 2000,
-          miscellaneous: 0,
-        },
-        subtotal: 75000,
-        discountAmount: 0,
-        couponCode: "",
-        taxableAmount: 75000,
-        gstAmount: 13500, // 18% GST
-        totalAmount: 88500,
-        paidAmount: 30000,
-        outstandingBalance: 58500,
-        status: "Partial",
-        paymentMethod: "Net Banking (HDFC)",
-        transactionId: "TXN-NB-7788112233",
-        createdAt: "2026-08-03T14:30:00.000Z",
-      },
-    ]);
-  }
-
-  if (getItem(KEYS.transactions).length === 0) {
-    setItem(KEYS.transactions, [
-      {
-        transactionId: "TXN-UPI-982173981273",
-        invoiceNo: "INV-2026-101",
-        caseId: "CASE-2026-001",
-        clientName: "Green Earth Conservation Trust",
-        amount: 47790,
-        paymentMethod: "BHIM UPI / Google Pay",
-        gateway: "Razorpay / UPI Direct",
-        status: "Success",
-        gatewayRef: "PAY-RAZOR-991122",
-        timestamp: "2026-08-01T10:05:00.000Z",
-      },
-      {
-        transactionId: "TXN-NB-7788112233",
-        invoiceNo: "INV-2026-102",
-        caseId: "CASE-2026-002",
-        clientName: "Apex Technovations Pvt Ltd",
-        amount: 30000,
-        paymentMethod: "Net Banking (IMPS/NEFT)",
-        gateway: "PhonePe Gateway",
-        status: "Success",
-        gatewayRef: "PAY-PHONEPE-445566",
-        timestamp: "2026-08-03T14:35:00.000Z",
-      },
-    ]);
-  }
-};
-
-seedInitialData();
+// Seed function removed — empty state default
 
 export const PaymentBillingService = {
   /**
@@ -186,13 +90,13 @@ export const PaymentBillingService = {
    * 3. Tax & Coupon Calculator
    */
   calculateBill(feeBreakdown, couponCode = "") {
-    const caseFee = Number(feeBreakdown.caseFee || 0);
-    const aiProcessingFee = Number(feeBreakdown.aiProcessingFee || 0);
-    const documentAnalysisFee = Number(feeBreakdown.documentAnalysisFee || 0);
-    const advocateConsultationFee = Number(feeBreakdown.advocateConsultationFee || 0);
-    const draftingFee = Number(feeBreakdown.draftingFee || 0);
-    const courtAppearanceFee = Number(feeBreakdown.courtAppearanceFee || 0);
-    const miscellaneous = Number(feeBreakdown.miscellaneous || 0);
+    const caseFee = Number(feeBreakdown?.caseFee || 0);
+    const aiProcessingFee = Number(feeBreakdown?.aiProcessingFee || 0);
+    const documentAnalysisFee = Number(feeBreakdown?.documentAnalysisFee || 0);
+    const advocateConsultationFee = Number(feeBreakdown?.advocateConsultationFee || 0);
+    const draftingFee = Number(feeBreakdown?.draftingFee || 0);
+    const courtAppearanceFee = Number(feeBreakdown?.courtAppearanceFee || 0);
+    const miscellaneous = Number(feeBreakdown?.miscellaneous || 0);
 
     const subtotal = caseFee + aiProcessingFee + documentAnalysisFee + advocateConsultationFee + draftingFee + courtAppearanceFee + miscellaneous;
 
@@ -233,6 +137,7 @@ export const PaymentBillingService = {
       clientId: invoiceData.clientId || "CL-GEN",
       advocateName: invoiceData.advocateName || "Adv. Unassigned",
       advocateId: invoiceData.advocateId || "ADV-GEN",
+      franchiseeId: invoiceData.franchiseeId || "FRAN-LKO-001",
       feeBreakdown: invoiceData.feeBreakdown,
       ...bill,
       paidAmount: 0,
@@ -253,7 +158,7 @@ export const PaymentBillingService = {
   },
 
   /**
-   * 5. Process Payment (Multi-Method: UPI, Card, Net Banking, Cash)
+   * 5. Process Payment (Multi-Method: UPI, Card, Net Banking, Cash) with 10% Franchisee Commission Credit
    */
   processPayment(invoiceNo, amount, paymentMethod, gatewayRef = "") {
     const invoices = this.getInvoices();
@@ -291,6 +196,19 @@ export const PaymentBillingService = {
       updatedAt: new Date().toISOString(),
     };
     setItem(KEYS.invoices, invoices);
+
+    // Credit 10% Franchisee Commission to Local District Branch
+    const netPayNoGst = Math.max(0, payAmt - Math.round(payAmt * 0.18));
+    const franchiseeComm = Math.round(netPayNoGst * 0.10);
+    if (invoice.franchiseeId) {
+      FranchiseService.creditCommission({
+        franchiseeId: invoice.franchiseeId,
+        amount: franchiseeComm,
+        caseId: invoice.caseId,
+        invoiceNo,
+        description: `10% Branch Commission for Invoice ${invoiceNo}`,
+      });
+    }
 
     // Create Transaction Record
     const newTxn = {
@@ -369,7 +287,8 @@ export const PaymentBillingService = {
   },
 
   /**
-   * 7. Revenue Sharing & Settlement Calculator (70:30 Split + TDS)
+   * 7. Revenue Sharing & Settlement Calculator (70:20:10 Split + TDS)
+   * 70% Advocate Pool | 20% ICJ Trust | 10% Local District Franchisee / Branch
    */
   calculateRevenueDistribution() {
     const invoices = this.getInvoices();
@@ -377,10 +296,11 @@ export const PaymentBillingService = {
     const totalGST = invoices.reduce((sum, i) => sum + i.gstAmount, 0);
 
     const netCollectedNoGST = Math.max(0, totalCollected - totalGST);
-    const advocatePoolRaw = Math.round(netCollectedNoGST * 0.70); // 70% Advocate Pool
-    const trustPoolRaw = Math.round(netCollectedNoGST * 0.30);    // 30% ICJ Trust Revenue
+    const advocatePoolRaw = Math.round(netCollectedNoGST * 0.70);   // 70% Advocate Pool
+    const trustPoolRaw = Math.round(netCollectedNoGST * 0.20);      // 20% ICJ Trust Fund
+    const franchiseePoolRaw = Math.round(netCollectedNoGST * 0.10); // 10% District Franchisee Commission
 
-    const tdsDeduction = Math.round(advocatePoolRaw * 0.10);       // 10% TDS under Sec 194J
+    const tdsDeduction = Math.round(advocatePoolRaw * 0.10);         // 10% TDS under Sec 194J
     const netAdvocatePayout = advocatePoolRaw - tdsDeduction;
 
     return {
@@ -389,9 +309,41 @@ export const PaymentBillingService = {
       netCollectedNoGST,
       advocatePoolRaw,
       trustPoolRaw,
+      franchiseePoolRaw,
       tdsDeduction,
       netAdvocatePayout,
     };
+  },
+
+  rechargeCredits(memberId, credits = 100, amount = 100, utr = "") {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const idx = members.findIndex(m => String(m.member_id || m.id).toLowerCase() === String(memberId).toLowerCase());
+      if (idx !== -1) {
+        const currentBalance = Number(members[idx].token_balance || 0);
+        members[idx].token_balance = currentBalance + credits;
+        localStorage.setItem("icj_members", JSON.stringify(members));
+
+        const transactions = this.getTransactions();
+        const newTxn = {
+          transactionId: "TXN-RECHARGE-" + Date.now(),
+          invoiceNo: "RECHARGE-" + Date.now(),
+          caseId: "CREDIT-BUY",
+          clientName: members[idx].name,
+          amount: amount,
+          paymentMethod: "UPI QR Screenshot Verification",
+          gateway: "Reconciliation Engine (UPI)",
+          status: "Success",
+          gatewayRef: utr || ("UTR-" + Date.now()),
+          timestamp: new Date().toISOString(),
+        };
+        setItem(KEYS.transactions, [newTxn, ...transactions]);
+        return { success: true, newBalance: members[idx].token_balance };
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return { success: false };
   },
 
   deductAiCredit(memberId, credits = 1) {

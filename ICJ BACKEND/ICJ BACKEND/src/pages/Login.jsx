@@ -9,6 +9,7 @@ import {
   Alert,
   Stack,
   Divider,
+  Chip,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -22,6 +23,7 @@ import IconButton from "@mui/material/IconButton";
 import useAuth from "../hooks/useAuth.js";
 import ForcePasswordChangeModal from "../components/ForcePasswordChangeModal.jsx";
 import OTPService from "../services/otp/otpService.js";
+import RoleService from "../services/roleService.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -42,6 +44,7 @@ export default function Login() {
   const [mfaPendingUser,         setMfaPendingUser]         = useState(null);
   const [mfaOtpInput,            setMfaOtpInput]            = useState("");
   const [showPassword,           setShowPassword]           = useState(false);
+  const [otpChannel,             setOtpChannel]             = useState("whatsapp");
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -112,8 +115,10 @@ export default function Login() {
       const mfaConfig = getMfaConfig();
       const userRole = String(userObj.role || "member").toLowerCase();
 
-      // Super Admin check: Never force MFA automatically on super_admin
-      const isSuperAdmin = userRole === "super_admin" || (userRole === "admin" && String(userObj.email).includes("superadmin"));
+      // Super Admin check: never force MFA automatically on super_admin.
+      // Uses the shared check rather than testing whether the email merely
+      // contains "superadmin", which any self-registered user can arrange.
+      const isSuperAdmin = RoleService.isSuperAdmin(userObj);
 
       if (mfaConfig.mfaEnabled && mfaConfig.mfaRoles?.[userRole] && !isSuperAdmin) {
         // Trigger MFA flow
@@ -231,15 +236,16 @@ export default function Login() {
           <>
             <TextField
               fullWidth
-              label="Email Address"
+              label="Registered Mobile Number or Email Address"
               name="email"
-              type="email"
+              type="text"
               value={form.email}
               onChange={onChange}
               required
-              placeholder="yourname@gmail.com"
+              autoComplete="off"
+              placeholder="Enter Mobile (+91) or Email (e.g. 9876543210 or user@icj.law)"
               sx={{ mb: 2 }}
-              helperText="वही Email डालें जो Registration के समय दी थी"
+              helperText="मोबाइल नंबर या Email दोनों में से कुछ भी डालकर लॉगिन करें"
             />
             <TextField
               fullWidth
@@ -249,6 +255,7 @@ export default function Login() {
               value={form.password}
               onChange={onChange}
               required
+              autoComplete="new-password"
               sx={{ mb: 3 }}
               InputProps={{
                 endAdornment: (
@@ -260,6 +267,37 @@ export default function Login() {
                 ),
               }}
             />
+
+            {/* PREFERRED OTP & PASSWORD DISPATCH CHANNEL SELECTOR */}
+            <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" sx={{ mb: 1 }}>
+              📲 OTP / पासवर्ड भेजने का पसंदीदा माध्यम (Select Delivery Option):
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+              <Chip
+                label="💬 WhatsApp"
+                color={otpChannel === "whatsapp" ? "success" : "default"}
+                onClick={() => setOtpChannel("whatsapp")}
+                variant={otpChannel === "whatsapp" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+              <Chip
+                label="📱 SMS"
+                color={otpChannel === "sms" ? "primary" : "default"}
+                onClick={() => setOtpChannel("sms")}
+                variant={otpChannel === "sms" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+              <Chip
+                label="✉️ Email"
+                color={otpChannel === "email" ? "info" : "default"}
+                onClick={() => setOtpChannel("email")}
+                variant={otpChannel === "email" ? "filled" : "outlined"}
+                clickable
+                sx={{ fontWeight: "bold" }}
+              />
+            </Stack>
 
             <Button
               fullWidth

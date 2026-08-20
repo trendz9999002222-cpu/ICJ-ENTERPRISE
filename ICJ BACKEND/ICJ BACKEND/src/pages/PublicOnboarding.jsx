@@ -38,12 +38,13 @@ import Visibility     from "@mui/icons-material/Visibility";
 import VisibilityOff  from "@mui/icons-material/VisibilityOff";
 import LockIcon       from "@mui/icons-material/Lock";
 import SecurityIcon   from "@mui/icons-material/Security";
+import PlatformLegalTermsModal from "../components/common/PlatformLegalTermsModal.jsx";
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
-import SmartStepGuideBanner from "../components/common/SmartStepGuideBanner.jsx";
-import LanguageService from "../services/languageService.js";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
+import JudiciaryMasterService from "../services/judiciaryMasterService.js";
+import ForumAllocationEngine from "../services/forumAllocationEngine.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService, { persistLocalUser } from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
@@ -127,11 +128,12 @@ export default function PublicOnboarding() {
 
   // Tech Showcase & Privacy Modal State
   const [techShowcaseOpen, setTechShowcaseOpen] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
 
   // ─── Form State ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     regType:           "Individual",
-    namePrefix:        "",
+    namePrefix:        "Mr.",
     firstName:         "",
     middleName:        "",
     lastName:          "",
@@ -139,7 +141,7 @@ export default function PublicOnboarding() {
     repFirstName:      "",
     repMiddleName:     "",
     repLastName:       "",
-    gender:            "",
+    gender:            "Male",
     birthYear:         String(2000 + (new Date().getFullYear() - 2026)),           // Default Birth Year rule
     mobile:            "",
     mobileCountryCode: "+91",
@@ -173,8 +175,9 @@ export default function PublicOnboarding() {
   const [otpCode,      setOtpCode]      = useState("123456");
   const [otpChannel,   setOtpChannel]   = useState("SMS");
   const [createdMember,setCreatedMember]= useState(null);
-  const [submitting,   setSubmitting]   = useState(false);
+  const [submitting,   setSubmitting]   = useState(false);  
   const [showPassword, setShowPassword] = useState(false);
+  const [error,        setError]        = useState(""); // ← PERMANENT FIX: was called but never declared
 
   // ─── Phone config (for maxDigits / placeholder) ──────────────────────────
   const mobCfg = useMemo(() => getCountryByCodeOrIso(form.mobileCountryCode), [form.mobileCountryCode]);
@@ -454,6 +457,26 @@ export default function PublicOnboarding() {
 
       const result = await MemberService.create(payload);
       const finalMember = result || payload;
+      
+      // Dual-sync into AuthService enterprise user storage for seamless login
+      try {
+        await AuthService.register(payload);
+      } catch (e) {
+        console.log("AuthService sync notice:", e.message);
+      }
+
+      // Dispatch Background Web Push Notification & Audio Sound Chime to Super Admin
+      try {
+        import("../services/pushNotificationService.js").then((mod) => {
+          const pns = mod.default || mod.PushNotificationService;
+          pns.sendBackgroundPush({
+            title: "🔔 New Member Registered!",
+            body: `Applicant ${finalMember.fullName} (ID: ${finalMember.member_id || finalMember.id}) registered — Assign Advocate Now (15m SLA)`,
+            url: "/super-admin-dashboard",
+          });
+        });
+      } catch (e) {}
+
       // Auto-authenticate newly onboarded member session into local storage and auth context
       persistLocalUser(finalMember);
       if (setSessionUser) {
@@ -500,7 +523,7 @@ Thank you for registering with ICJ Enterprise Platform.
 
         {/* BRANDING HEADER */}
         <Paper elevation={0} sx={{
-          p: 4, mb: 3, bgcolor: "#002855", color: "#fff",
+          p: { xs: 2, sm: 3, md: 4 }, mb: 3, bgcolor: "#002855", color: "#fff",
           borderRadius: 3, textAlign: "center",
           boxShadow: "0 8px 32px rgba(0,40,85,0.12)",
         }}>
@@ -518,12 +541,6 @@ Thank you for registering with ICJ Enterprise Platform.
         {/* STAGE 1 : FORM */}
         {stage === "FORM" && (
           <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-            <SmartStepGuideBanner
-              statusKey="guideOnboardingStatus"
-              nextKey="guideOnboardingNext"
-              audioKey="audioOnboarding"
-            />
-
             <Stack direction="row" alignItems="center" sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
                 Applicant Basic Details
@@ -1328,10 +1345,24 @@ Thank you for registering with ICJ Enterprise Platform.
                 }
                 label={
                   <Typography variant="body2">
-                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setTechShowcaseOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline" }}>DRM Privacy Policy &amp; IT Act Sec 79 Intermediary Terms</Button>, and verification process.
+                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setLegalModalOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline", fontWeight: "bold" }}>IT Act Sec 79 Intermediary Immunity, DPDP Act 2023 & Push Alert Consent</Button>, and verification process.
                   </Typography>
                 }
               />
+
+              <PlatformLegalTermsModal
+                open={legalModalOpen}
+                onClose={() => setLegalModalOpen(false)}
+                onAccept={() => setForm(p => ({ ...p, termsAccepted: true }))}
+                mode="litigant"
+                userName={`${form.firstName} ${form.lastName}`}
+              />
+
+              {error && (
+                <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+                  {error}
+                </Alert>
+              )}
 
               <Button
                 fullWidth size="large" variant="contained"

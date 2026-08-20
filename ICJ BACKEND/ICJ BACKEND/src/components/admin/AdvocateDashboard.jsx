@@ -14,7 +14,6 @@ import {
   CardActions,
   Divider,
   Alert,
-  Tooltip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -25,7 +24,6 @@ import HistoryIcon from "@mui/icons-material/History";
 
 import MemberService from "../../services/memberService";
 import ActivityService from "../../services/activityService";
-import SmartStepGuideBanner from "../common/SmartStepGuideBanner";
 
 export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }) {
   const [leads, setLeads] = useState([]);
@@ -75,7 +73,7 @@ export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }
   }, [filterState, filterCategory, filterService]);
 
   const handleUnlockLead = async (lead) => {
-    const unlockCost = 100; // Cost in coins to unlock a lead
+    const unlockCost = 100;
     if (walletBalance < unlockCost) {
       setMsg({ type: "error", text: "अपर्याप्त वॉलेट बैलेंस! कृपया अधिक कॉइन्स खरीदने के लिए अपना वॉलेट रीचार्ज करें।" });
       return;
@@ -85,7 +83,6 @@ export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }
       const updatedBalance = walletBalance - unlockCost;
       const updatedUnlocked = [...unlockedLeadIds, lead.id];
       
-      // Update in local DB/Service
       await MemberService.update(loggedInAdvocate.id, {
         token_balance: updatedBalance,
         unlockedLeads: updatedUnlocked
@@ -114,10 +111,6 @@ export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }
 
   return (
     <Box sx={{ p: 3, bgcolor: "#f8fafc", minHeight: "100vh" }}>
-      <SmartStepGuideBanner
-        customStatusText="Current Step: Advocate Practice Workspace & Client Lead Board"
-        customNextText="Next Step: Select a client lead to review legal details and initiate consultation."
-      />
       {/* Upper Stats Row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={4}>

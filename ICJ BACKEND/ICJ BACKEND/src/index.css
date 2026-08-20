@@ -1,0 +1,277 @@
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --code-bg: #f4f3ec;
+  --accent: #059669;
+  --accent-bg: rgba(5, 150, 105, 0.1);
+  --accent-border: rgba(5, 150, 105, 0.5);
+  --royal-blue: #1e3a8a;
+  --emerald-green: #059669;
+  --electric-violet: #7c3aed;
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 15px;
+  }
+}
+
+/* MOBILE NATIVE APP EXPERIENCE STYLES */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+/* Ensure smooth scrolling container */
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Container query support for desktop site override on mobile screens */
+.mobile-app-container {
+  container-type: inline-size;
+  width: 100%;
+}
+
+/* MOBILE KEYBOARD FOCUS AUTO-SCROLL OFFSET */
+input, textarea, select, .MuiInputBase-input {
+  scroll-margin-top: 120px;
+  scroll-margin-bottom: 120px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* UNIVERSAL FLUID RESPONSIVE BOX BOUNDARIES (PREVENT MOBILE CLIPPING) */
+.MuiPaper-root, .MuiCard-root, .MuiDialog-paper, .MuiGrid-item {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Fluid word wrapping to prevent overflow.
+   NOT `overflow-wrap: anywhere` / `word-break: break-word`: those reduce an
+   element's min-content width to a single character, so any flex row could
+   squeeze a heading into a one-letter-per-line vertical column ("M e m b e r").
+   `break-word` only breaks a word that genuinely cannot fit. */
+.MuiTypography-root, .MuiChip-label {
+  overflow-wrap: break-word;
+}
+
+/* Text inside a flex/grid row must be allowed to shrink, or it either overflows
+   the screen or collapses to its 1-character minimum. */
+.MuiStack-root > .MuiTypography-root,
+.MuiCardContent-root > .MuiTypography-root {
+  min-width: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   MOBILE RESPONSIVENESS (< 900px)
+
+   Most pages render <Table> without a TableContainer. Combined with the
+   overflow-x:hidden on html/body above, wide tables were clipped rather than
+   scrollable, putting their columns permanently out of reach on a phone.
+   Making the table itself a scroll container fixes every one of those pages
+   without touching them individually.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (max-width: 899.95px) {
+  /* !important is required: MUI injects its own `display: table` at runtime,
+     with equal specificity but later in the stylesheet, so it would win. */
+  .MuiTable-root {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  .MuiTableContainer-root {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Header rows pairing a title with chips/buttons were sized by their content
+     and pushed past the screen edge. Let them wrap and shrink instead. */
+  .MuiStack-root {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  /* Long tab strips need to scroll instead of squashing or overflowing. */
+  .MuiTabs-flexContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .MuiTabs-flexContainer::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Dialogs should use the full screen rather than a cramped centred card. */
+  .MuiDialog-paper {
+    margin: 12px !important;
+    width: calc(100% - 24px) !important;
+    max-height: calc(100% - 24px) !important;
+  }
+
+  /* Keep wide, unbreakable content (IDs, hashes, URLs) inside its box. */
+  .MuiTableCell-root,
+  .MuiCardContent-root,
+  .MuiListItemText-root {
+    max-width: 100%;
+  }
+
+  /* Comfortable touch targets. */
+  .MuiIconButton-root {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
+/* Nothing should be able to scroll the page sideways. */
+#root,
+.mobile-app-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* BIG-TECH GLOBAL DESIGN UTILITIES (META / GOOGLE / MICROSOFT STANDARDS) */
+.bigtech-card {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bigtech-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+}
+
+/* META / GOOGLE CRISP TYPOGRAPHY & ICON CONTAINERS */
+.meta-text-crisp {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.015em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bigtech-icon-container {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --accent-border: rgba(192, 132, 252, 0.5);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+  @media (max-width: 600px) {
+    font-size: 26px;
+    letter-spacing: -0.5px;
+    margin: 14px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}

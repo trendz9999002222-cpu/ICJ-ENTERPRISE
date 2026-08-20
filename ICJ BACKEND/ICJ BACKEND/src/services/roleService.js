@@ -132,6 +132,78 @@ const RoleService = {
     );
     localStorage.setItem(ROLES_KEY, JSON.stringify(toSave));
   },
+
+  /**
+   * Super Admin Power Delegation Methods
+   */
+  getAdminPowers(username) {
+    try {
+      const raw = localStorage.getItem("icj_admin_powers");
+      const map = raw ? JSON.parse(raw) : {};
+      return map[username] || {
+        canAppointAdvocates: true,
+        canGrantCredits: true,
+        canProcessFranchise: true,
+        canRedelegate: false,
+      };
+    } catch {
+      return {
+        canAppointAdvocates: true,
+        canGrantCredits: true,
+        canProcessFranchise: true,
+        canRedelegate: false,
+      };
+    }
+  },
+
+  setAdminPowers(username, powers) {
+    try {
+      const raw = localStorage.getItem("icj_admin_powers");
+      const map = raw ? JSON.parse(raw) : {};
+      map[username] = { ...this.getAdminPowers(username), ...powers, updatedBy: "SuperAdmin", updatedAt: new Date().toISOString() };
+      localStorage.setItem("icj_admin_powers", JSON.stringify(map));
+      return map[username];
+    } catch (e) {
+      console.error("Failed to set admin powers", e);
+      return null;
+    }
+  },
+
+  hasPower(username, isSuperAdmin, powerKey) {
+    if (isSuperAdmin || username === "ICJSuperAdmin1234") return true;
+    const powers = this.getAdminPowers(username);
+    return Boolean(powers[powerKey]);
+  },
+
+  /**
+   * ZERO-TRUST ROLE ISOLATION: Strict Super Admin Verification
+   * Prevents clients, advocates, staff, and regular sub-admins from viewing financial reports,
+   * master API keys, token minting, or system configuration.
+   */
+  isSuperAdmin(user) {
+    if (!user) return false;
+    // Match on the account's declared type only. This previously returned true
+    // when the username *or email* merely contained "superadmin", so anyone who
+    // self-registered as superadmin@<anything> gained financial reports, master
+    // API keys and token minting. `user_type` is checked because mapRole()
+    // rewrites the session role from "super_admin" to "admin".
+    const roleStr = String(user.role || "").toLowerCase();
+    const typeStr = String(user.user_type || "").toLowerCase();
+    return ["super_admin", "superadmin"].includes(roleStr) ||
+           ["super_admin", "superadmin"].includes(typeStr);
+  },
+
+  enforceStrictSuperAdminAccess(user, actionLabel = "Super Admin Finance Report & Master Control") {
+    const isSuper = this.isSuperAdmin(user);
+    if (!isSuper) {
+      console.warn(`🔒 ZERO-TRUST SECURITY ENFORCEMENT: Unauthorized access attempt blocked for '${actionLabel}' by user:`, user);
+      return {
+        allowed: false,
+        message: `⛔ अनधिकृत पहुँच (Unauthorized Access Blocked): केवल सुपर एडमिन को ही '${actionLabel}' देखने या इस्तेमाल करने की अनुमति है।`,
+      };
+    }
+    return { allowed: true };
+  },
 };
 
 export default RoleService;

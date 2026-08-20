@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,10 +17,11 @@ import {
   Divider,
   Stack,
   Chip,
-  Select,
+  Tooltip,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -28,25 +29,43 @@ import PersonIcon from "@mui/icons-material/Person";
 import GavelIcon from "@mui/icons-material/Gavel";
 import FolderIcon from "@mui/icons-material/Folder";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import LanguageIcon from "@mui/icons-material/Language";
 
 import useAuth from "../hooks/useAuth";
-import LanguageService from "../services/languageService";
+import NotificationRoutingService from "../services/notificationRoutingService.js";
+import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+
+const MODULE_NAMES = {
+  "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
+  "/client-portal": "📌 LITIGANT CLIENT PORTAL",
+  "/dashboard": "📌 SUPER ADMIN DASHBOARD",
+  "/admin": "📌 SUPER ADMIN DASHBOARD",
+  "/personal-dashboard": "📌 MEMBER PERSONAL DASHBOARD",
+  "/franchise-dashboard": "📌 DISTRICT FRANCHISEE DESK",
+  "/legal": "📌 LEGAL CASE REGISTRY",
+  "/legal-drafter": "📌 AI LEGAL DRAFTER STUDIO",
+  "/documents": "📌 DIGITAL VAULT & DRM",
+  "/virtual-office": "📌 VIRTUAL COURT CHAMBER",
+  "/court-calendar": "📌 COURT CAUSE LIST",
+  "/finance": "📌 ESCROW FINANCIAL LEDGER",
+  "/payments": "📌 ESCROW FINANCIAL LEDGER",
+  "/governance": "📌 STATUTORY BSA COMPLIANCE",
+  "/helpdesk": "📌 HELPDESK & SUPPORT",
+};
 
 function Topbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
-  const [langMode, setLangMode] = useState(LanguageService.getCurrentLanguage());
+  const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
+  const [isSirenActive, setIsSirenActive] = useState(NotificationRoutingService.isSirenActive());
 
-  const supportedLanguages = LanguageService.getSupportedLanguages();
-
-  const handleLangChange = (e) => {
-    const newLang = e.target.value;
-    setLangMode(newLang);
-    LanguageService.setLanguage(newLang);
-  };
+  const activePath = location?.pathname || "";
+  const activeModuleName = MODULE_NAMES[activePath] || 
+    Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k)) ? MODULE_NAMES[Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k))] : "📌 ICJ ENTERPRISE PLATFORM";
 
   const userInitial = String(user?.fullName || user?.name || user?.username || user?.email || "U")
     .trim()
@@ -74,33 +93,60 @@ function Topbar() {
   return (
     <AppBar
       position="static"
-      elevation={1}
+      elevation={0}
       sx={{
         background: "#ffffff",
         color: "#212529",
-        borderBottom: "1px solid #e0e0e0",
+        borderBottom: "1px solid #cbd5e1",
+        m: 0,
+        p: 0,
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
-        <Box display="flex" alignItems="center" gap={3}>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1.2 }}>
-              {LanguageService.t("brandTitle", "ICJ ENTERPRISE PLATFORM")}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {LanguageService.t("brandSubtitle", "Unified Legal Command Centre & AI Intelligence Layer")}
-            </Typography>
-          </Box>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "34px !important", height: 34, px: { xs: 0.6, md: 1.2 } }}>
+        
+        {/* ⬅️ LEFT SIDE: 1 STRAIGHT LINE (BRAND + SEARCH) */}
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {/* BRAND NAME SIDE-BY-SIDE IN SAME STRAIGHT LINE */}
+          <Typography
+            variant="caption"
+            sx={{
+              fontWeight: 800,
+              color: "#1976d2",
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+              fontSize: "0.82rem",
+              letterSpacing: 0.2,
+              mr: 1,
+            }}
+          >
+            ICJ ENTERPRISE
+          </Typography>
 
-          {/* Phase E — Unified Global Enterprise Search */}
+          {/* Unified Global Search */}
           <TextField
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
-            placeholder={LanguageService.t("globalSearchPlaceholder", "Global Search (Members, Cases, Advocates)...")}
-            sx={{ width: 380 }}
+            placeholder="Global Search (Members, Cases, Documents)..."
+            sx={{ width: { xs: 130, sm: 180, md: 240 }, "& .MuiInputBase-root": { height: 24, fontSize: "0.72rem" } }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.85rem" }} /></InputAdornment>,
+            }}
+          />
+
+          {/* ACTIVE MODULE SINGLE-LINE BADGE */}
+          <Chip
+            label={activeModuleName}
+            size="small"
+            sx={{
+              fontWeight: 900,
+              fontSize: "0.68rem",
+              height: 22,
+              bgcolor: "#0f172a",
+              color: "#38bdf8",
+              border: "1px solid #0284c7",
+              letterSpacing: 0.3,
+              display: { xs: "none", sm: "inline-flex" },
             }}
           />
 
@@ -109,108 +155,134 @@ function Topbar() {
             anchorEl={searchAnchor}
             open={Boolean(searchAnchor && globalQuery.trim().length >= 2)}
             onClose={() => setSearchAnchor(null)}
-            PaperProps={{ style: { width: 380, maxHeight: 350 } }}
+            PaperProps={{ style: { width: 350, maxHeight: 320 } }}
           >
+            <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED MATCHES FOR "{globalQuery}"</Typography></MenuItem>
+            <Divider />
             <MenuItem onClick={() => handleSearchResultClick(`/membership?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><PersonIcon fontSize="small" color="primary" /></ListItemIcon>
+              <ListItemIcon><PersonIcon color="primary" fontSize="small" /></ListItemIcon>
               <ListItemText primary={`Search Members: "${globalQuery}"`} secondary="Master Member Directory" />
             </MenuItem>
             <MenuItem onClick={() => handleSearchResultClick(`/legal?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><GavelIcon fontSize="small" color="secondary" /></ListItemIcon>
-              <ListItemText primary={`Search Cases / Writs: "${globalQuery}"`} secondary="Legal Matter Ecosystem" />
+              <ListItemIcon><GavelIcon color="secondary" fontSize="small" /></ListItemIcon>
+              <ListItemText primary={`Search Legal Cases: "${globalQuery}"`} secondary="Master Legal Registry" />
+            </MenuItem>
+            <MenuItem onClick={() => handleSearchResultClick(`/documents?search=${encodeURIComponent(globalQuery)}`)}>
+              <ListItemIcon><FolderIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary={`Search Documents: "${globalQuery}"`} secondary="Master Digital Vault" />
             </MenuItem>
           </Menu>
-        </Box>
+        </Stack>
 
-        <Box display="flex" alignItems="center" gap={2}>
-          {/* Multi-Language & Script Selector Dropdown */}
-          <Select
-            size="small"
-            value={langMode}
-            onChange={handleLangChange}
-            startAdornment={<LanguageIcon sx={{ color: "#1976d2", mr: 1, fontSize: 20 }} />}
-            sx={{
-              bgcolor: "#f8fafc",
-              fontWeight: 700,
-              fontSize: "0.85rem",
-              borderRadius: 2,
-              "& .MuiSelect-select": { py: 0.8, px: 1.5, display: "flex", alignItems: "center" },
-            }}
-          >
-            {supportedLanguages.map((l) => (
-              <MenuItem key={l.code} value={l.code} sx={{ fontWeight: 600 }}>
-                {l.flag} {l.label}
-              </MenuItem>
-            ))}
-          </Select>
+        {/* ➡️ RIGHT SIDE: 1 STRAIGHT INLINE LINE (USER IDENTITY + ROLE + LOGOUT) */}
+        <Stack direction="row" alignItems="center" spacing={0.8}>
+          {isSirenActive && (
+            <Button
+              variant="contained"
+              color="error"
+              size="small"
+              startIcon={<VolumeOffIcon />}
+              onClick={() => {
+                NotificationRoutingService.silenceSiren();
+                setIsSirenActive(false);
+              }}
+              sx={{ fontWeight: 800, fontSize: "0.7rem", px: 1, py: 0.2, animation: "pulse 1.5s infinite" }}
+            >
+              🔕 Silence Siren
+            </Button>
+          )}
 
-          <IconButton onClick={() => navigate("/notifications")}>
+          <Tooltip title="Sender-Assigned Notification Dispatcher">
+            <IconButton size="small" onClick={() => setDispatchModalOpen(true)} sx={{ p: 0.3, color: "#f59e0b" }}>
+              <CampaignIcon sx={{ fontSize: "1.1rem" }} />
+            </IconButton>
+          </Tooltip>
+
+          <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ p: 0.3 }}>
             <Badge badgeContent={12} color="error">
-              <NotificationsIcon color="action" />
+              <NotificationsIcon color="action" sx={{ fontSize: "1rem" }} />
             </Badge>
           </IconButton>
 
-          <IconButton onClick={() => navigate("/settings")}>
-            <SettingsIcon color="action" />
+          <IconButton size="small" onClick={() => navigate("/settings")} sx={{ p: 0.3 }}>
+            <SettingsIcon color="action" sx={{ fontSize: "1rem" }} />
           </IconButton>
 
-          {/* TOP RIGHT USER IDENTIFICATION BADGE — VISIBLE ON EVERY PAGE */}
+          {/* 1 STRAIGHT LINE USER IDENTITY BADGE */}
           <Box
-            display="flex"
-            alignItems="center"
-            gap={1.5}
             sx={{
-              px: 1.5,
-              py: 0.5,
-              borderRadius: 2,
-              bgcolor: "rgba(245, 247, 250, 0.9)",
-              border: "1px solid #e2e8f0",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 0.8,
+              px: 1,
+              py: 0.2,
+              borderRadius: 1.5,
+              bgcolor: "#0f172a",
+              color: "#ffffff",
+              border: "1px solid #1e293b",
+              whiteSpace: "nowrap",
             }}
           >
-            <Box textAlign="right">
-              <Typography variant="body2" sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1.2 }}>
-                {(() => {
-                  const prefix = user?.namePrefix || user?.name_prefix || "";
-                  const name = user?.fullName || user?.name || user?.username || "Logged User";
-                  return prefix && !name.startsWith(prefix) ? `${prefix} ${name}` : name;
-                })()}
-              </Typography>
-
-              <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center" sx={{ mt: 0.3 }}>
-                <Chip
-                  label={
-                    userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
-                      ? "👑 SUPER ADMIN"
-                      : userRole === "admin"
-                      ? "🛡️ ADMIN"
-                      : userRole === "employee"
-                      ? "💼 ICJ STAFF"
-                      : "🟢 MEMBER"
-                  }
-                  size="small"
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: "0.65rem",
-                    height: 18,
-                    bgcolor:
-                      userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
-                        ? "#7c3aed"
-                        : userRole === "admin"
-                        ? "#1d4ed8"
-                        : userRole === "employee"
-                        ? "#d97706"
-                        : "#059669",
-                    color: "#ffffff",
-                  }}
-                />
-              </Stack>
-            </Box>
-
-            <Avatar sx={{ bgcolor: "#1976d2", width: 36, height: 36, fontWeight: "bold" }}>
+            <Avatar onClick={() => navigate("/member-profile")} sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 22, height: 22, fontSize: "0.75rem", cursor: "pointer" }}>
               {userInitial}
             </Avatar>
+
+            <Typography onClick={() => navigate("/member-profile")} variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}>
+              {(() => {
+                const prefix = user?.namePrefix || user?.name_prefix || "";
+                const name = user?.fullName || user?.name || user?.username || "Logged User";
+                return prefix && !name.startsWith(prefix) ? `${prefix} ${name}` : name;
+              })()}
+            </Typography>
+
+            <Chip
+              label={
+                userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                  ? "👑 SUPER ADMIN"
+                  : userRole === "admin"
+                  ? "🛡️ ADMIN"
+                  : userRole === "employee"
+                  ? "💼 STAFF"
+                  : "🟢 MEMBER"
+              }
+              size="small"
+              sx={{
+                fontWeight: 800,
+                fontSize: "0.58rem",
+                height: 16,
+                bgcolor:
+                  userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                    ? "#7c3aed"
+                    : userRole === "admin"
+                    ? "#1d4ed8"
+                    : userRole === "employee"
+                    ? "#d97706"
+                    : "#059669",
+                color: "#ffffff",
+              }}
+            />
+
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              onClick={async () => {
+                await logout();
+                navigate("/login");
+              }}
+              sx={{ fontWeight: 800, px: 0.6, py: 0.1, minWidth: 42, height: 20, fontSize: "0.62rem" }}
+            >
+              Exit
+            </Button>
           </Box>
-        </Box>
+        </Stack>
+
+        <NotificationDispatcherModal
+          open={dispatchModalOpen}
+          onClose={() => setDispatchModalOpen(false)}
+          senderName={user?.name || user?.username || "Super Admin"}
+          senderRole={user?.user_type || userRole || "super_admin"}
+        />
       </Toolbar>
     </AppBar>
   );

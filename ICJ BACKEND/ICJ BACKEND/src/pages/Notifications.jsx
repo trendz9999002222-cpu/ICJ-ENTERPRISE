@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationService from "../services/notificationService";
 import ActivityService from "../services/activityService";
 import MainLayout from "../layouts/MainLayout";
+import useAuth from "../hooks/useAuth";
 
 const CATEGORIES = [
   "All",
@@ -48,9 +49,9 @@ const CATEGORIES = [
 
 export const SEEDED_NOTIFICATIONS = [];
 
-
 export default function Notifications() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [tabIndex, setTabIndex] = useState(0);
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
@@ -58,7 +59,7 @@ export default function Notifications() {
 
   const loadNotifications = async () => {
     try {
-      const data = await NotificationService.getAll();
+      const data = await NotificationService.getForUser(user?.id || user?.member_id, user?.role);
       setItems(Array.isArray(data) ? data : []);
     } catch {
       setItems([]);
@@ -143,7 +144,7 @@ export default function Notifications() {
   }, [items, selectedCategory, search]);
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -251,6 +252,6 @@ export default function Notifications() {
           </List>
         </Paper>
       </Box>
-    </MainLayout>
+    </>
   );
 }

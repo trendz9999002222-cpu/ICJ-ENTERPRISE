@@ -4,6 +4,7 @@ import {
   updateMember,
   deleteMember,
 } from "./database.js";
+import SeedEcosystemService from "./seedEcosystemService.js";
 
 const VALID_STATUSES = [
   "Draft",
@@ -47,7 +48,7 @@ const alphaGroupToIndex = (code = "AA") => {
  *   xx   = 2-letter alpha group              (AA, AB … ZZ)
  *   NNNN = 4-digit sequential within group   (0001–9999)
  *
- * Example: "26ICJ08AA0001" = 1st member registered in Aug 2026
+ * Example: "ICJ-2026-MEM-0001" = 1st member registered in Aug 2026
  *
  * Capacity: 676 groups × 9999 = 6,759,324 unique IDs per month
  *
@@ -56,31 +57,15 @@ const alphaGroupToIndex = (code = "AA") => {
  */
 export const generateMemberId = (existingList = []) => {
   const now = new Date();
-  const YY = String(now.getFullYear()).slice(-2);          // "26"
-  const MM = String(now.getMonth() + 1).padStart(2, "0"); // "08"
-  const prefix = `${YY}ICJ${MM}`;
+  const year = now.getFullYear();
+  const prefix = `ICJ-${year}-MEM-`;
 
-  // Count how many members already have IDs starting with this month's prefix
   const monthMembers = (Array.isArray(existingList) ? existingList : []).filter(
-    (m) => String(m.member_id || m.id || "").startsWith(prefix)
+    (m) => String(m.member_id || m.id || "").startsWith("ICJ-")
   );
 
-  // Total registered this month so far (0-based)
-  const totalThisMonth = monthMembers.length; // 0, 1, 2 ...
-
-  // Sequential position (1-based)
-  const sequential = (totalThisMonth % 9999) + 1; // 1 → 9999, then resets
-  const groupIndex = Math.floor(totalThisMonth / 9999); // 0=AA, 1=AB, ...
-
-  if (groupIndex >= 676) {
-    // ZZ group full: 676 × 9999 = 6,759,324 members/month — practically impossible
-    throw new Error("ICJ: Monthly member ID capacity exceeded (>6.7M). Contact system administrator.");
-  }
-
-  const alphaGroup = alphaGroupFromIndex(groupIndex); // "AA", "AB", etc.
-  const seqStr = String(sequential).padStart(4, "0");  // "0001"
-
-  return `${prefix}${alphaGroup}${seqStr}`; // e.g. "26ICJ08AA0001"
+  const seq = String(monthMembers.length + 1).padStart(4, "0");
+  return `${prefix}${seq}`; // e.g. "ICJ-2026-MEM-0001"
 };
 
 // Keep the old ID normalizer for backward compatibility with existing records
@@ -140,7 +125,11 @@ export const MemberService = {
   },
 
   async getAll() {
-    return await getMembers();
+    const list = await getMembers();
+    if (!Array.isArray(list) || list.length === 0) {
+      return SeedEcosystemService.get26CoreMembers();
+    }
+    return list;
   },
 
   async create(member) {

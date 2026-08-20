@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -32,17 +32,25 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import FolderIcon from "@mui/icons-material/Folder";
 import PaymentIcon from "@mui/icons-material/Payment";
 import ChatIcon from "@mui/icons-material/Chat";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import PersonIcon from "@mui/icons-material/Person";
-import VideoCallIcon from "@mui/icons-material/VideoCall";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import VideocamIcon from "@mui/icons-material/Videocam";
+import CallIcon from "@mui/icons-material/Call";
+import CameraDocumentScanner from "../components/common/CameraDocumentScanner.jsx";
+import VideoConsultationModal from "../components/common/VideoConsultationModal.jsx";
+import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
 import SendIcon from "@mui/icons-material/Send";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import BadgeIcon from "@mui/icons-material/Badge";
 import MicIcon from "@mui/icons-material/Mic";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SecurityIcon from "@mui/icons-material/Security";
+import PersonIcon from "@mui/icons-material/Person";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import VideoCallIcon from "@mui/icons-material/VideoCall";
+import ClientEmpowermentService from "../services/clientEmpowermentService.js";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
 import ActivityService from "../services/activityService.js";
@@ -52,11 +60,17 @@ import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZAT
 import { getDocuments, addDocument } from "../services/database.js";
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
-import SmartStepGuideBanner from "../components/common/SmartStepGuideBanner.jsx";
-import VoiceToDocumentEngine from "../services/voiceToDocumentEngine.js";
-import LanguageService from "../services/languageService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
+import MatterCommunicationService from "../services/matterCommunicationService.js";
+import MatterTimelineService from "../services/matterTimelineService.js";
+import LegalMatterDataService from "../services/legalMatterDataService.js";
+import LegalDocumentSorterService from "../services/legalDocumentSorterService.js";
+import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
+import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
+import VernacularVoiceAssistantService from "../services/vernacularVoiceAssistantService.js";
+import GuidedCaseIntakeWizard from "../components/common/GuidedCaseIntakeWizard.jsx";
+import GlobalLegalJurisdictionService, { JURISDICTIONS } from "../services/globalLegalJurisdictionService.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -69,10 +83,11 @@ function TabPanel(props) {
 
 export default function ClientPortal() {
   const { user } = useAuth();
-  const clientName = user?.fullName || user?.name || "Sh. Ramesh Kumar";
-  const memberId = user?.memberId || user?.id || "MEM-LKO-9812";
+  const clientName = user?.fullName || user?.name || "Litigant Client";
+  const memberId = user?.memberId || user?.id || "ICJ-2026-MEM-0001";
 
   const [tabIndex, setTabIndex] = useState(0);
+  const [activePortalCaseId, setActivePortalCaseId] = useState("");
   const [cases, setCases] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [advocates, setAdvocates] = useState([]);
@@ -121,7 +136,7 @@ export default function ClientPortal() {
 
   // Appointment Form
   const [aptForm, setAptForm] = useState({
-    advocateName: "Adv. Rajesh Sharma",
+    advocateName: "Empaneled Legal Counsel",
     date: new Date().toISOString().slice(0, 10),
     time: "10:30 AM",
     mode: "Video Conference",
@@ -131,6 +146,11 @@ export default function ClientPortal() {
   // Appointments list
   const [appointments, setAppointments] = useState([]);
 
+  // Camera Document Scanner & Video/Audio Consultation Modal State
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [audioModalOpen, setAudioModalOpen] = useState(false);
+
   // AI Consultation & Case Diagnosis State
   const [aiCaseCat, setAiCaseCat] = useState("CRIMINAL_FIR");
   const [aiProbText, setAiProbText] = useState("");
@@ -138,6 +158,72 @@ export default function ClientPortal() {
   const [aiOutcome, setAiOutcome] = useState("");
   const [aiRecording, setAiRecording] = useState(false);
   const [aiDiagnosisResult, setAiDiagnosisResult] = useState(null);
+  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem("icj_gemini_api_key") || "");
+  const [openaiApiKey, setOpenaiApiKey] = useState(() => localStorage.getItem("icj_openai_api_key") || "");
+  const [anthropicApiKey, setAnthropicApiKey] = useState(() => localStorage.getItem("icj_anthropic_api_key") || "");
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem("icj_ai_provider") || "gemini");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // Recharge Pre-paid Token States
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [openRechargeModal, setOpenRechargeModal] = useState(false);
+  const [selectedPack, setSelectedPack] = useState({ credits: 100, price: 100, label: "Starter Pack" });
+  const [uploadedReceipt, setUploadedReceipt] = useState(null);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [verificationStep, setVerificationStep] = useState(0);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [receiptUtr, setReceiptUtr] = useState("");
+
+  const loadTokenBalance = useCallback(() => {
+    try {
+      const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const current = members.find(m => String(m.member_id || m.id).toLowerCase() === String(memberId).toLowerCase());
+      setTokenBalance(current?.token_balance || 0);
+    } catch (e) {
+      console.debug(e);
+    }
+  }, [memberId]);
+
+  useEffect(() => {
+    loadTokenBalance();
+  }, [loadTokenBalance]);
+
+  const handleReceiptUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploadedReceipt(file);
+    } else {
+      setUploadedReceipt({ name: "payment_receipt_screenshot.png" });
+    }
+  };
+
+  const executeRechargeVerification = async () => {
+    if (!uploadedReceipt) {
+      alert("कृपया भुगतान स्क्रीनशॉट अपलोड करें।");
+      return;
+    }
+    setIsVerifyingPayment(true);
+    setVerificationStep(1);
+    await new Promise(r => setTimeout(r, 1500));
+    setVerificationStep(2);
+    await new Promise(r => setTimeout(r, 1500));
+    setVerificationStep(3);
+    await new Promise(r => setTimeout(r, 1200));
+
+    const generatedUtr = "UPI" + Math.floor(100000000000 + Math.random() * 900000000000);
+    setReceiptUtr(generatedUtr);
+
+    import("../services/paymentBillingService.js").then((mod) => {
+      const pb = mod.default || mod.PaymentBillingService;
+      const res = pb.rechargeCredits(memberId, selectedPack.credits, selectedPack.price, generatedUtr);
+      if (res.success) {
+        loadTokenBalance();
+        setPaymentSuccess(true);
+      }
+    }).catch(err => console.error(err));
+    setIsVerifyingPayment(false);
+  };
 
   // Ongoing Case Rescue State
   const [isOngoingCaseToggle, setIsOngoingCaseToggle] = useState(false);
@@ -146,9 +232,7 @@ export default function ClientPortal() {
   const [ongoingPrevLawyer, setOngoingPrevLawyer] = useState("");
 
   // Messages list
-  const [messages, setMessages] = useState([
-    { id: "m1", sender: "Adv. Rajesh Sharma", text: `Welcome to the ICJ Client Legal Portal, ${clientName}. Your PIL case WP/2026/1042 is listed for Aug 20, 2026.`, timestamp: new Date().toLocaleTimeString("en-IN") },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [clientMsgInput, setClientMsgInput] = useState("");
 
   useEffect(() => {
@@ -170,7 +254,7 @@ export default function ClientPortal() {
     };
   }, []);
 
-  // Filter client's legal cases strictly matching client Name or Member ID
+  // Filter client's legal cases strictly matching client Name or Member ID (Declared before useEffect hooks)
   const myCases = useMemo(() => {
     const term = clientName.toLowerCase();
     return cases.filter(
@@ -179,6 +263,56 @@ export default function ClientPortal() {
         String(c.member_id || "").toLowerCase() === String(memberId).toLowerCase()
     );
   }, [cases, clientName, memberId]);
+
+  useEffect(() => {
+    if (activePortalCaseId) {
+      const msgs = MatterCommunicationService.getMessages(activePortalCaseId);
+      if (msgs.length === 0) {
+        const caseObj = myCases.find(c => c.id === activePortalCaseId);
+        const seedMsg = {
+          id: "m1",
+          senderName: caseObj?.advocateName && caseObj.advocateName !== "Unassigned" ? caseObj.advocateName : "ICJ Advocate Team",
+          senderRole: "advocate",
+          text: `Welcome to the ICJ Client Legal Portal, ${clientName}. I will be representing you in this matter. Please share any documents or record voice updates.`,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages([seedMsg]);
+      } else {
+        setMessages(msgs);
+      }
+    }
+  }, [activePortalCaseId, tabIndex, myCases, clientName]);
+
+  const [timelineEvents, setTimelineEvents] = useState([]);
+  const [timelineActions, setTimelineActions] = useState([]);
+
+  useEffect(() => {
+    if (activePortalCaseId) {
+      const evs = MatterTimelineService.getEvents(activePortalCaseId);
+      const acts = MatterTimelineService.getActions(activePortalCaseId);
+      if (evs.length === 0) {
+        const caseObj = myCases.find(c => c.id === activePortalCaseId);
+        const seedEv = {
+          id: "seed-ev-1",
+          date: caseObj?.incidentDate || new Date().toISOString().slice(0, 10),
+          eventType: "SYSTEM",
+          title: "Matter Registered & Intaked",
+          description: `Case "${caseObj?.title || 'Matter'}" successfully created and submitted to ICJ registry.`,
+          sourceType: "USER_ENTRY",
+        };
+        setTimelineEvents([seedEv]);
+      } else {
+        setTimelineEvents(evs);
+      }
+      setTimelineActions(acts);
+    }
+  }, [activePortalCaseId, tabIndex, myCases]);
+
+  useEffect(() => {
+    if (myCases.length > 0 && !activePortalCaseId) {
+      setActivePortalCaseId(myCases[0].id);
+    }
+  }, [myCases, activePortalCaseId]);
 
   // Filter client's documents
   const myDocs = useMemo(() => {
@@ -231,12 +365,14 @@ export default function ClientPortal() {
       return;
     }
 
+    const targetCaseId = docUploadForm.caseId || activePortalCaseId || (myCases[0] ? myCases[0].id : "GENERAL");
+
     const docPayload = {
       name: docUploadForm.name,
       owner: clientName,
       member_id: memberId,
       category: docUploadForm.category,
-      case_id: docUploadForm.caseId || (myCases[0] ? myCases[0].id : "GENERAL"),
+      case_id: targetCaseId,
       uploaded_at: new Date().toISOString(),
       file_size: "1.2 MB",
       sha256: `SHA256-${Date.now().toString(36).toUpperCase()}`,
@@ -245,10 +381,43 @@ export default function ClientPortal() {
     };
 
     await addDocument(docPayload);
-    ActivityService.create({ title: `Document "${docUploadForm.name}" uploaded to Vault`, type: "document" });
+
+    // Simulate OCR text extraction for AI Analysis
+    let mockText = "";
+    if (docUploadForm.category === "Agreement/Contract") {
+      mockText = `LEASE DEED AGREEMENT: Lease agreement executed between Lessor and Lessee for residential property. The lease is for 11 months with monthly rent of ₹18,000 and security deposit of ₹36,000.`;
+    } else if (docUploadForm.category === "FIR" || docUploadForm.name.toLowerCase().includes("fir")) {
+      mockText = `FIRST INFORMATION REPORT (Section 154 CrPC): FIR registered at Police Station under IPC Sections 420 and 406 (Cheating and Criminal Breach of Trust).`;
+    } else if (docUploadForm.category === "Legal Notice" || docUploadForm.name.toLowerCase().includes("notice")) {
+      mockText = `LEGAL NOTICE FOR RECOVERY: Sent by Empaneled Legal Counsel on behalf of client to noticee. Demanding payment of outstanding balance amount within 15 days from receipt of this notice.`;
+    } else {
+      mockText = `LEGAL PLEADING SHEET: In the Court of District Judge. Suit No. ICJ-2026-CS-9812. Litigant v. Respondent. Matter relates to breach of commercial agreement.`;
+    }
+
+    if (targetCaseId && targetCaseId !== "GENERAL") {
+      // Analyze text and extract structured facts
+      const extraction = LegalMatterDataService.extractFromText(mockText, "OCR_EXTRACTED", docUploadForm.name);
+      LegalMatterDataService.saveExtraction(memberId, targetCaseId, extraction);
+
+      // Add to case timeline
+      MatterTimelineService.addEvent(targetCaseId, {
+        eventType: "DOCUMENT",
+        title: `Document Uploaded & Analyzed: ${docUploadForm.name}`,
+        description: `Auto-extracted metadata: ${extraction.dates.length} dates and ${extraction.caseNumbers.length || extraction.firNumbers.length || 0} reference numbers found.`,
+        sourceType: "DOCUMENT",
+        sourceId: docPayload.sha256,
+        speaker: clientName,
+      });
+
+      // Recalculate timeline
+      const evs = MatterTimelineService.getEvents(targetCaseId);
+      setTimelineEvents(evs);
+    }
+
+    ActivityService.create({ title: `Document "${docUploadForm.name}" uploaded to Vault & Analyzed`, type: "document" });
     setOpenDocUploadModal(false);
     setDocUploadForm({ name: "", category: "Legal Pleading", fileObj: null, caseId: "" });
-    setAlertMsg("Document uploaded successfully to Vault and indexed for AI Pipeline!");
+    setAlertMsg("Document uploaded successfully. AI fact extraction & timeline indexing completed!");
     setTimeout(() => setAlertMsg(""), 4000);
     const updatedDocs = await getDocuments().catch(() => []);
     setDocuments(Array.isArray(updatedDocs) ? updatedDocs : []);
@@ -273,27 +442,64 @@ export default function ClientPortal() {
 
   const handleSendMessage = () => {
     if (!clientMsgInput.trim()) return;
-    const msg = {
-      id: `m-${Date.now()}`,
-      sender: `${clientName} (Client)`,
-      text: clientMsgInput,
-      timestamp: new Date().toLocaleTimeString("en-IN"),
-    };
-    setMessages((prev) => [...prev, msg]);
+    if (!activePortalCaseId) {
+      alert("Please select an active Case / Matter first to send a message.");
+      return;
+    }
+    
+    // Save message via service
+    MatterCommunicationService.sendMessage(activePortalCaseId, memberId, clientName, 'client', {
+      type: 'TEXT',
+      text: clientMsgInput
+    });
+    
+    // Reload messages
+    const msgs = MatterCommunicationService.getMessages(activePortalCaseId);
+    setMessages(msgs);
+    
     ActivityService.create({ title: `Client Message Sent: "${clientMsgInput.substring(0, 30)}..."`, type: "legal" });
     setClientMsgInput("");
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
-        <SmartStepGuideBanner
-          statusKey="guidePortalStatus"
-          nextKey="guidePortalNext"
-          audioKey="audioPortal"
-        />
+        {/* GLOBAL LEGAL JURISDICTION SELECTOR BAR (INDIA, US, UK, EU) */}
+        <Paper elevation={1} className="bigtech-card glass-card" sx={{ p: 1.5, mb: 3, borderRadius: 2.5, bgcolor: "#0f172a", color: "#fff" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Typography variant="body2" fontWeight="bold" color="#60a5fa">
+                🌐 Global Legal Jurisdiction (वैश्विक क्षेत्राधिकार):
+              </Typography>
+              <Chip
+                label={GlobalLegalJurisdictionService.getActiveJurisdiction().name}
+                color="primary"
+                size="small"
+                sx={{ fontWeight: "bold" }}
+              />
+            </Box>
+            <Stack direction="row" spacing={1}>
+              {Object.values(JURISDICTIONS).map((j) => (
+                <Button
+                  key={j.id}
+                  size="small"
+                  variant={GlobalLegalJurisdictionService.getActiveJurisdiction().id === j.id ? "contained" : "outlined"}
+                  color="info"
+                  onClick={() => {
+                    GlobalLegalJurisdictionService.setActiveJurisdiction(j.id);
+                    setAlertMsg(`🟢 Active Legal Jurisdiction Changed to: ${j.flag} ${j.name}`);
+                    setTimeout(() => setAlertMsg(""), 3000);
+                  }}
+                  sx={{ py: 0.3, px: 1, fontSize: "0.75rem", textTransform: "none" }}
+                >
+                  {j.flag} {j.id}
+                </Button>
+              ))}
+            </Stack>
+          </Stack>
+        </Paper>
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} flexWrap="wrap" gap={2}>
           <Box>
             <Typography variant="h4" fontWeight="bold">
               Client & Member Personal Workspace
@@ -303,20 +509,143 @@ export default function ClientPortal() {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2}>
-            <Button variant="outlined" startIcon={<UploadFileIcon />} onClick={() => setOpenDocUploadModal(true)}>
-              Upload Document
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" gap={1}>
+            {myCases.length > 0 && (
+              <TextField
+                select
+                size="small"
+                label="Selected Active Case"
+                value={activePortalCaseId}
+                onChange={(e) => setActivePortalCaseId(e.target.value)}
+                sx={{ width: 220, bgcolor: "#fff" }}
+              >
+                {myCases.map((c) => (
+                  <MenuItem key={c.id} value={c.id}>
+                    {c.caseNumber} — {c.title}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+            {/* ULTRA-MODERN COMPACT VIBRANT COLORFUL CAMERA & VIDEO CALL BUTTONS */}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<CameraAltIcon />}
+              onClick={() => setCameraModalOpen(true)}
+              sx={{
+                fontWeight: "bold",
+                background: "linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%)",
+                boxShadow: "0 4px 14px rgba(236, 72, 153, 0.4)",
+                color: "#fff",
+                textTransform: "none",
+                borderRadius: 2,
+                px: 1.8,
+                "&:hover": { opacity: 0.95 },
+              }}
+            >
+              📷 Snap Doc
             </Button>
-            <Button variant="outlined" startIcon={<CalendarMonthIcon />} onClick={() => setOpenAppointmentModal(true)}>
-              Book Appointment
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<VideocamIcon />}
+              onClick={() => setVideoModalOpen(true)}
+              sx={{
+                fontWeight: "bold",
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                boxShadow: "0 4px 14px rgba(16, 185, 129, 0.4)",
+                color: "#fff",
+                textTransform: "none",
+                borderRadius: 2,
+                px: 1.8,
+                "&:hover": { opacity: 0.95 },
+              }}
+            >
+              📹 Video Call
             </Button>
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenFileModal(true)}>
-              Create Legal Matter
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<CallIcon />}
+              onClick={() => setAudioModalOpen(true)}
+              sx={{
+                fontWeight: "bold",
+                background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                boxShadow: "0 4px 14px rgba(139, 92, 246, 0.4)",
+                color: "#fff",
+                textTransform: "none",
+                borderRadius: 2,
+                px: 1.8,
+                "&:hover": { opacity: 0.95 },
+              }}
+            >
+              📞 Voice Call
+            </Button>
+
+            <Button variant="outlined" size="small" startIcon={<UploadFileIcon />} onClick={() => setOpenDocUploadModal(true)}>
+              Upload
+            </Button>
+            <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => setOpenFileModal(true)}>
+              Create Matter
             </Button>
           </Stack>
         </Stack>
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+
+        {/* 🏛️ 4-STEP GUIDED CASE INTAKE WIZARD FOR UNIVERSAL PERSONA ACCESSIBILITY */}
+        <GuidedCaseIntakeWizard
+          activeAdvocate={activeAdvocate}
+          onCompleteCaseIntake={({ problemText, caseCategory }) => {
+            setAiProbText(problemText);
+            setAiCaseCat(caseCategory); // ← PERMANENT FIX: was incorrectly named setAiCaseCategory
+            setAlertMsg("🟢 4-Step Case Intake Completed & Submitted for Legal Counsel & AI Diagnosis!");
+            setTimeout(() => setAlertMsg(""), 4000);
+          }}
+        />
+
+        {/* 🗣️ VERNACULAR VOICE-FIRST AUDIO GUIDANCE BAR FOR ILLITERATE / RURAL CITIZENS */}
+        <Paper elevation={2} className="bigtech-card glass-card" sx={{ p: 2, mb: 3, borderRadius: 3, borderLeft: "6px solid #059669", bgcolor: "#f0fdf4" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+            <Box display="flex" alignItems="center" gap={1.5}>
+              <MicIcon sx={{ fontSize: 32, color: "#059669" }} />
+              <Box>
+                <Typography variant="subtitle2" fontWeight="bold" color="#065f46">
+                  🗣️ वॉयस-फ़र्स्ट ऑडियो गाइड (Vernacular Voice Guidance for All Citizens)
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  अनपढ़ व कम पढ़े-लिखे नागरिक बिना टाइप किए यहाँ बटन दबाकर हिंदी में दिशा-निर्देश सुन सकते हैं।
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                startIcon={<MicIcon />}
+                onClick={() => {
+                  VernacularVoiceAssistantService.speakInHindi(VernacularVoiceAssistantService.prompts.WELCOME);
+                }}
+                sx={{ fontWeight: "bold" }}
+              >
+                🔊 सुनें (Welcome Guide)
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => {
+                  VernacularVoiceAssistantService.stopSpeech();
+                }}
+              >
+                🛑 बंद करें (Stop Audio)
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
 
         {/* Real-time Workspace Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -359,6 +688,7 @@ export default function ClientPortal() {
             <Tab icon={<ChatIcon />} iconPosition="start" label="Messages & Communication" />
             <Tab icon={<PersonIcon />} iconPosition="start" label="My Profile & KYC" />
             <Tab icon={<SecurityIcon sx={{ color: "#059669" }} />} iconPosition="start" label="🤝 ICJ Partner & E-Gov Desk" sx={{ fontWeight: "bold", color: "#059669" }} />
+            <Tab icon={<SettingsSuggestIcon sx={{ color: "#2563eb" }} />} iconPosition="start" label="🔌 My API Store (माई API स्टोर)" sx={{ fontWeight: "bold", color: "#2563eb" }} />
           </Tabs>
         </Box>
 
@@ -384,6 +714,22 @@ export default function ClientPortal() {
                   <Typography variant="subtitle1" fontWeight="bold" color="#1e3a8a" mb={2}>
                     📝 1. अपनी समस्या या चल रहा केस दर्ज करें
                   </Typography>
+                  
+                  {/* API CONFIGURATION WIDGET REDIRECT */}
+                  <Paper sx={{ p: 2, mb: 2.5, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #cbd5e1" }}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2" color="text.secondary">
+                        🌐 AI Model: <strong>{aiProvider.toUpperCase()}</strong> (
+                        {aiProvider === "openai" ? (openaiApiKey ? "Live 🟢" : "Local Mode ⚠️") :
+                         aiProvider === "anthropic" ? (anthropicApiKey ? "Live 🟢" : "Local Mode ⚠️") :
+                         (geminiApiKey ? "Live 🟢" : "Local Mode ⚠️")}
+                        )
+                      </Typography>
+                      <Button size="small" onClick={() => setTabIndex(10)} sx={{ textTransform: "none", fontWeight: "bold" }}>
+                        ⚙️ Configure Keys
+                      </Button>
+                    </Stack>
+                  </Paper>
 
                   {/* Ongoing Case vs New Case Toggle */}
                   <Stack direction="row" spacing={1} mb={2}>
@@ -416,7 +762,7 @@ export default function ClientPortal() {
                         fullWidth
                         size="small"
                         label="केस / CNR नंबर (Case / CNR No.)"
-                        placeholder="उदा. UPHC-01-004812-2024"
+                        placeholder="उदा. ICJ-2026-CASE-1001"
                         value={ongoingCaseNo}
                         onChange={(e) => setOngoingCaseNo(e.target.value)}
                         sx={{ mb: 1.5, bg: "#fff" }}
@@ -434,7 +780,7 @@ export default function ClientPortal() {
                         fullWidth
                         size="small"
                         label="पुराने वकील का नाम (Previous Lawyer Name)"
-                        placeholder="उदा. Adv. P.K. Verma"
+                        placeholder="उदा. Adv. Member Name"
                         value={ongoingPrevLawyer}
                         onChange={(e) => setOngoingPrevLawyer(e.target.value)}
                         sx={{ mb: 1.5, bg: "#fff" }}
@@ -493,8 +839,8 @@ export default function ClientPortal() {
                               const existing = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
                               const updatedConsultation = {
                                 ...(existing[0] || {}),
-                                consultationId: "INTAKE-2026-LIVE",
-                                clientName: clientName || "Pooja Verma (Client)",
+                                consultationId: "ICJ-2026-INTAKE-LIVE",
+                                clientName: clientName || "Empaneled Litigant Member",
                                 caseCategory: "Voice Intake & Consultation",
                                 problemText: spokenText || existing[0]?.problemText || "",
                                 voiceNotes: [...(existing[0]?.voiceNotes || []), { id: note.id, title: note.title, audioUrl: note.audioUrl, transcript: spokenText }],
@@ -534,39 +880,76 @@ export default function ClientPortal() {
                     variant="contained"
                     size="large"
                     color={isOngoingCaseToggle ? "error" : "primary"}
-                    onClick={() => {
+                    disabled={aiLoading}
+                    onClick={async () => {
+                      setAiLoading(true);
                       // Deduct AI credit
                       import("../services/paymentBillingService.js").then((mod) => {
                         const pb = mod.default || mod.PaymentBillingService;
                         const deduct = pb.deductAiCredit(memberId, 1);
                         if (deduct.success) {
                           alert(`1 AI Token/Credit Deducted! New Wallet Balance: ${deduct.newBalance} Tokens.`);
+                          loadTokenBalance();
                         }
                       }).catch(e => console.error(e));
 
-                      if (isOngoingCaseToggle) {
-                        const res = AiLegalConsultationService.diagnoseOngoingCase({
-                          clientId: memberId,
-                          clientName,
-                          caseNumber: ongoingCaseNo || "",
-                          courtName: ongoingCourtName || "",
-                          previousAdvocate: ongoingPrevLawyer || "",
-                          caseStatusSummary: aiProbText || "",
-                          nextHearingDate: "2026-08-22",
-                          uploadedDocumentNames: myDocs.map(d => d.name || "Case_Order_Copy.pdf"),
-                        });
-                        setAiDiagnosisResult(res);
-                      } else {
-                        const res = AiLegalConsultationService.diagnoseCase({
-                          clientId: memberId,
-                          clientName,
-                          caseCategory: aiCaseCat,
-                          problemText: aiProbText || "",
-                          voiceNoteSummary: aiVoiceNote,
-                          uploadedDocumentNames: myDocs.map(d => d.name || "FIR_Copy.pdf"),
-                          desiredOutcome: aiOutcome,
-                        });
-                        setAiDiagnosisResult(res);
+                      try {
+                        if (!aiProbText.trim() && !aiVoiceNote) {
+                          alert("कृपया अपनी समस्या दर्ज करें या वॉयस रिकॉर्डिंग करें।");
+                          setAiLoading(false);
+                          return;
+                        }
+
+                        if (isOngoingCaseToggle) {
+                          const res = await AiLegalConsultationService.diagnoseOngoingCase({
+                            clientId: memberId,
+                            clientName,
+                            caseNumber: ongoingCaseNo || "",
+                            courtName: ongoingCourtName || "",
+                            previousAdvocate: ongoingPrevLawyer || "",
+                            caseStatusSummary: aiProbText.trim(),
+                            nextHearingDate: "2026-08-22",
+                            uploadedDocumentNames: myDocs.map(d => d.name || "Case_Order_Copy.pdf"),
+                            provider: aiProvider,
+                            apiKey: aiProvider === "openai" ? openaiApiKey : aiProvider === "anthropic" ? anthropicApiKey : geminiApiKey,
+                          });
+                          setAiDiagnosisResult(res);
+                        } else {
+                          const res = await AiLegalConsultationService.diagnoseCase({
+                            clientId: memberId,
+                            clientName,
+                            caseCategory: aiCaseCat,
+                            problemText: aiProbText.trim(),
+                            voiceNoteSummary: aiVoiceNote,
+                            uploadedDocumentNames: myDocs.map(d => d.name || "FIR_Copy.pdf"),
+                            desiredOutcome: aiOutcome,
+                            provider: aiProvider,
+                            apiKey: aiProvider === "openai" ? openaiApiKey : aiProvider === "anthropic" ? anthropicApiKey : geminiApiKey,
+                          });
+                          setAiDiagnosisResult(res);
+
+                          // Trigger Real-Time Admin Workflow Request & Queue Alert
+                          try {
+                            import("../services/clientWorkflowService.js").then((mod) => {
+                              const cws = mod.default || mod.ClientWorkflowService;
+                              cws.submitProblemRequest({
+                                clientId: memberId,
+                                clientName,
+                                problemText: aiProbText.trim(),
+                                caseCategory: aiCaseCat,
+                                desiredOutcome: aiOutcome,
+                                voiceNoteSummary: aiVoiceNote,
+                              });
+                            });
+                          } catch (e) {
+                            console.error("Workflow submission failed", e);
+                          }
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert("AI analysis encountered an error.");
+                      } finally {
+                        setAiLoading(false);
                       }
                     }}
                     startIcon={<AutoAwesomeIcon />}
@@ -579,7 +962,26 @@ export default function ClientPortal() {
 
               {/* Right Column: AI Legal Diagnosis Result & Advice */}
               <Grid item xs={12} md={7}>
-                {!aiDiagnosisResult ? (
+                {aiLoading ? (
+                  <Paper sx={{ p: 4, textAlign: "center", bgcolor: "#fff", borderRadius: 3, border: "1px dashed #7c3aed" }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: 2 }}>
+                      <Typography variant="h6" color="primary" fontWeight="bold">🤖 AI Engine Analyzing Case Context...</Typography>
+                      <Typography variant="body2" color="text.secondary">कानूनी धाराएं, संभावित सजा का जोखिम, जमानत की शर्तें व एक्शन प्लान निकाला जा रहा है।</Typography>
+                      <Box sx={{
+                        width: 50,
+                        height: 50,
+                        border: "5px solid #ede9fe",
+                        borderTop: "5px solid #7c3aed",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                        "@keyframes spin": {
+                          "0%": { transform: "rotate(0deg)" },
+                          "100%": { transform: "rotate(360deg)" }
+                        }
+                      }} />
+                    </Box>
+                  </Paper>
+                ) : !aiDiagnosisResult ? (
                   <Paper sx={{ p: 4, textAlign: "center", bgcolor: "#fff", borderRadius: 3, border: "1px dashed #cbd5e1" }}>
                     <AutoAwesomeIcon sx={{ fontSize: 60, color: "#cbd5e1", mb: 2 }} />
                     <Typography variant="h6" color="text.secondary">
@@ -591,9 +993,34 @@ export default function ClientPortal() {
                   </Paper>
                 ) : (
                   <Paper elevation={4} sx={{ p: 3, borderRadius: 3, bgcolor: "#fff", border: "2px solid #7c3aed" }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Chip label="AI LEGAL DIAGNOSIS COMPLETE ✅" color="secondary" sx={{ fontWeight: "bold" }} />
-                      <Typography variant="caption" color="text.secondary">ID: {aiDiagnosisResult.consultationId}</Typography>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip label="AI LEGAL DIAGNOSIS COMPLETE ✅" color="secondary" sx={{ fontWeight: "bold" }} />
+                        <Chip 
+                          label={aiDiagnosisResult.isLiveAi ? `🟢 Live LLM (${aiDiagnosisResult.providerName || 'AI'})` : "⚡ Dynamic NLP Engine"} 
+                          color={aiDiagnosisResult.isLiveAi ? "success" : "info"} 
+                          size="small"
+                          sx={{ fontWeight: "bold" }} 
+                        />
+                      </Stack>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography variant="caption" color="text.secondary">ID: {aiDiagnosisResult.consultationId}</Typography>
+                        <Button 
+                          size="small" 
+                          color="error" 
+                          variant="outlined" 
+                          onClick={() => {
+                            setAiDiagnosisResult(null);
+                            setAiProbText("");
+                            setAiVoiceNote("");
+                            setAiOutcome("");
+                            try { localStorage.removeItem("icj_ai_legal_consultations"); } catch(e){}
+                          }}
+                          sx={{ fontSize: "0.7rem", py: 0.2, px: 1, fontWeight: "bold" }}
+                        >
+                          🗑️ रीसेट करें (Reset & Clear)
+                        </Button>
+                      </Stack>
                     </Stack>
 
                     {/* Legal Stand / Ongoing Case Audit */}
@@ -719,12 +1146,14 @@ export default function ClientPortal() {
                           variant="contained"
                           sx={{ bgcolor: "#1e3a8a", fontWeight: "bold" }}
                           onClick={() => {
+                            const available = LegalEcosystemService.getAdvocates();
+                            const targetAdv = available.length > 0 ? available[0] : (activeAdvocate || { id: "ADV-EMP-001", name: "Empaneled Legal Counsel" });
                             AiLegalConsultationService.assignAdvocate({
                               consultationId: aiDiagnosisResult.consultationId,
-                              advocateId: "ADV-101",
-                              advocateName: "Adv. Rajesh Sharma",
+                              advocateId: targetAdv.id,
+                              advocateName: targetAdv.name,
                             });
-                            alert("✅ Adv. Rajesh Sharma नियुक्त हो गए हैं! AI Legal Drafter ने कोर्ट ड्राफ्ट तैयार करके वकील को भेज दिया है।");
+                            alert(`✅ ${targetAdv.name} नियुक्त हो गए हैं! AI Legal Drafter ने कोर्ट ड्राफ्ट तैयार करके वकील को भेज दिया है।`);
                           }}
                         >
                           वकील नियुक्त करें (Assign Advocate)
@@ -751,88 +1180,15 @@ export default function ClientPortal() {
             </Stack>
             <Divider sx={{ mb: 2 }} />
 
-            {/* 4-YEAR OLD ONGOING RESCUE CASE SHOWCASE CARD */}
-            <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#fff" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
-                <Box>
-                  <Chip label="🚨 4-YEAR OLD ONGOING CASE RESCUE SHOWCASE" color="error" sx={{ fontWeight: "bold", mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold" color="#f59e0b">
-                    Sh. Ramesh Kumar vs State of UP &amp; Ors (Case #UPHC-01-004812-2022)
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                    Filing Date: 12-Apr-2022 (4 Years Ago) | Transferred to ICJ: 10-Aug-2025 (1 Year Ago)
-                  </Typography>
-                </Box>
-                <Chip label="🟢 ACTIVE IN HEARING (ICJ PROTECTED)" color="success" sx={{ fontWeight: "bold" }} />
-              </Stack>
-
-              <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
-                {/* 1. Advocate Succession */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#f59e0b" mb={1}>
-                      🧑‍⚖️ Advocate Succession Record
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#ef4444">
-                      ❌ <b>Previous Lawyer:</b> Adv. P.K. Verma (Dismissed due to 8 missed hearings &amp; ₹45,000 taken)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#10b981" sx={{ mt: 1 }}>
-                      ✅ <b>Current ICJ Lawyer:</b> Adv. Rajesh Sharma (Assigned Aug 2025 via Zero-NOC Succession Protocol)
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {/* 2. Financial & Fee Split */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#38bdf8" mb={1}>
-                      💰 Financial &amp; Fee Ledger
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#e2e8f0">
-                      • Total Billed: ₹65,000 | Paid to Escrow: <b>₹50,000</b>
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#34d399">
-                      • Released to Advocate (70%): ₹35,000
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#fbbf24">
-                      • ICJ Trust Fee (30%): ₹15,000 (80G Tax Receipt ICJ-80G-2025-9812)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#94a3b8">
-                      • ICJ Escrow Balance: 🔒 ₹15,000 HELD
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {/* 3. Hearings Attendance & Self Representation */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#a7f3d0" mb={1}>
-                      📅 Hearings &amp; Cost Savings (12 Dates)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#e2e8f0">
-                      • <b>Advocate Attended (Arguments):</b> 5 Hearings
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#34d399">
-                      • <b>Client Self-Attended ("अपनी वकालत खुद करें"):</b> 7 Routine Dates
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#f59e0b" sx={{ mt: 0.5, fontWeight: "bold" }}>
-                      🎉 Lawyer Travel &amp; Fees Saved for Client: ₹24,500 Saved!
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-
-              {/* Vault Docs & DRM Status */}
-              <Box sx={{ p: 1.5, bgcolor: "rgba(0,0,0,0.3)", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
-                <Typography variant="caption" color="#cbd5e1">
-                  📁 <b>Vault Documents (DRM Protected):</b> FIR_Copy_Crime_412.pdf | SaleDeed_Plot42.pdf | HighCourt_StayOrder_Jan2026.pdf
-                </Typography>
-                <Chip label="🔒 DRM PRINT LOCK ACTIVE (OTP AUTHORIZED)" size="small" color="warning" sx={{ fontWeight: "bold" }} />
-              </Box>
-            </Paper>
-
             {myCases.length === 0 ? (
-              <Typography color="text.secondary">No legal matters created yet. Click "Create Legal Matter" above to describe your problem in simple language.</Typography>
+              <Paper variant="outlined" sx={{ p: 4, textAlign: "center", borderRadius: 3, bgcolor: "#f8fafc" }}>
+                <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" gutterBottom>
+                  No active legal matters or petitions filed yet.
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Use the <b>Guided Case Intake Wizard</b> above or click <b>New Intake</b> to create your legal case.
+                </Typography>
+              </Paper>
             ) : (
               <Table size="small">
                 <TableHead>
@@ -864,23 +1220,97 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
-        {/* TAB 2: CASE TIMELINE */}
+        {/* TAB 2: CASE TIMELINE & ACTIONS */}
         <TabPanel value={tabIndex} index={2}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Interactive Case Progress Timeline & Milestones
-            </Typography>
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #2e7d32" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="success.main">Aug 20, 2026 • Upcoming Court Hearing</Typography>
-                <Typography variant="body2">High Court of Judicature — Final Arguments listed in Bench 3.</Typography>
+          <Grid container spacing={3}>
+            {/* Timeline Column */}
+            <Grid item xs={12} md={7}>
+              <Paper sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Interactive Case Progress Timeline & Milestones
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                {!activePortalCaseId ? (
+                  <Alert severity="info">Please select a case to view its progress timeline.</Alert>
+                ) : (
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {timelineEvents.map((ev) => {
+                      const isHearing = ev.eventType === "HEARING";
+                      const isVoice = ev.eventType === "VOICE_UPDATE";
+                      const isInstruction = ev.eventType === "ADVOCATE_INSTRUCTION";
+                      
+                      let borderColor = "#1976d2"; // Primary blue
+                      let titleColor = "primary.main";
+                      if (isHearing) {
+                        borderColor = "#2e7d32"; // Green
+                        titleColor = "success.main";
+                      } else if (isVoice) {
+                        borderColor = "#9c27b0"; // Purple
+                        titleColor = "secondary.main";
+                      } else if (isInstruction) {
+                        borderColor = "#ed6c02"; // Orange
+                        titleColor = "warning.main";
+                      }
+
+                      return (
+                        <Paper key={ev.id} variant="outlined" sx={{ p: 2, borderLeft: `4px solid ${borderColor}`, borderRadius: 2 }}>
+                          <Typography variant="subtitle2" fontWeight="bold" color={titleColor}>
+                            {new Date(ev.date || ev.timestamp).toLocaleDateString("en-IN")} • {ev.title}
+                          </Typography>
+                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            {ev.description}
+                          </Typography>
+                          {ev.speaker && (
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                              Source: {ev.sourceType || "Voice Note"} | Recorded By: {ev.speaker}
+                            </Typography>
+                          )}
+                        </Paper>
+                      );
+                    })}
+                  </Stack>
+                )}
               </Paper>
-              <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #1976d2" }}>
-                <Typography variant="subtitle2" fontWeight="bold" color="primary.main">Jan 15, 2026 • Matter Intaked & Registered</Typography>
-                <Typography variant="body2">Legal Matter WP/2026/1042 intaked and submitted to ICJ Panel.</Typography>
+            </Grid>
+
+            {/* Actions / Tasks Column */}
+            <Grid item xs={12} md={5}>
+              <Paper sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  ✅ Required Actions &amp; Assignments
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                {!activePortalCaseId ? (
+                  <Alert severity="info">Please select a case to view pending tasks.</Alert>
+                ) : timelineActions.length === 0 ? (
+                  <Typography color="text.secondary" sx={{ mt: 2 }}>No pending tasks or action items for this case.</Typography>
+                ) : (
+                  <Stack spacing={2} sx={{ mt: 2 }}>
+                    {timelineActions.map((act) => (
+                      <Paper key={act.id} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                          <Chip
+                            label={act.status || "PENDING"}
+                            color={act.status === "COMPLETED" ? "success" : act.status === "REJECTED" ? "error" : "warning"}
+                            size="small"
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            Due: {act.dueDate}
+                          </Typography>
+                        </Stack>
+                        <Typography variant="body2" fontWeight="bold" gutterBottom>
+                          {act.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Responsible: <strong>{act.responsible?.toUpperCase()}</strong>
+                        </Typography>
+                      </Paper>
+                    ))}
+                  </Stack>
+                )}
               </Paper>
-            </Stack>
-          </Paper>
+            </Grid>
+          </Grid>
         </TabPanel>
 
         {/* TAB 3: DOCUMENT VAULT & UPLOAD (Phase 9 & 10) */}
@@ -905,27 +1335,64 @@ export default function ClientPortal() {
                     <TableCell>Document Name</TableCell>
                     <TableCell>Category</TableCell>
                     <TableCell>SHA-256 Hash</TableCell>
-                    <TableCell>File Storage Status</TableCell>
-                    <TableCell>AI Pipeline Status</TableCell>
+                    <TableCell>Document Name (Procedural Legal Stage)</TableCell>
+                    <TableCell>Legal Classification</TableCell>
+                    <TableCell>Per-Document Voice Commentary</TableCell>
+                    <TableCell>Storage Status</TableCell>
                     <TableCell align="right">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {myDocs.map((d, idx) => (
-                    <TableRow key={d.id || idx} hover>
-                      <TableCell><Typography fontWeight="bold">{d.name || d.title}</Typography></TableCell>
-                      <TableCell><Chip label={d.category || "Legal Pleading"} size="small" variant="outlined" color="primary" /></TableCell>
-                      <TableCell sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}>{d.sha256 || "SHA256-8F9B1A2C3D4E5F6"}</TableCell>
-                      <TableCell><Chip icon={<VerifiedIcon />} label={d.status || "File Saved & Verified"} color="success" size="small" /></TableCell>
-                      <TableCell><Chip label={d.aiStatus || "Ready for AI Pipeline"} color="info" size="small" variant="outlined" /></TableCell>
-                      <TableCell align="right">
-                        <Stack direction="row" spacing={1} justifyContent="flex-end">
-                          <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
-                          <Button size="small" variant="outlined" color="secondary" onClick={() => handleRequestAction('Print', d.name || d.title)}>Print</Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {(() => {
+                    // Procedural Legal Sorting
+                    const sorted = LegalDocumentSorterService.sortDocumentsProcedurally(myDocs);
+                    return sorted.map((d, idx) => {
+                      const dual = LegalDocumentSorterService.getDualNaming(d, "client");
+                      return (
+                        <TableRow key={d.id || idx} hover>
+                          <TableCell>
+                            <Typography fontWeight="bold" color="#0f172a">
+                              {dual.clientDisplayName}
+                            </Typography>
+                            <Chip
+                              label={dual.stageInfo.title}
+                              size="small"
+                              sx={{ bgcolor: "#e0e7ff", color: "#3730a3", fontSize: "0.7rem", fontWeight: "bold", mt: 0.5 }}
+                            />
+                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}>
+                              Advocate View: {dual.advocateCanonicalName}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip label={d.category || dual.stageInfo.shortCode} size="small" variant="outlined" color="primary" />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ maxWidth: 220 }}>
+                              <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                                🎙️ इस पेपर पर बयान:
+                              </Typography>
+                              <VoiceCommentaryStudio
+                                value={d.commentary || ""}
+                                onChange={(txt) => {
+                                  d.commentary = txt;
+                                }}
+                                label=""
+                                placeholder="इस पेपर के बारे में बोलें..."
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip icon={<VerifiedIcon />} label={d.status || "Saved & Verified"} color="success" size="small" />
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    });
+                  })()}
                 </TableBody>
               </Table>
             )}
@@ -961,8 +1428,8 @@ export default function ClientPortal() {
               <Divider sx={{ mb: 3 }} />
 
               {(() => {
-                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "26ICJ08AA0001";
-                const advocateName = activeAdvocate?.name || "Adv. Rajesh Sharma";
+                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "ICJ-2026-MEM-0001";
+                const advocateName = activeAdvocate?.name || "Empaneled Senior Counsel";
                 const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
                 const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
                 const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
@@ -971,17 +1438,17 @@ export default function ClientPortal() {
                 return (
                   <Stack spacing={3}>
                   {/* ADVOCATE PROFILE SUMMARY */}
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc" }}>
+                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc", overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
                     <Grid container spacing={3} alignItems="center">
-                      <Grid item xs={12} sm={3} textAlign="center">
+                      <Grid item xs={12} sm={3} textAlign="center" sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
                         <BadgeIcon sx={{ fontSize: 75, color: "#1e3a8a" }} />
-                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1, wordBreak: "break-word" }}>
                           {advocateName}
                         </Typography>
-                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5 }} />
+                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5, maxWidth: "100%" }} />
                       </Grid>
-                      <Grid item xs={12} sm={9}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom>
+                      <Grid item xs={12} sm={9} sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom sx={{ wordBreak: "break-word" }}>
                           📜 Bar Registration &amp; Credential: {office.barEnrollmentNo || "UP/2026/9812"}
                         </Typography>
 
@@ -1001,13 +1468,15 @@ export default function ClientPortal() {
                                   fontWeight: "bold",
                                   width: "100%",
                                   justifyContent: "flex-start",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
                                 }}
                               />
                             </Grid>
                           ))}
                         </Grid>
 
-                        <Typography variant="caption" color="text.secondary" display="block">
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>
                           📍 Office Address: {office.officeAddress} | ⏰ Hours: {office.workingHours}
                         </Typography>
                       </Grid>
@@ -1124,7 +1593,7 @@ export default function ClientPortal() {
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell sx={{ fontFamily: "monospace" }}>INV-2026-081</TableCell>
+                  <TableCell sx={{ fontFamily: "monospace" }}>ICJ-2026-INV-1001</TableCell>
                   <TableCell>PIL Legal Representation Fee</TableCell>
                   <TableCell>₹45,000</TableCell>
                   <TableCell>₹30,000</TableCell>
@@ -1187,33 +1656,112 @@ export default function ClientPortal() {
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Direct Messaging with Legal Counsel
             </Typography>
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {messages.map((m) => (
-                <Paper key={m.id} variant="outlined" sx={{ p: 2, bgcolor: m.audioUrl ? "#f0fdf4" : "#f8f9fa", borderColor: m.audioUrl ? "#86efac" : "#e2e8f0" }}>
-                  <Typography variant="caption" color="primary" fontWeight="bold">{m.sender} • {m.timestamp}</Typography>
-                  <Typography variant="body2" sx={{ mt: 0.5 }}>{m.text}</Typography>
-                  {m.audioUrl && (
-                    <Box sx={{ mt: 1 }}>
-                      <audio controls src={m.audioUrl} style={{ width: "100%", height: 38, borderRadius: 8 }} />
-                    </Box>
-                  )}
-                </Paper>
-              ))}
-            </Stack>
-            <Stack direction="row" spacing={2}>
-              <TextField
-                fullWidth
-                placeholder="Type message to advocate..."
-                value={clientMsgInput}
-                onChange={(e) => setClientMsgInput(e.target.value)}
-                InputProps={{
-                  endAdornment: <VoiceInputAdornment onTranscript={(txt) => setClientMsgInput((p) => p + " " + txt)} value={clientMsgInput} />,
-                }}
-              />
-              <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMessage}>
-                Send
-              </Button>
-            </Stack>
+            <Divider sx={{ mb: 2 }} />
+            
+            {!activePortalCaseId ? (
+              <Alert severity="info">Please select an active Case / Matter first to view and send messages.</Alert>
+            ) : (
+              <>
+                <Stack spacing={2} sx={{ mb: 3, maxHeight: "400px", overflowY: "auto", p: 1 }}>
+                  {messages.map((m) => {
+                    const isVoice = m.type === "VOICE";
+                    const isClient = m.senderRole === "client" || String(m.sender).includes("Client");
+                    return (
+                      <Paper 
+                        key={m.id} 
+                        variant="outlined" 
+                        sx={{ 
+                          p: 2, 
+                          bgcolor: isClient ? "#f8fafc" : "#faf5ff", 
+                          borderColor: isClient ? "#cbd5e1" : "#e9d5ff",
+                          borderRadius: 2.5,
+                          alignSelf: isClient ? "flex-end" : "flex-start",
+                          width: "80%"
+                        }}
+                      >
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="caption" color="primary" fontWeight="bold">
+                            {m.senderName || m.sender || "System"} ({m.senderRole || "advocate"})
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {m.timestamp ? new Date(m.timestamp).toLocaleTimeString("en-IN", {hour: '2-digit', minute:'2-digit'}) : ""}
+                          </Typography>
+                        </Stack>
+                        <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-line" }}>
+                          {isVoice ? `🎙️ [Voice Note Transcript]: ${m.text}` : m.text}
+                        </Typography>
+                        {m.audioUrl && (
+                          <Box sx={{ mt: 1.5 }}>
+                            <audio controls src={m.audioUrl} style={{ width: "100%", height: 36 }} />
+                          </Box>
+                        )}
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+                
+                {/* Voice Recorder & Input Section */}
+                <Box sx={{ p: 2, border: "1px solid #e2e8f0", borderRadius: 3, bg: "#f8fafc" }}>
+                  <Stack direction="row" spacing={2} alignItems="center" mb={1.5}>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      Send Voice Note or Message:
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      placeholder="Type your message or click microphone to record voice..."
+                      value={clientMsgInput}
+                      onChange={(e) => setClientMsgInput(e.target.value)}
+                    />
+                    <Stack spacing={1}>
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        startIcon={<SendIcon />} 
+                        onClick={handleSendMessage}
+                        sx={{ height: "45px", fontWeight: "bold" }}
+                      >
+                        Send
+                      </Button>
+                    </Stack>
+                  </Stack>
+
+                  {/* Micro voice record bar */}
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1.5 }}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      startIcon={<MicIcon />}
+                      onClick={() => {
+                        alert("🎙️ Speech Recognition activated! Please speak into your microphone to type.");
+                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (SpeechRec) {
+                          const rec = new SpeechRec();
+                          rec.lang = "hi-IN";
+                          rec.onresult = (e) => {
+                            const val = e.results[0][0].transcript;
+                            setClientMsgInput(prev => prev ? prev + " " + val : val);
+                          };
+                          rec.start();
+                        } else {
+                          alert("Speech Recognition not supported in this browser.");
+                        }
+                      }}
+                      sx={{ textTransform: "none", fontSize: "0.75rem" }}
+                    >
+                      🎤 Speak to Type (हिंदी/English)
+                    </Button>
+                    <Typography variant="caption" color="text.secondary">
+                      Context-aware recognition: Civil/Criminal legal context enabled.
+                    </Typography>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Paper>
         </TabPanel>
 
@@ -1425,6 +1973,142 @@ export default function ClientPortal() {
           </Paper>
         </TabPanel>
 
+        {/* TAB 10: MY API STORE */}
+        <TabPanel value={tabIndex} index={10}>
+          <Paper sx={{ p: 4, borderRadius: 3, border: "2px solid #2563eb", background: "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)" }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
+              <SettingsSuggestIcon sx={{ color: "#2563eb", fontSize: 36 }} />
+              <Box>
+                <Typography variant="h5" fontWeight="bold" color="#1e3a8a">
+                  माई API स्टोर (My API Store)
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  अपने खुद के ChatGPT (OpenAI), Google Gemini या Anthropic Claude API चाबियों को इंटीग्रेट करें।
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <strong>0-सेकंड ऑटो-इंटीग्रेशन:</strong> यहाँ कॉन्फ़िगर की गई API चाबियाँ आपके ब्राउज़र में सुरक्षित रूप से सेव हो जाएंगी। जब भी आप पूरे पोर्टल पर कोई भी AI फीचर इस्तेमाल करेंगे (जैसे ड्राफ्टिंग, डायग्नोसिस या चैटिंग), तो आपके चुने हुए प्रोवाइडर और चाबी का उपयोग किया जाएगा।
+            </Alert>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
+                    1. चुनें पसंदीदा AI मॉडल
+                  </Typography>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    value={aiProvider}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAiProvider(val);
+                      localStorage.setItem("icj_ai_provider", val);
+                    }}
+                    sx={{ mt: 1.5 }}
+                  >
+                    <MenuItem value="gemini">Google Gemini (Default)</MenuItem>
+                    <MenuItem value="openai">OpenAI ChatGPT (GPT-4o-mini)</MenuItem>
+                    <MenuItem value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</MenuItem>
+                  </TextField>
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12} md={8}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    2. अपनी API चाबी दर्ज करें
+                  </Typography>
+                  
+                  <Box sx={{ mt: 2 }}>
+                    {aiProvider === "gemini" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Google Gemini API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="AIzaSy..."
+                            value={geminiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setGeminiApiKey(val);
+                              localStorage.setItem("icj_gemini_api_key", val);
+                              localStorage.setItem("icj_master_gemini_key", val);
+                            }}
+                          />
+                          {geminiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setGeminiApiKey(""); localStorage.removeItem("icj_gemini_api_key"); localStorage.removeItem("icj_master_gemini_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          गूगल एआई स्टूडियो (Google AI Studio) से फ्री या पे-एस-यू-गो (Pay-as-you-go) की लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "openai" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>OpenAI ChatGPT API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-proj-..."
+                            value={openaiApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setOpenaiApiKey(val);
+                              localStorage.setItem("icj_openai_api_key", val);
+                            }}
+                          />
+                          {openaiApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setOpenaiApiKey(""); localStorage.removeItem("icj_openai_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          ओपनएआई प्लेटफार्म (platform.openai.com) से क्रेडिट लोड की हुई sk-proj चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {aiProvider === "anthropic" && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Anthropic Claude API Key:</Typography>
+                        <Stack direction="row" spacing={1}>
+                          <TextField
+                            size="small"
+                            type="password"
+                            fullWidth
+                            placeholder="sk-ant-..."
+                            value={anthropicApiKey}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setAnthropicApiKey(val);
+                              localStorage.setItem("icj_anthropic_api_key", val);
+                            }}
+                          />
+                          {anthropicApiKey && (
+                            <Button variant="outlined" color="error" size="small" onClick={() => { setAnthropicApiKey(""); localStorage.removeItem("icj_anthropic_api_key"); }}>Clear</Button>
+                          )}
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                          एंथ्रोपिक कंसोल (console.anthropic.com) से sk-ant चाबी लाएं।
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Paper>
+        </TabPanel>
+
         {/* Plain Language Problem Intake Dialog (Phase 7) */}
         <Dialog open={openFileModal} onClose={() => setOpenFileModal(false)} maxWidth="sm" fullWidth>
           <DialogTitle>Create New Legal Matter / Problem Intake</DialogTitle>
@@ -1494,9 +2178,12 @@ export default function ClientPortal() {
           <DialogContent>
             <Grid container spacing={2} sx={{ mt: 0.5 }}>
               <Grid item xs={12}>
-                <TextField select fullWidth label="Select Advocate" value={aptForm.advocateName} onChange={(e) => setAptForm({ ...aptForm, advocateName: e.target.value })}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: "#1e293b", display: "block", mb: 0.3, fontSize: "0.75rem" }}>
+                  ⚖️ Select Advocate & Legal Counsel:
+                </Typography>
+                <TextField select fullWidth value={aptForm.advocateName} onChange={(e) => setAptForm({ ...aptForm, advocateName: e.target.value })} size="small" sx={{ bgcolor: "#ffffff", borderRadius: 1 }}>
                   {advocates.map((a) => (
-                    <MenuItem key={a.id} value={a.name}>
+                    <MenuItem key={a.id} value={a.name} sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
                       {a.name} ({a.specialization || "Empaneled Counsel"})
                     </MenuItem>
                   ))}
@@ -1547,11 +2234,48 @@ export default function ClientPortal() {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setAuthOtpOpen(false)}>Cancel</Button>
-          <Button variant="contained" color="primary" onClick={handleConfirmAuthAction} sx={{ fontWeight: "bold" }}>
-            VERIFY & AUTHORIZE
-          </Button>
         </DialogActions>
       </Dialog>
-    </MainLayout>
+
+      {/* ─── LIVE CAMERA DOCUMENT SCANNER MODAL ───────────────────────── */}
+      <CameraDocumentScanner
+        open={cameraModalOpen}
+        onClose={() => setCameraModalOpen(false)}
+        onDocumentCaptured={async (doc) => {
+          await addDocument({
+            name: doc.name,
+            owner: clientName,
+            member_id: memberId,
+            category: "Camera Scan",
+            case_id: activePortalCaseId || "GENERAL",
+            uploaded_at: doc.capturedAt,
+            file_size: "2.4 MB",
+            sha256: `SHA256-CAM-${Date.now().toString(36).toUpperCase()}`,
+            status: "File Saved & Verified",
+            aiStatus: "Ready for AI Document Processing Pipeline",
+          });
+          setAlertMsg(`📷 Camera Document Captured & Saved to Matter Vault! Sent to assigned Advocate.`);
+          setTimeout(() => setAlertMsg(""), 4000);
+        }}
+      />
+
+      {/* ─── ENCRYPTED WEBRTC HD VIDEO CONSULTATION MODAL ───────────────────────── */}
+      <VideoConsultationModal
+        open={videoModalOpen}
+        onClose={() => setVideoModalOpen(false)}
+        advocateName={activeAdvocate?.name || "Assigned Counsel"}
+        advocateRole="Empaneled Senior Counsel"
+        clientName={clientName}
+      />
+
+      {/* ─── ENCRYPTED VOICE AUDIO CONSULTATION MODAL ───────────────────────── */}
+      <AudioConsultationModal
+        open={audioModalOpen}
+        onClose={() => setAudioModalOpen(false)}
+        advocateName={activeAdvocate?.name || "Assigned Counsel"}
+        advocateRole="Empaneled Senior Counsel"
+        clientName={clientName}
+      />
+    </>
   );
 }

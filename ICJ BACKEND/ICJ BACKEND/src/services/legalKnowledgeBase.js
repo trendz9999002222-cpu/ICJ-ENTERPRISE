@@ -19,8 +19,11 @@ export const MATTER_TYPES = {
   COMMERCIAL: "Commercial Dispute",
   PROPERTY: "Property / Revenue",
   PARTNERSHIP: "Partnership / Business",
-  CONSUMER: "Consumer / Regulatory",
-  FAMILY: "Family Matter",
+  CONSUMER: "Consumer / Regulatory Forum",
+  FAMILY: "Family Court / Matrimonial",
+  CAT: "CAT / Central Administrative Tribunal",
+  NGT: "NGT / National Green Tribunal",
+  LABOUR: "Labour Court / Industrial Tribunal",
   RTI: "RTI / Right to Information",
   REPRESENTATION: "Representation / Application",
 };

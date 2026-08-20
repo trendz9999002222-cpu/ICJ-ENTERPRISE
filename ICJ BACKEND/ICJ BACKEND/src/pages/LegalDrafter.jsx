@@ -26,10 +26,15 @@ import BlockIcon from "@mui/icons-material/Block";
 import DownloadIcon from "@mui/icons-material/Download";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
 import LegalEcosystemService from "../services/legalEcosystemService";
 import ActivityService from "../services/activityService";
 import LegalMatterDataService from "../services/legalMatterDataService";
+import JudicialVictoryEngine from "../services/judicialVictoryEngine";
+import TacticalLegalAdvisoryService from "../services/tacticalLegalAdvisoryService";
+import StageAwareButtonService from "../services/stageAwareButtonService";
+import SmartCitationSelectorService from "../services/smartCitationSelectorService";
 import { DOCUMENT_SCHEMAS } from "../services/legalKnowledgeBase";
 import MainLayout from "../layouts/MainLayout";
 import useAuth from "../hooks/useAuth";
@@ -50,6 +55,9 @@ const DOCUMENT_TYPES = [
   "RTI Application", "Appeal Petition", "Writ Petition", "Arbitration Petition",
   "Consumer Complaint", "Criminal Complaint", "Agreement / MOU", "Lease Deed",
   "Sale Deed", "Power of Attorney", "Trust Deed", "Board Resolution",
+  "Cross-Examination Question Plan (जिरह प्रश्न)",
+  "Counter-Citation & Bench Shield (विरोधी नजीर काट)",
+  "Section 63 BSA / 65B Electronic Evidence Certificate",
 ];
 
 // ─── DRAFT GENERATOR (from confirmed matter data only) ────────────────────────
@@ -73,6 +81,34 @@ function buildDraftFromMatter(caseObj, docType, matterFields, memberId) {
   const court = resolve("court_name", "court", "COURT_NAME_REQUIRED");
   const relief = resolve("relief_sought", "relief", "RELIEF_SOUGHT_REQUIRED");
   const caseNo = resolve("case_number", "caseNumber", "CASE_NUMBER");
+
+  // Handle Sub-Module 1: Cross-Exam Questions Plan
+  if (docType.includes("Cross-Examination")) {
+    const res = JudicialVictoryEngine.generateCrossExaminationQuestions({
+      witnessType: "Prosecution / Opposing Witness",
+      disputeSummary: caseObj?.summary || "Dispute summary",
+      keyAllegations: relief,
+    });
+    return `${res.title}\nDATE: ${res.dateStr}\n\nSUGGESTED ISSUES TO BE FRAMED (ORDER 14 CPC):\n${res.suggestedIssues.join("\n")}\n\nCROSS-EXAMINATION QUESTIONS:\n${res.crossExaminationQuestions.join("\n\n")}`;
+  }
+
+  // Handle Sub-Module 2: Counter-Citation & Bench Shield
+  if (docType.includes("Counter-Citation")) {
+    const res = JudicialVictoryEngine.generateCounterCitationShield({
+      opposingCitation: "Cited Authority",
+      legalProvision: "Section 482 / Order 39",
+    });
+    return `COUNTER-CITATION SHIELD & BENCH ANALYTICS\n\nOPPOSING CITATION ANALYSIS:\n${res.analysis}\n\nRELIED COUNTER PRECEDENTS:\n${res.counterRatios.map(r => `• ${r.precedent}\n  RATIO: ${r.principle}`).join("\n\n")}\n\nBENCH STRATEGY NOTE:\n${res.benchGuidanceNote}`;
+  }
+
+  // Handle Sub-Module 3: Section 63 BSA / 65B Certificate
+  if (docType.includes("Section 63 BSA")) {
+    return JudicialVictoryEngine.generateSection63BSACertificate({
+      documentName: caseObj?.title ? `${caseObj.title}_Electronic_Evidence` : "Court_Audio_Chat_Evidence",
+      fileHash: `SHA256-${Math.floor(100000 + Math.random() * 900000)}`,
+      uploadedBy: party1,
+    });
+  }
 
   return `================================================================================
   DOCUMENT TYPE: ${docType.toUpperCase()}
@@ -154,6 +190,11 @@ export default function LegalDrafter() {
   const [copied, setCopied] = useState(false);
   const [alertMsg, setAlertMsg] = useState({ text: "", severity: "success" });
   const [search, setSearch] = useState("");
+
+  // Advocate Strategy Interrogation & Refinement States
+  const [advocateIntentModalOpen, setAdvocateIntentModalOpen] = useState(false);
+  const [advocateIntentText, setAdvocateIntentText] = useState("");
+  const [customRefinementInstruction, setCustomRefinementInstruction] = useState("");
 
   // Draft history (from persistent service)
   const [draftHistory, setDraftHistory] = useState([]);
@@ -352,7 +393,7 @@ export default function LegalDrafter() {
 
   // ── RENDER ──
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -508,6 +549,59 @@ export default function LegalDrafter() {
                             onBlur={(e) => handleSaveAnswer(q.fieldKey, e.target.value)}
                             multiline={q.inputType === "textarea"}
                             rows={q.inputType === "textarea" ? 3 : 1}
+                            InputProps={{
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <Stack direction="row" spacing={0.5}>
+                                    <Button
+                                      size="small"
+                                      sx={{ minWidth: 0, p: 0.5, fontSize: "1rem" }}
+                                      title="Listen to question"
+                                      onClick={() => {
+                                        if ('speechSynthesis' in window) {
+                                          window.speechSynthesis.cancel();
+                                          const utterance = new SpeechSynthesisUtterance(q.question);
+                                          utterance.lang = 'hi-IN'; // hindi/english bilingual support
+                                          window.speechSynthesis.speak(utterance);
+                                        } else {
+                                          alert("Speech synthesis not supported in this browser.");
+                                        }
+                                      }}
+                                    >
+                                      🔊
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      sx={{ minWidth: 0, p: 0.5, fontSize: "1rem" }}
+                                      title="Speak answer"
+                                      onClick={() => {
+                                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+                                        if (SpeechRec) {
+                                          const rec = new SpeechRec();
+                                          rec.lang = 'hi-IN'; // hindi/english input
+                                          rec.onstart = () => {
+                                            alert(`🎙️ Listening. Speak answer for "${q.label}" now...`);
+                                          };
+                                          rec.onresult = (e) => {
+                                            const voiceVal = e.results[0][0].transcript;
+                                            setQuestionAnswers(prev => ({ ...prev, [q.fieldKey]: voiceVal }));
+                                            handleSaveAnswer(q.fieldKey, voiceVal);
+                                          };
+                                          rec.onerror = () => {
+                                            alert("Microphone connection failed or timed out.");
+                                          };
+                                          rec.start();
+                                        } else {
+                                          alert("Speech recognition not supported in this browser.");
+                                        }
+                                      }}
+                                    >
+                                      🎤
+                                    </Button>
+                                  </Stack>
+                                </InputAdornment>
+                              )
+                            }}
                           />
                         </Box>
                       ))}
@@ -578,6 +672,138 @@ export default function LegalDrafter() {
                     </Stack>
                   )}
                 </Stack>
+
+                {/* STAGE-AWARE DYNAMIC 1-CLICK ACTION BUTTONS */}
+                <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#eff6ff", border: "1.5px solid #2563eb" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" color="#1d4ed8" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                    <AutoAwesomeIcon fontSize="small" /> ⚡ 1-Click Stage Procedural Petitions (बिना टाइप किए अर्जी जनरेट करें)
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                    {StageAwareButtonService.getStageButtons(docType).map((btn) => (
+                      <Button
+                        key={btn.id}
+                        size="small"
+                        variant="contained"
+                        color={btn.color}
+                        onClick={() => {
+                          const userReason = prompt(btn.promptText, btn.defaultReason);
+                          if (userReason !== null) {
+                            const petitionDraft = StageAwareButtonService.generateProceduralPetition({
+                              buttonId: btn.id,
+                              caseTitle: selectedCase?.title || "Legal Matter",
+                              clientName: selectedCase?.clientName || "Litigant",
+                              courtName: selectedCase?.courtName || "Hon'ble Court",
+                              reasonText: userReason,
+                            });
+                            setGeneratedDraft(petitionDraft);
+                            setAlertMsg({ text: `🟢 1-Second Ready Petition Created: ${btn.label}`, severity: "success" });
+                          }
+                        }}
+                      >
+                        {btn.label}
+                      </Button>
+                    ))}
+                  </Stack>
+                </Paper>
+
+                {/* ZERO-TYPING SMART CITATION SELECTOR MATRIX (4-6 SC/HC RULINGS) */}
+                <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#fffbeb", border: "1.5px solid #d97706" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" color="#b45309" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                    📜 Smart Citation Selector Matrix (1-क्लिक नज़ीर जोड़ें)
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                    बिना टाइप किए बटन दबाकर प्रासंगिक सुप्रीम कोर्ट / हाईकोर्ट नज़ीर ड्राफ्ट में शामिल करें:
+                  </Typography>
+                  <Grid container spacing={1}>
+                    {SmartCitationSelectorService.getPrecedentsForCase(docType).map((cit) => (
+                      <Grid item xs={12} sm={6} key={cit.id}>
+                        <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: "#fff" }}>
+                          <Typography variant="caption" fontWeight="bold" color="#92400e" display="block">
+                            {cit.citation}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: "0.7rem", my: 0.5 }}>
+                            {cit.ratio}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            onClick={() => {
+                              setGeneratedDraft((prev) => (prev ? prev + cit.mergeSnippet : cit.mergeSnippet));
+                              setAlertMsg({ text: `➕ Added Citation '${cit.citation}' to Draft!`, severity: "success" });
+                            }}
+                            sx={{ fontSize: "0.65rem", py: 0.2 }}
+                          >
+                            ➕ [ड्राफ्ट में जोड़ें]
+                          </Button>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+                {generatedDraft && (
+                  <Paper variant="outlined" sx={{ p: 2, mt: 2, borderRadius: 2, bgcolor: "#f8fafc", border: "1.5px solid #7c3aed" }}>
+                    <Typography variant="subtitle2" fontWeight="bold" color="#7c3aed" gutterBottom display="flex" alignItems="center" gap={0.5}>
+                      <AutoFixHighIcon fontSize="small" /> 💬 Multi-Turn Advocate Refinement Protocol (बहु-चरणीय ट्यूनिंग)
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
+                      वकील के निर्देशानुसार ड्राफ्ट में बदलाव करें। (उदा. विवरण बढ़ाएं, छोटा करें, या धाराएं जोड़ें)
+                    </Typography>
+
+                    <Stack direction="row" spacing={1} flexWrap="wrap" gap={1} mb={2}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                            const gen = mod.default || mod.MultiForumApplicationGenerator;
+                            const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "EXPAND_DETAILS" });
+                            setGeneratedDraft(updated);
+                            setAlertMsg({ text: "➕ Draft details expanded based on advocate instruction.", severity: "info" });
+                          });
+                        }}
+                      >
+                        ➕ विवरण बढ़ाएं (Expand Details)
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => {
+                          import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                            const gen = mod.default || mod.MultiForumApplicationGenerator;
+                            const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "REDUCE_LENGTH" });
+                            setGeneratedDraft(updated);
+                            setAlertMsg({ text: "➖ Draft concise summary applied.", severity: "info" });
+                          });
+                        }}
+                      >
+                        ➖ छोटा करें (Reduce Length)
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                        onClick={() => {
+                          const customSec = prompt("जोड़ी जाने वाली विशेष कानूनी धारा/नजीर (Precedent) लिखें:");
+                          if (customSec) {
+                            import("../services/multiForumApplicationGenerator.js").then((mod) => {
+                              const gen = mod.default || mod.MultiForumApplicationGenerator;
+                              const updated = gen.refineDraft({ currentDraft: generatedDraft, feedbackType: "ADD_SECTION_PRECEDENT", customInstruction: customSec });
+                              setGeneratedDraft(updated);
+                              setAlertMsg({ text: `⚖️ Statutory section/precedent '${customSec}' attached to draft.`, severity: "success" });
+                            });
+                          }
+                        }}
+                      >
+                        ⚖️ नजीर / धारा जोड़ें (Add Precedent)
+                      </Button>
+                    </Stack>
+                  </Paper>
+                )}
                 <Divider sx={{ mb: 2 }} />
 
                 {generatedDraft && (
@@ -836,6 +1062,6 @@ export default function LegalDrafter() {
         </TabPanel>
 
       </Box>
-    </MainLayout>
+    </>
   );
 }
