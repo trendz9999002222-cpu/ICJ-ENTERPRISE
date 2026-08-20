@@ -254,18 +254,19 @@ export const MemberService = {
   },
 
   async searchLeads(filters = {}) {
-    const all = await getMembers();
+    const all = await this.getAll();
     return all.filter((m) => {
-      const isLead = m.purposeCode === "PROBLEM" || String(m.purpose || "").includes("Problem");
+      const isLead = m.role === "member" || m.user_type === "member" || m.purposeCode === "PROBLEM" || String(m.purpose || "").includes("Problem");
       if (!isLead) return false;
 
-      if (filters.category && !(m.problemCategories || []).includes(filters.category) && m.problemCategory !== filters.category) {
-        return false;
+      if (filters.category && filters.category !== "ALL") {
+        const catMatch = (m.problemCategories || []).includes(filters.category) || m.problemCategory === filters.category || String(m.problemCategory || "").toLowerCase().includes(String(filters.category).toLowerCase());
+        if (!catMatch) return false;
       }
-      if (filters.state && m.problemState !== filters.state) return false;
-      if (filters.district && m.problemDistrict !== filters.district) return false;
+      if (filters.state && filters.state !== "ALL" && m.state !== filters.state && m.problemState !== filters.state) return false;
+      if (filters.district && filters.district !== "ALL" && m.district !== filters.district && m.problemDistrict !== filters.district) return false;
       if (filters.pincode && m.problemPincode !== filters.pincode) return false;
-      if (filters.service && !(m.intakeServices || []).includes(filters.service)) return false;
+      if (filters.service && filters.service !== "ALL" && !(m.intakeServices || []).includes(filters.service)) return false;
 
       return true;
     });

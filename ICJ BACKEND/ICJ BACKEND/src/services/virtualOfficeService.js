@@ -52,9 +52,9 @@ export const VirtualOfficeService = {
         officeLocations: DEFAULT_COURT_OFFICES,
         seniorMentor: "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)",
         teamQuotaLimit: 5,
-        juniorsList: memberId === "ICJ-2026-MEM-0105" ? [
+        juniorsList: (memberId === "ICJ-2026-MEM-0105" || memberId === "26ICJ08AA0003") ? [
           {
-            id: "26ICJ08AA0108",
+            id: "26ICJ08AA0006",
             name: "Adv. Ananya Roy",
             barId: "WB/2026/9815",
             designation: "Junior Associate (High Court Bench)",
@@ -65,7 +65,7 @@ export const VirtualOfficeService = {
             state: "West Bengal"
           },
           {
-            id: "26ICJ08AA0109",
+            id: "26ICJ08AA0007",
             name: "Adv. Gurpreet Singh Dhillon",
             barId: "PB/2026/9816",
             designation: "Junior Associate (District Court Bench)",
@@ -76,7 +76,7 @@ export const VirtualOfficeService = {
             state: "Punjab"
           },
           {
-            id: "26ICJ08AA0115",
+            id: "26ICJ08AA0027",
             name: "Adv. Devendra Pratap Sengar",
             barId: "UP/2026/9820",
             designation: "Junior Associate (Tehsil & Executive Bench)",

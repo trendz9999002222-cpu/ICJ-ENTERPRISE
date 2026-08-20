@@ -417,6 +417,15 @@ const AiLegalConsultationService = {
   },
 
   /**
+   * getConsultationsForAdvocate — Fetch consultations assigned to an advocate or unassigned
+   */
+  getConsultationsForAdvocate(advocateId) {
+    const all = LS.get("icj_ai_legal_consultations", []);
+    if (advocateId) return all.filter(c => c.assignedAdvocateId === advocateId || !c.assignedAdvocateId);
+    return all;
+  },
+
+  /**
    * clearAll — Reset all consultations (used by Reset button)
    */
   clearAll() {
