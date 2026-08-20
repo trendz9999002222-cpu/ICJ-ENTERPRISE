@@ -1,5 +1,3 @@
-import fs from "fs";
-
 export const MASTER_26_USERS = [
   // ── 1. SUPER ADMIN ─────────────────────────────────────────────────────────
   {

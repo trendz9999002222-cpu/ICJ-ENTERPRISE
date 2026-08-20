@@ -223,11 +223,11 @@ function Topbar() {
               whiteSpace: "nowrap",
             }}
           >
-            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 22, height: 22, fontSize: "0.75rem" }}>
+            <Avatar onClick={() => navigate("/member-profile")} sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 22, height: 22, fontSize: "0.75rem", cursor: "pointer" }}>
               {userInitial}
             </Avatar>
 
-            <Typography variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap" }}>
+            <Typography onClick={() => navigate("/member-profile")} variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}>
               {(() => {
                 const prefix = user?.namePrefix || user?.name_prefix || "";
                 const name = user?.fullName || user?.name || user?.username || "Logged User";

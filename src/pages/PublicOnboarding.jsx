@@ -175,8 +175,7 @@ export default function PublicOnboarding() {
   const [otpCode,      setOtpCode]      = useState("123456");
   const [otpChannel,   setOtpChannel]   = useState("SMS");
   const [createdMember,setCreatedMember]= useState(null);
-  const [submitting,   setSubmitting]   = useState(false);
-  const [error,        setError]        = useState("");
+  const [submitting,   setSubmitting]   = useState(false);  
   const [showPassword, setShowPassword] = useState(false);
   const [error,        setError]        = useState(""); // ← PERMANENT FIX: was called but never declared
 
