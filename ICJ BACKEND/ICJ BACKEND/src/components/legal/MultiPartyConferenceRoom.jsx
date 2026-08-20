@@ -255,7 +255,7 @@ function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant
                 {screenSharing ? <StopScreenShareIcon /> : <ScreenShareIcon />}
               </IconButton>
 
-              <Button variant="contained" color="error" startIcon={<CallEndIcon />} sx={{ fontWeight: 800, borderRadius: 2 }}>
+              <Button variant="contained" color="error" startIcon={<CallEndIcon />} onClick={onClose || (() => window.history.back())} sx={{ fontWeight: 800, borderRadius: 2 }}>
                 End Call
               </Button>
             </Stack>

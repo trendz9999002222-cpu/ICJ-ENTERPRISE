@@ -99,12 +99,16 @@ export default function VideoConsultationModal({ open, onClose, advocateName = "
   const handleEndCall = () => {
     stopVideo();
     setCallEnded(true);
-    const summary = ConsultationRecordingService.deduplicateAndSummarize(
-      "Client states property boundary dispute started 12-May-2026. Opposite party filed injunction suit. Advocate advised counter affidavit within 7 days. Client title deeds ready.",
-      clientName,
-      advocateName
-    );
-    setAiSummary(summary);
+    try {
+      ConsultationRecordingService.deduplicateAndSummarize(
+        "Client states property boundary dispute started 12-May-2026. Opposite party filed injunction suit. Advocate advised counter affidavit within 7 days. Client title deeds ready.",
+        clientName,
+        advocateName
+      );
+    } catch (e) {
+      console.debug(e);
+    }
+    if (onClose) onClose();
   };
 
   const handleCloseAll = () => {
@@ -112,7 +116,7 @@ export default function VideoConsultationModal({ open, onClose, advocateName = "
     setCallEnded(false);
     setAiSummary(null);
     setCallDuration(0);
-    onClose();
+    if (onClose) onClose();
   };
 
   const formatTime = (secs) => {
