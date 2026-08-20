@@ -9,6 +9,7 @@ import {
   Typography,
   Box,
   Stack,
+  useMediaQuery,
 } from "@mui/material";
 
 import {
@@ -119,7 +120,8 @@ const getPillStyle = (item, isActive) => {
   }
 };
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }) {
+  const isMobile = useMediaQuery("(max-width:899.95px)");
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -129,12 +131,15 @@ export default function Sidebar() {
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isMobile ? mobileOpen : true}
+      onClose={onMobileClose}
+      ModalProps={{ keepMounted: true }} // keep nav responsive on first open
       sx={{
-        width: { xs: 76, md: drawerWidth },
+        width: { xs: 0, md: drawerWidth },
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: { xs: 76, md: drawerWidth },
+          width: { xs: Math.min(drawerWidth + 40, 280), md: drawerWidth },
           boxSizing: "border-box",
           border: "none",
           background: "#0a192f", // Deep Navy Professional Theme
@@ -177,7 +182,14 @@ export default function Sidebar() {
         <Typography
           variant="h6"
           fontWeight="bold"
-          sx={{ letterSpacing: 0.5, color: "#fff", display: { xs: "none", md: "block" } }}
+          sx={{
+            letterSpacing: 0.3,
+            color: "#fff",
+            fontSize: "1rem",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
         >
           ENTERPRISE
         </Typography>
@@ -193,17 +205,21 @@ export default function Sidebar() {
             return (
               <ListItemButton
                 key={item.id}
-                onClick={() => navigate(item.route)}
+                onClick={() => {
+                  navigate(item.route);
+                  if (isMobile) onMobileClose();
+                }}
                 sx={{
                   mx: 0.3,
                   mb: 0.5,
-                  py: 0.55,
+                  py: { xs: 1, md: 0.55 },
                   px: 1,
                   borderRadius: 1.5,
                   bgcolor: style.bgcolor,
                   borderLeft: style.borderLeft,
                   border: style.border,
-                  minHeight: 38,
+                  // 44px is the minimum comfortable touch target on phones
+                  minHeight: { xs: 44, md: 38 },
                   boxShadow: isActive ? "0 2px 8px rgba(0,0,0,0.3)" : "none",
                   transition: "all 0.18s cubic-bezier(0.4, 0, 0.2, 1)",
                   "&:hover": {
@@ -255,7 +271,7 @@ export default function Sidebar() {
                       </Typography>
                     </Stack>
                   }
-                  sx={{ display: { xs: "none", md: "block" }, my: 0 }}
+                  sx={{ my: 0 }}
                 />
               </ListItemButton>
             );

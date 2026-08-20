@@ -43,6 +43,8 @@ export default function MobileBottomNav({ isKeyboardActive = false }) {
           overflow: "hidden",
           borderTop: "1px solid rgba(229, 231, 235, 0.8)",
           bgcolor: "#0a192f",
+          // Clear the iOS home indicator so the last row stays tappable.
+          pb: "env(safe-area-inset-bottom)",
           transform: hideNav ? "translateY(100%)" : "translateY(0)",
           transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
@@ -51,7 +53,9 @@ export default function MobileBottomNav({ isKeyboardActive = false }) {
           showLabels
           value={getActiveTab()}
           onChange={(_, newValue) => {
-            if (newValue === 0) navigate(role === "admin" ? "/super-admin-dashboard" : "/dashboard");
+            // "/" resolves to the right dashboard per role; "/dashboard" is not
+            // a registered route and only survived via the catch-all redirect.
+            if (newValue === 0) navigate(role === "admin" ? "/super-admin-dashboard" : "/");
             else if (newValue === 1) navigate("/join");
             else if (newValue === 2) navigate(role === "admin" ? "/administration" : "/client-portal");
             else if (newValue === 3) navigate("/ai-drafter");

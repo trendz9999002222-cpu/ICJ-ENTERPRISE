@@ -68,7 +68,7 @@ export const LargeFileChunkWorkerService = {
       caseId,
       fileName,
       totalPagesProcessed: totalEstimatedPages,
-      chunksProcessed: Math.min(totalChunks, 20),
+      chunksProcessed: Math.min(overlappingChunks.length, 20),
       processedTimestamp: new Date().toISOString(),
       dateWiseGist,
       eventWiseGist,

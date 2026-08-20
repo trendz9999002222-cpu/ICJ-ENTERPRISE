@@ -13,6 +13,8 @@
  * Guarantees 10,000% zero-crash resilience even after database resets or data wipes.
  */
 
+import { hashPasswordSync } from "./passwordPolicyService.js";
+
 export const MASTER_26_SEED_MEMBERS = [
   // ─── TIER 0: ROOT MASTER SUPER ADMIN ───
   {
@@ -482,25 +484,50 @@ export const MASTER_26_SEED_MEMBERS = [
   },
 ];
 
+/**
+ * The 26 registry records above carry no login credentials. Without these the
+ * password check can never pass, and every one of these accounts is unable to
+ * sign in. Each record gets a username (the email local-part) and a hash of the
+ * shared default password below.
+ *
+ * This is a demo/beta credential. Replace it with per-user passwords — and force
+ * a change on first login — before this platform handles real member data.
+ */
+export const DEFAULT_SEED_PASSWORD = "IcjBeta@2026";
+
+const withLoginCredentials = (member) => {
+  const email = String(member.email || "");
+  return {
+    username: member.username || email.split("@")[0],
+    passwordHash: member.passwordHash || hashPasswordSync(DEFAULT_SEED_PASSWORD),
+    status: member.status || "Active",
+    ready_for_login: true,
+    ...member,
+  };
+};
+
+const seedMembersWithCredentials = () => MASTER_26_SEED_MEMBERS.map(withLoginCredentials);
+
 export const SeedEcosystemService = {
   /**
    * Master Command: Reset Database and Re-hydrate 26 Core Ecosystem Members in 1 millisecond.
    * Guarantees that no system reset ever clears the 26 Core Master Registry!
    */
   resetAndHydrate26CoreMembers() {
-    if (typeof window === "undefined" || !window.localStorage) return MASTER_26_SEED_MEMBERS;
+    const members = seedMembersWithCredentials();
+    if (typeof window === "undefined" || !window.localStorage) return members;
 
-    window.localStorage.setItem("icj_members", JSON.stringify(MASTER_26_SEED_MEMBERS));
-    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(MASTER_26_SEED_MEMBERS));
+    window.localStorage.setItem("icj_members", JSON.stringify(members));
+    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(members));
     console.log("⚡ [SeedEcosystemService] 26 Core Ecosystem Members Re-Hydrated Cleanly!");
-    return MASTER_26_SEED_MEMBERS;
+    return members;
   },
 
   /**
    * Get 26 Core Master Members
    */
   get26CoreMembers() {
-    if (typeof window === "undefined" || !window.localStorage) return MASTER_26_SEED_MEMBERS;
+    if (typeof window === "undefined" || !window.localStorage) return seedMembersWithCredentials();
     try {
       const local = JSON.parse(window.localStorage.getItem("icj_members") || "[]");
       if (Array.isArray(local) && local.length >= 26) return local;

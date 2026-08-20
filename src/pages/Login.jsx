@@ -23,6 +23,7 @@ import IconButton from "@mui/material/IconButton";
 import useAuth from "../hooks/useAuth.js";
 import ForcePasswordChangeModal from "../components/ForcePasswordChangeModal.jsx";
 import OTPService from "../services/otp/otpService.js";
+import RoleService from "../services/roleService.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -114,8 +115,10 @@ export default function Login() {
       const mfaConfig = getMfaConfig();
       const userRole = String(userObj.role || "member").toLowerCase();
 
-      // Super Admin check: Never force MFA automatically on super_admin
-      const isSuperAdmin = userRole === "super_admin" || (userRole === "admin" && String(userObj.email).includes("superadmin"));
+      // Super Admin check: never force MFA automatically on super_admin.
+      // Uses the shared check rather than testing whether the email merely
+      // contains "superadmin", which any self-registered user can arrange.
+      const isSuperAdmin = RoleService.isSuperAdmin(userObj);
 
       if (mfaConfig.mfaEnabled && mfaConfig.mfaRoles?.[userRole] && !isSuperAdmin) {
         // Trigger MFA flow

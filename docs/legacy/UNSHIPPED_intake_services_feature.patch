@@ -1,0 +1,86 @@
+--- src/pages/PublicOnboarding.jsx	2026-08-11 23:00:51
++++ ICJ BACKEND/ICJ BACKEND/src/pages/PublicOnboarding.jsx	2026-08-11 23:00:51
+@@ -92,6 +92,13 @@
+   "Accident Claims / Compensation",
+   "Taxation & Revenue Disputes",
+   "Other Legal Matter",
++];
++
++const INTAKE_SERVICES = [
++  "Notary / नोटरी",
++  "Drafting / ड्राफ्टिंग",
++  "Writer/Typist / लिखने वाला",
++  "Court Representation / कोर्ट पैरवी",
+ ];
+ 
+ const SERVICE_CATEGORIES = [
+@@ -147,6 +154,7 @@
+     confirmPassword:   "",
+     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
+     problemCategories: [],           // Multi-select problem categories
++    intakeServices:    [],           // Selected intake services (Notary, Drafting, etc)
+     problemState:      "Delhi",
+     problemDistrict:   "",
+     problemCity:       "",
+@@ -252,6 +260,14 @@
+       const list = prev.problemCategories || [];
+       const updated = list.includes(cat) ? list.filter((c) => c !== cat) : [...list, cat];
+       return { ...prev, problemCategories: updated };
++    });
++  };
++
++  const handleToggleIntakeService = (srv) => {
++    setForm((prev) => {
++      const list = prev.intakeServices || [];
++      const updated = list.includes(srv) ? list.filter((s) => s !== srv) : [...list, srv];
++      return { ...prev, intakeServices: updated };
+     });
+   };
+ 
+@@ -970,6 +986,46 @@
+                                     );
+                                   })}
+                                 </Grid>
++
++                                {/* Service Needed Intake */}
++                                <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
++                                  <Typography variant="caption" fontWeight="bold" color="text.secondary"
++                                    sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
++                                    Select Service Needed * (आवश्यक सेवा का चयन करें)
++                                  </Typography>
++                                  <Grid container spacing={1}>
++                                    {INTAKE_SERVICES.map((srv) => {
++                                      const isSelected = (form.intakeServices || []).includes(srv);
++                                      return (
++                                        <Grid item xs={12} sm={6} key={srv}>
++                                          <Paper
++                                            elevation={0}
++                                            onClick={() => handleToggleIntakeService(srv)}
++                                            sx={{
++                                              p: 1.5,
++                                              border: "1.5px solid",
++                                              borderColor: isSelected ? opt.color : "#dde3ec",
++                                              bgcolor: isSelected ? "#fff0f0" : "#fff",
++                                              borderRadius: 1.5,
++                                              cursor: "pointer",
++                                              display: "flex",
++                                              alignItems: "center",
++                                              gap: 1,
++                                              "&:hover": { borderColor: opt.color },
++                                            }}
++                                          >
++                                            {isSelected && (
++                                              <CheckCircleIcon sx={{ color: opt.color, fontSize: 16 }} />
++                                            )}
++                                            <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
++                                              {srv}
++                                            </Typography>
++                                          </Paper>
++                                        </Grid>
++                                      );
++                                    })}
++                                  </Grid>
++                                </Box>
+ 
+                                 {/* Problem Location details (Optional) */}
+                                 <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
