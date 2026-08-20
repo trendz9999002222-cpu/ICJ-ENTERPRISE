@@ -301,11 +301,11 @@ export default function VoiceCommentaryStudio({
       {/* Header Bar */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} mb={1.5}>
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            🎙️ Voice Commentary Studio
+          <Typography variant="subtitle1" fontWeight="bold" color="#1e3a8a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            🎙️ बोलकर समस्या दर्ज करें (Voice Intake)
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Speak to record clips — Automatic transcription occurs upon completion. (Max 60 seconds per clip)
+            माइक बटन दबाकर अपनी बात बोलें — आपका बोला गया एक-एक शब्द नीचे अपने-आप टाइप हो जाएगा।
           </Typography>
         </Box>
 
@@ -314,61 +314,44 @@ export default function VoiceCommentaryStudio({
             <Button
               variant="contained"
               color="error"
-              size="small"
+              size="medium"
               onClick={stopRecording}
               startIcon={<MicOffIcon />}
               sx={{ fontWeight: "bold", animation: "pulse 1.5s infinite" }}
             >
-              🔴 STOP ({formatTimer(seconds)} / 01:00)
+              🛑 रिकॉर्डिंग रोकें ({formatTimer(seconds)})
             </Button>
           ) : (
             <Button
               variant="contained"
               color="primary"
-              size="small"
+              size="medium"
               onClick={startRecording}
               startIcon={<MicIcon />}
-              sx={{ fontWeight: "bold", bgcolor: "#7c3aed", "&:hover": { bgcolor: "#6d28d9" } }}
+              sx={{ fontWeight: "bold", bgcolor: "#ef4444", "&:hover": { bgcolor: "#dc2626" }, px: 3, py: 1 }}
             >
-              🎙️ START RECORDING
+              🎙️ यहाँ दबाकर बोलें (Start Recording)
             </Button>
           )}
         </Stack>
       </Stack>
 
-      {/* Live Telemetry Bar */}
-      <Paper variant="outlined" sx={{ p: 1, mb: 1.5, bgcolor: "#fff", borderRadius: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Chip
-              label={isRecording ? `🔴 RECORDING...` : "READY"}
-              color={isRecording ? "error" : "default"}
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
-            <Chip
-              label={`📝 ${wordCount} Words | ${charCount} Chars`}
-              color="secondary"
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
-            <Chip
-              label={`Speech API: ${speechStatus}`}
-              color={speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error") ? "warning" : "success"}
-              variant="outlined"
-              size="small"
-              sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-            />
+      {/* Live Status Bar — Only shown when active or notes exist */}
+      {(isRecording || speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error") || voiceNotesList.length > 0) && (
+        <Paper variant="outlined" sx={{ p: 1, mb: 1.5, bgcolor: "#fff", borderRadius: 1 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {isRecording && <Chip label="🔴 रिकॉर्डिंग जारी..." color="error" size="small" sx={{ fontWeight: "bold" }} />}
+              {(speechStatus.startsWith("Blocked") || speechStatus.startsWith("Error")) && (
+                <Chip label={`⚠️ ${speechStatus}`} color="warning" size="small" sx={{ fontWeight: "bold" }} />
+              )}
+            </Stack>
+            {voiceNotesList.length > 0 && (
+              <Chip label={`📁 ${voiceNotesList.length} वॉयस नोट्स सुरक्षित`} color="success" size="small" sx={{ fontWeight: "bold" }} />
+            )}
           </Stack>
-          <Chip
-            label={`📁 ${voiceNotesList.length} Files Saved`}
-            color="primary"
-            size="small"
-            sx={{ fontWeight: "bold", height: 20, fontSize: "0.75rem" }}
-          />
-        </Stack>
-      </Paper>
+        </Paper>
+      )}
 
       {/* Multi-Audio Playlist Box */}
       {voiceNotesList.length > 0 && (
