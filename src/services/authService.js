@@ -333,8 +333,8 @@ const AuthService = {
     if (!local && typeof window !== "undefined") {
       // Auto-seed default Super Admin session for seamless instant access
       local = {
-        id: "26ICJ08AA0001",
-        member_id: "26ICJ08AA0001",
+        id: "ICJ-2026-MEM-0001",
+        member_id: "ICJ-2026-MEM-0001",
         username: "ICJSuperAdmin1234",
         fullName: "Pawan Kumar",
         name: "Pawan Kumar",

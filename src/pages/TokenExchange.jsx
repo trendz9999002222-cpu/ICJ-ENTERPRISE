@@ -628,7 +628,7 @@ export default function TokenExchange() {
               <TextField fullWidth label="आवेदक का नाम *" value={reqForm.requesterName} onChange={e => setReqForm(p => ({ ...p, requesterName: e.target.value }))} placeholder="पूरा नाम" />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="ICJ Member ID (यदि है)" value={reqForm.memberId} onChange={e => setReqForm(p => ({ ...p, memberId: e.target.value }))} placeholder="26ICJ08AA0001" />
+              <TextField fullWidth label="ICJ Member ID (यदि है)" value={reqForm.memberId} onChange={e => setReqForm(p => ({ ...p, memberId: e.target.value }))} placeholder="ICJ-2026-MEM-0001" />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField fullWidth label="Mobile Number *" value={reqForm.mobile} onChange={e => setReqForm(p => ({ ...p, mobile: e.target.value }))} placeholder="10 digit mobile" />

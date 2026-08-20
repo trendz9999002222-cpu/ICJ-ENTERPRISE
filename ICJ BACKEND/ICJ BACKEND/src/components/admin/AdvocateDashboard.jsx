@@ -25,6 +25,7 @@ import HistoryIcon from "@mui/icons-material/History";
 
 import MemberService from "../../services/memberService";
 import ActivityService from "../../services/activityService";
+import SmartStepGuideBanner from "../common/SmartStepGuideBanner";
 
 export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }) {
   const [leads, setLeads] = useState([]);
@@ -113,6 +114,10 @@ export default function AdvocateDashboard({ loggedInAdvocate, onUpdateAdvocate }
 
   return (
     <Box sx={{ p: 3, bgcolor: "#f8fafc", minHeight: "100vh" }}>
+      <SmartStepGuideBanner
+        customStatusText="Current Step: Advocate Practice Workspace & Client Lead Board"
+        customNextText="Next Step: Select a client lead to review legal details and initiate consultation."
+      />
       {/* Upper Stats Row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={4}>

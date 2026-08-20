@@ -236,7 +236,7 @@ export default function PinnedNotesCard({ profile, currentUserRole = "admin" }) 
               label="Related Case Reference (Optional)"
               value={form.caseId}
               onChange={(e) => setForm({ ...form, caseId: e.target.value })}
-              placeholder="e.g. CASE-2026-001"
+              placeholder="e.g. CASE-2026-1001"
             />
             <TextField
               fullWidth

@@ -19,7 +19,7 @@ import {
   Chip,
   Tooltip,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchIcon from "@mui/icons-material/Search";
@@ -36,13 +36,36 @@ import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx
 import CampaignIcon from "@mui/icons-material/Campaign";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
+const MODULE_NAMES = {
+  "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
+  "/client-portal": "📌 LITIGANT CLIENT PORTAL",
+  "/dashboard": "📌 SUPER ADMIN DASHBOARD",
+  "/admin": "📌 SUPER ADMIN DASHBOARD",
+  "/personal-dashboard": "📌 MEMBER PERSONAL DASHBOARD",
+  "/franchise-dashboard": "📌 DISTRICT FRANCHISEE DESK",
+  "/legal": "📌 LEGAL CASE REGISTRY",
+  "/legal-drafter": "📌 AI LEGAL DRAFTER STUDIO",
+  "/documents": "📌 DIGITAL VAULT & DRM",
+  "/virtual-office": "📌 VIRTUAL COURT CHAMBER",
+  "/court-calendar": "📌 COURT CAUSE LIST",
+  "/finance": "📌 ESCROW FINANCIAL LEDGER",
+  "/payments": "📌 ESCROW FINANCIAL LEDGER",
+  "/governance": "📌 STATUTORY BSA COMPLIANCE",
+  "/helpdesk": "📌 HELPDESK & SUPPORT",
+};
+
 function Topbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
   const [isSirenActive, setIsSirenActive] = useState(NotificationRoutingService.isSirenActive());
+
+  const activePath = location?.pathname || "";
+  const activeModuleName = MODULE_NAMES[activePath] || 
+    Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k)) ? MODULE_NAMES[Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k))] : "📌 ICJ ENTERPRISE PLATFORM";
 
   const userInitial = String(user?.fullName || user?.name || user?.username || user?.email || "U")
     .trim()
@@ -105,9 +128,25 @@ function Topbar() {
             value={globalQuery}
             onChange={handleSearchChange}
             placeholder="Global Search (Members, Cases, Documents)..."
-            sx={{ width: { xs: 140, sm: 200, md: 300 }, "& .MuiInputBase-root": { height: 24, fontSize: "0.72rem" } }}
+            sx={{ width: { xs: 130, sm: 180, md: 240 }, "& .MuiInputBase-root": { height: 24, fontSize: "0.72rem" } }}
             InputProps={{
               startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.85rem" }} /></InputAdornment>,
+            }}
+          />
+
+          {/* ACTIVE MODULE SINGLE-LINE BADGE */}
+          <Chip
+            label={activeModuleName}
+            size="small"
+            sx={{
+              fontWeight: 900,
+              fontSize: "0.68rem",
+              height: 22,
+              bgcolor: "#0f172a",
+              color: "#38bdf8",
+              border: "1px solid #0284c7",
+              letterSpacing: 0.3,
+              display: { xs: "none", sm: "inline-flex" },
             }}
           />
 

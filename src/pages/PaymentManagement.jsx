@@ -169,7 +169,7 @@ export default function PaymentManagement() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -516,6 +516,6 @@ export default function PaymentManagement() {
           </DialogActions>
         </Dialog>
       </Box>
-    </MainLayout>
+    </>
   );
 }

@@ -27,7 +27,7 @@ function SpecialtyUpgradeModal({
   open = false,
   onClose = () => {},
   onSuccess = () => {},
-  memberId = "26ICJ08AA0001",
+  memberId = "ICJ-2026-MEM-0001",
   memberName = "Advocate Pawan Kumar",
   initialSpecialties = ["CRIMINAL_BAIL"],
 }) {

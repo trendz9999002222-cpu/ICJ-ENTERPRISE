@@ -393,7 +393,7 @@ export default function LegalDrafter() {
 
   // ── RENDER ──
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         {/* Header */}
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
@@ -1062,6 +1062,6 @@ export default function LegalDrafter() {
         </TabPanel>
 
       </Box>
-    </MainLayout>
+    </>
   );
 }

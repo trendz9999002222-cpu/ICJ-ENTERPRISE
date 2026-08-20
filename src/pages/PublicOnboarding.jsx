@@ -177,6 +177,7 @@ export default function PublicOnboarding() {
   const [createdMember,setCreatedMember]= useState(null);
   const [submitting,   setSubmitting]   = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error,        setError]        = useState(""); // ← PERMANENT FIX: was called but never declared
 
   // ─── Phone config (for maxDigits / placeholder) ──────────────────────────
   const mobCfg = useMemo(() => getCountryByCodeOrIso(form.mobileCountryCode), [form.mobileCountryCode]);

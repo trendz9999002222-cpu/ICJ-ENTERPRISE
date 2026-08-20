@@ -30,7 +30,7 @@ import SendIcon from "@mui/icons-material/Send";
 import FeatureControlService from "../../services/featureControlService.js";
 import MatterIntelligenceService from "../../services/matterIntelligenceService.js";
 
-function MultiPartyConferenceRoom({ caseId = "CASE-2026-001", clientName = "Litigant", advocateName = "Adv. Rajesh Sharma", currentUserId = "26ICJ08AA0001" }) {
+function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant", advocateName = "Empaneled Lead Counsel", currentUserId = "ICJ-2026-MEM-0001" }) {
   // Check Super Admin Feature Switch Access
   const accessCheck = FeatureControlService.isFeatureAccessible("videoConference", currentUserId);
 
@@ -42,9 +42,9 @@ function MultiPartyConferenceRoom({ caseId = "CASE-2026-001", clientName = "Liti
   // Participants Grid (Up to 8 Seats)
   const [participants, setParticipants] = useState([
     { id: "P1", name: clientName || "Sh. Litigant", role: "Litigant / Client", avatarColor: "#3b82f6", activeSpeaker: true },
-    { id: "P2", name: advocateName || "Adv. Rajesh Sharma", role: "Empaneled Lead Counsel", avatarColor: "#10b981", activeSpeaker: false },
+    { id: "P2", name: advocateName || "Empaneled Lead Counsel", role: "Empaneled Lead Counsel", avatarColor: "#10b981", activeSpeaker: false },
     { id: "P3", name: "Adv. Sunita Verma", role: "Senior Co-Counsel", avatarColor: "#8b5cf6", activeSpeaker: false },
-    { id: "P4", name: "Sh. Alok Nath (Lucknow Branch)", role: "District Franchisee Director", avatarColor: "#f59e0b", activeSpeaker: false },
+    { id: "P4", name: "District Branch Director", role: "District Franchisee Director", avatarColor: "#f59e0b", activeSpeaker: false },
     { id: "P5", name: "ICJ Trust Observer", role: "Super Admin Compliance", avatarColor: "#ef4444", activeSpeaker: false },
   ]);
 
@@ -82,7 +82,7 @@ function MultiPartyConferenceRoom({ caseId = "CASE-2026-001", clientName = "Liti
       // Fallback simulation for browsers without Web Speech API
       setIsListening(true);
       setTimeout(() => {
-        const simulatedSpoken = "Correct litigant name to Sh. Ramesh Kumar Verma, address to House 402 Sector 14 Lucknow";
+        const simulatedSpoken = "Correct litigant name and update address details";
         setSpokenCorrectionText(simulatedSpoken);
         setIsListening(false);
         alert(`🎤 Spoken Voice Captured: "${simulatedSpoken}"`);

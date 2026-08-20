@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,7 @@ import {
   Divider,
   Stack,
   Chip,
+  Select,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -27,14 +28,25 @@ import PersonIcon from "@mui/icons-material/Person";
 import GavelIcon from "@mui/icons-material/Gavel";
 import FolderIcon from "@mui/icons-material/Folder";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import LanguageIcon from "@mui/icons-material/Language";
 
 import useAuth from "../hooks/useAuth";
+import LanguageService from "../services/languageService";
 
 function Topbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
+  const [langMode, setLangMode] = useState(LanguageService.getCurrentLanguage());
+
+  const supportedLanguages = LanguageService.getSupportedLanguages();
+
+  const handleLangChange = (e) => {
+    const newLang = e.target.value;
+    setLangMode(newLang);
+    LanguageService.setLanguage(newLang);
+  };
 
   const userInitial = String(user?.fullName || user?.name || user?.username || user?.email || "U")
     .trim()
@@ -73,10 +85,10 @@ function Topbar() {
         <Box display="flex" alignItems="center" gap={3}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: "#1976d2", lineHeight: 1.2 }}>
-              ICJ ENTERPRISE PLATFORM
+              {LanguageService.t("brandTitle", "ICJ ENTERPRISE PLATFORM")}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              Unified Command Centre & Global Intelligence Layer
+              {LanguageService.t("brandSubtitle", "Unified Legal Command Centre & AI Intelligence Layer")}
             </Typography>
           </Box>
 
@@ -85,8 +97,8 @@ function Topbar() {
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
-            placeholder="Global Search (Members, Cases, Advocates, Documents, Payments)..."
-            sx={{ width: 420 }}
+            placeholder={LanguageService.t("globalSearchPlaceholder", "Global Search (Members, Cases, Advocates)...")}
+            sx={{ width: 380 }}
             InputProps={{
               startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
             }}
@@ -97,30 +109,41 @@ function Topbar() {
             anchorEl={searchAnchor}
             open={Boolean(searchAnchor && globalQuery.trim().length >= 2)}
             onClose={() => setSearchAnchor(null)}
-            PaperProps={{ style: { width: 420, maxHeight: 350 } }}
+            PaperProps={{ style: { width: 380, maxHeight: 350 } }}
           >
-            <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED GLOBAL MATCHES FOR "{globalQuery}"</Typography></MenuItem>
-            <Divider />
             <MenuItem onClick={() => handleSearchResultClick(`/membership?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><PersonIcon color="primary" fontSize="small" /></ListItemIcon>
+              <ListItemIcon><PersonIcon fontSize="small" color="primary" /></ListItemIcon>
               <ListItemText primary={`Search Members: "${globalQuery}"`} secondary="Master Member Directory" />
             </MenuItem>
             <MenuItem onClick={() => handleSearchResultClick(`/legal?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><GavelIcon color="secondary" fontSize="small" /></ListItemIcon>
-              <ListItemText primary={`Search Legal Cases: "${globalQuery}"`} secondary="Master Legal Registry" />
-            </MenuItem>
-            <MenuItem onClick={() => handleSearchResultClick(`/documents?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><FolderIcon color="info" fontSize="small" /></ListItemIcon>
-              <ListItemText primary={`Search Documents: "${globalQuery}"`} secondary="Master Digital Vault" />
-            </MenuItem>
-            <MenuItem onClick={() => handleSearchResultClick(`/wallet?search=${encodeURIComponent(globalQuery)}`)}>
-              <ListItemIcon><AccountBalanceWalletIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary={`Search Payments / Wallet: "${globalQuery}"`} secondary="Finance & Ledger Engine" />
+              <ListItemIcon><GavelIcon fontSize="small" color="secondary" /></ListItemIcon>
+              <ListItemText primary={`Search Cases / Writs: "${globalQuery}"`} secondary="Legal Matter Ecosystem" />
             </MenuItem>
           </Menu>
         </Box>
 
         <Box display="flex" alignItems="center" gap={2}>
+          {/* Multi-Language & Script Selector Dropdown */}
+          <Select
+            size="small"
+            value={langMode}
+            onChange={handleLangChange}
+            startAdornment={<LanguageIcon sx={{ color: "#1976d2", mr: 1, fontSize: 20 }} />}
+            sx={{
+              bgcolor: "#f8fafc",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              borderRadius: 2,
+              "& .MuiSelect-select": { py: 0.8, px: 1.5, display: "flex", alignItems: "center" },
+            }}
+          >
+            {supportedLanguages.map((l) => (
+              <MenuItem key={l.code} value={l.code} sx={{ fontWeight: 600 }}>
+                {l.flag} {l.label}
+              </MenuItem>
+            ))}
+          </Select>
+
           <IconButton onClick={() => navigate("/notifications")}>
             <Badge badgeContent={12} color="error">
               <NotificationsIcon color="action" />
@@ -180,28 +203,12 @@ function Topbar() {
                     color: "#ffffff",
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: "0.68rem", color: "#64748b", fontFamily: "monospace" }}>
-                  {user?.member_id || user?.memberId || user?.id || ""}
-                </Typography>
               </Stack>
             </Box>
 
-            <Avatar sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 36, height: 36, fontSize: "0.95rem" }}>
+            <Avatar sx={{ bgcolor: "#1976d2", width: 36, height: 36, fontWeight: "bold" }}>
               {userInitial}
             </Avatar>
-
-            <Button
-              variant="outlined"
-              size="small"
-              color="error"
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
-              sx={{ fontWeight: "bold", ml: 0.5, px: 1, minWidth: 60 }}
-            >
-              Logout
-            </Button>
           </Box>
         </Box>
       </Toolbar>

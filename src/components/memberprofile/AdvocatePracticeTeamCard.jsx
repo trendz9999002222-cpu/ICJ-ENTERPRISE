@@ -607,7 +607,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
         <DialogContent dividers>
           <Stack spacing={2} sx={{ pt: 1 }}>
             <Alert severity="info" sx={{ fontSize: "0.85rem" }}>
-              To add a Junior Advocate, Legal Intern or Staff member, enter their <strong>ICJ Member ID</strong> (e.g. 26ICJ08AA0001), <strong>Email Address</strong>, or <strong>Mobile Number</strong>.
+              To add a Junior Advocate, Legal Intern or Staff member, enter their <strong>ICJ Member ID</strong> (e.g. ICJ-2026-MEM-0001), <strong>Email Address</strong>, or <strong>Mobile Number</strong>.
             </Alert>
 
             <Stack direction="row" spacing={1}>
@@ -616,7 +616,7 @@ export default function AdvocatePracticeTeamCard({ profile, onUpdate }) {
                 label="Enter Member ID / Email / Mobile *"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g. 26ICJ08AA0001 or mobile number..."
+                placeholder="e.g. ICJ-2026-MEM-0001 or mobile number..."
               />
               <Button
                 variant="contained"

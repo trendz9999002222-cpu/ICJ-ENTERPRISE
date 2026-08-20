@@ -24,7 +24,7 @@ export const LegalCommunityService = {
       return raw ? JSON.parse(raw) : [
         {
           id: "POST-1001",
-          authorName: "Adv. Rajesh Sharma",
+          authorName: "Empaneled Senior Advocate",
           authorRole: "advocate",
           barCouncilRegNo: "D/1024/2012 (Bar Council of Delhi)",
           isVerifiedAdvocate: true,

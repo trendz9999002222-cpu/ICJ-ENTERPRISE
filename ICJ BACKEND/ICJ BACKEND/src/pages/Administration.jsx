@@ -556,8 +556,8 @@ export default function Administration() {
   };
 
   const systemHealth = [
-    { label: "Total Members", value: stats?.totalMembers ?? "25" },
-    { label: "Verified Members", value: stats?.verifiedMembers ?? "25" },
+    { label: "Total Members", value: allMembers.length || 26 },
+    { label: "Verified Members", value: allMembers.length || 26 },
     { label: "Pending KYC", value: stats?.pendingMembers ?? "0" },
     { label: "Legal Cases", value: stats?.totalLegalCases ?? "—" },
     { label: "Documents", value: stats?.totalDocuments ?? "—" },

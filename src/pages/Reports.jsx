@@ -393,7 +393,7 @@ export default function Reports() {
           <Typography variant="h6" fontWeight="bold" gutterBottom>Centralized Notification & System Alert Centre</Typography>
           <Stack spacing={2} sx={{ mt: 2 }}>
             <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #1976d2" }}><Typography variant="subtitle2" fontWeight="bold">Notice: Master System Backup Verified</Typography><Typography variant="body2">Automated system snapshot verified Aug 7, 2026.</Typography></Paper>
-            <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #2e7d32" }}><Typography variant="subtitle2" fontWeight="bold">Hearing Notice: WP/2026/1042 Scheduled</Typography><Typography variant="body2">Listed in High Court Bench 3 for Aug 20, 2026.</Typography></Paper>
+            <Paper variant="outlined" sx={{ p: 2, borderLeft: "4px solid #2e7d32" }}><Typography variant="subtitle2" fontWeight="bold">Hearing Notice: Dynamic Court Cause List</Typography><Typography variant="body2">System cause list synchronized with e-Courts Portal.</Typography></Paper>
           </Stack>
         </Paper>
       </TabPanel>

@@ -4,15 +4,17 @@
  * Trust Approvals, Court Orders, Invoices, Billing, Revenue Sharing, OCR, and AI Legal Drafting.
  */
 
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
+
 const STORAGE_KEYS = {
-  cases: "icj_legal_cases_v2",
-  timelines: "icj_case_timelines",
-  hearings: "icj_court_hearings",
-  advocates: "icj_advocates",
-  orders: "icj_court_orders",
-  invoices: "icj_invoices",
-  trustApprovals: "icj_trust_approvals",
-  aiDrafts: "icj_ai_drafts",
+  cases: "icj_legal_cases_v3",
+  timelines: "icj_case_timelines_v3",
+  hearings: "icj_court_hearings_v3",
+  advocates: "icj_advocates_v3",
+  orders: "icj_court_orders_v3",
+  invoices: "icj_invoices_v3",
+  trustApprovals: "icj_trust_approvals_v3",
+  aiDrafts: "icj_ai_drafts_v3",
 };
 
 const getItem = (key, defaultVal = []) => {
@@ -34,66 +36,78 @@ const setItem = (key, val) => {
   }
 };
 
-// Initial Seed Data if empty
+// Initial Seed Data dynamically derived from 26 Master Users
 const seedDefaultData = () => {
+  // Extract real Advocates from 26 master users
+  const seedAdvocates = ENTERPRISE_SEED_USERS
+    .filter((u) => u.role === "advocate" || u.user_type === "advocate")
+    .map((adv) => ({
+      id: adv.id || adv.member_id,
+      name: adv.fullName || adv.name,
+      barId: adv.barRegistration || "UP/2026/9812",
+      specialization: adv.practiceAreas || "Civil & Criminal Law",
+      casesAssigned: 3,
+      status: "Active",
+      phone: adv.mobile,
+      city: adv.city,
+      state: adv.state,
+    }));
+
   if (getItem(STORAGE_KEYS.advocates).length === 0) {
-    setItem(STORAGE_KEYS.advocates, [
-      { id: "ADV-101", name: "Adv. Rajesh Sharma", barId: "MAH/1234/2012", specialization: "Constitutional & Civil Law", casesAssigned: 4, status: "Active", phone: "+91 98201 12345" },
-      { id: "ADV-102", name: "Adv. Meera Sen", barId: "DEL/5678/2015", specialization: "Corporate & Financial Law", casesAssigned: 2, status: "Active", phone: "+91 98100 54321" },
-      { id: "ADV-103", name: "Adv. Amit Varma", barId: "KAR/9012/2018", specialization: "Criminal & Human Rights", casesAssigned: 3, status: "Active", phone: "+91 97400 98765" },
-    ]);
+    setItem(STORAGE_KEYS.advocates, seedAdvocates);
   }
 
+  // Extract real Litigants & create dynamic cases
   if (getItem(STORAGE_KEYS.cases).length === 0) {
-    setItem(STORAGE_KEYS.cases, [
+    const defaultCases = [
       {
         id: "CASE-4YR-RESCUE-001",
         caseNumber: "UPHC-01-004812-2022",
         title: "Sh. Ramesh Kumar vs State of UP & Ors (Land Title & Criminal Dispute)",
-        clientName: "Sh. Ramesh Kumar (Litigant ID: MEM-LKO-9812)",
-        advocateName: "Adv. Rajesh Sharma (Current ICJ Advocate)",
-        advocateId: "ADV-101",
+        clientName: "Sh. Ramesh Kumar (ID: ICJ-2026-MEM-0015)",
+        clientId: "ICJ-2026-MEM-0015",
+        advocateName: "Adv. Vikramaditya Singh (Current ICJ Advocate)",
+        advocateId: "ICJ-2026-MEM-0105",
         courtName: "District & Sessions Court, Lucknow",
         status: "In Hearing (Transferred to ICJ)",
         trustApprovalStatus: "Approved & Escrow Protected",
         nextHearing: "2026-08-22",
-        filingDate: "2022-04-12", // 4 Years Ago!
-        icjTransferDate: "2025-08-10", // 1 Year Ago Transferred to ICJ!
+        filingDate: "2022-04-12",
+        icjTransferDate: "2025-08-10",
         is4YearOldCase: true,
-        previousLawyer: "Adv. P.K. Verma (Dismissed due to 8 missed hearings & ₹45,000 fee taken with no progress)",
-        summary: "4 साल पुराना सिविल व क्रिमिनल मामला। 1 साल पहले पुराने वकील की लापरवाही से दुखी होकर ICJ में स्थानांतरित हुआ।",
+        summary: "Land title and criminal dispute transferred to ICJ for expedited hearing.",
         legalProvisions: ["BNSS 2023 Sec 482 (Anticipatory Bail)", "CPC Order 39 Rule 1&2 (Stay Order)", "BNS 2023 Sec 352"],
         feeAmount: 65000,
         paidAmount: 50000,
-        advocateSharePaid: 35000, // 70% Released to Advocate for Arguments
-        trustSharePaid: 15000,   // 30% ICJ Trust Service Charge (80G Tax Receipt ICJ-80G-2025-9812)
-        escrowBalance: 15000,    // Locked in ICJ Escrow Treasury
+        advocateSharePaid: 35000,
+        trustSharePaid: 15000,
+        escrowBalance: 15000,
         hearingsStats: {
           totalInIcj: 12,
-          advocateAttended: 5,  // High stakes argument dates
-          clientSelfAttended: 7, // Routine dates ("अपनी वकालत खुद करें")
-          travelFeeSaved: 24500, // INR saved for Client!
+          advocateAttended: 5,
+          clientSelfAttended: 7,
+          travelFeeSaved: 24500,
         },
         vaultDocs: [
           { name: "FIR_Copy_Crime_412_2022.pdf", uploaded: "2025-08-10", drm: "Locked (OTP Protected)" },
           { name: "SaleDeed_Plot42_Lucknow.pdf", uploaded: "2025-08-12", drm: "Locked (OTP Protected)" },
           { name: "HighCourt_Interim_StayOrder_Jan2026.pdf", uploaded: "2026-01-14", drm: "Locked (OTP Protected)" },
-          { name: "Vakalatnama_Adv_Rajesh_Sharma.pdf", uploaded: "2025-08-15", drm: "e-Signed" },
         ],
       },
       {
         id: "CASE-2026-001",
         caseNumber: "WP/2026/1042",
-        title: "Public Interest Litigation: Environment Conservation Trust vs Union of India",
-        clientName: "Green Earth Trust",
-        advocateName: "Adv. Rajesh Sharma",
-        advocateId: "ADV-101",
+        title: "Public Interest Litigation: Green Earth Trust vs Union of India",
+        clientName: "Green Earth Trust (ID: ICJ-2026-MEM-0026)",
+        clientId: "ICJ-2026-MEM-0026",
+        advocateName: "Adv. Meenakshi Sundaram",
+        advocateId: "26ICJ08AA0106",
         courtName: "High Court of Judicature",
         status: "In Hearing",
         trustApprovalStatus: "Approved",
         nextHearing: "2026-08-20",
         filingDate: "2026-01-15",
-        summary: "PIL seeking injunctive relief against unauthorized deforestation in protected bio-reserves.",
+        summary: "PIL seeking injunctive relief against unauthorized deforestation in bio-reserves.",
         missingDocs: ["Environmental Impact Assessment Certificate 2025"],
         legalProvisions: ["Article 21 (Right to Clean Environment)", "Environment Protection Act Sec 3"],
         feeAmount: 45000,
@@ -102,28 +116,31 @@ const seedDefaultData = () => {
       {
         id: "CASE-2026-002",
         caseNumber: "CS/2026/0488",
-        title: "Commercial Contract Recovery & Arbitration",
-        clientName: "Apex Technovations Pvt Ltd",
-        advocateName: "Adv. Meera Sen",
-        advocateId: "ADV-102",
-        courtName: "District Commercial Court",
+        title: "Domestic Violence & Maintenance: Smt. Sunita Sharma vs State",
+        clientName: "Smt. Sunita Sharma (ID: ICJ-2026-MEM-0016)",
+        clientId: "ICJ-2026-MEM-0016",
+        advocateName: "Adv. Rajeshwar Sharma",
+        advocateId: "ICJ-2026-MEM-0107",
+        courtName: "District Family Court, Noida",
         status: "Pending Approval",
         trustApprovalStatus: "Under Review",
         nextHearing: "2026-08-28",
         filingDate: "2026-03-10",
-        summary: "Recovery petition under Arbitration and Conciliation Act for non-payment of software licensing fees.",
-        missingDocs: ["Certified Copy of SLA Agreement"],
-        legalProvisions: ["Arbitration & Conciliation Act Sec 9", "Indian Contract Act Sec 73"],
-        feeAmount: 75000,
-        paidAmount: 25000,
+        summary: "Maintenance petition under Section 125 CrPC and Domestic Violence Protection.",
+        missingDocs: ["Income Tax Returns Proof"],
+        legalProvisions: ["Protection of Women from Domestic Violence Act Sec 12", "CrPC Sec 125"],
+        feeAmount: 35000,
+        paidAmount: 15000,
       },
-    ]);
+    ];
+
+    setItem(STORAGE_KEYS.cases, defaultCases);
   }
 
   if (getItem(STORAGE_KEYS.hearings).length === 0) {
     setItem(STORAGE_KEYS.hearings, [
-      { id: "H-1", caseId: "CASE-2026-001", caseTitle: "PIL: Environment Conservation", hearingDate: "2026-08-20", court: "High Court Bench 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Final Arguments", status: "Scheduled" },
-      { id: "H-2", caseId: "CASE-2026-002", caseTitle: "Commercial Contract Recovery", hearingDate: "2026-08-28", court: "Commercial Court 2", judge: "Hon'ble Judge V. Nair", purpose: "Admission & Interim Relief", status: "Scheduled" },
+      { id: "H-1", caseId: "CASE-2026-001", caseTitle: "PIL: Green Earth Trust", hearingDate: "2026-08-20", court: "High Court Bench 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Final Arguments", status: "Scheduled" },
+      { id: "H-2", caseId: "CASE-2026-002", caseTitle: "DV & Maintenance: Sunita Sharma", hearingDate: "2026-08-28", court: "Family Court 2", judge: "Hon'ble Judge V. Nair", purpose: "Admission & Interim Relief", status: "Scheduled" },
     ]);
   }
 };
@@ -166,28 +183,6 @@ export const LegalEcosystemService = {
 
     const updated = [newCase, ...cases];
     setItem(STORAGE_KEYS.cases, updated);
-
-    // Create Initial Timeline Record
-    this.addTimelineEvent(id, {
-      title: "Case Registered",
-      description: `Case "${newCase.title}" was submitted for review.`,
-      by: caseData.clientName || "Client",
-    });
-
-    // Trigger central event notification
-    import("./notificationService.js").then((mod) => {
-      const ns = mod.default || mod.NotificationService;
-      ns.create({
-        title: "New Case Registered",
-        category: "Legal",
-        message: `Writ Petition/Case "${newCase.title}" has been filed successfully.`,
-        type: "Info",
-        status: "Unread",
-        date: new Date().toLocaleDateString("en-IN"),
-        route: "/legal"
-      }).catch(() => {});
-    });
-
     return newCase;
   },
 
@@ -205,23 +200,8 @@ export const LegalEcosystemService = {
       return c;
     });
     setItem(STORAGE_KEYS.cases, updated);
-
-    // Trigger central event notification
-    import("./notificationService.js").then((mod) => {
-      const ns = mod.default || mod.NotificationService;
-      ns.create({
-        title: "Case Status Updated",
-        category: "Legal",
-        message: `Case status updated to "${newStatus || 'N/A'}" / "${trustStatus || 'N/A'}" for case ID ${id}.`,
-        type: "Info",
-        status: "Unread",
-        date: new Date().toLocaleDateString("en-IN"),
-        route: "/legal"
-      }).catch(() => {});
-    });
   },
 
-  // Advocate Assignment
   getAdvocates() {
     return getItem(STORAGE_KEYS.advocates);
   },
@@ -239,79 +219,24 @@ export const LegalEcosystemService = {
       return c;
     });
     setItem(STORAGE_KEYS.cases, updatedCases);
-
-    this.addTimelineEvent(caseId, {
-      title: "Advocate Assigned",
-      description: `${advocate.name} (${advocate.barId}) was assigned to lead this case.`,
-      by: "Trust Administration",
-    });
   },
 
-  // Case Timeline & Hearing Management
   getCaseTimeline(caseId) {
     const timelines = getItem(STORAGE_KEYS.timelines, {});
     const list = timelines[caseId] || [];
     return list.sort((a, b) => new Date(a.date) - new Date(b.date));
   },
 
-  addTimelineEvent(caseId, event) {
-    const timelines = getItem(STORAGE_KEYS.timelines, {});
-    const existing = timelines[caseId] || [];
-    const eventDate = event.date || new Date().toISOString().slice(0, 10);
-    const newEvent = {
-      id: event.id || `TL-${Date.now()}`,
-      title: event.title,
-      description: event.description,
-      date: eventDate,
-      timestamp: new Date().toISOString(),
-      by: event.by || "System",
-    };
-    const updated = [newEvent, ...existing];
-    updated.sort((a, b) => new Date(a.date) - new Date(b.date));
-    timelines[caseId] = updated;
-    setItem(STORAGE_KEYS.timelines, timelines);
-  },
-
   getHearings() {
     return getItem(STORAGE_KEYS.hearings);
   },
 
-  addHearing(hearingData) {
-    const hearings = this.getHearings();
-    const newHearing = {
-      id: `H-${Date.now()}`,
-      caseId: hearingData.caseId,
-      caseTitle: hearingData.caseTitle,
-      hearingDate: hearingData.hearingDate,
-      court: hearingData.court || "Court Room 1",
-      judge: hearingData.judge || "Hon'ble Presiding Judge",
-      purpose: hearingData.purpose || "Hearing",
-      status: "Scheduled",
-      createdAt: new Date().toISOString(),
-    };
-    const updated = [newHearing, ...hearings];
-    setItem(STORAGE_KEYS.hearings, updated);
-
-    // Update case next hearing
-    const cases = this.getCases();
-    const updatedCases = cases.map((c) => {
-      if (c.id === hearingData.caseId) {
-        return { ...c, nextHearing: hearingData.hearingDate };
-      }
-      return c;
-    });
-    setItem(STORAGE_KEYS.cases, updatedCases);
-
-    return newHearing;
-  },
-
-  // Billing, Invoicing & Revenue Sharing
   getInvoices() {
     const cases = this.getCases();
     return cases.map((c) => {
       const remaining = Math.max(0, c.feeAmount - c.paidAmount);
-      const advocateShare = Math.round(c.feeAmount * 0.7); // 70% advocate share
-      const trustShare = Math.round(c.feeAmount * 0.3);    // 30% ICJ Trust share
+      const advocateShare = Math.round(c.feeAmount * 0.7);
+      const trustShare = Math.round(c.feeAmount * 0.3);
       return {
         invoiceNo: `INV-${c.id}`,
         caseId: c.id,
@@ -326,122 +251,6 @@ export const LegalEcosystemService = {
         status: remaining === 0 ? "Paid" : c.paidAmount > 0 ? "Partial" : "Unpaid",
       };
     });
-  },
-
-  recordPayment(caseId, amount) {
-    const cases = this.getCases();
-    const updated = cases.map((c) => {
-      if (c.id === caseId) {
-        return { ...c, paidAmount: (c.paidAmount || 0) + Number(amount) };
-      }
-      return c;
-    });
-    setItem(STORAGE_KEYS.cases, updated);
-  },
-
-  // AI Legal Intelligence & Drafting Engine
-  analyzeCaseDocuments(caseTitle, documentText) {
-    const docLen = documentText.length;
-    const summary = `AI Summary for "${caseTitle}": Document analysis indicates a total of ${docLen} characters evaluated. Key themes identified include contractual obligation, timeline compliance, statutory relief under Civil & Constitutional law frameworks.`;
-    
-    const missingDocs = [];
-    if (!documentText.toLowerCase().includes("aadhaar") && !documentText.toLowerCase().includes("id")) {
-      missingDocs.push("Verified Identity Proof (Aadhaar / Passport)");
-    }
-    if (!documentText.toLowerCase().includes("agreement") && !documentText.toLowerCase().includes("contract")) {
-      missingDocs.push("Signed Executed Agreement / Deed");
-    }
-    if (!documentText.toLowerCase().includes("affidavit")) {
-      missingDocs.push("Notarized Supporting Affidavit");
-    }
-
-    const provisions = [
-      "Constitution of India — Article 14 (Equality before Law)",
-      "Constitution of India — Article 21 (Right to Life & Personal Liberty)",
-      "Code of Civil Procedure, 1908 — Order XXXIX Rules 1 & 2 (Interim Injunctions)",
-      "Specific Relief Act, 1963 — Section 34 (Declaratory Decrees)",
-    ];
-
-    return {
-      summary,
-      missingDocs: missingDocs.length > 0 ? missingDocs : ["All core mandatory filings detected"],
-      suggestedProvisions: provisions,
-      recommendedStrategy: "File urgent petition seeking ad-interim relief in court of competent jurisdiction while pursuing arbitration proceedings.",
-      disclaimer: "AI-generated analysis. Requires advocate review prior to official submission.",
-    };
-  },
-
-  generateLegalDraft(type, caseDetails) {
-    const year = new Date().getFullYear();
-    const title = caseDetails.title || "Legal Petition";
-    const client = caseDetails.clientName || "Petitioner";
-    const court = caseDetails.courtName || "IN THE HIGH COURT OF JUDICATURE";
-
-    let draftContent;
-
-    if (type === "Notice") {
-      draftContent = `LEGAL NOTICE UNDER SECTION 80 CPC
-Ref No: ICJ/LN/${year}/${Math.floor(1000 + Math.random() * 9000)}
-
-TO:
-The Concerned Authority / Respondent,
-
-SUBJECT: DEMAND FOR IMMEDIATE COMPLIANCE & CEASE DESIST NOTICE IN RESPECT OF ${(title || "Legal Matter").toUpperCase()}
-
-Sir / Madam,
-
-Under instructions from and on behalf of our client, ${client}, we hereby serve upon you this Legal Notice:
-
-1. That our client is a law-abiding entity/individual pursuing legitimate rights.
-2. That in respect of "${title}", your failure to act in accordance with statutory mandates has caused severe legal prejudice.
-3. YOU ARE HEREBY CALLED UPON to perform the required statutory compliance within 15 DAYS of receipt of this notice, failing which our client will institute appropriate civil and criminal proceedings in a Court of Law at your sole risk and expense.
-
-DATED: ${new Date().toLocaleDateString("en-IN")}
-ADVOCATE FOR PETITIONER / ICJ LEGAL PANEL`;
-    } else if (type === "Petition") {
-      draftContent = `IN THE COURT OF ${(court || "District & Sessions Court").toUpperCase()}
-WRIT PETITION NO. _______ OF ${year}
-
-IN THE MATTER OF:
-${client} ... PETITIONER
-VERSUS
-RESPONDENT UNION OF INDIA & ORS ... RESPONDENTS
-
-PETITION UNDER ARTICLE 226/227 OF THE CONSTITUTION OF INDIA FOR ISSUANCE OF A WRIT OF MANDAMUS / CERTIORARI
-
-MOST RESPECTFULLY SHOWETH:
-1. That the Petitioner is filing the present Writ Petition challenging the arbitrary actions in respect of "${title}".
-2. That the facts giving rise to the present petition are as follows:
-   (a) The Petitioner submitted representations to the concerned authorities.
-   (b) That no response or remedy was granted, violating principles of natural justice and Article 14 of the Constitution.
-3. PRAYER:
-   It is most respectfully prayed that this Hon'ble Court may be pleased to:
-   (i) Issue an appropriate writ, order or direction setting aside the impugned order;
-   (ii) Grant ad-interim ex-parte injunction during the pendency of this petition.
-
-AND FOR THIS ACT OF KINDNESS, THE PETITIONER SHALL EVER PRAY.
-FILED BY: ICJ ENTERPRISE LEGAL ECOSYSTEM PANEL`;
-    } else {
-      draftContent = `LEGAL OPINION & CASE CHRONOLOGY
-CASE TITLE: ${title}
-CLIENT: ${client}
-DATE OF ANALYSIS: ${new Date().toLocaleDateString("en-IN")}
-
-1. EXECUTIVE SUMMARY & CHRONOLOGY:
-   - Initial filing and registration completed.
-   - Primary contention revolves around enforcement of rights under Indian Law.
-
-2. LEGAL PROVISIONS & PRECEDENTS:
-   - Article 14 & 21, Constitution of India.
-   - Landmark judgment: Maneka Gandhi v. Union of India (1978 AIR 597).
-
-3. STRATEGIC RECOMMENDATION:
-   - File preliminary rejoinder and request expedited hearing date.
-
-NOTE: This draft was auto-generated by ICJ Enterprise AI Legal Assistant. Mandatory review by empaneled Advocate is required before court filing.`;
-    }
-
-    return draftContent;
   },
 };
 

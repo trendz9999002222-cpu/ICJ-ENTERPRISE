@@ -99,7 +99,7 @@ export default function MemberPersonalDashboard() {
   const officeData = VirtualOfficeService.getOfficeForMember(memberId, memberName);
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
 
         {/* 1. PERSONAL MEMBER HEADER BANNER */}
@@ -417,6 +417,6 @@ export default function MemberPersonalDashboard() {
           {toastMsg}
         </Alert>
       </Snackbar>
-    </MainLayout>
+    </>
   );
 }

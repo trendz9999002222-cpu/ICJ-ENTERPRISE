@@ -34,47 +34,25 @@ const setItem = (key, val) => {
   }
 };
 
-// Initial Seed Data if empty
-const seedDefaultData = () => {
-  if (getItem(STORAGE_KEYS.advocates).length === 0) {
-    setItem(STORAGE_KEYS.advocates, [
-      { id: "ADV-101", name: "Adv. Rajesh Sharma", barId: "MAH/1234/2012", specialization: "Constitutional & Civil Law", casesAssigned: 1, status: "Active", phone: "+91 98201 12345" },
-      { id: "ADV-102", name: "Adv. Meera Sen", barId: "DEL/5678/2015", specialization: "Corporate & Financial Law", casesAssigned: 1, status: "Active", phone: "+91 98100 54321" },
-      { id: "ADV-103", name: "Adv. Amit Varma", barId: "KAR/9012/2018", specialization: "Criminal & Human Rights", casesAssigned: 0, status: "Active", phone: "+91 97400 98765" },
-    ]);
+// One-time Purge of Stale Legacy Seed Data
+(() => {
+  try {
+    if (typeof localStorage === "undefined") return;
+    const advocates = getItem(STORAGE_KEYS.advocates);
+    if (Array.isArray(advocates) && advocates.some((a) => a.id === "ADV-101")) {
+      localStorage.removeItem(STORAGE_KEYS.advocates);
+      localStorage.removeItem(STORAGE_KEYS.cases);
+      localStorage.removeItem(STORAGE_KEYS.hearings);
+      localStorage.removeItem(STORAGE_KEYS.orders);
+      localStorage.removeItem(STORAGE_KEYS.invoices);
+      localStorage.removeItem(STORAGE_KEYS.trustApprovals);
+      localStorage.removeItem(STORAGE_KEYS.aiDrafts);
+      localStorage.removeItem("icj_client_messages");
+    }
+  } catch (err) {
+    console.error("Purge stale seed data error:", err);
   }
-
-  if (getItem(STORAGE_KEYS.cases).length === 0) {
-    setItem(STORAGE_KEYS.cases, [
-      {
-        id: "CASE-2026-001",
-        caseNumber: "WP/2026/1042",
-        title: "Public Interest Litigation: Environment Conservation Trust vs Union of India",
-        clientName: "Green Earth Trust",
-        advocateName: "Adv. Rajesh Sharma",
-        advocateId: "ADV-101",
-        courtName: "High Court of Judicature",
-        status: "In Hearing",
-        trustApprovalStatus: "Approved",
-        nextHearing: "2026-08-20",
-        filingDate: "2026-01-15",
-        summary: "Public interest litigation seeking environmental protection orders.",
-        missingDocs: [],
-        legalProvisions: ["Article 21 (Right to Clean Environment)"],
-        feeAmount: 45000,
-        paidAmount: 30000,
-      },
-    ]);
-  }
-
-  if (getItem(STORAGE_KEYS.hearings).length === 0) {
-    setItem(STORAGE_KEYS.hearings, [
-      { id: "H-1", caseId: "CASE-2026-001", caseTitle: "PIL: Environment Conservation", hearingDate: "2026-08-20", court: "High Court Bench 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Final Arguments", status: "Scheduled" },
-    ]);
-  }
-};
-
-seedDefaultData();
+})();
 
 export const LegalEcosystemService = {
   // Case CRUD

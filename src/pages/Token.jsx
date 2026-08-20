@@ -443,7 +443,7 @@ export default function Token() {
             <Alert severity="info" icon={<GavelIcon />}>
               Only Super Admin can mint tokens. All minting is recorded in the immutable ledger. Tokens are issued as charitable trust utility credits — NOT financial instruments.
             </Alert>
-            <TextField fullWidth label="Recipient Member ID" value={mintForm.toMemberId} onChange={(e) => setMintForm((p) => ({ ...p, toMemberId: e.target.value }))} placeholder="e.g. 26ICJ08AA0001" />
+            <TextField fullWidth label="Recipient Member ID" value={mintForm.toMemberId} onChange={(e) => setMintForm((p) => ({ ...p, toMemberId: e.target.value }))} placeholder="e.g. ICJ-2026-MEM-0001" />
             <TextField fullWidth type="number" label="Number of Tokens to Mint" value={mintForm.amount} onChange={(e) => setMintForm((p) => ({ ...p, amount: e.target.value }))} />
             <TextField fullWidth select label="Token Type" value={mintForm.tokenType} onChange={(e) => setMintForm((p) => ({ ...p, tokenType: e.target.value }))}>
               {Object.entries(TOKEN_TYPES).filter(([, v]) => ["WORK_REWARD", "CAMPAIGN_EARN", "DONOR_GRANT", "WELCOME_DEMO"].includes(v)).map(([k, v]) => (

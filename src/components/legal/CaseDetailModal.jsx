@@ -75,28 +75,19 @@ export default function CaseDetailModal({ open = false, caseItem = null, userRol
         priority: caseItem.priority || "High",
         category: caseItem.category || "Constitutional",
         remarks: caseItem.remarks || caseItem.summary || "Case under active judicial review.",
-        judgeName: caseItem.judgeName || "Hon'ble Justice A.K. Roy",
-        courtHall: caseItem.courtHall || "Court Hall No. 3",
-        createdBy: caseItem.createdBy || "Super Admin",
+        judgeName: caseItem.judgeName || caseItem.judge || "Not Assigned",
+        courtHall: caseItem.courtHall || caseItem.courtName || "High Court Bench",
+        createdBy: caseItem.createdBy || "System Administrative Governance",
         createdAt: caseItem.createdAt || caseItem.created_at || new Date().toISOString(),
       });
 
       setParties(caseItem.parties || [
-        { id: "p1", role: "Petitioner", name: caseItem.clientName || caseItem.client_name || "Environment Conservation Trust", contact: "+91 9876543210", advocate: caseItem.advocateName || caseItem.advocate_name || "Adv. Rajesh Sharma" },
-        { id: "p2", role: "Respondent", name: "Union of India & Ors.", contact: "govt.counsel@gov.in", advocate: "Standing Counsel, Supreme Court" },
-        { id: "p3", role: "Government Authority", name: "Ministry of Environment, Forest and Climate Change", contact: "moefcc@gov.in", advocate: "Additional Solicitor General" },
+        { id: "p1", role: "Petitioner", name: caseItem.clientName || caseItem.client_name || "Petitioner Client", contact: caseItem.clientPhone || "N/A", advocate: caseItem.advocateName || caseItem.advocate_name || "Empaneled Counsel" },
+        { id: "p2", role: "Respondent", name: caseItem.respondentName || "Respondent Party", contact: "N/A", advocate: caseItem.respondentAdvocate || "Counsel" },
       ]);
 
-      setDocuments(caseItem.documents || [
-        { id: "d1", title: "Writ Petition Pleadings.pdf", fileType: "PDF", hash: "SHA256-8F9B1A2C3D4E5F6", version: "v1.0", tags: "#Pleadings #Writ", verified: true },
-        { id: "d2", title: "Environmental Audit Report.xlsx", fileType: "Excel", hash: "SHA256-1A2B3C4D5E6F7A8", version: "v1.1", tags: "#Evidence #Report", verified: true },
-        { id: "d3", title: "High Court Interim Order.pdf", fileType: "PDF", hash: "SHA256-9E8D7C6B5A4F3E2", version: "v2.0", tags: "#CourtOrder", verified: true },
-      ]);
-
-      setHearings(caseItem.hearings || [
-        { id: "h1", date: caseItem.nextHearing || "2026-08-25", courtHall: "Court Hall 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Final Arguments & Interim Relief", status: "Scheduled" },
-        { id: "h2", date: "2026-07-10", courtHall: "Court Hall 3", judge: "Hon'ble Justice A.K. Roy", purpose: "Pleadings Verification & Notice Issuance", status: "Completed" },
-      ]);
+      setDocuments(Array.isArray(caseItem.documents) ? caseItem.documents : []);
+      setHearings(Array.isArray(caseItem.hearings) ? caseItem.hearings : []);
     }
   }, [caseItem]);
 

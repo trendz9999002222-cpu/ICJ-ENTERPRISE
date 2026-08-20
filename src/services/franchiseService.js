@@ -17,7 +17,7 @@ const DEFAULT_FRANCHISEES = [
     district: "Lucknow",
     city: "Lucknow",
     pincodes: ["226001", "226002", "226010", "226012", "226016", "226020"],
-    headName: "Sh. Alok Nath Verma (Branch Director)",
+    headName: "District Branch Director",
     email: "lucknow.branch@icj.org",
     phone: "+91 94150 11223",
     status: "Active",

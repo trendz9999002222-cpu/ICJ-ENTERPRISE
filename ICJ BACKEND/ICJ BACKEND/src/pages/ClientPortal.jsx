@@ -52,6 +52,9 @@ import VirtualOfficeService, { DEFAULT_COURT_OFFICES, DEFAULT_RANKED_SPECIALIZAT
 import { getDocuments, addDocument } from "../services/database.js";
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
+import SmartStepGuideBanner from "../components/common/SmartStepGuideBanner.jsx";
+import VoiceToDocumentEngine from "../services/voiceToDocumentEngine.js";
+import LanguageService from "../services/languageService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import useAuth from "../hooks/useAuth.js";
 
@@ -284,6 +287,12 @@ export default function ClientPortal() {
   return (
     <MainLayout>
       <Box sx={{ p: 3 }}>
+        <SmartStepGuideBanner
+          statusKey="guidePortalStatus"
+          nextKey="guidePortalNext"
+          audioKey="audioPortal"
+        />
+
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Box>
             <Typography variant="h4" fontWeight="bold">

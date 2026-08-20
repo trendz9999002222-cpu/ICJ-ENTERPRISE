@@ -50,14 +50,14 @@ export default function EscrowWaterfallPanel() {
       payoutDistributed: false,
     },
     {
-      id: "CASE-8842",
-      clientName: "Vikram Singh",
-      advocateName: "Adv. Meera Sen",
+      id: "ICJ-2026-CASE-8842",
+      clientName: "Litigant Member",
+      advocateName: "Empaneled Senior Advocate",
       category: "Property / Land Dispute",
       escrowAmount: 236000,
       initialPaid: 36000,
       fundingRequired: 200000,
-      investorId: "INV-9011",
+      investorId: "ICJ-2026-INV-9011",
       status: "LIEN_HELD",
       payoutDistributed: false,
     }

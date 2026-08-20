@@ -26,9 +26,9 @@ import ConsultationRecordingService from "../../services/consultationRecordingSe
 export default function AudioConsultationModal({
   open,
   onClose,
-  advocateName = "Adv. Vikramaditya Singh",
-  advocateRole = "Assigned Senior Advocate",
-  clientName = "Ramesh Kumar",
+  advocateName = "Assigned Counsel",
+  advocateRole = "Senior Advocate",
+  clientName = "Litigant Client",
 }) {
   const [micActive, setMicActive] = useState(true);
   const [callDuration, setCallDuration] = useState(0);

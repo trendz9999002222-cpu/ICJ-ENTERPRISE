@@ -19,7 +19,7 @@ import useAuth from "../hooks/useAuth";
 
 export default function Campaigns() {
   const { user } = useAuth();
-  const memberId = user?.member_id || user?.id || "26ICJ08AA0001";
+  const memberId = user?.member_id || user?.id || "ICJ-2026-MEM-0001";
   const memberName = user?.name || "ICJ Member";
 
   const [campaigns, setCampaigns] = useState([]);

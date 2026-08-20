@@ -82,9 +82,9 @@ export const ClientWorkflowService = {
 
     // Auto-generate Legal Case Record in icj_legal_cases_v2
     const legalCases = getLegalCases();
-    const caseNumber = `CASE-2026-${String(legalCases.length + 101).padStart(3, "0")}`;
+    const caseNumber = `ICJ-2026-CASE-${String(legalCases.length + 1001).padStart(4, "0")}`;
     const newLegalCase = {
-      id: `CASE-${Date.now()}`,
+      id: `ICJ-2026-CASE-${Date.now().toString().slice(-6)}`,
       caseNumber,
       title: `${caseCategory || "General"} Litigation Matter: ${clientName || "Litigant"}`,
       clientName: clientName || "Litigant",

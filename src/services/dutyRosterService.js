@@ -143,9 +143,9 @@ export const DutyRosterService = {
   getActiveDutyRoster() {
     return [
       {
-        id: "DUTY-ADV-01",
-        userId: "26ICJ08AA0105",
-        name: "Adv. Vikramaditya Singh",
+        id: "ICJ-2026-DUTY-ADV-01",
+        userId: "ICJ-2026-MEM-0105",
+        name: "Empaneled Duty Advocate",
         role: "Duty Advocate",
         region: "Delhi & NCR",
         phone: "+91 9810123456",
@@ -156,9 +156,9 @@ export const DutyRosterService = {
         dutyStatus: "ON_DUTY",
       },
       {
-        id: "DUTY-NOTARY-01",
-        userId: "26ICJ08AA0107",
-        name: "Adv. Rajeshwar Sharma (Notary Public)",
+        id: "ICJ-2026-DUTY-NOTARY-01",
+        userId: "ICJ-2026-MEM-0107",
+        name: "Empaneled Notary Officer",
         role: "Duty Notary",
         region: "Uttar Pradesh & Noida",
         phone: "+91 9818765432",

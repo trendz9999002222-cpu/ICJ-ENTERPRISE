@@ -65,7 +65,7 @@ export default function SuperAdminDashboard() {
   // SLA & Notification State
   const [slaMins, setSlaMins] = useState(DutyRosterService.getSLATimerMinutes());
   const [popupAlert, setPopupAlert] = useState(null);
-  const [selectedAdvocateId, setSelectedAdvocateId] = useState("26ICJ08AA0105");
+  const [selectedAdvocateId, setSelectedAdvocateId] = useState("ICJ-2026-MEM-0105");
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleString("en-IN", {
     weekday: "short",
@@ -104,7 +104,7 @@ export default function SuperAdminDashboard() {
       if (members.length > 0) {
         const latest = members[0];
         setPopupAlert({
-          memberId: latest.member_id || latest.id || "26ICJ08AA0001",
+          memberId: latest.member_id || latest.id || "ICJ-2026-MEM-0001",
           name: latest.name || latest.fullName || "New Litigant Applicant",
           purpose: latest.purpose || "Legal Dispute Resolution",
           registeredAt: latest.created_at || new Date().toISOString(),
@@ -181,7 +181,7 @@ export default function SuperAdminDashboard() {
   ];
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
 
         {/* 🔔 FLOATING HIGH-PRIORITY POPUP ALERT BANNER (WITH WEB AUDIO BELL CHIME & SLA TIMER) */}
@@ -241,9 +241,9 @@ export default function SuperAdminDashboard() {
                       }
                     }}
                   >
-                    <MenuItem value="26ICJ08AA0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
+                    <MenuItem value="ICJ-2026-MEM-0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
                     <MenuItem value="26ICJ08AA0106" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Meenakshi Sundaram (AoR SC)</MenuItem>
-                    <MenuItem value="26ICJ08AA0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
+                    <MenuItem value="ICJ-2026-MEM-0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
                     <MenuItem value="26ICJ08AA0108" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Ananya Roy (WB HC)</MenuItem>
                     <MenuItem value="26ICJ08AA0109" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Gurpreet Singh (Punjab HC)</MenuItem>
                   </TextField>
@@ -427,41 +427,42 @@ export default function SuperAdminDashboard() {
                         </Box>
 
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          <Button
-                            variant="contained"
-                            size="small"
-                            color="primary"
-                            startIcon={<GavelIcon />}
-                            onClick={() => {
-                              ClientWorkflowService.appointAdvocate({
-                                requestId: req.requestId,
-                                advocateId: "ADV-101",
-                                advocateName: "Adv. Rajesh Sharma",
-                                adminUsername: user?.username || "Admin",
-                              });
-                              alert(`✅ Appointed Adv. Rajesh Sharma for ${req.clientName}!`);
-                              window.location.reload();
-                            }}
-                          >
-                            🤝 Appoint Adv. Rajesh Sharma
-                          </Button>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            color="secondary"
-                            onClick={() => {
-                              ClientWorkflowService.appointAdvocate({
-                                requestId: req.requestId,
-                                advocateId: "ADV-102",
-                                advocateName: "Adv. Meera Sen",
-                                adminUsername: user?.username || "Admin",
-                              });
-                              alert(`✅ Appointed Adv. Meera Sen for ${req.clientName}!`);
-                              window.location.reload();
-                            }}
-                          >
-                            🤝 Appoint Adv. Meera Sen
-                          </Button>
+                          {(() => {
+                            const empaneledAdvocates = LegalEcosystemService.getAdvocates();
+                            if (empaneledAdvocates.length === 0) {
+                              return (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  color="warning"
+                                  onClick={() => alert("No empaneled advocates registered in ecosystem. Please register an advocate first.")}
+                                >
+                                  ⚠️ No Advocates Available
+                                </Button>
+                              );
+                            }
+                            return empaneledAdvocates.slice(0, 3).map((adv) => (
+                              <Button
+                                key={adv.id}
+                                variant="contained"
+                                size="small"
+                                color="primary"
+                                startIcon={<GavelIcon />}
+                                onClick={() => {
+                                  ClientWorkflowService.appointAdvocate({
+                                    requestId: req.requestId,
+                                    advocateId: adv.id,
+                                    advocateName: adv.name,
+                                    adminUsername: user?.username || "Admin",
+                                  });
+                                  alert(`✅ Appointed ${adv.name} for ${req.clientName}!`);
+                                  window.location.reload();
+                                }}
+                              >
+                                🤝 Appoint {adv.name}
+                              </Button>
+                            ));
+                          })()}
                         </Stack>
                       </Stack>
                     </Box>
@@ -598,6 +599,6 @@ export default function SuperAdminDashboard() {
         </Grid>
 
       </Box>
-    </MainLayout>
+    </>
   );
 }

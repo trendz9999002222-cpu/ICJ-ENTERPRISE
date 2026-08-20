@@ -35,20 +35,6 @@ function MainLayout({ children }) {
           </GlobalErrorBoundary>
         </Box>
         <MobileBottomNav />
-
-        <Box
-          component="footer"
-          sx={{
-            textAlign: "center",
-            py: 2,
-            bgcolor: "#ffffff",
-            borderTop: "1px solid #e5e7eb",
-          }}
-        >
-          <Typography variant="body2">
-            © 2026 International Consortium of Jurists
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

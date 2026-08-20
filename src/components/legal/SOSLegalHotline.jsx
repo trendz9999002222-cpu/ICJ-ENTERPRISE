@@ -16,7 +16,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import PhoneInTalkIcon from "@mui/icons-material/PhoneInTalk";
 import NotificationRoutingService from "../../services/notificationRoutingService.js";
 
-function SOSLegalHotline({ currentUserId = "26ICJ08AA0001", currentUserName = "Litigant" }) {
+function SOSLegalHotline({ currentUserId = "ICJ-2026-MEM-0001", currentUserName = "Litigant" }) {
   const [emergencyType, setEmergencyType] = useState("ARREST_BAIL");
   const [district, setDistrict] = useState("Lucknow District");
   const [phone, setPhone] = useState("9876543210");

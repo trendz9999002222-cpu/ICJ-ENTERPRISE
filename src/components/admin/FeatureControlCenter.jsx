@@ -161,7 +161,7 @@ function FeatureControlCenter() {
               <TextField
                 fullWidth
                 size="small"
-                label="Target User ID (e.g. 26ICJ08AA0001)"
+                label="Target User ID (e.g. ICJ-2026-MEM-0001)"
                 value={searchUserId}
                 onChange={(e) => setSearchUserId(e.target.value)}
                 sx={{

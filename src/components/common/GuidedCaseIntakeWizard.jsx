@@ -187,7 +187,7 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={8}>
                 <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
-                  आवंटित ICJ वकील: {activeAdvocate ? activeAdvocate.name : "Adv. Rajesh Sharma (High Court Empanelled)"}
+                  आवंटित ICJ वकील: {activeAdvocate ? activeAdvocate.name : "Empaneled Legal Counsel (High Court)"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
                   आपके केस का AI निदान और वकालत रणनीति तैयार है।

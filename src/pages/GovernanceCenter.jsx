@@ -37,6 +37,7 @@ import {
 import ActivityService from "../services/activityService";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import StatutoryComplianceService from "../services/statutoryComplianceService.js";
+import useAuth from "../hooks/useAuth.js";
 
 // ─── Helpers ────────────────────────────────────────────────
 function TabPanel({ children, value, index }) {
@@ -59,6 +60,7 @@ function StatusChip({ val }) {
 
 // ─────────────────────────────────────────────────────────────
 export default function GovernanceCenter() {
+  const { user } = useAuth();
   const [tab, setTab]               = useState(0);
   const [alertMsg, setAlertMsg]     = useState("");
   const [alertSev, setAlertSev]     = useState("success");
@@ -297,7 +299,7 @@ export default function GovernanceCenter() {
                     documentTitle: "Digital Case Petition File",
                     fileName: "Signed_Plaint_Dossier_2026.pdf",
                     sha256Hash: "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
-                    clientName: "Ramesh Kumar",
+                    clientName: user?.fullName || user?.name || "Empaneled Member",
                     courtName: "High Court of Judicature",
                   });
                   alert(cert);

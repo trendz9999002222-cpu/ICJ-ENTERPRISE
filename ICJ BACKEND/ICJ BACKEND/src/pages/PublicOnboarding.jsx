@@ -41,6 +41,8 @@ import SecurityIcon   from "@mui/icons-material/Security";
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
+import SmartStepGuideBanner from "../components/common/SmartStepGuideBanner.jsx";
+import LanguageService from "../services/languageService.js";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService, { persistLocalUser } from "../services/authService";
@@ -516,6 +518,12 @@ Thank you for registering with ICJ Enterprise Platform.
         {/* STAGE 1 : FORM */}
         {stage === "FORM" && (
           <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+            <SmartStepGuideBanner
+              statusKey="guideOnboardingStatus"
+              nextKey="guideOnboardingNext"
+              audioKey="audioOnboarding"
+            />
+
             <Stack direction="row" alignItems="center" sx={{ borderBottom: "2px solid", borderColor: "primary.main", pb: 1, mb: 3 }}>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
                 Applicant Basic Details

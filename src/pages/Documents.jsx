@@ -46,6 +46,7 @@ import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import DocumentService from "../services/documentService";
 import ActivityService from "../services/activityService";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
+import useAuth from "../hooks/useAuth";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -60,6 +61,7 @@ const FILE_TYPES = ["PDF", "DOC/DOCX", "XLS/XLSX", "PPT/PPTX", "TXT", "Images", 
 const WORKFLOW_STAGES = ["Draft", "Review", "Approved", "Signed", "Published", "Archived"];
 
 export default function Documents() {
+  const { user } = useAuth();
   const [tabIndex, setTabIndex] = useState(0);
   const [documents, setDocuments] = useState([]);
   const [search, setSearch] = useState("");
@@ -129,7 +131,7 @@ export default function Documents() {
     category: "Legal Pleadings",
     department: "Legal Affairs",
     moduleMapping: "Legal Registry",
-    owner: "Adv. Rajesh Sharma",
+    owner: user?.fullName || user?.name || "Authorized Counsel",
     retention: "7 Years Legal Hold",
     tags: "#Pleadings #Writ",
   });
@@ -183,7 +185,7 @@ export default function Documents() {
       category: "Legal Pleadings",
       department: "Legal Affairs",
       moduleMapping: "Legal Registry",
-      owner: "Adv. Rajesh Sharma",
+      owner: user?.fullName || user?.name || "Authorized Counsel",
       retention: "7 Years Legal Hold",
       tags: "#Pleadings #Writ",
     });
@@ -348,7 +350,7 @@ export default function Documents() {
                       <Chip label={d.fileType || "PDF"} size="small" color="primary" variant="outlined" />
                       <Typography variant="caption" display="block" color="text.secondary">{d.category || "Legal Pleadings"}</Typography>
                     </TableCell>
-                    <TableCell>{d.owner || "Adv. Rajesh Sharma"}</TableCell>
+                    <TableCell>{d.owner || user?.fullName || user?.name || "Empaneled Member"}</TableCell>
                     <TableCell><Chip label={d.workflow || "Approved"} color="success" size="small" /></TableCell>
                     <TableCell sx={{ fontFamily: "monospace", fontSize: "11px" }}>{d.hash || "SHA256-DOC-2026-ENCRYPTED"}</TableCell>
                     <TableCell align="right">
@@ -478,9 +480,9 @@ export default function Documents() {
             </TableHead>
             <TableBody>
               <TableRow>
-                <TableCell sx={{ fontFamily: "monospace" }}>ICJ-DOC-9811</TableCell>
+                <TableCell sx={{ fontFamily: "monospace" }}>ICJ-2026-DOC-9811</TableCell>
                 <TableCell>Document Vaulted & SHA-256 Hash Generated</TableCell>
-                <TableCell>Adv. Rajesh Sharma (admin)</TableCell>
+                <TableCell>{user?.fullName || user?.name || "Empaneled Admin"}</TableCell>
                 <TableCell>{new Date().toLocaleString("en-IN")}</TableCell>
               </TableRow>
             </TableBody>

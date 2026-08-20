@@ -24,7 +24,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Paper from "@mui/material/Paper";
 import ConsultationRecordingService from "../../services/consultationRecordingService.js";
 
-export default function VideoConsultationModal({ open, onClose, advocateName = "Adv. Vikramaditya Singh", advocateRole = "Assigned Senior Advocate", clientName = "Ramesh Kumar" }) {
+export default function VideoConsultationModal({ open, onClose, advocateName = "Assigned Counsel", advocateRole = "Senior Advocate", clientName = "Litigant Client" }) {
   const localVideoRef = useRef(null);
   const [stream, setStream] = useState(null);
   const [micActive, setMicActive] = useState(true);

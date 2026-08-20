@@ -49,60 +49,7 @@ const DEFAULT_COUPONS = {
   TRUSTFREE: { code: "TRUSTFREE", discountPercent: 100, maxDiscount: 50000, active: true },
 };
 
-// Initial Seed Data
-const seedInitialData = () => {
-  if (getItem(KEYS.invoices).length === 0) {
-    setItem(KEYS.invoices, [
-      {
-        invoiceNo: "INV-2026-101",
-        caseId: "CASE-2026-001",
-        caseTitle: "Public Interest Litigation: Environment Conservation",
-        clientName: "Green Earth Conservation Trust",
-        clientId: "CL-101",
-        advocateName: "Adv. Rajesh Sharma",
-        advocateId: "ADV-101",
-        feeBreakdown: {
-          caseFee: 30000,
-          aiProcessingFee: 2000,
-          documentAnalysisFee: 3000,
-          advocateConsultationFee: 5000,
-          draftingFee: 3000,
-          courtAppearanceFee: 2000,
-          miscellaneous: 0,
-        },
-        subtotal: 45000,
-        discountAmount: 4500,
-        couponCode: "ICJEARLY10",
-        taxableAmount: 40500,
-        gstAmount: 7290, // 18% GST
-        totalAmount: 47790,
-        paidAmount: 47790,
-        outstandingBalance: 0,
-        status: "Paid",
-        createdAt: "2026-08-01T10:00:00.000Z",
-      },
-    ]);
-  }
-
-  if (getItem(KEYS.transactions).length === 0) {
-    setItem(KEYS.transactions, [
-      {
-        transactionId: "TXN-UPI-982173981273",
-        invoiceNo: "INV-2026-101",
-        caseId: "CASE-2026-001",
-        clientName: "Green Earth Conservation Trust",
-        amount: 47790,
-        paymentMethod: "BHIM UPI / Google Pay",
-        gateway: "Razorpay / UPI Direct",
-        status: "Success",
-        gatewayRef: "PAY-RAZOR-991122",
-        timestamp: "2026-08-01T10:05:00.000Z",
-      },
-    ]);
-  }
-};
-
-seedInitialData();
+// Seed function removed — empty state default
 
 export const PaymentBillingService = {
   /**

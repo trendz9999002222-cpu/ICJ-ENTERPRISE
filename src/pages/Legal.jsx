@@ -91,7 +91,7 @@ export default function Legal() {
       return;
     }
 
-    const newId = `ICJ-CASE-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    const newId = `ICJ-2026-CASE-${Math.floor(10000 + Math.random() * 90000)}`;
     const newCaseNumber = form.caseNumber || `WP(C)/${Math.floor(1000 + Math.random() * 9000)}/2026`;
 
     const payload = {
@@ -370,7 +370,7 @@ export default function Legal() {
             ) : (
               filteredCases.map((item) => {
                 const caseId = item.caseId || item.id;
-                const caseNo = item.caseNumber || item.case_number || "WP/2026/1042";
+                const caseNo = item.caseNumber || item.case_number || "CS/2026/L";
 
                 return (
                   <TableRow key={caseId} hover>

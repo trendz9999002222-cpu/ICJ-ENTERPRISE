@@ -18,8 +18,8 @@ import MultiPartyConferenceRoom from "../components/legal/MultiPartyConferenceRo
 
 export default function VirtualOffice() {
   const { user } = useAuth();
-  const memberId = user?.member_id || user?.id || "26ICJ08AA0001";
-  const memberName = user?.name || "Advocate Pawan Kumar";
+  const memberId = user?.member_id || user?.id || "ICJ-2026-MEM-0001";
+  const memberName = user?.fullName || user?.name || "Empaneled Advocate";
 
   const [office, setOffice] = useState(null);
 
@@ -168,8 +168,8 @@ export default function VirtualOffice() {
         {/* LIVE MULTI-PARTY WEBRTC VIDEO/AUDIO CONSULTATION CHAMBER */}
         <Box sx={{ mb: 4 }}>
           <MultiPartyConferenceRoom
-            caseId="CASE-2026-001"
-            clientName="Sh. Ramesh Kumar Verma"
+            caseId="CASE-LIVE-CHAMBER"
+            clientName="Litigant Client"
             advocateName={memberName}
             currentUserId={memberId}
           />

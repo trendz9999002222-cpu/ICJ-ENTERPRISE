@@ -37,7 +37,7 @@ export default function SystemHealth() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: { xs: 2, md: 3 } }}>
         {/* Header */}
         <Paper
@@ -171,6 +171,6 @@ export default function SystemHealth() {
           </Grid>
         </Paper>
       </Box>
-    </MainLayout>
+    </>
   );
 }

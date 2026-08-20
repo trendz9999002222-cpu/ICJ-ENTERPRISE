@@ -153,7 +153,7 @@ export const MatterIntelligenceService = {
 
   /**
    * Parse Spoken Voice Corrections (Voice Speech Entity Parser)
-   * Example spoken text: "Correct litigant name to Sh. Ramesh Kumar Verma, address to Flat 402 Sector 14 Lucknow"
+   * Example spoken text: "Correct litigant name and update address details"
    */
   parseVoiceCorrection(spokenText, existingMetadata = {}) {
     const clean = String(spokenText).trim();

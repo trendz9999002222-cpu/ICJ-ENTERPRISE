@@ -16,9 +16,9 @@ export const FeeSettlementPolicyService = {
       return raw ? JSON.parse(raw) : [
         {
           id: "SETTLE-2001",
-          advocateName: "Adv. Rajesh Sharma",
+          advocateName: "Empaneled Senior Counsel",
           advocateRegNo: "D/1024/2012",
-          clientName: "Ramesh Kumar",
+          clientName: "Empaneled Litigant",
           totalFeeReceived: 25000,
           platformTechShare: 2500,
           status: "PAID",

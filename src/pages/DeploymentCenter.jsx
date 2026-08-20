@@ -41,7 +41,7 @@ export default function DeploymentCenter() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: { xs: 2, md: 3 } }}>
         {/* Header */}
         <Paper
@@ -217,6 +217,6 @@ export default function DeploymentCenter() {
           </Table>
         </Paper>
       </Box>
-    </MainLayout>
+    </>
   );
 }

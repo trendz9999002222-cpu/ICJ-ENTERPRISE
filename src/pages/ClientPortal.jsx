@@ -47,6 +47,9 @@ import MicIcon from "@mui/icons-material/Mic";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SecurityIcon from "@mui/icons-material/Security";
+import PersonIcon from "@mui/icons-material/Person";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import VideoCallIcon from "@mui/icons-material/VideoCall";
 import ClientEmpowermentService from "../services/clientEmpowermentService.js";
 
 import LegalEcosystemService from "../services/legalEcosystemService.js";
@@ -80,8 +83,8 @@ function TabPanel(props) {
 
 export default function ClientPortal() {
   const { user } = useAuth();
-  const clientName = user?.fullName || user?.name || "Sh. Ramesh Kumar";
-  const memberId = user?.memberId || user?.id || "MEM-LKO-9812";
+  const clientName = user?.fullName || user?.name || "Litigant Client";
+  const memberId = user?.memberId || user?.id || "ICJ-2026-MEM-0001";
 
   const [tabIndex, setTabIndex] = useState(0);
   const [activePortalCaseId, setActivePortalCaseId] = useState("");
@@ -133,7 +136,7 @@ export default function ClientPortal() {
 
   // Appointment Form
   const [aptForm, setAptForm] = useState({
-    advocateName: "Adv. Rajesh Sharma",
+    advocateName: "Empaneled Legal Counsel",
     date: new Date().toISOString().slice(0, 10),
     time: "10:30 AM",
     mode: "Video Conference",
@@ -382,13 +385,13 @@ export default function ClientPortal() {
     // Simulate OCR text extraction for AI Analysis
     let mockText = "";
     if (docUploadForm.category === "Agreement/Contract") {
-      mockText = `LEASE DEED AGREEMENT: This lease deed is made on 12-May-2026 between Pooja Verma (Lessor) and Ramesh Kumar (Lessee) for the residential property located at Gomti Nagar, Lucknow. The lease is for 11 months with monthly rent of ₹18,000 and security deposit of ₹36,000.`;
+      mockText = `LEASE DEED AGREEMENT: Lease agreement executed between Lessor and Lessee for residential property. The lease is for 11 months with monthly rent of ₹18,000 and security deposit of ₹36,000.`;
     } else if (docUploadForm.category === "FIR" || docUploadForm.name.toLowerCase().includes("fir")) {
-      mockText = `FIRST INFORMATION REPORT (Section 154 CrPC): FIR No. 412/2026 registered at Gomti Nagar Police Station on 10-Jun-2026. Complainant: Pooja Verma. Accused: Ramesh Kumar. Offence under IPC Sections 420 and 406 (Cheating and Criminal Breach of Trust). Details of incident on 15-May-2026.`;
+      mockText = `FIRST INFORMATION REPORT (Section 154 CrPC): FIR registered at Police Station under IPC Sections 420 and 406 (Cheating and Criminal Breach of Trust).`;
     } else if (docUploadForm.category === "Legal Notice" || docUploadForm.name.toLowerCase().includes("notice")) {
-      mockText = `LEGAL NOTICE FOR RECOVERY: Sent on 14-Jul-2026 by Advocate Rajesh Sharma on behalf of client Pooja Verma to noticee Ramesh Kumar. Demanding payment of outstanding balance amount of ₹35,000 within 15 days from receipt of this notice.`;
+      mockText = `LEGAL NOTICE FOR RECOVERY: Sent by Empaneled Legal Counsel on behalf of client to noticee. Demanding payment of outstanding balance amount within 15 days from receipt of this notice.`;
     } else {
-      mockText = `LEGAL PLEADING SHEET: In the Court of District Judge, Lucknow. Suit No. CS-9812/2026. Pooja Verma v. Ramesh Kumar. Next hearing listed on 20-Aug-2026. Matter relates to breach of commercial agreement signed on 15-Jan-2026.`;
+      mockText = `LEGAL PLEADING SHEET: In the Court of District Judge. Suit No. ICJ-2026-CS-9812. Litigant v. Respondent. Matter relates to breach of commercial agreement.`;
     }
 
     if (targetCaseId && targetCaseId !== "GENERAL") {
@@ -459,7 +462,7 @@ export default function ClientPortal() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         {/* GLOBAL LEGAL JURISDICTION SELECTOR BAR (INDIA, US, UK, EU) */}
         <Paper elevation={1} className="bigtech-card glass-card" sx={{ p: 1.5, mb: 3, borderRadius: 2.5, bgcolor: "#0f172a", color: "#fff" }}>
@@ -597,7 +600,7 @@ export default function ClientPortal() {
           activeAdvocate={activeAdvocate}
           onCompleteCaseIntake={({ problemText, caseCategory }) => {
             setAiProbText(problemText);
-            setAiCaseCategory(caseCategory);
+            setAiCaseCat(caseCategory); // ← PERMANENT FIX: was incorrectly named setAiCaseCategory
             setAlertMsg("🟢 4-Step Case Intake Completed & Submitted for Legal Counsel & AI Diagnosis!");
             setTimeout(() => setAlertMsg(""), 4000);
           }}
@@ -759,7 +762,7 @@ export default function ClientPortal() {
                         fullWidth
                         size="small"
                         label="केस / CNR नंबर (Case / CNR No.)"
-                        placeholder="उदा. UPHC-01-004812-2024"
+                        placeholder="उदा. ICJ-2026-CASE-1001"
                         value={ongoingCaseNo}
                         onChange={(e) => setOngoingCaseNo(e.target.value)}
                         sx={{ mb: 1.5, bg: "#fff" }}
@@ -777,7 +780,7 @@ export default function ClientPortal() {
                         fullWidth
                         size="small"
                         label="पुराने वकील का नाम (Previous Lawyer Name)"
-                        placeholder="उदा. Adv. P.K. Verma"
+                        placeholder="उदा. Adv. Member Name"
                         value={ongoingPrevLawyer}
                         onChange={(e) => setOngoingPrevLawyer(e.target.value)}
                         sx={{ mb: 1.5, bg: "#fff" }}
@@ -836,8 +839,8 @@ export default function ClientPortal() {
                               const existing = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
                               const updatedConsultation = {
                                 ...(existing[0] || {}),
-                                consultationId: "INTAKE-2026-LIVE",
-                                clientName: clientName || "Pooja Verma (Client)",
+                                consultationId: "ICJ-2026-INTAKE-LIVE",
+                                clientName: clientName || "Empaneled Litigant Member",
                                 caseCategory: "Voice Intake & Consultation",
                                 problemText: spokenText || existing[0]?.problemText || "",
                                 voiceNotes: [...(existing[0]?.voiceNotes || []), { id: note.id, title: note.title, audioUrl: note.audioUrl, transcript: spokenText }],
@@ -1143,12 +1146,14 @@ export default function ClientPortal() {
                           variant="contained"
                           sx={{ bgcolor: "#1e3a8a", fontWeight: "bold" }}
                           onClick={() => {
+                            const available = LegalEcosystemService.getAdvocates();
+                            const targetAdv = available.length > 0 ? available[0] : (activeAdvocate || { id: "ADV-EMP-001", name: "Empaneled Legal Counsel" });
                             AiLegalConsultationService.assignAdvocate({
                               consultationId: aiDiagnosisResult.consultationId,
-                              advocateId: "ADV-101",
-                              advocateName: "Adv. Rajesh Sharma",
+                              advocateId: targetAdv.id,
+                              advocateName: targetAdv.name,
                             });
-                            alert("✅ Adv. Rajesh Sharma नियुक्त हो गए हैं! AI Legal Drafter ने कोर्ट ड्राफ्ट तैयार करके वकील को भेज दिया है।");
+                            alert(`✅ ${targetAdv.name} नियुक्त हो गए हैं! AI Legal Drafter ने कोर्ट ड्राफ्ट तैयार करके वकील को भेज दिया है।`);
                           }}
                         >
                           वकील नियुक्त करें (Assign Advocate)
@@ -1175,88 +1180,15 @@ export default function ClientPortal() {
             </Stack>
             <Divider sx={{ mb: 2 }} />
 
-            {/* 4-YEAR OLD ONGOING RESCUE CASE SHOWCASE CARD */}
-            <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 3, background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#fff" }}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
-                <Box>
-                  <Chip label="🚨 4-YEAR OLD ONGOING CASE RESCUE SHOWCASE" color="error" sx={{ fontWeight: "bold", mb: 1 }} />
-                  <Typography variant="h6" fontWeight="bold" color="#f59e0b">
-                    Sh. Ramesh Kumar vs State of UP &amp; Ors (Case #UPHC-01-004812-2022)
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                    Filing Date: 12-Apr-2022 (4 Years Ago) | Transferred to ICJ: 10-Aug-2025 (1 Year Ago)
-                  </Typography>
-                </Box>
-                <Chip label="🟢 ACTIVE IN HEARING (ICJ PROTECTED)" color="success" sx={{ fontWeight: "bold" }} />
-              </Stack>
-
-              <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
-                {/* 1. Advocate Succession */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#f59e0b" mb={1}>
-                      🧑‍⚖️ Advocate Succession Record
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#ef4444">
-                      ❌ <b>Previous Lawyer:</b> Adv. P.K. Verma (Dismissed due to 8 missed hearings &amp; ₹45,000 taken)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#10b981" sx={{ mt: 1 }}>
-                      ✅ <b>Current ICJ Lawyer:</b> Adv. Rajesh Sharma (Assigned Aug 2025 via Zero-NOC Succession Protocol)
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {/* 2. Financial & Fee Split */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#38bdf8" mb={1}>
-                      💰 Financial &amp; Fee Ledger
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#e2e8f0">
-                      • Total Billed: ₹65,000 | Paid to Escrow: <b>₹50,000</b>
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#34d399">
-                      • Released to Advocate (70%): ₹35,000
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#fbbf24">
-                      • ICJ Trust Fee (30%): ₹15,000 (80G Tax Receipt ICJ-80G-2025-9812)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#94a3b8">
-                      • ICJ Escrow Balance: 🔒 ₹15,000 HELD
-                    </Typography>
-                  </Paper>
-                </Grid>
-
-                {/* 3. Hearings Attendance & Self Representation */}
-                <Grid item xs={12} md={4}>
-                  <Paper sx={{ p: 2, bgcolor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 2 }}>
-                    <Typography variant="subtitle2" fontWeight="bold" color="#a7f3d0" mb={1}>
-                      📅 Hearings &amp; Cost Savings (12 Dates)
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#e2e8f0">
-                      • <b>Advocate Attended (Arguments):</b> 5 Hearings
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#34d399">
-                      • <b>Client Self-Attended ("अपनी वकालत खुद करें"):</b> 7 Routine Dates
-                    </Typography>
-                    <Typography variant="caption" display="block" color="#f59e0b" sx={{ mt: 0.5, fontWeight: "bold" }}>
-                      🎉 Lawyer Travel &amp; Fees Saved for Client: ₹24,500 Saved!
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
-
-              {/* Vault Docs & DRM Status */}
-              <Box sx={{ p: 1.5, bgcolor: "rgba(0,0,0,0.3)", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
-                <Typography variant="caption" color="#cbd5e1">
-                  📁 <b>Vault Documents (DRM Protected):</b> FIR_Copy_Crime_412.pdf | SaleDeed_Plot42.pdf | HighCourt_StayOrder_Jan2026.pdf
-                </Typography>
-                <Chip label="🔒 DRM PRINT LOCK ACTIVE (OTP AUTHORIZED)" size="small" color="warning" sx={{ fontWeight: "bold" }} />
-              </Box>
-            </Paper>
-
             {myCases.length === 0 ? (
-              <Typography color="text.secondary">No legal matters created yet. Click "Create Legal Matter" above to describe your problem in simple language.</Typography>
+              <Paper variant="outlined" sx={{ p: 4, textAlign: "center", borderRadius: 3, bgcolor: "#f8fafc" }}>
+                <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" gutterBottom>
+                  No active legal matters or petitions filed yet.
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Use the <b>Guided Case Intake Wizard</b> above or click <b>New Intake</b> to create your legal case.
+                </Typography>
+              </Paper>
             ) : (
               <Table size="small">
                 <TableHead>
@@ -1496,8 +1428,8 @@ export default function ClientPortal() {
               <Divider sx={{ mb: 3 }} />
 
               {(() => {
-                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "26ICJ08AA0001";
-                const advocateName = activeAdvocate?.name || "Adv. Rajesh Sharma";
+                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "ICJ-2026-MEM-0001";
+                const advocateName = activeAdvocate?.name || "Empaneled Senior Counsel";
                 const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
                 const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
                 const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
@@ -1661,7 +1593,7 @@ export default function ClientPortal() {
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell sx={{ fontFamily: "monospace" }}>INV-2026-081</TableCell>
+                  <TableCell sx={{ fontFamily: "monospace" }}>ICJ-2026-INV-1001</TableCell>
                   <TableCell>PIL Legal Representation Fee</TableCell>
                   <TableCell>₹45,000</TableCell>
                   <TableCell>₹30,000</TableCell>
@@ -2331,8 +2263,8 @@ export default function ClientPortal() {
       <VideoConsultationModal
         open={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
-        advocateName="Adv. Vikramaditya Singh"
-        advocateRole="Assigned Senior Advocate"
+        advocateName={activeAdvocate?.name || "Assigned Counsel"}
+        advocateRole="Empaneled Senior Counsel"
         clientName={clientName}
       />
 
@@ -2340,10 +2272,10 @@ export default function ClientPortal() {
       <AudioConsultationModal
         open={audioModalOpen}
         onClose={() => setAudioModalOpen(false)}
-        advocateName="Adv. Vikramaditya Singh"
-        advocateRole="Assigned Senior Advocate"
+        advocateName={activeAdvocate?.name || "Assigned Counsel"}
+        advocateRole="Empaneled Senior Counsel"
         clientName={clientName}
       />
-    </MainLayout>
+    </>
   );
 }

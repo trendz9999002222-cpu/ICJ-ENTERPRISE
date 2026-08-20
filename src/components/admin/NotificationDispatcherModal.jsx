@@ -157,7 +157,7 @@ function NotificationDispatcherModal({ open = false, onClose = () => {}, senderN
               <TextField
                 fullWidth
                 size="small"
-                label="Target User ID (e.g. 26ICJ08AA0001)"
+                label="Target User ID (e.g. ICJ-2026-MEM-0001)"
                 value={targetUserId}
                 onChange={(e) => setTargetUserId(e.target.value)}
                 sx={{

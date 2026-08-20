@@ -144,7 +144,7 @@ export default function Notifications() {
   }, [items, selectedCategory, search]);
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -252,6 +252,6 @@ export default function Notifications() {
           </List>
         </Paper>
       </Box>
-    </MainLayout>
+    </>
   );
 }

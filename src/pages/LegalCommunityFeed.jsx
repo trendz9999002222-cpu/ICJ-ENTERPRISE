@@ -116,7 +116,7 @@ export default function LegalCommunityFeed() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         {/* HEADER & LAW TRIBE BANNER */}
         <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3, borderLeft: "6px solid #10b981", bgcolor: "#f0fdf4" }}>
@@ -340,6 +340,6 @@ export default function LegalCommunityFeed() {
           </DialogActions>
         </Dialog>
       </Box>
-    </MainLayout>
+    </>
   );
 }

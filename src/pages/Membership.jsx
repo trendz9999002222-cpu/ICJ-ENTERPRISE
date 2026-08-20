@@ -311,7 +311,7 @@ export default function Membership() {
   const [batchImporterOpen, setBatchImporterOpen] = useState(false);
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: { xs: 2, md: 3 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }} flexWrap="wrap" gap={1}>
           <Box>
@@ -401,6 +401,6 @@ export default function Membership() {
           onImportSuccess={() => refreshMembers()}
         />
       </Box>
-    </MainLayout>
+    </>
   );
 }

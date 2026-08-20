@@ -84,7 +84,7 @@ export default function HelpdeskPortal() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         {/* HEADER */}
         <Paper elevation={2} className="bigtech-card glass-card" sx={{ p: 3, mb: 3, borderRadius: 3, borderLeft: "6px solid #2563eb", bgcolor: "#eff6ff" }}>
@@ -239,6 +239,6 @@ export default function HelpdeskPortal() {
           </DialogActions>
         </Dialog>
       </Box>
-    </MainLayout>
+    </>
   );
 }

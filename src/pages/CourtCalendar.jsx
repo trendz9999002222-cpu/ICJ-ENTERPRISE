@@ -39,7 +39,6 @@ import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import LegalEcosystemService from "../services/legalEcosystemService";
 import useAuth from "../hooks/useAuth";
 import ActivityService from "../services/activityService";
-import MainLayout from "../layouts/MainLayout";
 
 export default function CourtCalendar() {
   const [viewMode, setViewMode] = useState("daily"); // 'daily', 'weekly', 'monthly'
@@ -53,10 +52,10 @@ export default function CourtCalendar() {
     caseId: "",
     caseTitle: "",
     hearingDate: new Date().toISOString().slice(0, 10),
-    court: "Supreme Court Courtroom 1",
-    courtHall: "Court Hall No. 3",
-    judge: "Hon'ble Justice A.K. Roy & Hon'ble Justice S. Sen",
-    itemNo: "Item No. 14",
+    court: "High Court Bench",
+    courtHall: "Court Hall",
+    judge: "Presiding Judicial Officer",
+    itemNo: "Item No. 1",
     purpose: "Final Arguments & Stay Application",
     reminder: "2 Hours Before Hearing",
   });
@@ -140,7 +139,7 @@ export default function CourtCalendar() {
   ];
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -268,7 +267,7 @@ export default function CourtCalendar() {
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">{h.court}</Typography>
-                      <Typography variant="caption" color="text.secondary">{h.courtHall || "Court Hall 3"}</Typography>
+                      <Typography variant="caption" color="text.secondary">{h.courtHall || "Court Hall"}</Typography>
                     </TableCell>
                     <TableCell>{h.judge}</TableCell>
                     <TableCell>{h.purpose}</TableCell>
@@ -322,6 +321,6 @@ export default function CourtCalendar() {
           </DialogActions>
         </Dialog>
       </Box>
-    </MainLayout>
+    </>
   );
 }

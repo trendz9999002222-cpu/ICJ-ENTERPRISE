@@ -45,7 +45,7 @@ export default function TrustDashboard() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
           <AccountBalanceIcon color="primary" sx={{ fontSize: 36 }} />
@@ -166,6 +166,6 @@ export default function TrustDashboard() {
           </Table>
         </Paper>
       </Box>
-    </MainLayout>
+    </>
   );
 }

@@ -56,7 +56,7 @@ export default function BillingInvoicing() {
   const totalTrustShare = invoices.reduce((sum, i) => sum + i.trustShare, 0);
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
           <ReceiptIcon color="primary" sx={{ fontSize: 36 }} />
@@ -171,6 +171,6 @@ export default function BillingInvoicing() {
           </DialogActions>
         </Dialog>
       </Box>
-    </MainLayout>
+    </>
   );
 }

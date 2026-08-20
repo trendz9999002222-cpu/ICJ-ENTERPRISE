@@ -16,9 +16,9 @@ export const TrustGovernanceDirectiveService = {
       return raw ? JSON.parse(raw) : [
         {
           id: "DIR-3001",
-          advocateName: "Adv. Rajesh Sharma",
+          advocateName: "Empaneled Legal Counsel",
           advocateRegNo: "D/1024/2012",
-          clientName: "Ramesh Kumar",
+          clientName: "Empaneled Litigant",
           caseTitle: "Civil Revision Petition #2026/41",
           issue: "केस याचिका दाखिल करने में 14 दिन का विलंब (Delay in Filing)",
           directiveText: "नागरिक के कानूनी अधिकारों की रक्षा हेतु आगामी 48 घंटे के अंदर ड्राफ्टिंग पूर्ण कर कोर्ट में याचिका दाखिल करें।",

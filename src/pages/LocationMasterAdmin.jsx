@@ -75,7 +75,7 @@ export default function LocationMasterAdmin() {
   };
 
   return (
-    <MainLayout>
+    <>
       <Box sx={{ p: 3 }}>
         <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
           <LocationOnIcon color="primary" sx={{ fontSize: 36 }} />
@@ -220,6 +220,6 @@ export default function LocationMasterAdmin() {
           </Paper>
         )}
       </Box>
-    </MainLayout>
+    </>
   );
 }

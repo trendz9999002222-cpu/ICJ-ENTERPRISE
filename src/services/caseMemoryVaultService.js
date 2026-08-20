@@ -44,12 +44,10 @@ export const CaseMemoryVaultService = {
         district: "State Jurisdiction",
       },
       judgesHistory: [
-        { name: "Hon'ble Judge V.K. Shukla", period: "2022 - 2024", status: "Transferred" },
-        { name: "Hon'ble Judge A.K. Roy", period: "2024 - Present", status: "Current Presiding Officer" },
+        { name: "Presiding Judicial Officer", period: "Active", status: "Current Presiding Officer" },
       ],
       advocatesHistory: [
-        { name: "Adv. P.K. Verma", barId: "UP/4812/2010", period: "2022 - 2025", status: "Dismissed due to non-appearance" },
-        { name: "Adv. Rajesh Sharma (ICJ Empanelled)", barId: "MAH/1234/2012", period: "2025 - Present", status: "Active Lead Counsel" },
+        { name: "Empaneled Lead Counsel (ICJ Verified)", barId: "ICJ/BAR/VERIFIED", period: "Current Standing", status: "Active Lead Counsel" },
       ],
       timelineEvents: [],
       rawFactsDossier: [],
