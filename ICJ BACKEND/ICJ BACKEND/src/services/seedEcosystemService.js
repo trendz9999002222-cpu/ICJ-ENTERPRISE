@@ -14,6 +14,7 @@
  */
 
 import { hashPasswordSync } from "./passwordPolicyService.js";
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 export const MASTER_26_SEED_MEMBERS = [
   // ─── TIER 0: ROOT MASTER SUPER ADMIN ───
@@ -514,23 +515,23 @@ export const SeedEcosystemService = {
    * Guarantees that no system reset ever clears the 26 Core Master Registry!
    */
   resetAndHydrate26CoreMembers() {
-    const members = seedMembersWithCredentials();
+    const members = ENTERPRISE_SEED_USERS;
     if (typeof window === "undefined" || !window.localStorage) return members;
 
     window.localStorage.setItem("icj_members", JSON.stringify(members));
     window.localStorage.setItem("icj_enterprise_users", JSON.stringify(members));
-    console.log("⚡ [SeedEcosystemService] 26 Core Ecosystem Members Re-Hydrated Cleanly!");
+    console.log("⚡ [SeedEcosystemService] 31 Core Ecosystem Members Re-Hydrated Cleanly!");
     return members;
   },
 
   /**
-   * Get 26 Core Master Members
+   * Get 31 Core Master Members
    */
   get26CoreMembers() {
-    if (typeof window === "undefined" || !window.localStorage) return seedMembersWithCredentials();
+    if (typeof window === "undefined" || !window.localStorage) return ENTERPRISE_SEED_USERS;
     try {
       const local = JSON.parse(window.localStorage.getItem("icj_members") || "[]");
-      if (Array.isArray(local) && local.length >= 26) return local;
+      if (Array.isArray(local) && local.length >= ENTERPRISE_SEED_USERS.length) return local;
       return this.resetAndHydrate26CoreMembers();
     } catch {
       return this.resetAndHydrate26CoreMembers();

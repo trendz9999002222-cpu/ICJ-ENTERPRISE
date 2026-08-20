@@ -5,6 +5,7 @@ import {
   deleteMember,
 } from "./database.js";
 import SeedEcosystemService from "./seedEcosystemService.js";
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 const VALID_STATUSES = [
   "Draft",
@@ -126,8 +127,13 @@ export const MemberService = {
 
   async getAll() {
     const list = await getMembers();
-    if (!Array.isArray(list) || list.length === 0) {
-      return SeedEcosystemService.get26CoreMembers();
+    if (!Array.isArray(list) || list.length < ENTERPRISE_SEED_USERS.length) {
+      try {
+        if (typeof window !== "undefined" && window.localStorage) {
+          window.localStorage.setItem("icj_members", JSON.stringify(ENTERPRISE_SEED_USERS));
+        }
+      } catch (e) {}
+      return ENTERPRISE_SEED_USERS;
     }
     return list;
   },
