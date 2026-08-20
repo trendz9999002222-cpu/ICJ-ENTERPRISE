@@ -715,21 +715,6 @@ export default function ClientPortal() {
                     📝 1. अपनी समस्या या चल रहा केस दर्ज करें
                   </Typography>
                   
-                  {/* API CONFIGURATION WIDGET REDIRECT */}
-                  <Paper sx={{ p: 2, mb: 2.5, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #cbd5e1" }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography variant="body2" color="text.secondary">
-                        🌐 AI Model: <strong>{aiProvider.toUpperCase()}</strong> (
-                        {aiProvider === "openai" ? (openaiApiKey ? "Live 🟢" : "Local Mode ⚠️") :
-                         aiProvider === "anthropic" ? (anthropicApiKey ? "Live 🟢" : "Local Mode ⚠️") :
-                         (geminiApiKey ? "Live 🟢" : "Local Mode ⚠️")}
-                        )
-                      </Typography>
-                      <Button size="small" onClick={() => setTabIndex(10)} sx={{ textTransform: "none", fontWeight: "bold" }}>
-                        ⚙️ Configure Keys
-                      </Button>
-                    </Stack>
-                  </Paper>
 
                   {/* Ongoing Case vs New Case Toggle */}
                   <Stack direction="row" spacing={1} mb={2}>
