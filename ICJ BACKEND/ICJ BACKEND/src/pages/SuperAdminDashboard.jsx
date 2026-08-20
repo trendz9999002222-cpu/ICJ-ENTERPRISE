@@ -56,6 +56,7 @@ import audioAlertService from "../services/audioAlertService.js";
 import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";
 import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -65,7 +66,8 @@ export default function SuperAdminDashboard() {
   // SLA & Notification State
   const [slaMins, setSlaMins] = useState(DutyRosterService.getSLATimerMinutes());
   const [popupAlert, setPopupAlert] = useState(null);
-  const [selectedAdvocateId, setSelectedAdvocateId] = useState("ICJ-2026-MEM-0105");
+  const [selectedAdvocateId, setSelectedAdvocateId] = useState("26ICJ08AA0003");
+  const empaneledAdvocates = ENTERPRISE_SEED_USERS.filter((u) => u.role === "advocate" || u.user_type === "advocate");
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleString("en-IN", {
     weekday: "short",
@@ -241,11 +243,11 @@ export default function SuperAdminDashboard() {
                       }
                     }}
                   >
-                    <MenuItem value="ICJ-2026-MEM-0105" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Vikramaditya Singh (Delhi HC)</MenuItem>
-                    <MenuItem value="26ICJ08AA0106" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Meenakshi Sundaram (AoR SC)</MenuItem>
-                    <MenuItem value="ICJ-2026-MEM-0107" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Rajeshwar Sharma (UP HC)</MenuItem>
-                    <MenuItem value="26ICJ08AA0108" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Ananya Roy (WB HC)</MenuItem>
-                    <MenuItem value="26ICJ08AA0109" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>Adv. Gurpreet Singh (Punjab HC)</MenuItem>
+                    {empaneledAdvocates.map((adv) => (
+                      <MenuItem key={adv.id} value={adv.id} sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+                        {adv.name} ({adv.id}) - {adv.city || adv.state}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Box>
 
@@ -303,6 +305,16 @@ export default function SuperAdminDashboard() {
             </Stack>
 
             <Stack direction="row" spacing={1} alignItems="center">
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                startIcon={<GavelIcon />}
+                onClick={() => navigate("/advocate-dashboard")}
+                sx={{ fontWeight: "bold", fontSize: "0.75rem", py: 0.3 }}
+              >
+                Advocate Desk ⚖️
+              </Button>
               <Chip icon={<StorageIcon style={{ color: "#fff", fontSize: "0.85rem" }} />} label="🟢 Online" color="success" size="small" sx={{ height: 22, fontSize: "0.65rem", fontWeight: "bold" }} />
               <Chip label="v2.1.0 Enterprise" color="secondary" size="small" sx={{ height: 22, fontSize: "0.65rem", fontWeight: "bold" }} />
               <Typography variant="caption" sx={{ opacity: 0.85, fontSize: "0.68rem" }}>
