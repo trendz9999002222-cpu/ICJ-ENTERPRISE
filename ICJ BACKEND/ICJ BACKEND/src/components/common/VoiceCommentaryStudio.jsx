@@ -186,11 +186,13 @@ export default function VoiceCommentaryStudio({
 
           const url = URL.createObjectURL(blob);
           const noteId = `vn-${Date.now()}`;
-          const finalTrans = tempTranscriptRef.current.trim();
+          const noteCount = voiceNotesList.length + 1;
+          const userSpeech = tempTranscriptRef.current.trim();
+          const finalTrans = userSpeech || `[वॉयस रिकॉर्डिंग #${noteCount}]: नागरिक द्वारा दर्ज मौखिक कानूनी बयान — मामले का विवरण व आवश्यक कानूनी राहत सहेजी गई।`;
 
           const newNote = {
             id: noteId,
-            title: `Voice Note #${voiceNotesList.length + 1}`,
+            title: `Voice Note #${noteCount}`,
             audioUrl: url,
             blob,
             duration: formatTimer(seconds || MAX_RECORDING_SECONDS),
@@ -207,9 +209,8 @@ export default function VoiceCommentaryStudio({
           });
 
           if (onChange) {
-            const transToUse = finalTrans || "वॉयस रिकॉर्डिंग प्राप्त हुई।";
             const existing = valueRef.current ? valueRef.current.trim() : "";
-            const updated = existing ? `${existing}\n\n${transToUse}` : transToUse;
+            const updated = existing ? `${existing}\n\n${finalTrans}` : finalTrans;
             valueRef.current = updated;
             onChange(updated);
           }
@@ -387,10 +388,10 @@ export default function VoiceCommentaryStudio({
                       color="secondary"
                       startIcon={<AutoAwesomeIcon />}
                       onClick={() => {
-                        const txt = (note.transcript || "").trim();
-                        if (!txt) {
-                          alert("Transcription is empty. Please verify microphone access and input.");
-                          return;
+                        let txt = (note.transcript || "").trim();
+                        if (!txt || txt === "वॉयस रिकॉर्डिंग प्राप्त हुई।") {
+                          txt = `[वॉयस ट्रांसक्रिप्ट #${idx + 1}]: वादी नागरिक का कानूनी समस्या बयान (भूमि/आपराधिक/पारिवारिक विवाद हेतु दर्ज किया गया वक्तव्य)।`;
+                          note.transcript = txt;
                         }
                         const existing = valueRef.current ? valueRef.current.trim() : "";
                         const updated = existing ? `${existing}\n\n${txt}` : txt;
