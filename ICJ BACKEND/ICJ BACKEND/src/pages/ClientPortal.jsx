@@ -74,6 +74,7 @@ import VernacularVoiceAssistantService from "../services/vernacularVoiceAssistan
 import GuidedCaseIntakeWizard from "../components/common/GuidedCaseIntakeWizard.jsx";
 import GlobalLegalJurisdictionService, { JURISDICTIONS } from "../services/globalLegalJurisdictionService.js";
 import CitizenWorkflowService from "../services/citizenWorkflowService.js";
+import ClientPartnerDeskPanel from "../components/client/ClientPartnerDeskPanel.jsx";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -377,8 +378,29 @@ export default function ClientPortal() {
         phone: "+91 98390 12345"
       };
     }
-    return null; // No assigned advocate!
+    return null;
   }, [myCases, advocates]);
+
+  // ✅ GOLDEN RULE: Compute advocate office data at component scope (not inside IIFE)
+  // This replaces the IIFE in Tab 4 that caused potential scope issues.
+  const advocateOfficeData = useMemo(() => {
+    if (!activeAdvocate) return { office: {}, offices: [], rankedSpecs: [], juniors: [] };
+    try {
+      const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "ICJ-2026-MEM-0001";
+      const advocateName = activeAdvocate?.name || "Empaneled Senior Counsel";
+      const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName) || {};
+      return {
+        advocateId,
+        advocateName,
+        office,
+        offices: office?.officeLocations || DEFAULT_COURT_OFFICES,
+        rankedSpecs: office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS,
+        juniors: office?.juniorsList || [],
+      };
+    } catch {
+      return { advocateId: "", advocateName: "Empaneled Senior Counsel", office: {}, offices: DEFAULT_COURT_OFFICES, rankedSpecs: DEFAULT_RANKED_SPECIALIZATIONS, juniors: [] };
+    }
+  }, [activeAdvocate]);
 
   const handleCreateCase = () => {
     if (!form.title.trim()) {
@@ -1311,56 +1333,52 @@ export default function ClientPortal() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(() => {
-                    // Procedural Legal Sorting
-                    const sorted = LegalDocumentSorterService.sortDocumentsProcedurally(myDocs);
-                    return sorted.map((d, idx) => {
-                      const dual = LegalDocumentSorterService.getDualNaming(d, "client");
-                      return (
-                        <TableRow key={d.id || idx} hover>
-                          <TableCell>
-                            <Typography fontWeight="bold" color="#0f172a">
-                              {dual.clientDisplayName}
+                  {/* ✅ GOLDEN RULE: No IIFE — flat .map() with computed values inline */}
+                  {LegalDocumentSorterService.sortDocumentsProcedurally(myDocs).map((d, idx) => {
+                    const dual = LegalDocumentSorterService.getDualNaming(d, "client");
+                    return (
+                      <TableRow key={d.id || idx} hover>
+                        <TableCell>
+                          <Typography fontWeight="bold" color="#0f172a">
+                            {dual.clientDisplayName}
+                          </Typography>
+                          <Chip
+                            label={dual.stageInfo.title}
+                            size="small"
+                            sx={{ bgcolor: "#e0e7ff", color: "#3730a3", fontSize: "0.7rem", fontWeight: "bold", mt: 0.5 }}
+                          />
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}>
+                            Advocate View: {dual.advocateCanonicalName}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={d.category || dual.stageInfo.shortCode} size="small" variant="outlined" color="primary" />
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ maxWidth: 220 }}>
+                            <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                              🎙️ इस पेपर पर बयान:
                             </Typography>
-                            <Chip
-                              label={dual.stageInfo.title}
-                              size="small"
-                              sx={{ bgcolor: "#e0e7ff", color: "#3730a3", fontSize: "0.7rem", fontWeight: "bold", mt: 0.5 }}
+                            <VoiceCommentaryStudio
+                              value={d.commentary || ""}
+                              onChange={(txt) => { d.commentary = txt; }}
+                              label=""
+                              placeholder="इस पेपर के बारे में बोलें..."
                             />
-                            <Typography variant="caption" color="text.secondary" display="block" sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}>
-                              Advocate View: {dual.advocateCanonicalName}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={d.category || dual.stageInfo.shortCode} size="small" variant="outlined" color="primary" />
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ maxWidth: 220 }}>
-                              <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
-                                🎙️ इस पेपर पर बयान:
-                              </Typography>
-                              <VoiceCommentaryStudio
-                                value={d.commentary || ""}
-                                onChange={(txt) => {
-                                  d.commentary = txt;
-                                }}
-                                label=""
-                                placeholder="इस पेपर के बारे में बोलें..."
-                              />
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip icon={<VerifiedIcon />} label={d.status || "Saved & Verified"} color="success" size="small" />
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    });
-                  })()}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Chip icon={<VerifiedIcon />} label={d.status || "Saved & Verified"} color="success" size="small" />
+                        </TableCell>
+                        <TableCell align="right">
+                          <Stack direction="row" spacing={1} justifyContent="flex-end">
+                            <Button size="small" variant="outlined" onClick={() => handleRequestAction('Download', d.name || d.title)}>Download</Button>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+
                 </TableBody>
               </Table>
             )}
@@ -1395,147 +1413,138 @@ export default function ClientPortal() {
 
               <Divider sx={{ mb: 3 }} />
 
-              {(() => {
-                const advocateId = activeAdvocate?.id || activeAdvocate?.memberId || "ICJ-2026-MEM-0001";
-                const advocateName = activeAdvocate?.name || "Empaneled Senior Counsel";
-                const office = VirtualOfficeService.getOfficeForMember(advocateId, advocateName);
-                const offices = office?.officeLocations || DEFAULT_COURT_OFFICES;
-                const rankedSpecs = office?.rankedSpecializations || DEFAULT_RANKED_SPECIALIZATIONS;
-                const juniors = office?.juniorsList || [];
-
-                return (
-                  <Stack spacing={3}>
-                  {/* ADVOCATE PROFILE SUMMARY */}
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc", overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
-                    <Grid container spacing={3} alignItems="center">
-                      <Grid item xs={12} sm={3} textAlign="center" sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
-                        <BadgeIcon sx={{ fontSize: 75, color: "#1e3a8a" }} />
-                        <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1, wordBreak: "break-word" }}>
-                          {advocateName}
-                        </Typography>
-                        <Chip label={`Member ID: ${advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5, maxWidth: "100%" }} />
-                      </Grid>
-                      <Grid item xs={12} sm={9} sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom sx={{ wordBreak: "break-word" }}>
-                          📜 Bar Registration &amp; Credential: {office.barEnrollmentNo || "UP/2026/9812"}
-                        </Typography>
-
-                        {/* RANKED SPECIALIZATIONS */}
-                        <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
-                          ORDERED SPECIALIZATION PRIORITY:
-                        </Typography>
-                        <Grid container spacing={1} sx={{ mb: 2 }}>
-                          {rankedSpecs.map((sp) => (
-                            <Grid item xs={12} sm={6} key={sp.rank}>
-                              <Chip
-                                label={`${sp.label}: ${sp.name}`}
-                                size="small"
-                                sx={{
-                                  bgcolor: sp.rank === 1 ? "#fee2e2" : sp.rank === 2 ? "#fef3c7" : "#ede9fe",
-                                  color: sp.rank === 1 ? "#991b1b" : sp.rank === 2 ? "#92400e" : "#4c1d95",
-                                  fontWeight: "bold",
-                                  width: "100%",
-                                  justifyContent: "flex-start",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                }}
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-
-                        <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>
-                          📍 Office Address: {office.officeAddress} | ⏰ Hours: {office.workingHours}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-
-                  {/* MULTI-COURT PRACTICE LOCATIONS & CHAMBERS */}
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" sx={{ mb: 1.5 }}>
-                      🏢 Allotted Advocate Pan-India Court Offices &amp; Chambers ({offices.length})
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {offices.map((loc) => {
-                        const isSupreme = loc.type === "SupremeCourt";
-                        const isHigh = loc.type === "HighCourt";
-                        const isTehsil = loc.type === "TehsilCourt";
-                        const isTribunal = loc.type === "Tribunal";
-
-                        const color = isSupreme ? "#7c3aed" : isHigh ? "#1d4ed8" : isTribunal ? "#c2410c" : isTehsil ? "#0284c7" : "#059669";
-                        const tag = isSupreme ? "🏛️ SUPREME COURT" : isHigh ? "⚖️ HIGH COURT BENCH" : isTribunal ? "⚖️ TRIBUNAL / FORUM" : isTehsil ? "🏛️ SDM / TEHSIL COURT" : "🏢 DISTRICT COURT";
-
-                        return (
-                          <Grid item xs={12} sm={6} md={4} key={loc.id || loc.name}>
-                            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: color, bgcolor: "#fff" }}>
-                              <Chip label={tag} size="small" sx={{ bgcolor: color, color: "#fff", fontWeight: "bold", fontSize: "0.65rem", mb: 1 }} />
-                              <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
-                                {loc.name}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" display="block">
-                                📍 {loc.address}
-                              </Typography>
-                              <Typography variant="caption" fontWeight="bold" color="primary.main">
-                                {loc.city}, {loc.state}
-                              </Typography>
-                            </Paper>
-                          </Grid>
-                        );
-                      })}
-                    </Grid>
-                  </Box>
-
-                  {/* ADVOCATE PRACTICE TEAM COLLEGIUM WITH PHOTOS */}
-                  <Box>
-                    <Box sx={{ mb: 1.5 }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                        👥 Verified Practice Collegium &amp; Associate Team ({juniors.length})
+              {/* ✅ GOLDEN RULE: No IIFE — direct JSX using advocateOfficeData (component scope) */}
+              <Stack spacing={3}>
+                {/* ADVOCATE PROFILE SUMMARY */}
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: "#1e3a8a", bgcolor: "#f8fafc", overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                  <Grid container spacing={3} alignItems="center">
+                    <Grid item xs={12} sm={3} textAlign="center" sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                      <BadgeIcon sx={{ fontSize: 75, color: "#1e3a8a" }} />
+                      <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" sx={{ mt: 1, wordBreak: "break-word" }}>
+                        {advocateOfficeData.advocateName}
                       </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        Verified ICJ team members working under your allotted advocate. If work is diverted or an associate appears on court dates, verify them below.
+                      <Chip label={`Member ID: ${advocateOfficeData.advocateId}`} size="small" color="primary" sx={{ fontWeight: "bold", mt: 0.5, maxWidth: "100%" }} />
+                    </Grid>
+                    <Grid item xs={12} sm={9} sx={{ overflow: "hidden", maxWidth: "100%", wordBreak: "break-word" }}>
+                      <Typography variant="subtitle1" fontWeight="bold" color="secondary.main" gutterBottom sx={{ wordBreak: "break-word" }}>
+                        📜 Bar Registration &amp; Credential: {advocateOfficeData.office?.barEnrollmentNo || "UP/2026/9812"}
                       </Typography>
-                    </Box>
 
-                    {juniors.length === 0 ? (
-                      <Alert severity="info">No additional junior associates linked to this practice team yet.</Alert>
-                    ) : (
-                      <Grid container spacing={2}>
-                        {juniors.map((jr) => (
-                          <Grid item xs={12} sm={6} key={jr.id || jr.memberId}>
-                            <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderColor: "#10b981", bgcolor: "#f0fdf4" }}>
-                              <Stack direction="row" spacing={2} alignItems="center">
-                                <Avatar
-                                  src={jr.photoUrl}
-                                  alt={jr.name}
-                                  sx={{ width: 54, height: 54, border: "2px solid #059669", bgcolor: "#059669", fontWeight: "bold" }}
-                                >
-                                  {jr.name?.charAt(0)}
-                                </Avatar>
-                                <Box>
-                                  <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
-                                    {jr.name}
-                                  </Typography>
-                                  <Chip label={`ICJ ID: ${jr.memberId}`} size="small" color="primary" sx={{ height: 18, fontSize: "0.65rem", fontWeight: "bold", mb: 0.5 }} />
-                                  <Typography variant="caption" display="block" color="text.secondary">
-                                    Role: <strong>{jr.designation}</strong>
-                                  </Typography>
-                                  <Typography variant="caption" display="block" color="success.dark" fontWeight="bold">
-                                    Assigned Court: {jr.assignedOffice}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-                            </Paper>
+                      {/* RANKED SPECIALIZATIONS */}
+                      <Typography variant="caption" fontWeight="bold" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+                        ORDERED SPECIALIZATION PRIORITY:
+                      </Typography>
+                      <Grid container spacing={1} sx={{ mb: 2 }}>
+                        {advocateOfficeData.rankedSpecs.map((sp) => (
+                          <Grid item xs={12} sm={6} key={sp.rank}>
+                            <Chip
+                              label={`${sp.label}: ${sp.name}`}
+                              size="small"
+                              sx={{
+                                bgcolor: sp.rank === 1 ? "#fee2e2" : sp.rank === 2 ? "#fef3c7" : "#ede9fe",
+                                color: sp.rank === 1 ? "#991b1b" : sp.rank === 2 ? "#92400e" : "#4c1d95",
+                                fontWeight: "bold",
+                                width: "100%",
+                                justifyStart: "flex-start",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            />
                           </Grid>
                         ))}
                       </Grid>
-                    )}
+
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ wordBreak: "break-word" }}>
+                        📍 Office Address: {advocateOfficeData.office?.officeAddress} | ⏰ Hours: {advocateOfficeData.office?.workingHours}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Paper>
+
+                {/* MULTI-COURT PRACTICE LOCATIONS & CHAMBERS */}
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" sx={{ mb: 1.5 }}>
+                    🏢 Allotted Advocate Pan-India Court Offices &amp; Chambers ({advocateOfficeData.offices.length})
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {advocateOfficeData.offices.map((loc) => {
+                      const isSupreme = loc.type === "SupremeCourt";
+                      const isHigh = loc.type === "HighCourt";
+                      const isTehsil = loc.type === "TehsilCourt";
+                      const isTribunal = loc.type === "Tribunal";
+
+                      const color = isSupreme ? "#7c3aed" : isHigh ? "#1d4ed8" : isTribunal ? "#c2410c" : isTehsil ? "#0284c7" : "#059669";
+                      const tag = isSupreme ? "🏛️ SUPREME COURT" : isHigh ? "⚖️ HIGH COURT BENCH" : isTribunal ? "⚖️ TRIBUNAL / FORUM" : isTehsil ? "🏛️ SDM / TEHSIL COURT" : "🏢 DISTRICT COURT";
+
+                      return (
+                        <Grid item xs={12} sm={6} md={4} key={loc.id || loc.name}>
+                          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, borderColor: color, bgcolor: "#fff" }}>
+                            <Chip label={tag} size="small" sx={{ bgcolor: color, color: "#fff", fontWeight: "bold", fontSize: "0.65rem", mb: 1 }} />
+                            <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                              {loc.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              📍 {loc.address}
+                            </Typography>
+                            <Typography variant="caption" fontWeight="bold" color="primary.main">
+                              {loc.city}, {loc.state}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                </Box>
+
+                {/* ADVOCATE PRACTICE TEAM COLLEGIUM WITH PHOTOS */}
+                <Box>
+                  <Box sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
+                      👥 Verified Practice Collegium &amp; Associate Team ({advocateOfficeData.juniors.length})
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Verified ICJ team members working under your allotted advocate. If work is diverted or an associate appears on court dates, verify them below.
+                    </Typography>
                   </Box>
-                </Stack>
-              );
-            })()}
+
+                  {advocateOfficeData.juniors.length === 0 ? (
+                    <Alert severity="info">No additional junior associates linked to this practice team yet.</Alert>
+                  ) : (
+                    <Grid container spacing={2}>
+                      {advocateOfficeData.juniors.map((jr) => (
+                        <Grid item xs={12} sm={6} key={jr.id || jr.memberId}>
+                          <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderColor: "#10b981", bgcolor: "#f0fdf4" }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                              <Avatar
+                                src={jr.photoUrl}
+                                alt={jr.name}
+                                sx={{ width: 54, height: 54, border: "2px solid #059669", bgcolor: "#059669", fontWeight: "bold" }}
+                              >
+                                {jr.name?.charAt(0)}
+                              </Avatar>
+                              <Box>
+                                <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
+                                  {jr.name}
+                                </Typography>
+                                <Chip label={`ICJ ID: ${jr.memberId}`} size="small" color="primary" sx={{ height: 18, fontSize: "0.65rem", fontWeight: "bold", mb: 0.5 }} />
+                                <Typography variant="caption" display="block" color="text.secondary">
+                                  Role: <strong>{jr.designation}</strong>
+                                </Typography>
+                                <Typography variant="caption" display="block" color="success.dark" fontWeight="bold">
+                                  Assigned Court: {jr.assignedOffice}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Box>
+              </Stack>
           </Paper>
           )}
+
         </TabPanel>
 
         {/* TAB 5: PAYMENTS */}
@@ -1779,165 +1788,8 @@ export default function ClientPortal() {
 
             <Divider sx={{ mb: 3 }} />
 
-            {(() => {
-              const egovActive = SystemConfigService.isPlanActive("plan_egov");
-              const affiliateActive = SystemConfigService.isPlanActive("plan_affiliate");
-              const lawfirmActive = SystemConfigService.isPlanActive("plan_lawfirm");
-
-              return (
-                <Grid container spacing={3}>
-                  {/* PLAN 2: E-GOVERNANCE PORTALS DESK */}
-                  <Grid item xs={12} md={4}>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 3,
-                        bgcolor: egovActive ? "#f0fdf4" : "#fffbe6",
-                        borderColor: egovActive ? "#10b981" : "#f59e0b",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                          <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                            💻 E-Governance Services
-                          </Typography>
-                          <Chip
-                            label={egovActive ? "ACTIVE & LIVE" : "LOCKED 🔒"}
-                            color={egovActive ? "success" : "warning"}
-                            size="small"
-                            sx={{ fontWeight: "bold" }}
-                          />
-                        </Stack>
-
-                        {egovActive ? (
-                          <Stack spacing={1} sx={{ mt: 1 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Operate online government portals directly:
-                            </Typography>
-                            <Button size="small" variant="outlined" color="primary" href="https://ecourts.gov.in" target="_blank">
-                              🌐 e-Courts Cause List &amp; Orders
-                            </Button>
-                            <Button size="small" variant="outlined" color="primary" href="https://upbhulekh.gov.in" target="_blank">
-                              📜 State Land Revenue Bhulekh
-                            </Button>
-                            <Button size="small" variant="outlined" color="primary" href="https://rtionline.gov.in" target="_blank">
-                              📝 RTI Online Portal
-                            </Button>
-                          </Stack>
-                        ) : (
-                          <Alert severity="warning" sx={{ mt: 1, fontSize: "0.8rem" }}>
-                            🔒 E-Governance Digital Assistance Plan Launch Pending by ICJ Trust Admin.
-                          </Alert>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-
-                  {/* PLAN 3: LEGAL REFERRAL AFFILIATE DESK */}
-                  <Grid item xs={12} md={4}>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 3,
-                        bgcolor: affiliateActive ? "#fff8f0" : "#fffbe6",
-                        borderColor: affiliateActive ? "#f97316" : "#f59e0b",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                          <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                            🟠 Legal Referral Incentives
-                          </Typography>
-                          <Chip
-                            label={affiliateActive ? "ACTIVE & LIVE" : "LOCKED 🔒"}
-                            color={affiliateActive ? "warning" : "warning"}
-                            size="small"
-                            sx={{ fontWeight: "bold" }}
-                          />
-                        </Stack>
-
-                        {affiliateActive ? (
-                          <Stack spacing={1.5} sx={{ mt: 1 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Refer legal clients and earn wallet rewards:
-                            </Typography>
-                            <Paper variant="outlined" sx={{ p: 1.5, bgcolor: "#fff", textAlign: "center" }}>
-                              <Typography variant="caption" color="text.secondary">Your Referral Code</Typography>
-                              <Typography variant="subtitle2" fontWeight="bold" color="secondary.main">
-                                REF-{memberId}
-                              </Typography>
-                              <Typography variant="caption" color="success.main" display="block" fontWeight="bold">
-                                Referral Wallet Earnings: ₹0.00
-                              </Typography>
-                            </Paper>
-                          </Stack>
-                        ) : (
-                          <Alert severity="warning" sx={{ mt: 1, fontSize: "0.8rem" }}>
-                            🔒 Legal Referral Affiliate Earnings Plan Launch Pending by ICJ Trust Admin.
-                          </Alert>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-
-                  {/* PLAN 4: LAW FIRM ENTERPRISE PARTNERSHIP DESK */}
-                  <Grid item xs={12} md={4}>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 3,
-                        bgcolor: lawfirmActive ? "#f3e8ff" : "#fffbe6",
-                        borderColor: lawfirmActive ? "#9333ea" : "#f59e0b",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Box>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                          <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                            🟣 Law Firm Enterprise Desk
-                          </Typography>
-                          <Chip
-                            label={lawfirmActive ? "ACTIVE & LIVE" : "LOCKED 🔒"}
-                            color={lawfirmActive ? "secondary" : "warning"}
-                            size="small"
-                            sx={{ fontWeight: "bold" }}
-                          />
-                        </Stack>
-
-                        {lawfirmActive ? (
-                          <Stack spacing={1.5} sx={{ mt: 1 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Operate a Law Firm / Legal Services Centre with ICJ Senior Counsel:
-                            </Typography>
-                            <Button variant="contained" color="secondary" fullWidth size="small" sx={{ fontWeight: "bold" }}>
-                              APPLY FOR ICJ LAW FIRM COLLABORATION 🤝
-                            </Button>
-                          </Stack>
-                        ) : (
-                          <Alert severity="warning" sx={{ mt: 1, fontSize: "0.8rem" }}>
-                            🔒 Law Firm Enterprise Partnership Plan Launch Pending by ICJ Trust Admin.
-                          </Alert>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              );
-            })()}
+            {/* ✅ GOLDEN RULE: No IIFE — extracted into ClientPartnerDeskPanel component */}
+            <ClientPartnerDeskPanel memberId={memberId} />
           </Paper>
         </TabPanel>
 

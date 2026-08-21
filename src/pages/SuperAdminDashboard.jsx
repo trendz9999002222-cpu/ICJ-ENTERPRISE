@@ -440,21 +440,18 @@ export default function SuperAdminDashboard() {
                         </Box>
 
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          {(() => {
-                            const empaneledAdvocates = LegalEcosystemService.getAdvocates();
-                            if (empaneledAdvocates.length === 0) {
-                              return (
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  color="warning"
-                                  onClick={() => alert("No empaneled advocates registered in ecosystem. Please register an advocate first.")}
-                                >
-                                  ⚠️ No Advocates Available
-                                </Button>
-                              );
-                            }
-                            return empaneledAdvocates.slice(0, 3).map((adv) => (
+                          {/* ✅ GOLDEN RULE: No IIFE — direct rendering */}
+                          {(LegalEcosystemService.getAdvocates() || []).length === 0 ? (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              color="warning"
+                              onClick={() => alert("No empaneled advocates registered in ecosystem. Please register an advocate first.")}
+                            >
+                              ⚠️ No Advocates Available
+                            </Button>
+                          ) : (
+                            (LegalEcosystemService.getAdvocates() || []).slice(0, 3).map((adv) => (
                               <Button
                                 key={adv.id}
                                 variant="contained"
@@ -474,8 +471,8 @@ export default function SuperAdminDashboard() {
                               >
                                 🤝 Appoint {adv.name}
                               </Button>
-                            ));
-                          })()}
+                            ))
+                          )}
                         </Stack>
                       </Stack>
                     </Box>

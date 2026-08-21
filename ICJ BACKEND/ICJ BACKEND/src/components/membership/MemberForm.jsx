@@ -146,6 +146,23 @@ export default function MemberForm({
     return yr >= 1900 && yr <= maxYr;
   }, [form.birthYear, maxYr, regType]);
 
+  const birthYearInfo = useMemo(() => {
+    const yr = parseInt(form.birthYear, 10);
+    const isUnderAge = yr > maxYr;
+    const isInvalidYr = form.birthYear && (isNaN(yr) || yr < 1900 || String(form.birthYear).length !== 4);
+    const isError = Boolean(isUnderAge || isInvalidYr);
+
+    let helperMsg = `Min. 18 years • Max Year: ${maxYr}`;
+    if (isUnderAge) {
+      helperMsg = `Ineligible: Must be at least 18 years old`;
+    } else if (isInvalidYr) {
+      helperMsg = `Enter valid 4-digit year (1900–${maxYr})`;
+    } else if (yr >= 1900 && yr <= maxYr) {
+      helperMsg = `✓ Age: ${currentYr - yr} Years`;
+    }
+    return { isError, helperMsg };
+  }, [form.birthYear, maxYr, currentYr]);
+
   const isProfessionValid = useMemo(() => {
     if (!form.profession) return false;
     if (isCustomSelected) {
@@ -758,35 +775,18 @@ export default function MemberForm({
 
             {regType === "Individual" && (
               <Grid item xs={12} md={4}>
-                {(() => {
-                  const yr = parseInt(form.birthYear, 10);
-                  const isUnderAge = yr > maxYr;
-                  const isInvalidYr = form.birthYear && (isNaN(yr) || yr < 1900 || String(form.birthYear).length !== 4);
-                  const isError = Boolean(isUnderAge || isInvalidYr);
-
-                  let helperMsg = `Min. 18 years • Max Year: ${maxYr}`;
-                  if (isUnderAge) {
-                    helperMsg = `Ineligible: Must be at least 18 years old`;
-                  } else if (isInvalidYr) {
-                    helperMsg = `Enter valid 4-digit year (1900–${maxYr})`;
-                  } else if (yr >= 1900 && yr <= maxYr) {
-                    helperMsg = `✓ Age: ${currentYr - yr} Years`;
-                  }
-
-                  return (
-                    <TextField
-                      fullWidth
-                      label="Birth Year"
-                      name="birthYear"
-                      placeholder="e.g. 1995"
-                      value={form.birthYear || ""}
-                      onChange={(e) => handleDigitsOnlyChange(e, 4)}
-                      error={isError}
-                      helperText={helperMsg}
-                      inputProps={{ maxLength: 4 }}
-                    />
-                  );
-                })()}
+                {/* ✅ GOLDEN RULE: No IIFE — direct rendering with birthYearInfo */}
+                <TextField
+                  fullWidth
+                  label="Birth Year"
+                  name="birthYear"
+                  placeholder="e.g. 1995"
+                  value={form.birthYear || ""}
+                  onChange={(e) => handleDigitsOnlyChange(e, 4)}
+                  error={birthYearInfo.isError}
+                  helperText={birthYearInfo.helperMsg}
+                  inputProps={{ maxLength: 4 }}
+                />
               </Grid>
             )}
 

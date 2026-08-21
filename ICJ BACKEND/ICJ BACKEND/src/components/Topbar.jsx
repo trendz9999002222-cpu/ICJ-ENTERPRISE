@@ -73,6 +73,9 @@ function Topbar() {
     .toUpperCase();
 
   const userRole = user?.role || "admin";
+  const userPrefix = user?.namePrefix || user?.name_prefix || "";
+  const rawUserName = user?.fullName || user?.name || user?.username || "Logged User";
+  const userDisplayName = userPrefix && !rawUserName.startsWith(userPrefix) ? `${userPrefix} ${rawUserName}` : rawUserName;
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -228,11 +231,7 @@ function Topbar() {
             </Avatar>
 
             <Typography onClick={() => navigate("/member-profile")} variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}>
-              {(() => {
-                const prefix = user?.namePrefix || user?.name_prefix || "";
-                const name = user?.fullName || user?.name || user?.username || "Logged User";
-                return prefix && !name.startsWith(prefix) ? `${prefix} ${name}` : name;
-              })()}
+              {userDisplayName}
             </Typography>
 
             <Chip
