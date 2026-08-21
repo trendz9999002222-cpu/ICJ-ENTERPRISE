@@ -1,4 +1,4 @@
-export const MASTER_26_USERS = [
+export const ENTERPRISE_SEED_USERS = [
   {
     "id": "26SAD08AA0001",
     "member_id": "26SAD08AA0001",
@@ -19,7 +19,7 @@ export const MASTER_26_USERS = [
     "mobile_verified": true,
     "ready_for_login": true,
     "forcePasswordChange": false,
-    "passwordHash": "c632fbc62a77fa500e1b70212237b26fa37474bc3646d8b93e87d67a38bfeaf9",
+    "passwordHash": "d68b4995c51ee6655c10809bcb5767b1fb8003f5b32b65df8f72353cf4a5d018",
     "created_at": "2026-08-06T23:50:23.219Z",
     "problemCategory": "Root Master Governance",
     "problemCategories": [
@@ -46,7 +46,7 @@ export const MASTER_26_USERS = [
     "mobile_verified": true,
     "ready_for_login": true,
     "forcePasswordChange": false,
-    "passwordHash": "35c661813f185e99d7de40fc4adaebb01ce328a0c088b46f027d4607ec8dac84",
+    "passwordHash": "206d75a6a4f5ec410bc90ba5270f096709ebec433acafa78bec069812b86514a",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Platform Administration",
     "problemCategories": [
@@ -83,7 +83,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Civil Litigation, Property & Land Disputes, Injunctions)",
     "problemCategories": [
@@ -120,7 +120,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Corporate & NCLT Insolvency, Commercial Disputes, Constitutional Writs)",
     "problemCategories": [
@@ -157,7 +157,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Criminal Defence, Anticipatory & Regular Bail, FIR Quashing)",
     "problemCategories": [
@@ -194,7 +194,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Family & Matrimonial Disputes, Child Custody, Maintenance)",
     "problemCategories": [
@@ -231,7 +231,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Property Title, Revenue Litigation, Land Acquisition, Cyber Crime)",
     "problemCategories": [
@@ -268,7 +268,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Civil, Property, Revenue Disputes & Constitutional Appeals)",
     "problemCategories": [
@@ -305,7 +305,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Consumer Protection, Banking Fraud & Labour Disputes)",
     "problemCategories": [
@@ -342,7 +342,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Service Law, Pension Disputes, Writ Petitions)",
     "problemCategories": [
@@ -379,7 +379,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Arbitration, Intellectual Property & Commercial Suits)",
     "problemCategories": [
@@ -416,7 +416,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-06T23:50:23.221Z",
     "problemCategory": "Advocate (Criminal Appeals, High Court Writs & Revenue Petitions)",
     "problemCategories": [
@@ -443,7 +443,7 @@ export const MASTER_26_USERS = [
     "mobile_verified": true,
     "ready_for_login": true,
     "forcePasswordChange": false,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "90937a1c780c65d3fc1b55e30719325ef30ff77cb318b6277fb246826fc40dd8",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -478,7 +478,7 @@ export const MASTER_26_USERS = [
     "mobile_verified": true,
     "ready_for_login": true,
     "forcePasswordChange": false,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "90937a1c780c65d3fc1b55e30719325ef30ff77cb318b6277fb246826fc40dd8",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -513,7 +513,7 @@ export const MASTER_26_USERS = [
     "mobile_verified": true,
     "ready_for_login": true,
     "forcePasswordChange": false,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "90937a1c780c65d3fc1b55e30719325ef30ff77cb318b6277fb246826fc40dd8",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -547,7 +547,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "e06afdfc364ba76493b9310539b4876d9f5db41f86cf09a2406d6595dc25194d",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -581,7 +581,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -615,7 +615,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -649,7 +649,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -683,7 +683,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -717,7 +717,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -751,7 +751,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -785,7 +785,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -819,7 +819,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -853,7 +853,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -887,7 +887,7 @@ export const MASTER_26_USERS = [
     "email_verified": true,
     "mobile_verified": true,
     "ready_for_login": true,
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "6aecab9fc76c101c87ea858e28c5dfd2376fa50ba2de432f9595a5d56c2c9f07",
     "created_at": "2026-08-06T23:50:23.221Z",
     "purposeCode": "PROBLEM",
     "purpose": "Your Problem, Our Solution.",
@@ -927,7 +927,7 @@ export const MASTER_26_USERS = [
     "district": "Kanpur Nagar",
     "city": "Kanpur",
     "assignedOffice": "Tehsil & Executive Chamber #05, Kanpur",
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-10T10:00:00.000Z",
     "problemCategory": "Advocate (Criminal & High Court Writs)",
     "problemCategories": [
@@ -959,7 +959,7 @@ export const MASTER_26_USERS = [
     "district": "Kolkata",
     "city": "Kolkata",
     "assignedOffice": "High Court at Calcutta, Bench Block #04",
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-11T10:00:00.000Z",
     "problemCategory": "Advocate (Corporate & Commercial Arbitration)",
     "problemCategories": [
@@ -991,7 +991,7 @@ export const MASTER_26_USERS = [
     "district": "Chandigarh",
     "city": "Chandigarh",
     "assignedOffice": "District & Sessions Court, Chandigarh",
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-12T10:00:00.000Z",
     "problemCategory": "Advocate (Land & Revenue Litigation)",
     "problemCategories": [
@@ -1023,7 +1023,7 @@ export const MASTER_26_USERS = [
     "district": "Chennai",
     "city": "Chennai",
     "assignedOffice": "High Court of Madras, Chamber Block #09",
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-13T10:00:00.000Z",
     "problemCategory": "Advocate (Constitutional & Environmental Law)",
     "problemCategories": [
@@ -1055,7 +1055,7 @@ export const MASTER_26_USERS = [
     "district": "Mumbai",
     "city": "Mumbai",
     "assignedOffice": "High Court of Bombay, Lawyers Chambers #204",
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "39e3403b9eba93a052e431be2707cc45e5afd6a15e78f043f478bb832e8127c6",
     "created_at": "2026-08-14T10:00:00.000Z",
     "problemCategory": "Advocate (Cyber & Financial Crime Defense)",
     "problemCategories": [
@@ -1087,7 +1087,7 @@ export const MASTER_26_USERS = [
     "problemCategories": [
       "Franchise Partner (Regional HQ)"
     ],
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "9d7e79aecb72fa89b6ab8009e54ce942e6a4df2ad690cdb2f8e72b4501a59bd3",
     "created_at": "2026-08-15T10:00:00.000Z"
   },
   {
@@ -1115,10 +1115,11 @@ export const MASTER_26_USERS = [
     "problemCategories": [
       "Franchise Partner (District Branch)"
     ],
-    "passwordHash": "0a603e9d3d6a322dc45ac5accaf62ac4c07d80aa3efeda629ab693070c0c1aa0",
+    "passwordHash": "9d7e79aecb72fa89b6ab8009e54ce942e6a4df2ad690cdb2f8e72b4501a59bd3",
     "created_at": "2026-08-16T10:00:00.000Z"
   }
 ];
 
-export const ENTERPRISE_SEED_USERS = MASTER_26_USERS;
+export const MASTER_26_USERS = ENTERPRISE_SEED_USERS;
+
 export default ENTERPRISE_SEED_USERS;
