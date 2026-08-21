@@ -39,6 +39,7 @@ import CameraDocumentScanner from "../components/common/CameraDocumentScanner.js
 import VideoConsultationModal from "../components/common/VideoConsultationModal.jsx";
 import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
+import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -84,6 +85,7 @@ function TabPanel(props) {
 }
 
 export default function ClientPortal() {
+  const { lang, t } = useLanguage();
   const { user } = useAuth();
   const clientName = user?.fullName || user?.name || "Litigant Client";
   const memberId = user?.memberId || user?.id || "ICJ-2026-MEM-0001";
@@ -680,10 +682,10 @@ export default function ClientPortal() {
               <AutoAwesomeIcon sx={{ color: "#7c3aed", fontSize: 36 }} />
               <Box>
                 <Typography variant="h5" fontWeight="bold" color="#4c1d95">
-                  AI Legal Consultation Engine — "आप क्या चाहते हैं? आपकी क्या स्थिति है?"
+                  {t("aiConsultationTitle", "AI Legal Consultation Engine — 'What is your desired outcome & situation?'")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  अपलोड किए गए कागजात व वॉइस संदेश के आधार पर तत्काल कानूनी स्थिति, धाराएं, सजा का जोखिम, जमानत की संभावना व रणनीति जाने।
+                  {t("aiConsultationSubtitle", "Instant legal evaluation, statutory sections, risk assessment, bail probability, and defense strategy based on uploaded files & voice notes.")}
                 </Typography>
               </Box>
             </Stack>
@@ -693,7 +695,7 @@ export default function ClientPortal() {
               <Grid item xs={12} md={5}>
                 <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#fff", border: "1px solid #ede9fe" }}>
                   <Typography variant="subtitle1" fontWeight="bold" color="#1e3a8a" mb={2}>
-                    📝 1. अपनी समस्या या चल रहा केस दर्ज करें
+                    {t("aiSection1Title", "📝 1. Register New Matter or Ongoing Case")}
                   </Typography>
                   
 
@@ -706,7 +708,7 @@ export default function ClientPortal() {
                       onClick={() => setIsOngoingCaseToggle(false)}
                       sx={{ fontWeight: "bold", textTransform: "none", flex: 1 }}
                     >
-                      🆕 नया मामला शुरू करना है
+                      {t("aiNewCaseBtn", "🆕 Start New Matter")}
                     </Button>
                     <Button
                       size="small"
@@ -715,7 +717,7 @@ export default function ClientPortal() {
                       onClick={() => setIsOngoingCaseToggle(true)}
                       sx={{ fontWeight: "bold", textTransform: "none", flex: 1 }}
                     >
-                      🚨 पहले से चल रहा कोर्ट केस (Rescue)
+                      {t("aiOngoingCaseBtn", "🚨 Ongoing Court Case (Rescue)")}
                     </Button>
                   </Stack>
 
@@ -768,7 +770,7 @@ export default function ClientPortal() {
                       <TextField
                         fullWidth
                         select
-                        label="मामले की श्रेणी (Case Category)"
+                        label={t("aiCategoryLabel", "Case Category")}
                         value={aiCaseCat}
                         onChange={(e) => setAiCaseCat(e.target.value)}
                         sx={{ mb: 2, mt: 1.5 }}
@@ -817,8 +819,8 @@ export default function ClientPortal() {
 
                             ActivityService.create({ title: `Voice Note Audio File Dispatched: ${note.title}`, type: "legal" });
                           }}
-                          label="🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)"
-                          placeholder="यहाँ क्लिक करके 1 से 5 पेज की पूरी समस्या बोलें... आपका बोला गया एक-एक शब्द यहाँ रियल-टाइम में टाइप होगा!"
+                          label={t("aiVoiceLabel", "🎙️ Comprehensive Problem & Case Details (Voice Commentary & Transcript)")}
+                          placeholder={t("aiVoicePlaceholder", "Click here to speak 1 to 5 pages of case details... Every word will auto-transcribe in real-time!")}
                         />
                       </Box>
                     </>
@@ -826,8 +828,8 @@ export default function ClientPortal() {
 
                   <TextField
                     fullWidth
-                    label="आप क्या चाहते हैं? (Desired Outcome)"
-                    placeholder="उदा. अग्रिम जमानत (Anticipatory Bail) और एफआईआर निरस्तीकरण"
+                    label={t("aiOutcomeLabel", "What is your desired outcome? (Desired Outcome)")}
+                    placeholder={t("aiOutcomePlaceholder", "e.g. Anticipatory Bail & FIR Quashing")}
                     value={aiOutcome}
                     onChange={(e) => setAiOutcome(e.target.value)}
                     size="small"
@@ -838,7 +840,7 @@ export default function ClientPortal() {
                   />
 
                   <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-                    📁 संलग्न कागजात: {myDocs.length > 0 ? myDocs.map(d => d.name || d.title).join(", ") : "FIR Copy uploaded to Document Vault"}
+                    {t("aiAttachedDocs", "📁 Attached Documents:")} {myDocs.length > 0 ? myDocs.map(d => d.name || d.title).join(", ") : "FIR Copy uploaded to Document Vault"}
                   </Typography>
 
                   <Button
@@ -921,7 +923,7 @@ export default function ClientPortal() {
                     startIcon={<AutoAwesomeIcon />}
                     sx={{ bgcolor: isOngoingCaseToggle ? "#d32f2f" : "#7c3aed", "&:hover": { bgcolor: isOngoingCaseToggle ? "#b71c1c" : "#6d28d9" }, fontWeight: "bold", py: 1.5 }}
                   >
-                    {isOngoingCaseToggle ? "🚨 RUN AI CASE HEALTH X-RAY & RESCUE PLAN" : "🔍 AI Case Diagnosis चलाएं (Analyze Now)"}
+                    {isOngoingCaseToggle ? t("aiRunOngoingDiagnosisBtn", "🚨 Analyze Ongoing Case Rescue & Strategy") : t("aiRunDiagnosisBtn", "🤖 Run AI Case Diagnosis")}
                   </Button>
                 </Paper>
               </Grid>

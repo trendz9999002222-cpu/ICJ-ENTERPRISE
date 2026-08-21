@@ -73,6 +73,21 @@ const DICTIONARIES = {
       stage4RoleLabel: "Role:",
       stage4ChangeBtn: "🔄 Request Counsel Change",
 
+      // AI Legal Consultation Engine
+      aiConsultationTitle: "AI Legal Consultation Engine — 'What is your desired outcome & situation?'",
+      aiConsultationSubtitle: "Instant legal evaluation, statutory sections, risk assessment, bail probability, and defense strategy based on uploaded files & voice notes.",
+      aiSection1Title: "📝 1. Register New Matter or Ongoing Case",
+      aiNewCaseBtn: "🆕 Start New Matter",
+      aiOngoingCaseBtn: "🚨 Ongoing Court Case (Rescue)",
+      aiCategoryLabel: "Case Category",
+      aiVoiceLabel: "🎙️ Comprehensive Problem & Case Details (Voice Commentary & Transcript)",
+      aiVoicePlaceholder: "Click here to speak 1 to 5 pages of case details... Every word will auto-transcribe in real-time!",
+      aiOutcomeLabel: "What is your desired outcome? (Desired Outcome)",
+      aiOutcomePlaceholder: "e.g. Anticipatory Bail & FIR Quashing",
+      aiAttachedDocs: "📁 Attached Documents:",
+      aiRunDiagnosisBtn: "🤖 Run AI Case Diagnosis",
+      aiRunOngoingDiagnosisBtn: "🚨 Analyze Ongoing Case Rescue & Strategy",
+
       catCivil: "🏛️ Civil Dispute",
       catCriminal: "⚖️ Criminal Defence & Bail",
       catFamily: "👨‍👩‍👧 Family Law & Divorce",
@@ -144,6 +159,21 @@ const DICTIONARIES = {
       stage4RoleLabel: "पद:",
       stage4ChangeBtn: "🔄 वकील बदलवाने का अनुरोध करें",
 
+      // AI Legal Consultation Engine
+      aiConsultationTitle: "AI Legal Consultation Engine — 'आप क्या चाहते हैं? आपकी क्या स्थिति है?'",
+      aiConsultationSubtitle: "अपलोड किए गए कागजात व वॉइस संदेश के आधार पर तत्काल कानूनी स्थिति, धाराएं, सजा का जोखिम, जमानत की संभावना व रणनीति जाने।",
+      aiSection1Title: "📝 1. अपनी समस्या या चल रहा केस दर्ज करें",
+      aiNewCaseBtn: "🆕 नया मामला शुरू करना है",
+      aiOngoingCaseBtn: "🚨 पहले से चल रहा कोर्ट केस (Rescue)",
+      aiCategoryLabel: "मामले की श्रेणी (Case Category)",
+      aiVoiceLabel: "🎙️ आपकी पूरी समस्या व केस विवरण (Long-Form Voice Commentary & Multi-Page Transcript)",
+      aiVoicePlaceholder: "यहाँ क्लिक करके 1 से 5 पेज की पूरी समस्या बोलें... आपका बोला गया एक-एक शब्द यहाँ रियल-टाइम में टाइप होगा!",
+      aiOutcomeLabel: "आप क्या चाहते हैं? (Desired Outcome)",
+      aiOutcomePlaceholder: "उदा. अग्रिम जमानत (Anticipatory Bail) और एफआईआर निरस्तीकरण",
+      aiAttachedDocs: "📁 संलग्न कागजात:",
+      aiRunDiagnosisBtn: "🤖 AI Case Diagnosis चलाएं",
+      aiRunOngoingDiagnosisBtn: "🚨 चलते केस की रणनीति व ट्रांसफर विश्लेषण चलाएं",
+
       catCivil: "🏛️ सिविल विवाद",
       catCriminal: "⚖️ आपराधिक मामला व जमानत",
       catFamily: "👨‍👩‍👧 पारिवारिक विवाद व तलाक",
@@ -181,39 +211,19 @@ const DICTIONARIES = {
       wizardBack: "← પાછા",
       wizardComplete: "✅ સંપૂર્ણ કેસ સબમિટ કરો",
 
-      // Stage 0 Content
-      stage0Title: "STAGE 0: 🗣️ સ્વાગત અને ઓડિયો માર્ગદર્શન",
-      stage0Subtitle: "જટિલ કાનૂની પ્રક્રિયાઓ સમજવા કે ટાઇપ કરવાની જરૂર નથી. તમારી ભાષામાં માર્ગદર્શન સાંભળવા માટે નીચેનું ઓડિયો બટન દબાવો.",
-      stage0HowItWorks: "📌 આ પોર્ટલ પર કામ કેવી રીતે થશે?",
-      stage0Step1: "1. માઇકથી બોલો: તમારી બોલેલી વાત તમારા સુરક્ષિત કેસ રેકોર્ડમાં ટાઇપ થશે.",
-      stage0Step2: "2. દસ્તાવેજો લોડ કરો: કોર્ટ ફાઇલનો ફોટો અથવા PDF અપલોડ કરો.",
-      stage0Step3: "3. વકીલ અને AI સહાય: ICJ લીગલ પેનલના વકીલ તમારી મદદ માટે રહેશે.",
-      stage0PlayAudio: "🔊 ઓડિયો માર્ગદર્શન ચાલુ કરો",
-      stage0UnderstandProceed: "હું સમજી ગયો — આગળ વધો ➔",
-
-      // Stage 1 Content
-      stage1Title: "STAGE 1: 🗣️ તમારી કાનૂની સમસ્યા નોંધો",
-      stage1CategoryLabel: "કેસ પ્રકાર (Category)",
-      stage1ProblemLabel: "સમસ્યાની વિગત (બોલો અથવા ટાઇપ કરો)",
-      stage1Placeholder: "અહીં બોલીને અથવા ટાઇપ કરીને તમારી સમસ્યા નોંધો... તમારા બોલેલા શબ્દો કેસ રેકોર્ડમાં સુરક્ષિત થશે.",
-
-      // Stage 2 Content
-      stage2Title: "STAGE 2: 📂 દસ્તાવેજો અપલોડ કરો",
-      stage2Subtitle: "સિસ્ટમ તમારા દસ્તાવેજોને કોર્ટ પ્રક્રિયા મુજબ આપમેળે ગોઠવી દેશે.",
-      stage2UploadBtn: "➕ દસ્તાવેજ અપલોડ કરો",
-      stage2CountLabel: "અપલોડ કરેલ દસ્તાવેજો:",
-
-      // Stage 3 Content
-      stage3Title: "STAGE 3: 🤖 AI કેસ વિશ્લેષણ",
-      stage3Subtitle: "તમારા અવાજ રેકોર્ડિંગ અને દસ્તાવેજોના આધારે AI કાનૂની વિશ્લેષણ તૈયાર છે:",
-      stage3Chip: "✅ કાનૂની કલમોનું વિશ્લેષણ પૂર્ણ",
-      stage3SavedNote: "આ વિશ્લેષણ તમારા કેસ ફોલ્ડરમાં આપમેળે સાચવવામાં આવ્યું છે.",
-
-      // Stage 4 Content
-      stage4Title: "STAGE 4: ⚖️ નિમાયેલ વકીલ અને એક્શન",
-      stage4CounselLabel: "👨‍⚖️ નિમાયેલ એડવોકેટ:",
-      stage4RoleLabel: "હોદ્દો:",
-      stage4ChangeBtn: "🔄 વકીલ બદલવાની વિનંતી કરો",
+      aiConsultationTitle: "AI લીગલ કન્સલ્ટેશન એન્જિન — 'તમે શું ઇચ્છો છો? તમારી સ્થિતિ શું છે?'",
+      aiConsultationSubtitle: "અપલોડ કરેલ ફાઇલો અને અવાજ રેકોર્ડિંગના આધારે ત્વરિત કાનૂની પરિસ્થિતિ, કલમો અને જામીનની શક્યતા જાણો.",
+      aiSection1Title: "📝 1. નવી સમસ્યા અથવા ચાલી રહેલો કેસ નોંધો",
+      aiNewCaseBtn: "🆕 નવો કેસ શરૂ કરવો છે",
+      aiOngoingCaseBtn: "🚨 ચાલી રહેલો કોર્ટ કેસ (Rescue)",
+      aiCategoryLabel: "કેસ શ્રેણી (Case Category)",
+      aiVoiceLabel: "🎙️ તમારી સંપૂર્ણ સમસ્યા અને કેસ વિગત (Voice Commentary)",
+      aiVoicePlaceholder: "અહીં બોલીને 1 થી 5 પેજની સંપૂર્ણ સમસ્યા નોંધો... તમારા બોલેલા શબ્દો અહીં ટાઇપ થશે!",
+      aiOutcomeLabel: "તમે શું ઇચ્છો છો? (Desired Outcome)",
+      aiOutcomePlaceholder: "દા.ત. અગાઉથી જામીન (Anticipatory Bail) અને એફઆઈઆર રદ કરવી",
+      aiAttachedDocs: "📁 જોડાયેલ દસ્તાવેજો:",
+      aiRunDiagnosisBtn: "🤖 AI કેસ વિશ્લેષણ ચલાવો",
+      aiRunOngoingDiagnosisBtn: "🚨 ચાલી રહેલા કેસનું વિશ્લેષણ ચલાવો",
 
       catCivil: "🏛️ સિવિલ વિવાદ",
       catCriminal: "⚖️ ફોજદારી કેસ",
@@ -230,55 +240,6 @@ const DICTIONARIES = {
       roleClient: "અરજદાર / ક્લાયન્ટ",
       roleAdvocate: "પેનલ એડવોકેટ",
       roleAdmin: "સિસ્ટમ એડમિન",
-    }
-  },
-
-  bn: {
-    code: "bn",
-    translations: {
-      brandTitle: "ICJ এন্টারপ্রাইজ প্ল্যাটফর্ম",
-      brandSubtitle: "একীকৃত আইনি কমান্ড সেন্টার",
-      selectLanguage: "ভাষা নির্বাচন করুন:",
-      englishFallback: "ENGLISH",
-
-      wizardStep0: "ধাপ 0: 🔊 অডিও নির্দেশিকা",
-      wizardStep1: "ধাপ 1: 🗣️ আইনি সমস্যা লিপিবদ্ধ করুন",
-      wizardStep2: "ধাপ 2: 📂 নথিপত্র আপলোড",
-      wizardStep3: "ধাপ 3: 🤖 AI কেস নির্ণয়",
-      wizardStep4: "ধাপ 4: ⚖️ আইনজীবী ও পদক্ষেপ",
-
-      wizardNext: "এগিয়ে যান ➔",
-      wizardBack: "← পিছনে",
-      wizardComplete: "✅ কেস জমা দিন",
-
-      stage0Title: "STAGE 0: 🗣️ স্বাগতম ও অডিও নির্দেশিকা",
-      stage0Subtitle: "আইনি প্রক্রিয়া বোঝা বা টাইপ করার প্রয়োজন নেই। অডিও শুনতে নিচের বোতামটি চাপুন।",
-      stage0HowItWorks: "📌 এই পোর্টালে কাজ কীভাবে হবে?",
-      stage0Step1: "1. মাইকে বলুন: আপনার কথা সরাসরি কেস রেকর্ডে টাইপ হবে।",
-      stage0Step2: "2. নথি লোড করুন: কোর্ট ফাইলের ছবি বা PDF আপলোড করুন।",
-      stage0Step3: "3. আইনজীবী ও AI সহায়তা: প্যানেলভুক্ত আইনজীবী সহায়তায় নিয়োজিত থাকবেন।",
-      stage0PlayAudio: "🔊 অডিও চালু করুন",
-      stage0UnderstandProceed: "বুঝেছি — এগিয়ে যান ➔",
-
-      stage1Title: "STAGE 1: 🗣️ আইনি সমস্যা বিবরণ দিন",
-      stage1CategoryLabel: "মামলার ধরণ",
-      stage1ProblemLabel: "সমস্যার বিবরণ (বলুন বা টাইপ করুন)",
-      stage1Placeholder: "এখানে বলুন বা টাইপ করুন... আপনার কথা মাস্টার কেস রেকর্ডে সংরক্ষিত হবে।",
-
-      stage2Title: "STAGE 2: 📂 নথিপত্র আপলোড করুন",
-      stage2Subtitle: "সিস্টেম স্বয়ংক্রিয়ভাবে নথিপত্র সাজিয়ে দেবে।",
-      stage2UploadBtn: "➕ নথি আপলোড করুন",
-      stage2CountLabel: "আপলোড করা নথি:",
-
-      stage3Title: "STAGE 3: 🤖 AI কেস নির্ণয়",
-      stage3Subtitle: "আপনার ভয়েস এবং নথির ভিত্তিতে AI আইনি বিশ্লেষণ প্রস্তুত:",
-      stage3Chip: "✅ ধারা এবং আইন বিশ্লেষণ সম্পন্ন",
-      stage3SavedNote: "এই বিশ্লেষণ স্বয়ংক্রিয়ভাবে সংরক্ষিত হয়েছে।",
-
-      stage4Title: "STAGE 4: ⚖️ নিযুক্ত আইনজীবী ও পদক্ষেপ",
-      stage4CounselLabel: "👨‍⚖️ নিযুক্ত আইনজীবী:",
-      stage4RoleLabel: "পদবী:",
-      stage4ChangeBtn: "🔄 আইনজীবী পরিবর্তনের অনুরোধ",
     }
   }
 };
