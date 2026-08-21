@@ -330,21 +330,6 @@ const AuthService = {
 
   async getCurrentUser() {
     let local = getLocalUser();
-    if (!local && typeof window !== "undefined") {
-      // Auto-seed default Super Admin session for seamless instant access
-      local = {
-        id: "ICJ-2026-MEM-0001",
-        member_id: "ICJ-2026-MEM-0001",
-        username: "ICJSuperAdmin1234",
-        fullName: "Pawan Kumar",
-        name: "Pawan Kumar",
-        email: "admin@icj.org",
-        role: "admin",
-        user_type: "super_admin",
-        status: "Approved",
-      };
-      persistLocalUser(local);
-    }
     return local;
   },
 
