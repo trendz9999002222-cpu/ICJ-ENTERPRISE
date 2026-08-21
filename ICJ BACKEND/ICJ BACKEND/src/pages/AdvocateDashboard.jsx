@@ -57,6 +57,8 @@ import MatterUpdateConfirmation from "../components/common/MatterUpdateConfirmat
 import StageAwareLegalWorkflowService from "../services/stageAwareLegalWorkflowService.js";
 import ZeroCorrectionPleadingComposer from "../services/zeroCorrectionPleadingComposer.js";
 import AICitationResearchService from "../services/aiCitationResearchService.js";
+import AdvocateVoiceIntakePanel from "../components/advocate/AdvocateVoiceIntakePanel.jsx";
+import { useActiveConsultation } from "../hooks/useActiveConsultation.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -96,24 +98,8 @@ export default function AdvocateDashboard() {
   const [customPleadingText, setCustomPleadingText] = useState("");
   const [citationModalOpen, setCitationModalOpen] = useState(false);
 
-  // activeConsultation — lifted to component scope so the Citation Modal Dialog
-  // (rendered outside the IIFE at line ~413) can access it without ReferenceError.
-  const [activeConsultation, setActiveConsultation] = useState(() => {
-    try {
-      const consultations = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
-      if (Array.isArray(consultations) && consultations.length > 0) return consultations[0];
-    } catch {}
-    return {
-      consultationId: "ICJ-2026-INTAKE-LIVE",
-      clientName: "Empaneled Litigant Member",
-      caseCategory: "Property & Land Dispute",
-      problemText: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है।",
-      diagnosis: {
-        legalStand: "संपत्ति व राजस्व विवाद — Civil & Revenue Jurisdiction.",
-        sectionsApplicable: ["Land Revenue Code Sec 24", "Specific Relief Act Sec 38", "CPC Order 39 Rule 1 & 2"],
-      },
-    };
-  });
+  // ✅ GOLDEN RULE: useActiveConsultation hook — component-scope, never undefined, never crashes
+  const { activeConsultation, setActiveConsultation } = useActiveConsultation(aiConsultations);
 
   // Appointments state
   const [appointments, setAppointments] = useState(() => {
@@ -194,19 +180,6 @@ export default function AdvocateDashboard() {
       isMounted = false;
     };
   }, []);
-
-  // Keep component-level activeConsultation in sync with localStorage / aiConsultations
-  // so that the Citation Dialog (outside the IIFE scope) always has the latest data.
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
-      if (Array.isArray(stored) && stored.length > 0) {
-        setActiveConsultation(stored[0]);
-      }
-    } catch {
-      // keep existing state on parse error
-    }
-  }, [aiConsultations]);
 
   // Clients derived from Cases data provenance
   const clients = useMemo(() => {
@@ -442,232 +415,18 @@ export default function AdvocateDashboard() {
             </Stack>
             <Divider sx={{ mb: 3 }} />
 
-            {(() => {
-              const realAudioMessages = messages.filter((m) => m.audioUrl);
-              const realConsultations = (() => {
-                try { return JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]"); } catch { return []; }
-              })();
-              // Use component-level activeConsultation state (always up-to-date via useEffect sync)
-              // and fall back to the live localStorage read for the freshest value inside this render.
-              const localConsultation = (realConsultations && realConsultations.length > 0)
-                ? realConsultations[0]
-                : activeConsultation;
-
-              return (
-                <Grid container spacing={3}>
-                  {/* Left Column: Real-Time Incoming Client Audio Files & Spoken Transcript */}
-                  <Grid item xs={12} md={6}>
-                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2.5, bgcolor: "#f8fafc" }}>
-                      <Typography variant="subtitle1" fontWeight="bold" color="#0f172a" mb={1.5}>
-                        📁 Incoming Client Audio Files &amp; Multi-Page Spoken Transcript
-                      </Typography>
-
-                      <Box sx={{ p: 2, bgcolor: "#fff", borderRadius: 2, border: "1px solid #e2e8f0", mb: 2 }}>
-                        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                          <Typography variant="subtitle2" fontWeight="bold" color="primary">
-                            Client: {activeConsultation?.clientName || "Empaneled Litigant Member"}
-                          </Typography>
-                          <Chip label={activeConsultation?.caseCategory || "Active Legal Intake"} size="small" color="secondary" variant="outlined" />
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-                          Assigned Counsel: <strong>{user?.fullName || user?.name || "Empaneled Senior Counsel"}</strong> • ID: {activeConsultation?.consultationId || "ICJ-2026-INTAKE-LIVE"}
-                        </Typography>
-
-                        <Typography variant="caption" fontWeight="bold" color="#166534" display="block" mb={1}>
-                          🎧 Real-Time Recorded Voice Files (माइक्रोफोन द्वारा रिकॉर्ड की गई असली आवाज़):
-                        </Typography>
-
-                        {realAudioMessages.length > 0 ? (
-                          <Stack spacing={1.5} mb={2}>
-                            {realAudioMessages.map((m, idx) => (
-                              <Paper key={m.id || idx} variant="outlined" sx={{ p: 1.5, bgcolor: "#f0fdf4", borderColor: "#86efac", borderRadius: 2 }}>
-                                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                                  <Typography variant="caption" fontWeight="bold" color="#0f172a">
-                                    🎙️ {m.title || m.text} ({m.timestamp})
-                                  </Typography>
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    color="success"
-                                    startIcon={<AutoAwesomeIcon />}
-                                    onClick={() => {
-                                      const transcribedText = m.transcript && !m.transcript.startsWith("🎙️") ? m.transcript : "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) कोर्ट में सीमांकन याचिका (Sec 24) और स्टे की आवश्यकता है।";
-                                      const updated = { ...(activeConsultation || {}), problemText: transcribedText };
-                                      localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                                      setAiConsultations([updated]);
-                                      setAlertMsg(`⚡ Transcribed "${m.title || "Voice Note"}" to Text instantly!`);
-                                      setTimeout(() => setAlertMsg(""), 3500);
-                                    }}
-                                    sx={{ fontSize: "0.72rem", py: 0.2, px: 1, textTransform: "none", fontWeight: "bold" }}
-                                  >
-                                    ⚡ Auto-Transcribe File
-                                  </Button>
-                                </Stack>
-                                <audio controls src={m.audioUrl} style={{ width: "100%", height: 38 }} />
-                              </Paper>
-                            ))}
-                          </Stack>
-                        ) : (
-                          <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: "#fffbe6", borderColor: "#ffe58f", borderRadius: 2, textAlign: "center" }}>
-                            <Typography variant="subtitle2" fontWeight="bold" color="#b78103" gutterBottom>
-                              🎙️ अभी तक इस सेशन में कोई नई माइक रिकॉर्डिंग प्राप्त नहीं हुई है
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-                              अपनी खुद की वास्तविक आवाज़ बोलने, सुनने और टाइपिंग जाँचने के लिए क्लाइंट पोर्टल पर जाएं:
-                            </Typography>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              size="small"
-                              startIcon={<MicIcon />}
-                              onClick={() => (window.location.href = "/client-portal")}
-                              sx={{ fontWeight: "bold" }}
-                            >
-                              🎙️ क्लाइंट पोर्टल पर अपनी असली आवाज़ रिकॉर्ड करें
-                            </Button>
-                          </Paper>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-
-                  {/* Right Column: Dynamic Stage-Aware AI Court Pleading & Zero-Correction Petition Composer */}
-                  <Grid item xs={12} md={6}>
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, bgcolor: "#ffffff", borderColor: "#cbd5e1" }}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                        <Typography variant="subtitle1" fontWeight="bold" color="#1e3a8a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <AutoAwesomeIcon color="primary" /> Stage-Aware AI Petition Studio &amp; Court Approval Console
-                        </Typography>
-                        <Chip label="Zero-Correction Court Ready" color="primary" size="small" sx={{ fontWeight: "bold" }} />
-                      </Stack>
-
-                      {/* STAGE-AWARE DYNAMIC LEGAL ACTION SELECTOR BAR */}
-                      <Box sx={{ p: 1.5, mb: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
-                        <Typography variant="caption" fontWeight="bold" color="#475569" display="block" mb={1}>
-                          🏛️ COURT STAGE AUTOMATIC DETECTION (कोर्ट की स्टेज अनुसार 1-क्लिक एक्शन):
-                        </Typography>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" gap={0.8}>
-                          {StageAwareLegalWorkflowService.getAllStages().flatMap((stg) => stg.actions).slice(0, 4).map((act) => (
-                            <Button
-                              key={act.id}
-                              size="small"
-                              variant="contained"
-                              color={act.priority === "URGENT" ? "error" : "primary"}
-                              onClick={() => {
-                                const composed = ZeroCorrectionPleadingComposer.composeCourtReadyPetition({
-                                  courtName: "IN THE COURT OF DISTRICT JUDGE & SESSIONS COURT",
-                                  suitNumber: `ICJ-2026-CS-${Math.floor(1000 + Math.random() * 9000)}`,
-                                  petitionerName: activeConsultation?.clientName || "Empaneled Litigant Member",
-                                  caseCategory: activeConsultation?.caseCategory || "Property & Injunction Dispute",
-                                  factSummary: customPleadingText || activeConsultation?.problemText || "पड़ोसी/विपक्षी द्वारा गैर-कानूनी तरीके से संपत्ति में अतिक्रमण एवं शांति भंग करने का प्रयास किया गया है।",
-                                  stageTemplateType: act.templateType,
-                                  advocateName: user?.fullName || user?.name || "Empaneled Senior Standing Counsel",
-                                });
-                                setCustomPleadingText(composed);
-                                setAlertMsg(`⚡ 100% Court-Ready Petition Dossier generated for ${act.label}! Client only needs to apply signature.`);
-                                setTimeout(() => setAlertMsg(""), 4000);
-                              }}
-                              sx={{ fontSize: "0.7rem", py: 0.3, px: 1, textTransform: "none", fontWeight: "bold" }}
-                            >
-                              {act.label}
-                            </Button>
-                          ))}
-                        </Stack>
-                      </Box>
-
-                      {/* WORKSPACE TOOLBAR (FOCUS MODE + CLEAR + WORD COUNT) */}
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
-                        <Typography variant="caption" fontWeight="bold" color="#1e293b">
-                          ✍️ Court Pleading Canvas (100% निपुण वकालत ड्राफ्ट - केवल क्लाइंट साइन करेगा):
-                        </Typography>
-                        <Stack direction="row" spacing={1}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="secondary"
-                            onClick={() => setCitationModalOpen(true)}
-                            sx={{ fontSize: "0.7rem", py: 0.1, px: 0.8, fontWeight: "bold" }}
-                          >
-                            📚 View Relevant Precedents
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="error"
-                            onClick={() => {
-                              setCustomPleadingText("");
-                              if (activeConsultation) {
-                                const updated = { ...activeConsultation, problemText: "" };
-                                localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                                setAiConsultations([updated]);
-                              }
-                              setAlertMsg("🗑️ पूरा मैटर डिलीट कर दिया गया है! नया मैटर लिखें।");
-                              setTimeout(() => setAlertMsg(""), 3500);
-                            }}
-                            sx={{ fontSize: "0.7rem", py: 0.1, px: 0.8, fontWeight: "bold" }}
-                          >
-                            🗑️ Clear Text
-                          </Button>
-                        </Stack>
-                      </Stack>
-
-                      {/* EXPANDED 14+ ROW WORKSPACE CANVAS (300% LARGER TYPING AREA) */}
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={14}
-                        placeholder="यहाँ क्लिक करके अपना मैटर टाइप करें या 1-क्लिक स्टेज बटन दबाकर पूरा कोर्ट-रेडी ड्राफ्ट जनरेट करें..."
-                        value={customPleadingText !== "" ? customPleadingText : (activeConsultation?.problemText || "")}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setCustomPleadingText(val);
-                          if (activeConsultation) {
-                            const updated = { ...activeConsultation, problemText: val };
-                            localStorage.setItem("icj_ai_legal_consultations", JSON.stringify([updated]));
-                            setAiConsultations([updated]);
-                          }
-                        }}
-                        sx={{
-                          mb: 1.5,
-                          bgcolor: "#f8fafc",
-                          borderRadius: 1.5,
-                          "& .MuiInputBase-input": {
-                            fontFamily: "Courier New, monospace",
-                            fontSize: "0.88rem",
-                            color: "#0f172a",
-                            lineHeight: 1.6,
-                          },
-                        }}
-                      />
-
-                      {/* STATS BAR & APPROVAL */}
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
-                        <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                          📊 Stats: {(customPleadingText || activeConsultation?.problemText || "").split(/\s+/).filter(Boolean).length} Words | {(customPleadingText || activeConsultation?.problemText || "").length} Chars
-                        </Typography>
-                        <Chip label="🟢 100% READY FOR CLIENT SIGNATURE (केवल साइन करें)" color="success" size="small" sx={{ fontWeight: "bold", fontSize: "0.65rem" }} />
-                      </Stack>
-
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        color="success"
-                        size="large"
-                        startIcon={<CheckCircleIcon />}
-                        onClick={() => {
-                          ActivityService.create({ title: `Advocate Approved & Digitally Sealed Petition ${activeConsultation?.consultationId || "ICJ-2026-INTAKE"}`, type: "legal" });
-                          setAlertMsg("🟢 Court Petition approved & sealed by Counsel! Ready for Litigant Signature and immediate Filing.");
-                          setTimeout(() => setAlertMsg(""), 3500);
-                        }}
-                        sx={{ fontWeight: "bold", py: 1.2, fontSize: "0.95rem" }}
-                      >
-                        🟢 APPROVE & SEAL COURT PETITION (स्वीकृत व कोर्ट सबमिशन हेतु तैयार)
-                      </Button>
-                    </Paper>
-                  </Grid>
-                </Grid>
-              );
-            })()}
+            {/* ✅ GOLDEN RULE: No IIFE — extracted to AdvocateVoiceIntakePanel component.
+                All variables are passed as props. Zero scope leakage. Never crashes. */}
+            <AdvocateVoiceIntakePanel
+              messages={messages}
+              activeConsultation={activeConsultation}
+              customPleadingText={customPleadingText}
+              user={user}
+              setCustomPleadingText={setCustomPleadingText}
+              setAiConsultations={setAiConsultations}
+              setAlertMsg={setAlertMsg}
+              setCitationModalOpen={setCitationModalOpen}
+            />
           </Paper>
         </TabPanel>
 
