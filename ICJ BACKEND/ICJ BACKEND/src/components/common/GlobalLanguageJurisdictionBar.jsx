@@ -69,7 +69,7 @@ export default function GlobalLanguageJurisdictionBar({ onJurisdictionChange, on
         {/* 🌐 LEFT SIDE: GLOBAL LEGAL JURISDICTION (INDIA, USA, UK, EU) */}
         <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" gap={0.5}>
           <Typography variant="body2" fontWeight="bold" color="#60a5fa" sx={{ whiteSpace: "nowrap" }}>
-            🌐 Global Legal Jurisdiction (वैश्विक क्षेत्राधिकार):
+            {LanguageService.t("jurisdictionLabel", "🌐 Global Legal Jurisdiction:")}
           </Typography>
           <Chip
             label={`${activeJurisdiction.flag} ${activeJurisdiction.id}`}

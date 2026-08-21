@@ -47,6 +47,7 @@ import ActivityService from "../services/activityService.js";
 import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
 import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
 import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
+import LanguageService, { useLanguage } from "../services/languageService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import useAuth from "../hooks/useAuth.js";
@@ -79,6 +80,7 @@ const ADVOCATE_TABS = {
 };
 
 export default function AdvocateDashboard() {
+  const { lang, t } = useLanguage();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.CLIENT_VOICE_INTAKE);
   const [cases, setCases] = useState([]);
@@ -269,10 +271,10 @@ export default function AdvocateDashboard() {
             <GavelIcon color="primary" sx={{ fontSize: 40 }} />
             <Box>
               <Typography variant="h4" fontWeight="bold">
-                Enterprise Professional Command Centre
+                {t("advocateTitle", "Enterprise Professional Command Centre")}
               </Typography>
               <Typography color="text.secondary">
-                Legal Counsel Management, Client Appointments, Communication Queues & Case Calendar
+                {t("advocateSubtitle", "Legal Counsel Management, Client Appointments, Communication Queues & Case Calendar")}
               </Typography>
             </Box>
           </Stack>
