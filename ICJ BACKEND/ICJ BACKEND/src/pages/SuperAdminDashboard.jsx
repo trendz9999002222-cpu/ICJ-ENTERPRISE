@@ -52,6 +52,7 @@ import TelemetryDiagnosticService from "../services/telemetryDiagnosticService.j
 import ClientWorkflowService from "../services/clientWorkflowService.js";
 import FranchiseWorkflowService from "../services/franchiseWorkflowService.js";
 import RoleService from "../services/roleService.js";
+import CitizenWorkflowService from "../services/citizenWorkflowService.js";
 import audioAlertService from "../services/audioAlertService.js";
 import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";

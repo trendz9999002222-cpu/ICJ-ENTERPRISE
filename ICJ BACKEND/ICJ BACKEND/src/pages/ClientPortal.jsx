@@ -71,6 +71,7 @@ import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService
 import VernacularVoiceAssistantService from "../services/vernacularVoiceAssistantService.js";
 import GuidedCaseIntakeWizard from "../components/common/GuidedCaseIntakeWizard.jsx";
 import GlobalLegalJurisdictionService, { JURISDICTIONS } from "../services/globalLegalJurisdictionService.js";
+import CitizenWorkflowService from "../services/citizenWorkflowService.js";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -98,6 +99,43 @@ export default function ClientPortal() {
   const [authDocName, setAuthDocName] = useState("");
   const [authOtpOpen, setAuthOtpOpen] = useState(false);
   const [authOtpCode, setAuthOtpCode] = useState("");
+
+  // Master Case Folder & Advocate Replacement Request States
+  const [activeMasterCase, setActiveMasterCase] = useState(null);
+  const [openAdvocateChangeModal, setOpenAdvocateChangeModal] = useState(false);
+  const [advocateChangeReason, setAdvocateChangeReason] = useState("Language / Communication Issue");
+  const [advocateChangeNotes, setAdvocateChangeNotes] = useState("");
+
+  useEffect(() => {
+    const cCase = CitizenWorkflowService.getOrCreateActiveCase(memberId, clientName);
+    setActiveMasterCase(cCase);
+  }, [memberId, clientName]);
+
+  const handleSubmitAdvocateChange = () => {
+    if (!activeMasterCase) return;
+    const updated = CitizenWorkflowService.requestAdvocateReplacement(
+      activeMasterCase.case_id,
+      advocateChangeReason,
+      advocateChangeNotes
+    );
+    setActiveMasterCase(updated);
+    setOpenAdvocateChangeModal(false);
+    setAdvocateChangeNotes("");
+    alert(`🔄 वकील बदलने का अनुरोध सहेजा गया! ICJ सुपर एडमिन को स्वीकृति हेतु भेज दिया गया है। (Request ID logged in Case ${activeMasterCase.case_id})`);
+  };
+
+  const handleDownloadMasterRecord = () => {
+    if (!activeMasterCase) return;
+    const txt = CitizenWorkflowService.exportMasterCaseRecord(activeMasterCase.case_id);
+    const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${activeMasterCase.case_id}_Master_Case_Record.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleRequestAction = (action, docName) => {
     setAuthAction(action);
@@ -584,6 +622,9 @@ export default function ClientPortal() {
               📞 Voice Call
             </Button>
 
+            <Button variant="outlined" color="primary" size="small" startIcon={<FolderIcon />} onClick={handleDownloadMasterRecord}>
+              📄 Case Record (.txt)
+            </Button>
             <Button variant="outlined" size="small" startIcon={<UploadFileIcon />} onClick={() => setOpenDocUploadModal(true)}>
               Upload
             </Button>
@@ -595,13 +636,20 @@ export default function ClientPortal() {
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
-        {/* 🏛️ 4-STEP GUIDED CASE INTAKE WIZARD FOR UNIVERSAL PERSONA ACCESSIBILITY */}
+        {/* 🏛️ 5-STEP GUIDED CASE INTAKE WIZARD FOR UNIVERSAL PERSONA ACCESSIBILITY */}
         <GuidedCaseIntakeWizard
           activeAdvocate={activeAdvocate}
+          onRequestAdvocateChange={() => setOpenAdvocateChangeModal(true)}
           onCompleteCaseIntake={({ problemText, caseCategory }) => {
             setAiProbText(problemText);
-            setAiCaseCat(caseCategory); // ← PERMANENT FIX: was incorrectly named setAiCaseCategory
-            setAlertMsg("🟢 4-Step Case Intake Completed & Submitted for Legal Counsel & AI Diagnosis!");
+            setAiCaseCat(caseCategory);
+            if (activeMasterCase) {
+              CitizenWorkflowService.appendStage1Intake(activeMasterCase.case_id, {
+                voiceText: problemText,
+                category: caseCategory,
+              });
+            }
+            setAlertMsg("🟢 5-Stage Citizen Case Journey Completed & Saved to Permanent Master Case Record!");
             setTimeout(() => setAlertMsg(""), 4000);
           }}
         />
@@ -2261,6 +2309,53 @@ export default function ClientPortal() {
         advocateRole="Empaneled Senior Counsel"
         clientName={clientName}
       />
+
+      {/* ─── ADVOCATE REPLACEMENT / CHANGE REQUEST DIALOG ───────────────────────── */}
+      <Dialog open={openAdvocateChangeModal} onClose={() => setOpenAdvocateChangeModal(false)} maxWidth="sm" fullWidth PaperProps={{ style: { borderRadius: 16 } }}>
+        <DialogTitle sx={{ bgcolor: "#0f172a", color: "#fff", display: "flex", alignItems: "center", gap: 1 }}>
+          🔄 वकील बदलवाने का अनुरोध करें (Request Change of Advocate)
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, mt: 1 }}>
+          <Alert severity="info" sx={{ mb: 2, fontSize: "0.85rem" }}>
+            आपका यह अनुरोध सीधे ICJ सुपर एडमिन हेडक्वार्टर को भेजा जाएगा। समीक्षा के बाद आपको 15 पैनलबद्ध वकीलों में से नया वकील आवंटित कर दिया जाएगा।
+          </Alert>
+
+          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+            1. वकील बदलने का मुख्य कारण (Select Reason):
+          </Typography>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            value={advocateChangeReason}
+            onChange={(e) => setAdvocateChangeReason(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="Language / Communication Issue">🗣️ भाषा या संवाद में कठिनाई (Communication Issue)</MenuItem>
+            <MenuItem value="Court Jurisdiction Change Needed">🏢 अदालत / शहर क्षेत्राधिकार में बदलाव (Jurisdiction Shift)</MenuItem>
+            <MenuItem value="Consultation Delay">⏳ समय पर परामर्श न मिल पाना (Delay in Response)</MenuItem>
+            <MenuItem value="Other Specific Reason">📝 अन्य विशेष कानूनी कारण (Other Specific Reason)</MenuItem>
+          </TextField>
+
+          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+            2. अतिरिक्त विवरण / टिप्पणी (Optional Notes):
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="अपनी बात यहाँ लिखें (उदा. मुझे लखनऊ हाई कोर्ट के स्थान पर कानपुर सत्र न्यायालय का वकील चाहिए...)"
+            value={advocateChangeNotes}
+            onChange={(e) => setAdvocateChangeNotes(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: "#f8fafc" }}>
+          <Button onClick={() => setOpenAdvocateChangeModal(false)}>रद्द करें (Cancel)</Button>
+          <Button variant="contained" color="warning" onClick={handleSubmitAdvocateChange} sx={{ fontWeight: "bold" }}>
+            ✅ अनुरोध जमा करें (Submit Change Request)
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
