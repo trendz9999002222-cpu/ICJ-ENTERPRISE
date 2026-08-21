@@ -96,6 +96,25 @@ export default function AdvocateDashboard() {
   const [customPleadingText, setCustomPleadingText] = useState("");
   const [citationModalOpen, setCitationModalOpen] = useState(false);
 
+  // activeConsultation — lifted to component scope so the Citation Modal Dialog
+  // (rendered outside the IIFE at line ~413) can access it without ReferenceError.
+  const [activeConsultation, setActiveConsultation] = useState(() => {
+    try {
+      const consultations = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
+      if (Array.isArray(consultations) && consultations.length > 0) return consultations[0];
+    } catch {}
+    return {
+      consultationId: "ICJ-2026-INTAKE-LIVE",
+      clientName: "Empaneled Litigant Member",
+      caseCategory: "Property & Land Dispute",
+      problemText: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है।",
+      diagnosis: {
+        legalStand: "संपत्ति व राजस्व विवाद — Civil & Revenue Jurisdiction.",
+        sectionsApplicable: ["Land Revenue Code Sec 24", "Specific Relief Act Sec 38", "CPC Order 39 Rule 1 & 2"],
+      },
+    };
+  });
+
   // Appointments state
   const [appointments, setAppointments] = useState(() => {
     try {
@@ -175,6 +194,19 @@ export default function AdvocateDashboard() {
       isMounted = false;
     };
   }, []);
+
+  // Keep component-level activeConsultation in sync with localStorage / aiConsultations
+  // so that the Citation Dialog (outside the IIFE scope) always has the latest data.
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
+      if (Array.isArray(stored) && stored.length > 0) {
+        setActiveConsultation(stored[0]);
+      }
+    } catch {
+      // keep existing state on parse error
+    }
+  }, [aiConsultations]);
 
   // Clients derived from Cases data provenance
   const clients = useMemo(() => {
@@ -415,16 +447,11 @@ export default function AdvocateDashboard() {
               const realConsultations = (() => {
                 try { return JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]"); } catch { return []; }
               })();
-              const activeConsultation = (realConsultations && realConsultations.length > 0) ? realConsultations[0] : {
-                consultationId: "ICJ-2026-INTAKE-LIVE",
-                clientName: "Empaneled Litigant Member",
-                caseCategory: "Property & Land Dispute",
-                problemText: "पड़ोसी ने हमारी कृषि भूमि की सीमा (मेड़) को गलत तरीके से काट दिया है और कब्जा करने की धमकी दी है। हमने स्थानीय राजस्व अधिकारी को शिकायत दी थी। अतः हमें उप-जिलाधिकारी (SDM) राजस्व न्यायालय में सीमांकन याचिका (Section 24) और सिविल स्टे (Order 39 CPC) की आवश्यकता है।",
-                diagnosis: {
-                  legalStand: "आपकी स्थिति: संपत्ति व राजस्व विवाद (Civil & Revenue Jurisdiction)। आपके पास भूमि की खतौनी 2026 व रजिस्ट्री का मजबूत विधिक पक्ष है।",
-                  sectionsApplicable: ["Land Revenue Code Sec 24", "Specific Relief Act Sec 38", "CPC Order 39 Rule 1 & 2"],
-                },
-              };
+              // Use component-level activeConsultation state (always up-to-date via useEffect sync)
+              // and fall back to the live localStorage read for the freshest value inside this render.
+              const localConsultation = (realConsultations && realConsultations.length > 0)
+                ? realConsultations[0]
+                : activeConsultation;
 
               return (
                 <Grid container spacing={3}>
