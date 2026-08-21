@@ -294,33 +294,42 @@ const deleteTable = async (table, id, localKey, idField = "id") => {
 const readUnifiedUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
-    const rawEnt = window.localStorage.getItem("icj_enterprise_users");
-    const initialized = window.localStorage.getItem("icj_users_initialized");
-
-    if (initialized === "true") {
-      let list = [];
-      if (rawEnt) {
-        try {
-          list = JSON.parse(rawEnt);
-        } catch {}
-      }
-      return list;
-    } else {
-      const map = new Map();
-      ENTERPRISE_SEED_USERS.forEach((u) => {
-        const k = String(u.id || u.member_id || u.email).toLowerCase();
-        map.set(k, u);
-      });
-      const merged = Array.from(map.values());
-      window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
-      window.localStorage.setItem("icj_members", JSON.stringify(merged));
-      window.localStorage.setItem("icj_users_initialized", "true");
-      return merged;
+    const rawEnterprise = window.localStorage.getItem(STORAGE_KEYS.members) || window.localStorage.getItem("icj_enterprise_users");
+    let existingList = [];
+    if (rawEnterprise) {
+      try {
+        existingList = JSON.parse(rawEnterprise);
+      } catch {}
     }
+
+    const userMap = new Map();
+    // 1. Seed users as foundational base
+    ENTERPRISE_SEED_USERS.forEach((u) => {
+      const k = String(u.id || u.member_id || u.email || "").toLowerCase();
+      if (k) userMap.set(k, u);
+    });
+
+    // 2. Overlay existing stored users (preserving changes/newly registered members)
+    if (Array.isArray(existingList)) {
+      existingList.forEach((u) => {
+        const k = String(u.id || u.member_id || u.email || "").toLowerCase();
+        if (k) {
+          const base = userMap.get(k) || {};
+          userMap.set(k, { ...base, ...u });
+        }
+      });
+    }
+
+    const merged = Array.from(userMap.values());
+    window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
+    window.localStorage.setItem("icj_members", JSON.stringify(merged));
+    window.localStorage.setItem("icj_users_initialized", "true");
+    return merged;
   } catch {
     return ENTERPRISE_SEED_USERS;
   }
 };
+
 
 const writeUnifiedUsers = (users) => {
   if (typeof window === "undefined") return;

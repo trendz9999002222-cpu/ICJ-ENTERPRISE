@@ -58,6 +58,7 @@ import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";
 import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
+import { getMembers } from "../services/database.js";
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -118,11 +119,23 @@ export default function SuperAdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  const seedUsers = AuthService.getSeedUsers();
-  const totalUsers = stats?.totalMembers ?? (seedUsers.length || 0);
-  const superAdmins = seedUsers.filter(u => (u.user_type === "super_admin" || u.username === "ICJSuperAdmin1234")).length || 1;
-  const admins = seedUsers.filter(u => u.role === "admin" && u.username !== "ICJSuperAdmin1234").length || 0;
-  const members = seedUsers.filter(u => u.role === "member").length || totalUsers;
+  const [usersList, setUsersList] = useState(() => AuthService.getSeedUsers() || []);
+
+  useEffect(() => {
+    let active = true;
+    getMembers().then((list) => {
+      if (active && Array.isArray(list) && list.length > 0) {
+        setUsersList(list);
+      }
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [stats]);
+
+  const totalUsers = stats?.totalMembers ?? usersList.length;
+  const superAdmins = usersList.filter(u => (u.user_type === "super_admin" || u.username === "ICJSuperAdmin1234")).length || 1;
+  const admins = usersList.filter(u => (u.role === "admin" || u.user_type === "admin") && u.username !== "ICJSuperAdmin1234").length || 0;
+  const members = usersList.filter(u => u.role === "member" || !u.role || u.user_type === "member").length || totalUsers;
+
 
   const quickStats = [
     { label: "Total Users", value: totalUsers, color: "primary.main", icon: <PeopleIcon fontSize="medium" />, route: "/member-directory" },

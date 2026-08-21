@@ -130,16 +130,9 @@ export const MemberService = {
 
   async getAll() {
     const list = await getMembers();
-    if (!Array.isArray(list) || list.length < ENTERPRISE_SEED_USERS.length) {
-      try {
-        if (typeof window !== "undefined" && window.localStorage) {
-          window.localStorage.setItem("icj_members", JSON.stringify(ENTERPRISE_SEED_USERS));
-        }
-      } catch (e) {}
-      return ENTERPRISE_SEED_USERS;
-    }
-    return list;
+    return Array.isArray(list) ? list : ENTERPRISE_SEED_USERS;
   },
+
 
   async create(member) {
     // ── RULE 1: Email अनिवार्य है ──────────────────────────────────────────

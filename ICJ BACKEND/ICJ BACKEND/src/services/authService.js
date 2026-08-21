@@ -43,8 +43,11 @@ const getStoredUsers = () => {
         }
       });
 
+      window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
+      window.localStorage.setItem("icj_members", JSON.stringify(merged));
       return merged;
     }
+
 
     return SeedEcosystemService.resetAndHydrate26CoreMembers();
   } catch {
