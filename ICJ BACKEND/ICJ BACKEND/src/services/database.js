@@ -171,9 +171,15 @@ const writeStore = (key, value) => {
 
 const upsertStoreRecord = (key, record, idField = "id") => {
   const list = readStore(key);
-  const id = record[idField] ?? record.id ?? record.member_id ?? Date.now();
-  const recordWithId = { ...record, [idField]: id };
-  const index = list.findIndex((item) => item[idField] !== undefined && String(item[idField]) === String(id));
+  const targetId = record[idField] ?? record.id ?? record.member_id ?? record.memberId ?? Date.now();
+  const recordWithId = { ...record, [idField]: targetId };
+  
+  const index = list.findIndex((item) =>
+    (item[idField] !== undefined && String(item[idField]) === String(targetId)) ||
+    (item.member_id && String(item.member_id) === String(targetId)) ||
+    (item.memberId && String(item.memberId) === String(targetId)) ||
+    (item.email && record.email && String(item.email).toLowerCase() === String(record.email).toLowerCase())
+  );
 
   if (index === -1) {
     const next = [recordWithId, ...list];
@@ -189,7 +195,10 @@ const upsertStoreRecord = (key, record, idField = "id") => {
 
 const removeStoreRecord = (key, id, idField = "id") => {
   const list = readStore(key);
-  const next = list.filter((item) => item[idField] !== id);
+  const next = list.filter((item) =>
+    String(item[idField]) !== String(id) &&
+    String(item.member_id || item.memberId) !== String(id)
+  );
   writeStore(key, next);
 };
 
@@ -254,7 +263,11 @@ const updateTable = async (table, id, values, localKey, idField = "id") => {
       if (error) throw error;
       return;
     } catch {
-      const current = readStore(localKey).find((item) => item[idField] === id);
+      const current = readStore(localKey).find((item) =>
+        String(item[idField]) === String(id) ||
+        String(item.member_id || item.memberId) === String(id) ||
+        (item.email && values.email && String(item.email).toLowerCase() === String(values.email).toLowerCase())
+      );
       if (current) {
         upsertStoreRecord(localKey, { ...current, ...values }, idField);
       }
@@ -262,11 +275,16 @@ const updateTable = async (table, id, values, localKey, idField = "id") => {
     }
   }
 
-  const current = readStore(localKey).find((item) => item[idField] === id);
+  const current = readStore(localKey).find((item) =>
+    String(item[idField]) === String(id) ||
+    String(item.member_id || item.memberId) === String(id) ||
+    (item.email && values.email && String(item.email).toLowerCase() === String(values.email).toLowerCase())
+  );
   if (current) {
     upsertStoreRecord(localKey, { ...current, ...values }, idField);
   }
 };
+
 
 const deleteTable = async (table, id, localKey, idField = "id") => {
   if (isSupabaseConfigured) {
@@ -294,7 +312,7 @@ const deleteTable = async (table, id, localKey, idField = "id") => {
 const readUnifiedUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
-    const rawEnterprise = window.localStorage.getItem(STORAGE_KEYS.members) || window.localStorage.getItem("icj_enterprise_users");
+    const rawEnterprise = window.localStorage.getItem("icj_enterprise_users") || window.localStorage.getItem(STORAGE_KEYS.members);
     let existingList = [];
     if (rawEnterprise) {
       try {
@@ -303,19 +321,41 @@ const readUnifiedUsers = () => {
     }
 
     const userMap = new Map();
-    // 1. Seed users as foundational base
+    // 1. Seed users as foundational base (clean 7 users)
     ENTERPRISE_SEED_USERS.forEach((u) => {
-      const k = String(u.id || u.member_id || u.email || "").toLowerCase();
+      const k = String(u.member_id || u.memberId || u.email || u.id || "").toLowerCase();
       if (k) userMap.set(k, u);
     });
 
-    // 2. Overlay existing stored users (preserving changes/newly registered members)
+    // 2. Overlay existing stored users (preserving edits, registration changes)
     if (Array.isArray(existingList)) {
       existingList.forEach((u) => {
-        const k = String(u.id || u.member_id || u.email || "").toLowerCase();
-        if (k) {
-          const base = userMap.get(k) || {};
-          userMap.set(k, { ...base, ...u });
+        // Find if this user already exists by member_id, email, or id
+        const existingKey = Array.from(userMap.keys()).find((k) => {
+          const item = userMap.get(k);
+          return (
+            (u.member_id && String(item.member_id || item.memberId) === String(u.member_id)) ||
+            (u.memberId && String(item.member_id || item.memberId) === String(u.memberId)) ||
+            (u.email && item.email && String(item.email).toLowerCase() === String(u.email).toLowerCase()) ||
+            (u.id && String(item.id) === String(u.id))
+          );
+        });
+
+        if (existingKey) {
+          const base = userMap.get(existingKey);
+          userMap.set(existingKey, {
+            ...base,
+            ...u,
+            id: base.id, // Preserve permanent primary ID
+            member_id: base.member_id || base.memberId || u.member_id || u.memberId,
+            memberId: base.memberId || base.member_id || u.memberId || u.member_id,
+            registration_date: base.registration_date || u.registration_date,
+            created_at: base.created_at || u.created_at,
+          });
+        } else {
+          // New organically registered user
+          const k = String(u.member_id || u.memberId || u.email || u.id || Date.now()).toLowerCase();
+          userMap.set(k, u);
         }
       });
     }
@@ -329,7 +369,6 @@ const readUnifiedUsers = () => {
     return ENTERPRISE_SEED_USERS;
   }
 };
-
 
 const writeUnifiedUsers = (users) => {
   if (typeof window === "undefined") return;
@@ -346,18 +385,34 @@ export const getMembers = async () => {
 export const addMember = async (member) => {
   const result = await insertTable("members", member, STORAGE_KEYS.members);
   const current = readUnifiedUsers();
-  const filtered = current.filter((u) => String(u.id) !== String(result.id) && String(u.member_id) !== String(result.member_id));
+  const filtered = current.filter((u) =>
+    String(u.id) !== String(result.id) &&
+    String(u.member_id || u.memberId) !== String(result.member_id || result.memberId)
+  );
   const updated = [result, ...filtered];
   writeUnifiedUsers(updated);
   return result;
 };
 
-export const updateMember = async (id, values) => {
+export const updateMember = async (id, values = {}) => {
   await updateTable("members", id, values, STORAGE_KEYS.members);
   const current = readUnifiedUsers();
-  const index = current.findIndex((u) => String(u.id) === String(id) || String(u.member_id) === String(id));
+  const index = current.findIndex((u) =>
+    String(u.id) === String(id) ||
+    String(u.member_id || u.memberId) === String(id) ||
+    (u.email && values.email && String(u.email).toLowerCase() === String(values.email).toLowerCase())
+  );
   if (index !== -1) {
-    current[index] = { ...current[index], ...values };
+    const existing = current[index];
+    current[index] = {
+      ...existing,
+      ...values,
+      id: existing.id,
+      member_id: existing.member_id || existing.memberId || values.member_id || values.memberId || id,
+      memberId: existing.memberId || existing.member_id || values.memberId || values.member_id || id,
+      registration_date: existing.registration_date || values.registration_date,
+      created_at: existing.created_at || values.created_at,
+    };
     writeUnifiedUsers(current);
   }
 };
@@ -365,9 +420,13 @@ export const updateMember = async (id, values) => {
 export const deleteMember = async (id) => {
   await deleteTable("members", id, STORAGE_KEYS.members);
   const current = readUnifiedUsers();
-  const nextUsers = current.filter((u) => String(u.id) !== String(id) && String(u.member_id) !== String(id));
+  const nextUsers = current.filter((u) =>
+    String(u.id) !== String(id) &&
+    String(u.member_id || u.memberId) !== String(id)
+  );
   writeUnifiedUsers(nextUsers);
 };
+
 
 // ===========================
 // Wallets

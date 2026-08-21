@@ -4,6 +4,8 @@
  * Trust Approvals, Court Orders, Invoices, Billing, Revenue Sharing, OCR, and AI Legal Drafting.
  */
 
+import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
+
 const STORAGE_KEYS = {
   cases: "icj_legal_cases_v2",
   timelines: "icj_case_timelines",
@@ -34,31 +36,37 @@ const setItem = (key, val) => {
   }
 };
 
-// One-time Purge of Stale Legacy Seed Data
-(() => {
-  try {
-    if (typeof localStorage === "undefined") return;
-    const advocates = getItem(STORAGE_KEYS.advocates);
-    if (Array.isArray(advocates) && advocates.some((a) => a.id === "ADV-101")) {
-      localStorage.removeItem(STORAGE_KEYS.advocates);
-      localStorage.removeItem(STORAGE_KEYS.cases);
-      localStorage.removeItem(STORAGE_KEYS.hearings);
-      localStorage.removeItem(STORAGE_KEYS.orders);
-      localStorage.removeItem(STORAGE_KEYS.invoices);
-      localStorage.removeItem(STORAGE_KEYS.trustApprovals);
-      localStorage.removeItem(STORAGE_KEYS.aiDrafts);
-      localStorage.removeItem("icj_client_messages");
-    }
-  } catch (err) {
-    console.error("Purge stale seed data error:", err);
-  }
-})();
-
 export const LegalEcosystemService = {
   // Case CRUD
   getCases() {
-    return getItem(STORAGE_KEYS.cases);
+    const raw = getItem(STORAGE_KEYS.cases);
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+    const initialCase = [
+      {
+        id: "CASE-2026-001",
+        caseNumber: "ICJ/CS/2026/1001",
+        title: "Land Boundary Demarcation & Injunction Suit",
+        clientName: "Ramesh Kumar Gupta",
+        member_id: "26ICJ08AA0005",
+        advocateName: "Adv. Vikramaditya Rao",
+        advocateId: "26ICJ08AA0003",
+        courtName: "IN THE COURT OF SUB-DIVISIONAL MAGISTRATE (SDM) / CIVIL JUDGE",
+        status: "In Hearing",
+        trustApprovalStatus: "Approved",
+        nextHearing: "2026-09-10",
+        filingDate: "2026-08-05",
+        summary: "Boundary demarcation and injunction petition under Section 24 Revenue Code and Order XXXIX CPC.",
+        missingDocs: ["Survey Map Copy"],
+        legalProvisions: ["UP Revenue Code 2006 — Section 24", "Civil Procedure Code 1908 — Order XXXIX Rules 1 & 2"],
+        feeAmount: 35000,
+        paidAmount: 35000,
+        createdAt: "2026-08-05T10:00:00.000Z",
+      },
+    ];
+    setItem(STORAGE_KEYS.cases, initialCase);
+    return initialCase;
   },
+
 
   getCaseById(id) {
     const cases = this.getCases();
@@ -147,8 +155,12 @@ export const LegalEcosystemService = {
 
   // Advocate Assignment
   getAdvocates() {
-    return getItem(STORAGE_KEYS.advocates);
+    const raw = getItem(STORAGE_KEYS.advocates);
+    if (Array.isArray(raw) && raw.length > 0) return raw;
+    const seedAdvs = ENTERPRISE_SEED_USERS.filter((u) => u.role === "advocate" || u.user_type === "advocate");
+    return seedAdvs;
   },
+
 
   assignAdvocate(caseId, advocateId) {
     const advocates = this.getAdvocates();

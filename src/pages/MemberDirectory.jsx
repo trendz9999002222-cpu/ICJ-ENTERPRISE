@@ -195,14 +195,19 @@ export default function MemberDirectory() {
         }
       }
 
-      await MemberService.update(id, {
+      const targetId = editMember.id || editMember.member_id || editMember.memberId;
+      await MemberService.update(targetId, {
         ...editForm,
+        id: editMember.id,
+        member_id: editMember.member_id || editMember.memberId,
+        memberId: editMember.memberId || editMember.member_id,
         fullName: editForm.name,
         name: editForm.name,
         birthYear: birthYearVal,
         birth_year: birthYearVal,
         age: ageVal,
       });
+
       ActivityService.create({
         title: `Member "${editForm.name}" profile updated`,
         type: "membership",
