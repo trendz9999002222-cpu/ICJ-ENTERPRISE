@@ -1,22 +1,3 @@
-/**
- * ICJ Language & Script Isolation Engine v3.0 (Decoupled Multi-Language & Voice Architecture)
- * 
- * Supported Languages (13 Regional & International Languages):
- * - en: English (Permanent Fallback - Always Accessible in 1-Click)
- * - hi: हिंदी (Hindi)
- * - bn: বাংলা (Bengali)
- * - gu: ગુજરાતી (Gujarati)
- * - kn: ಕನ್ನಡ (Kannada)
- * - ml: മലയാളം (Malayalam)
- * - mr: मराठी (Marathi)
- * - or: ଓଡ଼ିଆ (Odia)
- * - pa: ਪੰਜਾਬੀ (Punjabi)
- * - ta: தமிழ் (Tamil)
- * - te: తెలుగు (Telugu)
- * - as: অসমীয়া (Assamese)
- * - ur: اردو (Urdu)
- */
-
 import { useState, useEffect } from "react";
 
 const LANGUAGE_KEY = "icj_preferred_language_mode";
@@ -58,6 +39,40 @@ const DICTIONARIES = {
       wizardBack: "← Back",
       wizardComplete: "✅ Complete Case Journey",
       
+      // Stage 0 Content
+      stage0Title: "STAGE 0: 🗣️ Welcome & Audio Guidance",
+      stage0Subtitle: "No need to understand complex legal procedures or type. Click the audio button below to hear guidance in your selected language.",
+      stage0HowItWorks: "📌 How does this portal work?",
+      stage0Step1: "1. Speak via Mic: Your spoken words will auto-transcribe into your secure case file.",
+      stage0Step2: "2. Upload Documents: Upload court case file photos or PDFs.",
+      stage0Step3: "3. Counsel & AI Assistance: An empaneled ICJ advocate remains assigned to assist you.",
+      stage0PlayAudio: "🔊 Play Audio Guidance",
+      stage0UnderstandProceed: "I Understand — Proceed ➔",
+
+      // Stage 1 Content
+      stage1Title: "STAGE 1: 🗣️ Describe Your Legal Situation",
+      stage1CategoryLabel: "Case Category",
+      stage1ProblemLabel: "Problem Description (Speak or Type)",
+      stage1Placeholder: "Speak or type your legal problem here... Your spoken words are saved into your master case record.",
+
+      // Stage 2 Content
+      stage2Title: "STAGE 2: 📂 Upload Legal Documents & Auto-Sorting",
+      stage2Subtitle: "The system auto-sorts your uploaded documents according to court procedure (Plaint ➔ WS ➔ Orders).",
+      stage2UploadBtn: "➕ Upload Document",
+      stage2CountLabel: "Uploaded Documents:",
+
+      // Stage 3 Content
+      stage3Title: "STAGE 3: 🤖 AI Legal Risk & Section Diagnosis",
+      stage3Subtitle: "AI legal analysis prepared based on your voice transcript and uploaded documents:",
+      stage3Chip: "✅ BNS / BNSS / CPC Statutory Sections Analyzed",
+      stage3SavedNote: "This analysis is automatically saved into your Master Case Folder.",
+
+      // Stage 4 Content
+      stage4Title: "STAGE 4: ⚖️ Assigned Counsel & 1-Click Action Controls",
+      stage4CounselLabel: "👨‍⚖️ Assigned Advocate:",
+      stage4RoleLabel: "Role:",
+      stage4ChangeBtn: "🔄 Request Counsel Change",
+
       catCivil: "🏛️ Civil Dispute",
       catCriminal: "⚖️ Criminal Defence & Bail",
       catFamily: "👨‍👩‍👧 Family Law & Divorce",
@@ -94,6 +109,40 @@ const DICTIONARIES = {
       wizardNext: "आगे बढ़ें ➔",
       wizardBack: "← पीछे",
       wizardComplete: "✅ संपूर्ण केस यात्रा पूर्ण करें",
+
+      // Stage 0 Content
+      stage0Title: "STAGE 0: 🗣️ स्वागत व ऑडियो मार्गदर्शन",
+      stage0Subtitle: "यहाँ आपको कानूनी प्रक्रिया समझने या टाइप करने की आवश्यकता नहीं है। नीचे दिया गया ऑडियो बटन दबाकर अपनी भाषा में दिशा-निर्देश सुनें।",
+      stage0HowItWorks: "📌 इस पोर्टल पर काम कैसे होगा?",
+      stage0Step1: "1. माइक से बोलें: आपकी बोली हुई बात तुरंत सुरक्षित केस रिकॉर्ड में टाइप होगी।",
+      stage0Step2: "2. कागजात लोड करें: कोर्ट फाइल की फोटो या PDF अपलोड करें।",
+      stage0Step3: "3. वकील व AI सहायता: ICJ लीगल पैनल का वकील आपकी सहायता हेतु नियुक्त रहेगा।",
+      stage0PlayAudio: "🔊 ऑडियो मार्गदर्शन चालू करें",
+      stage0UnderstandProceed: "मैं समझ गया — आगे बढ़ें ➔",
+
+      // Stage 1 Content
+      stage1Title: "STAGE 1: 🗣️ अपनी कानूनी समस्या दर्ज करें",
+      stage1CategoryLabel: "मामले का प्रकार (Category)",
+      stage1ProblemLabel: "समस्या का विवरण (बोलें या टाइप करें)",
+      stage1Placeholder: "यहाँ बोलकर या टाइप करके अपनी समस्या दर्ज करें... आपका बोला गया शब्द मास्टर केस रिकॉर्ड में सुरक्षित होगा।",
+
+      // Stage 2 Content
+      stage2Title: "STAGE 2: 📂 पुराने कागजात लोड करें (ऑटो-सॉर्टिंग)",
+      stage2Subtitle: "सिस्टम आपके कागजातों को कानूनी प्रक्रिया अनुसार (Plaint ➔ WS ➔ Orders) अपने आप क्रमबद्ध कर देगा।",
+      stage2UploadBtn: "➕ कागज़ अपलोड करें",
+      stage2CountLabel: "अपलोड किए गए कागजात:",
+
+      // Stage 3 Content
+      stage3Title: "STAGE 3: 🤖 AI केस निदान व धारा समीक्षा",
+      stage3Subtitle: "आपके द्वारा दर्ज वॉयस ट्रांसक्रिप्ट और अपलोड कागजात के आधार पर कानूनी धाराओं व रणनीति का विश्लेषण तैयार है:",
+      stage3Chip: "✅ BNS / BNSS / CPC कानूनी धाराएं विश्लेषित",
+      stage3SavedNote: "यह विश्लेषण स्वचालित रूप से आपके Master Case Folder में सहेजा जा चुका है।",
+
+      // Stage 4 Content
+      stage4Title: "STAGE 4: ⚖️ नियुक्त वकील व 1-क्लिक एक्शन",
+      stage4CounselLabel: "👨‍⚖️ नियुक्त एडवोकेट:",
+      stage4RoleLabel: "पद:",
+      stage4ChangeBtn: "🔄 वकील बदलवाने का अनुरोध करें",
 
       catCivil: "🏛️ सिविल विवाद",
       catCriminal: "⚖️ आपराधिक मामला व जमानत",
@@ -132,6 +181,40 @@ const DICTIONARIES = {
       wizardBack: "← પાછા",
       wizardComplete: "✅ સંપૂર્ણ કેસ સબમિટ કરો",
 
+      // Stage 0 Content
+      stage0Title: "STAGE 0: 🗣️ સ્વાગત અને ઓડિયો માર્ગદર્શન",
+      stage0Subtitle: "જટિલ કાનૂની પ્રક્રિયાઓ સમજવા કે ટાઇપ કરવાની જરૂર નથી. તમારી ભાષામાં માર્ગદર્શન સાંભળવા માટે નીચેનું ઓડિયો બટન દબાવો.",
+      stage0HowItWorks: "📌 આ પોર્ટલ પર કામ કેવી રીતે થશે?",
+      stage0Step1: "1. માઇકથી બોલો: તમારી બોલેલી વાત તમારા સુરક્ષિત કેસ રેકોર્ડમાં ટાઇપ થશે.",
+      stage0Step2: "2. દસ્તાવેજો લોડ કરો: કોર્ટ ફાઇલનો ફોટો અથવા PDF અપલોડ કરો.",
+      stage0Step3: "3. વકીલ અને AI સહાય: ICJ લીગલ પેનલના વકીલ તમારી મદદ માટે રહેશે.",
+      stage0PlayAudio: "🔊 ઓડિયો માર્ગદર્શન ચાલુ કરો",
+      stage0UnderstandProceed: "હું સમજી ગયો — આગળ વધો ➔",
+
+      // Stage 1 Content
+      stage1Title: "STAGE 1: 🗣️ તમારી કાનૂની સમસ્યા નોંધો",
+      stage1CategoryLabel: "કેસ પ્રકાર (Category)",
+      stage1ProblemLabel: "સમસ્યાની વિગત (બોલો અથવા ટાઇપ કરો)",
+      stage1Placeholder: "અહીં બોલીને અથવા ટાઇપ કરીને તમારી સમસ્યા નોંધો... તમારા બોલેલા શબ્દો કેસ રેકોર્ડમાં સુરક્ષિત થશે.",
+
+      // Stage 2 Content
+      stage2Title: "STAGE 2: 📂 દસ્તાવેજો અપલોડ કરો",
+      stage2Subtitle: "સિસ્ટમ તમારા દસ્તાવેજોને કોર્ટ પ્રક્રિયા મુજબ આપમેળે ગોઠવી દેશે.",
+      stage2UploadBtn: "➕ દસ્તાવેજ અપલોડ કરો",
+      stage2CountLabel: "અપલોડ કરેલ દસ્તાવેજો:",
+
+      // Stage 3 Content
+      stage3Title: "STAGE 3: 🤖 AI કેસ વિશ્લેષણ",
+      stage3Subtitle: "તમારા અવાજ રેકોર્ડિંગ અને દસ્તાવેજોના આધારે AI કાનૂની વિશ્લેષણ તૈયાર છે:",
+      stage3Chip: "✅ કાનૂની કલમોનું વિશ્લેષણ પૂર્ણ",
+      stage3SavedNote: "આ વિશ્લેષણ તમારા કેસ ફોલ્ડરમાં આપમેળે સાચવવામાં આવ્યું છે.",
+
+      // Stage 4 Content
+      stage4Title: "STAGE 4: ⚖️ નિમાયેલ વકીલ અને એક્શન",
+      stage4CounselLabel: "👨‍⚖️ નિમાયેલ એડવોકેટ:",
+      stage4RoleLabel: "હોદ્દો:",
+      stage4ChangeBtn: "🔄 વકીલ બદલવાની વિનંતી કરો",
+
       catCivil: "🏛️ સિવિલ વિવાદ",
       catCriminal: "⚖️ ફોજદારી કેસ",
       catFamily: "👨‍👩‍👧 કૌટુંબિક વિવાદ",
@@ -155,7 +238,6 @@ const DICTIONARIES = {
     translations: {
       brandTitle: "ICJ এন্টারপ্রাইজ প্ল্যাটফর্ম",
       brandSubtitle: "একীকৃত আইনি কমান্ড সেন্টার",
-      globalSearchPlaceholder: "অনুসন্ধান করুন (সদস্য, মামলা, আইনি নথি)...",
       selectLanguage: "ভাষা নির্বাচন করুন:",
       englishFallback: "ENGLISH",
 
@@ -169,89 +251,34 @@ const DICTIONARIES = {
       wizardBack: "← পিছনে",
       wizardComplete: "✅ কেস জমা দিন",
 
-      catCivil: "🏛️ দেওয়ানি বিরোধ",
-      catCriminal: "⚖️ ফৌজদারি মামলা",
-      catFamily: "👨‍👩‍👧 পারিবারিক মামলা",
-      catProperty: "🏠 সম্পত্তি বিরোধ",
-      catCheque: "💳 চেক বাউন্স",
-      catConsumer: "🛒 ভোক্তা অভিযোগ",
+      stage0Title: "STAGE 0: 🗣️ স্বাগতম ও অডিও নির্দেশিকা",
+      stage0Subtitle: "আইনি প্রক্রিয়া বোঝা বা টাইপ করার প্রয়োজন নেই। অডিও শুনতে নিচের বোতামটি চাপুন।",
+      stage0HowItWorks: "📌 এই পোর্টালে কাজ কীভাবে হবে?",
+      stage0Step1: "1. মাইকে বলুন: আপনার কথা সরাসরি কেস রেকর্ডে টাইপ হবে।",
+      stage0Step2: "2. নথি লোড করুন: কোর্ট ফাইলের ছবি বা PDF আপলোড করুন।",
+      stage0Step3: "3. আইনজীবী ও AI সহায়তা: প্যানেলভুক্ত আইনজীবী সহায়তায় নিয়োজিত থাকবেন।",
+      stage0PlayAudio: "🔊 অডিও চালু করুন",
+      stage0UnderstandProceed: "বুঝেছি — এগিয়ে যান ➔",
 
-      btnContinue: "এগিয়ে যান",
-      btnSubmit: "মামলা জমা দিন",
-      btnUploadDoc: "নথি আপলোড করুন",
-      btnChangeCounsel: "🔄 আইনজীবী পরিবর্তনের অনুরোধ",
+      stage1Title: "STAGE 1: 🗣️ আইনি সমস্যা বিবরণ দিন",
+      stage1CategoryLabel: "মামলার ধরণ",
+      stage1ProblemLabel: "সমস্যার বিবরণ (বলুন বা টাইপ করুন)",
+      stage1Placeholder: "এখানে বলুন বা টাইপ করুন... আপনার কথা মাস্টার কেস রেকর্ডে সংরক্ষিত হবে।",
 
-      roleClient: "ক্লায়েন্ট / বাদী",
-      roleAdvocate: "প্যানেল আইনজীবী",
-      roleAdmin: "সিস্টেম অ্যাডমিন",
-    }
-  },
+      stage2Title: "STAGE 2: 📂 নথিপত্র আপলোড করুন",
+      stage2Subtitle: "সিস্টেম স্বয়ংক্রিয়ভাবে নথিপত্র সাজিয়ে দেবে।",
+      stage2UploadBtn: "➕ নথি আপলোড করুন",
+      stage2CountLabel: "আপলোড করা নথি:",
 
-  mr: {
-    code: "mr",
-    translations: {
-      brandTitle: "ICJ एंटरप्राइज प्लॅटफॉर्म",
-      brandSubtitle: "एकीकृत कायदेशीर कमांड सेंटर",
-      selectLanguage: "भाषा निवडा (Language):",
-      englishFallback: "ENGLISH",
+      stage3Title: "STAGE 3: 🤖 AI কেস নির্ণয়",
+      stage3Subtitle: "আপনার ভয়েস এবং নথির ভিত্তিতে AI আইনি বিশ্লেষণ প্রস্তুত:",
+      stage3Chip: "✅ ধারা এবং আইন বিশ্লেষণ সম্পন্ন",
+      stage3SavedNote: "এই বিশ্লেষণ স্বয়ংক্রিয়ভাবে সংরক্ষিত হয়েছে।",
 
-      wizardStep0: "टप्पा 0: 🔊 ऑडिओ मार्गदर्शन",
-      wizardStep1: "टप्पा 1: 🗣️ कायदेशीर समस्या नोंदवा",
-      wizardStep2: "टप्पा 2: 📂 कागदपत्रे अपलोड करा",
-      wizardStep3: "टप्पा 3: 🤖 AI केस विश्लेषण",
-      wizardStep4: "टप्पा 4: ⚖️ वकील व 1-क्लिक कारवाई",
-
-      wizardNext: "पुढे जा ➔",
-      wizardBack: "← मागे",
-      wizardComplete: "✅ संपूर्ण केस सबमिट करा",
-
-      catCivil: "🏛️ दिवाणी विवाद",
-      catCriminal: "⚖️ फौजदारी गुन्हा व जामीन",
-      catFamily: "👨‍👩‍👧 कौटुंबिक वाद",
-      catProperty: "🏠 मालमत्ता व जमीन वाद",
-
-      btnContinue: "पुढे जा",
-      btnSubmit: "केस सबमिट करा",
-      btnUploadDoc: "कागदपत्र अपलोड करा",
-      btnChangeCounsel: "🔄 वकील बदलण्याची विनंती करा",
-    }
-  },
-
-  ta: {
-    code: "ta",
-    translations: {
-      brandTitle: "ICJ எண்டர்பிரைஸ் பிளாட்ஃபார்ம்",
-      selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்:",
-      englishFallback: "ENGLISH",
-
-      wizardStep0: "நிலை 0: 🔊 ஆடியோ வழிகாட்டுதல்",
-      wizardStep1: "நிலை 1: 🗣️ சட்டப் பிரச்சினையைப் பதிவுசெய்க",
-      wizardStep2: "நிலை 2: 📂 ஆவணங்களைப் பதிவேற்றுக",
-      wizardStep3: "நிலை 3: 🤖 AI வழக்கறிஞர் பகுப்பாய்வு",
-      wizardStep4: "நிலை 4: ⚖️ வழக்கறிஞர் மற்றும் நடவடிக்கை",
-
-      wizardNext: "அடுத்து ➔",
-      wizardBack: "← பின்னே",
-      wizardComplete: "✅ வழக்கை சமர்ப்பிக்கவும்",
-    }
-  },
-
-  te: {
-    code: "te",
-    translations: {
-      brandTitle: "ICJ ఎంటర్‌ప్రైజ్ ప్లాట్‌ఫారమ్",
-      selectLanguage: "భాషను ఎంచుకోండి:",
-      englishFallback: "ENGLISH",
-
-      wizardStep0: "దశ 0: 🔊 ఆడియో మార్గదర్శకత్వం",
-      wizardStep1: "దశ 1: 🗣️ చట్టపరమైన సమస్యను నమోదు చేయండి",
-      wizardStep2: "దశ 2: 📂 పత్రాలను అప్‌లోడ్ చేయండి",
-      wizardStep3: "దశ 3: 🤖 AI కేసు విశ్లేషణ",
-      wizardStep4: "దశ 4: ⚖️ న్యాయవాది మరియు చర్య",
-
-      wizardNext: "ముందుకు ➔",
-      wizardBack: "← వెనుకకు",
-      wizardComplete: "✅ కేసును సమర్పించండి",
+      stage4Title: "STAGE 4: ⚖️ নিযুক্ত আইনজীবী ও পদক্ষেপ",
+      stage4CounselLabel: "👨‍⚖️ নিযুক্ত আইনজীবী:",
+      stage4RoleLabel: "পদবী:",
+      stage4ChangeBtn: "🔄 আইনজীবী পরিবর্তনের অনুরোধ",
     }
   }
 };

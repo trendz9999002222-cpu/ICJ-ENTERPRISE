@@ -148,22 +148,22 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
             <MicIcon sx={{ fontSize: 40, color: "#059669" }} />
             <Box>
               <Typography variant="h6" fontWeight="bold" color="#065f46">
-                STAGE 0: 🗣️ स्वागत व ऑडियो मार्गदर्शन (Vernacular Voice Welcome & Guidance)
+                {t("stage0Title", "STAGE 0: 🗣️ Welcome & Audio Guidance")}
               </Typography>
               <Typography variant="body2" color="#047857">
-                यहाँ आपको कानूनी प्रक्रिया समझने या टाइप करने की आवश्यकता नहीं है। नीचे दिया गया ऑडियो बटन दबाकर अपनी भाषा में दिशा-निर्देश सुनें।
+                {t("stage0Subtitle", "No need to understand complex legal procedures or type. Click the audio button below to hear guidance in your selected language.")}
               </Typography>
             </Box>
           </Stack>
 
           <Paper variant="outlined" sx={{ p: 2, mb: 2.5, bgcolor: "#fff", borderColor: "#a7f3d0", borderRadius: 2 }}>
             <Typography variant="subtitle2" fontWeight="bold" color="#065f46" mb={1}>
-              📌 इस पोर्टल पर काम कैसे होगा?
+              {t("stage0HowItWorks", "📌 How does this portal work?")}
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              1. <strong>माइक से बोलें:</strong> आपकी बोली हुई बात तुरंत सुरक्षित केस रिकॉर्ड में टाइप होगी।<br />
-              2. <strong>कागजात लोड करें:</strong> कोर्ट फाइल की फोटो या PDF अपलोड करें।<br />
-              3. <strong>वकील व AI सहायता:</strong> ICJ लीगल पैनल का वकील आपकी सहायता हेतु नियुक्त रहेगा।
+              {t("stage0Step1", "1. Speak via Mic: Your spoken words will auto-transcribe into your secure case file.")}<br />
+              {t("stage0Step2", "2. Upload Documents: Upload court case file photos or PDFs.")}<br />
+              {t("stage0Step3", "3. Counsel & AI Assistance: An empaneled ICJ advocate remains assigned to assist you.")}
             </Typography>
           </Paper>
 
@@ -175,7 +175,7 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
               onClick={() => VernacularVoiceAssistantService.speakInHindi(VernacularVoiceAssistantService.prompts.WELCOME)}
               sx={{ fontWeight: "bold" }}
             >
-              🔊 ऑडियो मार्गदर्शन चालू करें (Play Guidance)
+              {t("stage0PlayAudio", "🔊 Play Audio Guidance")}
             </Button>
             <Button
               variant="contained"
@@ -184,7 +184,7 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
               endIcon={<ArrowForwardIcon />}
               sx={{ fontWeight: "bold", px: 3 }}
             >
-              मैं समझ गया — आगे बढ़ें ➔
+              {t("stage0UnderstandProceed", "I Understand — Proceed ➔")}
             </Button>
           </Stack>
         </Box>
@@ -194,31 +194,30 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {activeStep === 1 && (
         <Box sx={{ bgcolor: "#f8fafc", p: 2.5, borderRadius: 2.5, border: "1px solid #e2e8f0" }}>
           <Typography variant="subtitle2" fontWeight="bold" color="#0f172a" mb={1}>
-            STAGE 1: 🗣️ अपनी कानूनी समस्या दर्ज करें (Describe Your Legal Situation)
+            {t("stage1Title", "STAGE 1: 🗣️ Describe Your Legal Situation")}
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <TextField
                 select fullWidth size="small"
-                label="मामले का प्रकार (Category)"
+                label={t("stage1CategoryLabel", "Case Category")}
                 value={caseCategory}
                 onChange={(e) => setCaseCategory(e.target.value)}
               >
-                <MenuItem value="civil">🏛️ सिविल विवाद (Civil Dispute)</MenuItem>
-                <MenuItem value="criminal">⚖️ आपराधिक मामला (Criminal Matter)</MenuItem>
-                <MenuItem value="family">👨‍👩‍👧 पारिवारिक विवाद (Family Court)</MenuItem>
-                <MenuItem value="property">🏠 संपत्ति विवाद (Property Dispute)</MenuItem>
-                <MenuItem value="cheque_bounce">💳 चेक बाउंस (Cheque Bounce)</MenuItem>
-                <MenuItem value="consumer">🛒 उपभोक्ता शिकायत (Consumer Commission)</MenuItem>
-                <MenuItem value="cat_ngt">🏢 CAT / NGT / ट्रिब्यूनल मामला</MenuItem>
+                <MenuItem value="civil">{t("catCivil", "🏛️ Civil Dispute")}</MenuItem>
+                <MenuItem value="criminal">{t("catCriminal", "⚖️ Criminal Defence & Bail")}</MenuItem>
+                <MenuItem value="family">{t("catFamily", "👨‍👩‍👧 Family Law & Divorce")}</MenuItem>
+                <MenuItem value="property">{t("catProperty", "🏠 Property & Land Title")}</MenuItem>
+                <MenuItem value="cheque_bounce">{t("catCheque", "💳 Cheque Bounce & Recovery")}</MenuItem>
+                <MenuItem value="consumer">{t("catConsumer", "🛒 Consumer Protection")}</MenuItem>
               </TextField>
             </Grid>
             <Grid item xs={12} sm={8}>
               <VoiceCommentaryStudio
                 value={problemText}
                 onChange={(txt) => setProblemText(txt)}
-                label="समस्या का विवरण (बोलें या टाइप करें)"
-                placeholder="यहाँ बोलकर या टाइप करके अपनी समस्या दर्ज करें... आपका बोला गया शब्द मास्टर केस रिकॉर्ड में सुरक्षित होगा।"
+                label={t("stage1ProblemLabel", "Problem Description (Speak or Type)")}
+                placeholder={t("stage1Placeholder", "Speak or type your legal problem here... Your spoken words are saved into your master case record.")}
               />
             </Grid>
           </Grid>
@@ -229,16 +228,16 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {activeStep === 2 && (
         <Box sx={{ bgcolor: "#f0fdf4", p: 2.5, borderRadius: 2.5, border: "1px solid #bbf7d0" }}>
           <Typography variant="subtitle2" fontWeight="bold" color="#065f46" mb={1}>
-            STAGE 2: 📂 पुराने कागजात लोड करें (Upload Legal Documents & Auto-Sorting)
+            {t("stage2Title", "STAGE 2: 📂 Upload Legal Documents & Auto-Sorting")}
           </Typography>
           <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-            सिस्टम आपके कागजातों को कानूनी प्रक्रिया अनुसार (Plaint ➔ WS ➔ Orders) अपने आप क्रमबद्ध कर देगा।
+            {t("stage2Subtitle", "The system auto-sorts your uploaded documents according to court procedure (Plaint ➔ WS ➔ Orders).")}
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
             <Button variant="contained" color="success" startIcon={<UploadFileIcon />} onClick={() => setUploadedFilesCount((prev) => prev + 1)}>
-              ➕ कागज़ अपलोड करें (Upload Document)
+              {t("stage2UploadBtn", "➕ Upload Document")}
             </Button>
-            <Chip label={`अपलोड किए गए कागजात: ${uploadedFilesCount}`} color="success" sx={{ fontWeight: "bold" }} />
+            <Chip label={`${t("stage2CountLabel", "Uploaded Documents:")} ${uploadedFilesCount}`} color="success" sx={{ fontWeight: "bold" }} />
           </Stack>
         </Box>
       )}
@@ -247,15 +246,15 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {activeStep === 3 && (
         <Box sx={{ bgcolor: "#faf5ff", p: 2.5, borderRadius: 2.5, border: "1px solid #e9d5ff" }}>
           <Typography variant="subtitle2" fontWeight="bold" color="#6b21a8" mb={1}>
-            STAGE 3: 🤖 AI केस निदान व धारा समीक्षा (AI Legal Risk & Section Diagnosis)
+            {t("stage3Title", "STAGE 3: 🤖 AI Legal Risk & Section Diagnosis")}
           </Typography>
           <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "#fff", borderColor: "#d8b4fe" }}>
             <Typography variant="body2" color="text.secondary" mb={1}>
-              आपके द्वारा दर्ज वॉयस ट्रांसक्रिप्ट और अपलोड कागजात के आधार पर कानूनी धाराओं व रणनीति का विश्लेषण तैयार है:
+              {t("stage3Subtitle", "AI legal analysis prepared based on your voice transcript and uploaded documents:")}
             </Typography>
-            <Chip label="✅ BNS / BNSS / CPC कानूनी धाराएं विश्लेषित" color="secondary" sx={{ fontWeight: "bold", mb: 1 }} />
+            <Chip label={t("stage3Chip", "✅ BNS / BNSS / CPC Statutory Sections Analyzed")} color="secondary" sx={{ fontWeight: "bold", mb: 1 }} />
             <Typography variant="caption" color="text.secondary" display="block">
-              यह विश्लेषण स्वचालित रूप से आपके Master Case Folder (`CASE-XXXXXXXX`) में सहेजा जा चुका है।
+              {t("stage3SavedNote", "This analysis is automatically saved into your Master Case Folder.")}
             </Typography>
           </Paper>
         </Box>
@@ -265,17 +264,17 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {activeStep === 4 && (
         <Box sx={{ bgcolor: "#eff6ff", p: 2.5, borderRadius: 2.5, border: "1px solid #bfdbfe" }}>
           <Typography variant="subtitle2" fontWeight="bold" color="#1e40af" mb={1}>
-            STAGE 4: ⚖️ नियुक्त वकील व 1-क्लिक एक्शन (Assigned Counsel & Action Controls)
+            {t("stage4Title", "STAGE 4: ⚖️ Assigned Counsel & 1-Click Action Controls")}
           </Typography>
           
           <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: "#fff", mb: 2 }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={7}>
                 <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                  👨‍⚖️ नियुक्त एडवोकेट: {activeAdvocate ? activeAdvocate.name : "Adv. Vikramaditya Singh"}
+                  {t("stage4CounselLabel", "👨‍⚖️ Assigned Advocate:")} {activeAdvocate ? activeAdvocate.name : "Adv. Vikramaditya Singh"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  पद: {activeAdvocate ? activeAdvocate.specialization : "ICJ Central Senior Legal Panel Lead"}
+                  {t("stage4RoleLabel", "Role:")} {activeAdvocate ? activeAdvocate.specialization : "ICJ Central Senior Legal Panel Lead"}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={5} textAlign="right">
@@ -289,7 +288,7 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
                       onClick={onRequestAdvocateChange}
                       sx={{ fontWeight: "bold", textTransform: "none", fontSize: "0.75rem" }}
                     >
-                      🔄 वकील बदलवाने का अनुरोध करें (Change Counsel)
+                      {t("stage4ChangeBtn", "🔄 Request Counsel Change")}
                     </Button>
                   )}
                 </Stack>
