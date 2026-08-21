@@ -17,6 +17,8 @@
  * - ur: اردو (Urdu)
  */
 
+import { useState, useEffect } from "react";
+
 const LANGUAGE_KEY = "icj_preferred_language_mode";
 
 export const SUPPORTED_LANGUAGES = [
@@ -317,5 +319,23 @@ export const LanguageService = {
     }
   }
 };
+
+export function useLanguage() {
+  const [lang, setLang] = useState(() => LanguageService.getCurrentLanguage());
+
+  useEffect(() => {
+    const handleLangChange = (e) => {
+      setLang(e.detail || LanguageService.getCurrentLanguage());
+    };
+    window.addEventListener("icj_language_changed", handleLangChange);
+    return () => window.removeEventListener("icj_language_changed", handleLangChange);
+  }, []);
+
+  return {
+    lang,
+    t: (key, fallback) => LanguageService.t(key, fallback),
+    setLanguage: (code) => LanguageService.setLanguage(code),
+  };
+}
 
 export default LanguageService;

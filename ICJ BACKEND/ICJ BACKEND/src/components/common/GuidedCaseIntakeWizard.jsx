@@ -36,7 +36,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import VernacularVoiceAssistantService from "../../services/vernacularVoiceAssistantService.js";
-import LanguageService from "../../services/languageService.js";
+import LanguageService, { useLanguage } from "../../services/languageService.js";
 import VoiceCommentaryStudio from "./VoiceCommentaryStudio.jsx";
 
 const STEPS = [
@@ -48,6 +48,7 @@ const STEPS = [
 ];
 
 export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdvocate, onRequestAdvocateChange }) {
+  const { lang, t } = useLanguage();
   const [activeStep, setActiveStep] = useState(0);
   const [problemText, setProblemText] = useState("");
   const [caseCategory, setCaseCategory] = useState("civil");
@@ -117,11 +118,11 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {/* STEPPER HEADER (Clickable numbers to jump to any stage) */}
       <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
         {[
-          LanguageService.t("wizardStep0", "Stage 0: 🔊 Audio Guidance"),
-          LanguageService.t("wizardStep1", "Stage 1: 🗣️ Legal Intake"),
-          LanguageService.t("wizardStep2", "Stage 2: 📂 Documents Vault"),
-          LanguageService.t("wizardStep3", "Stage 3: 🤖 AI Diagnosis"),
-          LanguageService.t("wizardStep4", "Stage 4: ⚖️ Counsel & Action"),
+          t("wizardStep0", "Stage 0: 🔊 Audio Guidance"),
+          t("wizardStep1", "Stage 1: 🗣️ Legal Intake"),
+          t("wizardStep2", "Stage 2: 📂 Documents Vault"),
+          t("wizardStep3", "Stage 3: 🤖 AI Diagnosis"),
+          t("wizardStep4", "Stage 4: ⚖️ Counsel & Action"),
         ].map((label, index) => (
           <Step key={index} onClick={() => setActiveStep(index)} sx={{ cursor: "pointer" }}>
             <StepLabel>
@@ -307,10 +308,10 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
       {/* FOOTER ACTIONS */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 3 }}>
         <Button disabled={activeStep === 0} onClick={handleBack} startIcon={<ArrowBackIcon />}>
-          {LanguageService.t("wizardBack", "← Back")}
+          {t("wizardBack", "← Back")}
         </Button>
         <Button variant="contained" color="primary" onClick={handleNext} endIcon={<ArrowForwardIcon />} sx={{ py: 1, px: 3, fontWeight: "bold" }}>
-          {activeStep === 4 ? LanguageService.t("wizardComplete", "✅ Complete Case Journey") : LanguageService.t("wizardNext", "Next Step ➔")}
+          {activeStep === 4 ? t("wizardComplete", "✅ Complete Case Journey") : t("wizardNext", "Next Step ➔")}
         </Button>
       </Stack>
     </Paper>
