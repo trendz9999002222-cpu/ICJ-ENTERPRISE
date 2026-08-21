@@ -1,261 +1,278 @@
 /**
- * ICJ Language & Script Isolation Engine v1.0
+ * ICJ Language & Script Isolation Engine v3.0 (Decoupled Multi-Language & Voice Architecture)
  * 
- * GUARANTEE (Zero-Leakage Policy):
- * - English Mode: 100% Pure English (Zero Hindi words, no mixed terms like "Notary / नोटरी").
- * - Hindi Mode: 100% Pure Devanagari Hindi.
- * - Hinglish Mode: 100% Roman Script Hindi.
- * - Modular Extension Architecture for future regional languages (pa, bn, mr, gu, ta, te).
+ * Supported Languages (13 Regional & International Languages):
+ * - en: English (Permanent Fallback - Always Accessible in 1-Click)
+ * - hi: हिंदी (Hindi)
+ * - bn: বাংলা (Bengali)
+ * - gu: ગુજરાતી (Gujarati)
+ * - kn: ಕನ್ನಡ (Kannada)
+ * - ml: മലയാളം (Malayalam)
+ * - mr: मराठी (Marathi)
+ * - or: ଓଡ଼ିଆ (Odia)
+ * - pa: ਪੰਜਾਬੀ (Punjabi)
+ * - ta: தமிழ் (Tamil)
+ * - te: తెలుగు (Telugu)
+ * - as: অসমীয়া (Assamese)
+ * - ur: اردو (Urdu)
  */
 
 const LANGUAGE_KEY = "icj_preferred_language_mode";
 
-// ─── DICTIONARIES ─────────────────────────────────────────────────────────────
+export const SUPPORTED_LANGUAGES = [
+  { code: "en", label: "English", nativeLabel: "English", flag: "🇬🇧", bcp47: "en-US" },
+  { code: "hi", label: "Hindi", nativeLabel: "हिंदी", flag: "🇮🇳", bcp47: "hi-IN" },
+  { code: "bn", label: "Bengali", nativeLabel: "বাংলা", flag: "🇮🇳", bcp47: "bn-IN" },
+  { code: "gu", label: "Gujarati", nativeLabel: "ગુજરાતી", flag: "🇮🇳", bcp47: "gu-IN" },
+  { code: "kn", label: "Kannada", nativeLabel: "ಕನ್ನಡ", flag: "🇮🇳", bcp47: "kn-IN" },
+  { code: "ml", label: "Malayalam", nativeLabel: "മലയാളം", flag: "🇮🇳", bcp47: "ml-IN" },
+  { code: "mr", label: "Marathi", nativeLabel: "मराठी", flag: "🇮🇳", bcp47: "mr-IN" },
+  { code: "or", label: "Odia", nativeLabel: "ଓଡ଼ିଆ", flag: "🇮🇳", bcp47: "or-IN" },
+  { code: "pa", label: "Punjabi", nativeLabel: "ਪੰਜਾਬੀ", flag: "🇮🇳", bcp47: "pa-IN" },
+  { code: "ta", label: "Tamil", nativeLabel: "தமிழ்", flag: "🇮🇳", bcp47: "ta-IN" },
+  { code: "te", label: "Telugu", nativeLabel: "తెలుగు", flag: "🇮🇳", bcp47: "te-IN" },
+  { code: "as", label: "Assamese", nativeLabel: "অসমীয়া", flag: "🇮🇳", bcp47: "as-IN" },
+  { code: "ur", label: "Urdu", nativeLabel: "اردو", flag: "🇵🇰", bcp47: "ur-IN" },
+];
 
 const DICTIONARIES = {
   en: {
     code: "en",
-    label: "English",
-    flag: "🇬🇧",
-    pureMode: true,
     translations: {
-      // General Navigation & Brand
       brandTitle: "ICJ ENTERPRISE PLATFORM",
       brandSubtitle: "Unified Legal Command Centre & AI Intelligence Layer",
       globalSearchPlaceholder: "Global Search (Members, Cases, Advocates, Documents, Payments)...",
-      loginTitle: "Member Sign In",
-      selectLanguage: "Select Interface & Voice Language:",
+      selectLanguage: "Select Language / भाषा चुनें:",
+      englishFallback: "ENGLISH",
       
-      // Purposes & Onboarding
-      purposeProblemTitle: "Legal Problem Assistance",
-      purposeProblemSubtitle: "Submit your legal issue for immediate expert advocate assistance.",
-      purposeServicesTitle: "ICJ Solution World",
-      purposeServicesSubtitle: "Access legal drafting, notary, consultation, and audit services.",
-      purposeFranchiseTitle: "ICJ Franchise Partnership",
-      purposeFranchiseSubtitle: "Apply to operate an empaneled ICJ digital legal center.",
+      // Wizard Steps
+      wizardStep0: "Stage 0: 🔊 Audio Guidance",
+      wizardStep1: "Stage 1: 🗣️ Legal Intake",
+      wizardStep2: "Stage 2: 📂 Documents Vault",
+      wizardStep3: "Stage 3: 🤖 AI Diagnosis",
+      wizardStep4: "Stage 4: ⚖️ Counsel & Action",
 
-      // Intake Categories (100% Pure English)
-      catLegalDispute: "Civil & Legal Dispute",
-      catCriminal: "Criminal Defence & Bail",
-      catDomestic: "Domestic Violence & Protection",
-      catProperty: "Property & Land Title Dispute",
-      catConsumer: "Consumer Forum Complaint",
-      catLabour: "Labour & Employment Issue",
-      catFamily: "Family Law & Divorce Settlement",
-      catCyber: "Cyber Crime & Online Financial Fraud",
-      catCheque: "Cheque Bounce & Debt Recovery",
-      catHumanRights: "Human Rights & PIL Public Interest",
-      catAccident: "Accident Compensation Claim",
-      catTaxation: "Taxation & Revenue Audit Dispute",
-
-      // Services (100% Pure English)
-      serviceNotary: "Notary & Attestation",
-      serviceDrafting: "Legal Drafting & Review",
-      serviceTypist: "Legal Typist & Documentation",
-      serviceCourtRep: "Court Representation",
-      serviceConsultation: "Legal Consultation",
-
-      // 1-Line Smart Guidance Banner Prompts
-      guideOnboardingStatus: "Current Step: You are entering your profile & account details.",
-      guideOnboardingNext: "Next Step: Click on the red box to select your legal dispute category.",
+      wizardNext: "Next Step ➔",
+      wizardBack: "← Back",
+      wizardComplete: "✅ Complete Case Journey",
       
-      guideProblemStatus: "Current Step: You are submitting your legal problem details.",
-      guideProblemNext: "Next Step: Press the red microphone button to speak or click 'Continue'.",
+      catCivil: "🏛️ Civil Dispute",
+      catCriminal: "⚖️ Criminal Defence & Bail",
+      catFamily: "👨‍👩‍👧 Family Law & Divorce",
+      catProperty: "🏠 Property & Land Title",
+      catCheque: "💳 Cheque Bounce & Recovery",
+      catConsumer: "🛒 Consumer Protection",
 
-      guideVoiceStatus: "Current Step: Voice Commentary Recording is active.",
-      guideVoiceNext: "Next Step: Speak your case details, then click 'Stop Recording'.",
-
-      guidePortalStatus: "Current Step: Viewing Case File & Court Hearing Schedule.",
-      guidePortalNext: "Next Step: Click 'Send Message' to communicate with your assigned advocate.",
-
-      // Voice Prompt Texts for Speech Synthesis
-      audioOnboarding: "You are currently entering your profile details. Click on the red box to select your legal dispute category.",
-      audioProblem: "You are submitting your legal problem. Press the red microphone to speak or click continue.",
-      audioVoice: "Recording is active. Speak clearly, then click stop recording when finished.",
-      audioPortal: "Viewing your case file. Click send message to contact your advocate.",
-
-      // UI Actions
       btnContinue: "Continue & Proceed",
       btnSubmit: "Submit Legal Matter",
-      btnListen: "Listen Audio",
-      btnStopAudio: "Stop Audio",
-      btnMicrophone: "Start Voice Recording",
-      btnStopRecording: "Stop Recording",
-      btnVerifyOtp: "Verify OTP & Complete",
-
-      // Role Labels
+      btnUploadDoc: "Upload Document",
+      btnChangeCounsel: "Request Counsel Change",
+      
       roleClient: "Litigant / Client",
       roleAdvocate: "Empaneled Advocate",
-      roleAdmin: "System Administrator",
-      roleSuperAdmin: "Super Admin",
+      roleAdmin: "Administrator",
     }
   },
 
   hi: {
     code: "hi",
-    label: "हिंदी (Devanagari)",
-    flag: "🇮🇳",
-    pureMode: true,
     translations: {
       brandTitle: "आईसीजे एंटरप्राइज प्लेटफॉर्म",
       brandSubtitle: "एकीकृत कानूनी कमान केंद्र और एआई इंटेलिजेंस लेयर",
-      globalSearchPlaceholder: "ग्लोबल खोज (सदस्य, मामले, अधिवक्ता, दस्तावेज, भुगतान)...",
-      loginTitle: "सदस्य लॉगिन",
-      selectLanguage: "इंटरफेस और आवाज की भाषा चुनें:",
+      globalSearchPlaceholder: "ग्लोबल खोज (सदस्य, मामले, अधिवक्ता, दस्तावेज)...",
+      selectLanguage: "भाषा चुनें (Select Language):",
+      englishFallback: "ENGLISH",
 
-      purposeProblemTitle: "कानूनी समस्या सहायता",
-      purposeProblemSubtitle: "अधिवक्ता सहायता के लिए अपनी समस्या तुरंत जमा करें।",
-      purposeServicesTitle: "आईसीजे समाधान संसार",
-      purposeServicesSubtitle: "कानूनी ड्राफ्टिंग, नोटरी और परामर्श सेवाओं तक पहुंचें।",
-      purposeFranchiseTitle: "आईसीजे फ्रेंचाइजी साझेदारी",
-      purposeFranchiseSubtitle: "डिजिटल कानूनी केंद्र संचालित करने हेतु आवेदन करें।",
+      wizardStep0: "चरण 0: 🔊 ऑडियो मार्गदर्शन",
+      wizardStep1: "चरण 1: 🗣️ कानूनी समस्या दर्ज करें",
+      wizardStep2: "चरण 2: 📂 कागजात लोड करें",
+      wizardStep3: "चरण 3: 🤖 AI केस निदान",
+      wizardStep4: "चरण 4: ⚖️ वकील व 1-क्लिक एक्शन",
 
-      catLegalDispute: "दीवानी व कानूनी विवाद",
-      catCriminal: "आपराधिक बचाव व जमानत मामला",
-      catDomestic: "घरेलू हिंसा व मानसिक प्रताड़ना",
-      catProperty: "संपत्ति व भूमि विवाद",
-      catConsumer: "उपभोक्ता फोरम शिकायत",
-      catLabour: "श्रम व रोजगार विवाद",
-      catFamily: "पारिवारिक कानून व तलाक निपटारा",
-      catCyber: "साइबर अपराध व ऑनलाइन वित्तीय धोखाधड़ी",
-      catCheque: "चेक बाउंस व ऋण वसूली",
-      catHumanRights: "मानवाधिकार व जनहित याचिका",
-      catAccident: "दुर्घटना मुआवजा दावा",
-      catTaxation: "कराधान व राजस्व विवाद",
+      wizardNext: "आगे बढ़ें ➔",
+      wizardBack: "← पीछे",
+      wizardComplete: "✅ संपूर्ण केस यात्रा पूर्ण करें",
 
-      serviceNotary: "नोटरी व अटेस्टेशन",
-      serviceDrafting: "कानूनी ड्राफ्टिंग व समीक्षा",
-      serviceTypist: "दस्तावेज लेखक व टाइपिस्ट",
-      serviceCourtRep: "कोर्ट पैरवी व प्रतिनिधित्व",
-      serviceConsultation: "कानूनी परामर्श",
-
-      guideOnboardingStatus: "वर्तमान कदम: आप अपनी प्रोफाइल और अकाउंट की जानकारी भर रहे हैं।",
-      guideOnboardingNext: "अगला कदम: अपने विवाद की श्रेणी चुनने के लिए लाल डिब्बे पर क्लिक करें।",
-
-      guideProblemStatus: "वर्तमान कदम: आप अपनी कानूनी समस्या दर्ज कर रहे हैं।",
-      guideProblemNext: "अगला कदम: बोलने के लिए लाल माइक बटन दबाएं या 'आगे बढ़ें' पर क्लिक करें।",
-
-      guideVoiceStatus: "वर्तमान कदम: वॉयस रिकॉर्डिंग चालू है।",
-      guideVoiceNext: "अगला कदम: अपनी बात बोलने के बाद 'रिकॉर्डिंग बंद करें' बटन दबाएं।",
-
-      guidePortalStatus: "वर्तमान कदम: आप अपनी केस फाइल और कोर्ट सुनवाई का शेड्यूल देख रहे हैं।",
-      guidePortalNext: "अगला कदम: अपने एडवोकेट से बात करने के लिए 'मैसेज भेजें' पर क्लिक करें।",
-
-      audioOnboarding: "आप अपनी प्रोफाइल भर रहे हैं। विवाद की श्रेणी चुनने के लिए लाल डिब्बे पर क्लिक करें।",
-      audioProblem: "आप अपनी कानूनी समस्या दर्ज कर रहे हैं। बोलने के लिए लाल माइक दबाएं या आगे बढ़ें।",
-      audioVoice: "रिकॉर्डिंग चालू है। अपनी बात बोलकर रिकॉर्डिंग बंद करें बटन दबाएं।",
-      audioPortal: "केस फाइल खुली है। अपने वकील से संपर्क करने के लिए मैसेज भेजें पर क्लिक करें।",
+      catCivil: "🏛️ सिविल विवाद",
+      catCriminal: "⚖️ आपराधिक मामला व जमानत",
+      catFamily: "👨‍👩‍👧 पारिवारिक विवाद व तलाक",
+      catProperty: "🏠 संपत्ति व भूमि विवाद",
+      catCheque: "💳 चेक बाउंस व ऋण वसूली",
+      catConsumer: "🛒 उपभोक्ता शिकायत",
 
       btnContinue: "आगे बढ़ें",
-      btnSubmit: "मामला जमा करें",
-      btnListen: "आवाज सुनें",
-      btnStopAudio: "आवाज बंद करें",
-      btnMicrophone: "बोलना शुरू करें",
-      btnStopRecording: "रिकॉर्डिंग बंद करें",
-      btnVerifyOtp: "ओटीपी सत्यापित करें",
+      btnSubmit: "केस जमा करें",
+      btnUploadDoc: "कागज़ अपलोड करें",
+      btnChangeCounsel: "🔄 वकील बदलवाने का अनुरोध करें",
 
       roleClient: "वादी / क्लाइंट",
       roleAdvocate: "पैनलबद्ध अधिवक्ता",
       roleAdmin: "प्रणाली प्रशासक",
-      roleSuperAdmin: "मुख्य सुपर एडमिन",
     }
   },
 
-  hinglish: {
-    code: "hinglish",
-    label: "Hinglish (Roman)",
-    flag: "💬",
-    pureMode: true,
+  gu: {
+    code: "gu",
     translations: {
-      brandTitle: "ICJ ENTERPRISE PLATFORM",
-      brandSubtitle: "Unified Legal Command Centre & AI Intelligence Layer",
-      globalSearchPlaceholder: "Global Search (Members, Cases, Advocates, Documents, Payments)...",
-      loginTitle: "Member Sign In",
-      selectLanguage: "Interface & Voice Language Select Karein:",
+      brandTitle: "ICJ એન્ટરપ્રાઇઝ પ્લેટફોર્મ",
+      brandSubtitle: "એકીકૃત કાનૂની આદેશ કેન્દ્ર",
+      globalSearchPlaceholder: "શોધો (સભ્યો, કેસ, વકીલો, દસ્તાવેજો)...",
+      selectLanguage: "ભાષા પસંદ કરો (Language):",
+      englishFallback: "ENGLISH",
 
-      purposeProblemTitle: "Aapki Problem, Hamara Solution",
-      purposeProblemSubtitle: "Immediate advocate help ke liye apni legal problem submit karein.",
-      purposeServicesTitle: "ICJ Solution World",
-      purposeServicesSubtitle: "Legal drafting, notary aur consultation services access karein.",
-      purposeFranchiseTitle: "ICJ Franchise Partnership",
-      purposeFranchiseSubtitle: "ICJ digital legal center operate karne ke liye apply karein.",
+      wizardStep0: "તબક્કો 0: 🔊 ઓડિયો માર્ગદર્શન",
+      wizardStep1: "તબક્કો 1: 🗣️ કાનૂની સમસ્યા નોંધો",
+      wizardStep2: "તબક્કો 2: 📂 દસ્તાવેજો અપલોડ કરો",
+      wizardStep3: "તબક્કો 3: 🤖 AI કેસ વિશ્લેષણ",
+      wizardStep4: "તબક્કો 4: ⚖️ વકીલ અને 1-ક્લિક એક્શન",
 
-      catLegalDispute: "Civil & Legal Dispute",
-      catCriminal: "Criminal Defence & Bail Matter",
-      catDomestic: "Domestic Violence & Protection",
-      catProperty: "Property & Land Title Dispute",
-      catConsumer: "Consumer Forum Complaint",
-      catLabour: "Labour & Employment Dispute",
-      catFamily: "Family Law & Divorce Settlement",
-      catCyber: "Cyber Crime & Online Fraud",
-      catCheque: "Cheque Bounce & Recovery",
-      catHumanRights: "Human Rights & PIL Public Interest",
-      catAccident: "Accident Compensation Claim",
-      catTaxation: "Taxation & Revenue Audit Dispute",
+      wizardNext: "આગળ વધો ➔",
+      wizardBack: "← પાછા",
+      wizardComplete: "✅ સંપૂર્ણ કેસ સબમિટ કરો",
 
-      serviceNotary: "Notary & Attestation",
-      serviceDrafting: "Legal Drafting & Review",
-      serviceTypist: "Document Writer & Typist",
-      serviceCourtRep: "Court Representation",
-      serviceConsultation: "Legal Consultation",
+      catCivil: "🏛️ સિવિલ વિવાદ",
+      catCriminal: "⚖️ ફોજદારી કેસ",
+      catFamily: "👨‍👩‍👧 કૌટુંબિક વિવાદ",
+      catProperty: "🏠 મિલકત વિવાદ",
+      catCheque: "💳 ચેક બાઉન્સ",
+      catConsumer: "🛒 ગ્રાહક ફરિયાદ",
 
-      guideOnboardingStatus: "Current Step: Aap apni profile details bhar rahe hain.",
-      guideOnboardingNext: "Next Step: Problem category select karne ke liye red box par click karein.",
+      btnContinue: "આગળ વધો",
+      btnSubmit: "કેસ સબમિટ કરો",
+      btnUploadDoc: "દસ્તાવેજ અપલોડ કરો",
+      btnChangeCounsel: "🔄 વકીલ બદલવાની વિનંતી કરો",
 
-      guideProblemStatus: "Current Step: Aap apni legal problem submit kar rahe hain.",
-      guideProblemNext: "Next Step: Bolne ke liye red mic button dabayein ya 'Continue' click karein.",
+      roleClient: "અરજદાર / ક્લાયન્ટ",
+      roleAdvocate: "પેનલ એડવોકેટ",
+      roleAdmin: "સિસ્ટમ એડમિન",
+    }
+  },
 
-      guideVoiceStatus: "Current Step: Voice Recording active hai.",
-      guideVoiceNext: "Next Step: Apni baat bolne ke baad 'Stop Recording' dabayein.",
+  bn: {
+    code: "bn",
+    translations: {
+      brandTitle: "ICJ এন্টারপ্রাইজ প্ল্যাটফর্ম",
+      brandSubtitle: "একীকৃত আইনি কমান্ড সেন্টার",
+      globalSearchPlaceholder: "অনুসন্ধান করুন (সদস্য, মামলা, আইনি নথি)...",
+      selectLanguage: "ভাষা নির্বাচন করুন:",
+      englishFallback: "ENGLISH",
 
-      guidePortalStatus: "Current Step: Aap apni Case File aur Hearing Schedule dekh rahe hain.",
-      guidePortalNext: "Next Step: Advocate se baat karne ke liye 'Send Message' par click karein.",
+      wizardStep0: "ধাপ 0: 🔊 অডিও নির্দেশিকা",
+      wizardStep1: "ধাপ 1: 🗣️ আইনি সমস্যা লিপিবদ্ধ করুন",
+      wizardStep2: "ধাপ 2: 📂 নথিপত্র আপলোড",
+      wizardStep3: "ধাপ 3: 🤖 AI কেস নির্ণয়",
+      wizardStep4: "ধাপ 4: ⚖️ আইনজীবী ও পদক্ষেপ",
 
-      audioOnboarding: "Aap apni profile details bhar rahe hain. Dispute category select karne ke liye red box par click karein.",
-      audioProblem: "Aap apni legal problem submit kar rahe hain. Bolne ke liye red mic dabayein.",
-      audioVoice: "Recording active hai. Bolne ke baad stop recording button dabayein.",
-      audioPortal: "Aapki case file khuli hai. Advocate se contact karne ke liye message bhejein.",
+      wizardNext: "এগিয়ে যান ➔",
+      wizardBack: "← পিছনে",
+      wizardComplete: "✅ কেস জমা দিন",
 
-      btnContinue: "Continue Karein",
-      btnSubmit: "Case Submit Karein",
-      btnListen: "Audio Sunein",
-      btnStopAudio: "Audio Stop Karein",
-      btnMicrophone: "Bolna Shuru Karein",
-      btnStopRecording: "Recording Stop Karein",
-      btnVerifyOtp: "OTP Verify Karein",
+      catCivil: "🏛️ দেওয়ানি বিরোধ",
+      catCriminal: "⚖️ ফৌজদারি মামলা",
+      catFamily: "👨‍👩‍👧 পারিবারিক মামলা",
+      catProperty: "🏠 সম্পত্তি বিরোধ",
+      catCheque: "💳 চেক বাউন্স",
+      catConsumer: "🛒 ভোক্তা অভিযোগ",
 
-      roleClient: "Litigant / Client",
-      roleAdvocate: "Empaneled Advocate",
-      roleAdmin: "System Admin",
-      roleSuperAdmin: "Super Admin",
+      btnContinue: "এগিয়ে যান",
+      btnSubmit: "মামলা জমা দিন",
+      btnUploadDoc: "নথি আপলোড করুন",
+      btnChangeCounsel: "🔄 আইনজীবী পরিবর্তনের অনুরোধ",
+
+      roleClient: "ক্লায়েন্ট / বাদী",
+      roleAdvocate: "প্যানেল আইনজীবী",
+      roleAdmin: "সিস্টেম অ্যাডমিন",
+    }
+  },
+
+  mr: {
+    code: "mr",
+    translations: {
+      brandTitle: "ICJ एंटरप्राइज प्लॅटफॉर्म",
+      brandSubtitle: "एकीकृत कायदेशीर कमांड सेंटर",
+      selectLanguage: "भाषा निवडा (Language):",
+      englishFallback: "ENGLISH",
+
+      wizardStep0: "टप्पा 0: 🔊 ऑडिओ मार्गदर्शन",
+      wizardStep1: "टप्पा 1: 🗣️ कायदेशीर समस्या नोंदवा",
+      wizardStep2: "टप्पा 2: 📂 कागदपत्रे अपलोड करा",
+      wizardStep3: "टप्पा 3: 🤖 AI केस विश्लेषण",
+      wizardStep4: "टप्पा 4: ⚖️ वकील व 1-क्लिक कारवाई",
+
+      wizardNext: "पुढे जा ➔",
+      wizardBack: "← मागे",
+      wizardComplete: "✅ संपूर्ण केस सबमिट करा",
+
+      catCivil: "🏛️ दिवाणी विवाद",
+      catCriminal: "⚖️ फौजदारी गुन्हा व जामीन",
+      catFamily: "👨‍👩‍👧 कौटुंबिक वाद",
+      catProperty: "🏠 मालमत्ता व जमीन वाद",
+
+      btnContinue: "पुढे जा",
+      btnSubmit: "केस सबमिट करा",
+      btnUploadDoc: "कागदपत्र अपलोड करा",
+      btnChangeCounsel: "🔄 वकील बदलण्याची विनंती करा",
+    }
+  },
+
+  ta: {
+    code: "ta",
+    translations: {
+      brandTitle: "ICJ எண்டர்பிரைஸ் பிளாட்ஃபார்ம்",
+      selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்:",
+      englishFallback: "ENGLISH",
+
+      wizardStep0: "நிலை 0: 🔊 ஆடியோ வழிகாட்டுதல்",
+      wizardStep1: "நிலை 1: 🗣️ சட்டப் பிரச்சினையைப் பதிவுசெய்க",
+      wizardStep2: "நிலை 2: 📂 ஆவணங்களைப் பதிவேற்றுக",
+      wizardStep3: "நிலை 3: 🤖 AI வழக்கறிஞர் பகுப்பாய்வு",
+      wizardStep4: "நிலை 4: ⚖️ வழக்கறிஞர் மற்றும் நடவடிக்கை",
+
+      wizardNext: "அடுத்து ➔",
+      wizardBack: "← பின்னே",
+      wizardComplete: "✅ வழக்கை சமர்ப்பிக்கவும்",
+    }
+  },
+
+  te: {
+    code: "te",
+    translations: {
+      brandTitle: "ICJ ఎంటర్‌ప్రైజ్ ప్లాట్‌ఫారమ్",
+      selectLanguage: "భాషను ఎంచుకోండి:",
+      englishFallback: "ENGLISH",
+
+      wizardStep0: "దశ 0: 🔊 ఆడియో మార్గదర్శకత్వం",
+      wizardStep1: "దశ 1: 🗣️ చట్టపరమైన సమస్యను నమోదు చేయండి",
+      wizardStep2: "దశ 2: 📂 పత్రాలను అప్‌లోడ్ చేయండి",
+      wizardStep3: "దశ 3: 🤖 AI కేసు విశ్లేషణ",
+      wizardStep4: "దశ 4: ⚖️ న్యాయవాది మరియు చర్య",
+
+      wizardNext: "ముందుకు ➔",
+      wizardBack: "← వెనుకకు",
+      wizardComplete: "✅ కేసును సమర్పించండి",
     }
   }
 };
 
-// ─── LANGUAGE SERVICE API ─────────────────────────────────────────────────────
-
 export const LanguageService = {
   getSupportedLanguages() {
-    return Object.values(DICTIONARIES).map((d) => ({
-      code: d.code,
-      label: d.label,
-      flag: d.flag,
-    }));
+    return SUPPORTED_LANGUAGES;
   },
 
   getCurrentLanguage() {
     try {
       if (typeof window !== "undefined" && window.localStorage) {
-        return window.localStorage.getItem(LANGUAGE_KEY) || "hi";
+        return window.localStorage.getItem(LANGUAGE_KEY) || "en";
       }
     } catch {
       // fallback
     }
-    return "hi";
+    return "en";
   },
 
   setLanguage(langCode) {
-    if (!DICTIONARIES[langCode]) return;
+    const valid = SUPPORTED_LANGUAGES.find(l => l.code === langCode);
+    if (!valid) return;
     try {
       if (typeof window !== "undefined" && window.localStorage) {
         window.localStorage.setItem(LANGUAGE_KEY, langCode);
@@ -268,26 +285,25 @@ export const LanguageService = {
 
   t(key, fallback = "") {
     const lang = this.getCurrentLanguage();
-    const dict = DICTIONARIES[lang] || DICTIONARIES["hi"];
-    return dict.translations[key] || DICTIONARIES["en"].translations[key] || fallback || key;
+    const dict = DICTIONARIES[lang] || DICTIONARIES["en"];
+    return (dict && dict.translations && dict.translations[key]) ||
+           (DICTIONARIES["en"].translations && DICTIONARIES["en"].translations[key]) ||
+           (DICTIONARIES["hi"].translations && DICTIONARIES["hi"].translations[key]) ||
+           fallback ||
+           key;
   },
 
   speakText(text, langCodeOverride = null) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     try {
-      window.speechSynthesis.cancel(); // Stop active audio
-      const lang = langCodeOverride || this.getCurrentLanguage();
-      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.cancel();
+      const currentLangCode = langCodeOverride || this.getCurrentLanguage();
+      const langConfig = SUPPORTED_LANGUAGES.find(l => l.code === currentLangCode) || SUPPORTED_LANGUAGES[0];
 
-      if (lang === "en") {
-        utterance.lang = "en-US";
-      } else if (lang === "hinglish") {
-        utterance.lang = "hi-IN";
-        utterance.rate = 0.95;
-      } else {
-        utterance.lang = "hi-IN";
-      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = langConfig.bcp47;
+      utterance.rate = 0.95;
 
       window.speechSynthesis.speak(utterance);
     } catch (err) {

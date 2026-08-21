@@ -38,6 +38,7 @@ import CallIcon from "@mui/icons-material/Call";
 import CameraDocumentScanner from "../components/common/CameraDocumentScanner.jsx";
 import VideoConsultationModal from "../components/common/VideoConsultationModal.jsx";
 import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
+import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import SendIcon from "@mui/icons-material/Send";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -502,40 +503,13 @@ export default function ClientPortal() {
   return (
     <>
       <Box sx={{ p: 3 }}>
-        {/* GLOBAL LEGAL JURISDICTION SELECTOR BAR (INDIA, US, UK, EU) */}
-        <Paper elevation={1} className="bigtech-card glass-card" sx={{ p: 1.5, mb: 3, borderRadius: 2.5, bgcolor: "#0f172a", color: "#fff" }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Typography variant="body2" fontWeight="bold" color="#60a5fa">
-                🌐 Global Legal Jurisdiction (वैश्विक क्षेत्राधिकार):
-              </Typography>
-              <Chip
-                label={GlobalLegalJurisdictionService.getActiveJurisdiction().name}
-                color="primary"
-                size="small"
-                sx={{ fontWeight: "bold" }}
-              />
-            </Box>
-            <Stack direction="row" spacing={1}>
-              {Object.values(JURISDICTIONS).map((j) => (
-                <Button
-                  key={j.id}
-                  size="small"
-                  variant={GlobalLegalJurisdictionService.getActiveJurisdiction().id === j.id ? "contained" : "outlined"}
-                  color="info"
-                  onClick={() => {
-                    GlobalLegalJurisdictionService.setActiveJurisdiction(j.id);
-                    setAlertMsg(`🟢 Active Legal Jurisdiction Changed to: ${j.flag} ${j.name}`);
-                    setTimeout(() => setAlertMsg(""), 3000);
-                  }}
-                  sx={{ py: 0.3, px: 1, fontSize: "0.75rem", textTransform: "none" }}
-                >
-                  {j.flag} {j.id}
-                </Button>
-              ))}
-            </Stack>
-          </Stack>
-        </Paper>
+        {/* SHARED GLOBAL LEGAL JURISDICTION & DECOUPLED LANGUAGE BAR WITH PERMANENT ENGLISH FALLBACK */}
+        <GlobalLanguageJurisdictionBar
+          onJurisdictionChange={(j) => {
+            setAlertMsg(`🟢 Active Legal Jurisdiction Changed to: ${j.flag} ${j.name}`);
+            setTimeout(() => setAlertMsg(""), 3000);
+          }}
+        />
 
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }} flexWrap="wrap" gap={2}>
           <Box>

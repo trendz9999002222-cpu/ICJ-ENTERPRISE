@@ -48,6 +48,7 @@ import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
 import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
 import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
+import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import useAuth from "../hooks/useAuth.js";
 import MatterCommunicationService from "../services/matterCommunicationService.js";
 import MatterTimelineService from "../services/matterTimelineService.js";
@@ -256,6 +257,13 @@ export default function AdvocateDashboard() {
   return (
     <>
       <Box sx={{ p: 3 }}>
+        {/* SHARED GLOBAL LEGAL JURISDICTION & DECOUPLED LANGUAGE BAR WITH PERMANENT ENGLISH FALLBACK */}
+        <GlobalLanguageJurisdictionBar
+          onJurisdictionChange={(j) => {
+            setAlertMsg(`🟢 Active Legal Jurisdiction Changed to: ${j.flag} ${j.name}`);
+            setTimeout(() => setAlertMsg(""), 3000);
+          }}
+        />
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <GavelIcon color="primary" sx={{ fontSize: 40 }} />
