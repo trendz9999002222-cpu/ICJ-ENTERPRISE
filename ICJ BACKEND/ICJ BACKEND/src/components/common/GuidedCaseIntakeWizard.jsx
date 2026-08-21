@@ -113,12 +113,17 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* STEPPER HEADER */}
+      {/* STEPPER HEADER (Clickable numbers to jump to any stage) */}
       <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
         {STEPS.map((label, index) => (
-          <Step key={label}>
+          <Step key={label} onClick={() => setActiveStep(index)} sx={{ cursor: "pointer" }}>
             <StepLabel>
-              <Typography variant="caption" fontWeight={activeStep === index ? "bold" : "normal"} color={activeStep === index ? "primary" : "text.secondary"}>
+              <Typography
+                variant="caption"
+                fontWeight={activeStep === index ? "bold" : "normal"}
+                color={activeStep === index ? "primary" : "text.secondary"}
+                sx={{ cursor: "pointer" }}
+              >
                 {label}
               </Typography>
             </StepLabel>

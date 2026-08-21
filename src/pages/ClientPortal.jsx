@@ -654,47 +654,6 @@ export default function ClientPortal() {
           }}
         />
 
-        {/* 🗣️ VERNACULAR VOICE-FIRST AUDIO GUIDANCE BAR FOR ILLITERATE / RURAL CITIZENS */}
-        <Paper elevation={2} className="bigtech-card glass-card" sx={{ p: 2, mb: 3, borderRadius: 3, borderLeft: "6px solid #059669", bgcolor: "#f0fdf4" }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
-            <Box display="flex" alignItems="center" gap={1.5}>
-              <MicIcon sx={{ fontSize: 32, color: "#059669" }} />
-              <Box>
-                <Typography variant="subtitle2" fontWeight="bold" color="#065f46">
-                  🗣️ वॉयस-फ़र्स्ट ऑडियो गाइड (Vernacular Voice Guidance for All Citizens)
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  अनपढ़ व कम पढ़े-लिखे नागरिक बिना टाइप किए यहाँ बटन दबाकर हिंदी में दिशा-निर्देश सुन सकते हैं।
-                </Typography>
-              </Box>
-            </Box>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                startIcon={<MicIcon />}
-                onClick={() => {
-                  VernacularVoiceAssistantService.speakInHindi(VernacularVoiceAssistantService.prompts.WELCOME);
-                }}
-                sx={{ fontWeight: "bold" }}
-              >
-                🔊 सुनें (Welcome Guide)
-              </Button>
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                onClick={() => {
-                  VernacularVoiceAssistantService.stopSpeech();
-                }}
-              >
-                🛑 बंद करें (Stop Audio)
-              </Button>
-            </Stack>
-          </Stack>
-        </Paper>
-
         {/* Real-time Workspace Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={3}>
