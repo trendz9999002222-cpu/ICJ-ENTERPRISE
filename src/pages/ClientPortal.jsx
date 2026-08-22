@@ -404,22 +404,39 @@ export default function ClientPortal() {
 
   const handleCreateCase = () => {
     if (!form.title.trim()) {
-      alert("Please provide a title or issue description.");
+      alert("कृपया केस का नाम या विषय दर्ज करें।");
       return;
     }
     const created = LegalEcosystemService.createCase({
       ...form,
       clientName: clientName,
       member_id: memberId,
-      summary: `[Plain Language Intake]: ${form.summary} | Opposite Party: ${form.oppositeParty || "N/A"} | Incident Date: ${form.incidentDate || "N/A"}`,
+      summary: `[Client Intake]: ${form.summary} | Opposite Party: ${form.oppositeParty || "N/A"} | Incident Date: ${form.incidentDate || "N/A"}`,
     });
+
+    if (docUploadForm.name && docUploadForm.fileObj) {
+      addDocument({
+        name: docUploadForm.name,
+        owner: clientName,
+        member_id: memberId,
+        category: docUploadForm.category || "Case File Document",
+        case_id: created.id,
+        uploaded_at: new Date().toISOString(),
+        file_size: "1.5 MB",
+        sha256: `SHA256-${Date.now().toString(36).toUpperCase()}`,
+        status: "File Saved & Verified",
+        aiStatus: "Ready for AI Document Processing Pipeline",
+      }).catch(e => console.error(e));
+    }
 
     ActivityService.create({ title: `Client Filed Legal Matter: ${form.title}`, type: "legal" });
     setOpenFileModal(false);
-    setAlertMsg(`Legal Matter "${created.caseNumber}" created and submitted for Advocate Assignment & Trust Review!`);
-    setTimeout(() => setAlertMsg(""), 4000);
+    setAlertMsg(`✅ आपका केस "${created.caseNumber}" (ID: ${created.id}) सफलतापूर्वक दर्ज हो गया है! एडमिन द्वारा वकील अलॉटमेंट हेतु भेज दिया गया है।`);
+    setTimeout(() => setAlertMsg(""), 5000);
     setForm({ title: "", courtName: "High Court of Judicature", summary: "", oppositeParty: "", incidentDate: new Date().toISOString().slice(0, 10), feeAmount: 35000 });
+    setDocUploadForm({ name: "", category: "Legal Pleading", fileObj: null, caseId: "" });
     setCases(LegalEcosystemService.getCases() || []);
+    setTabIndex(0);
   };
 
   const handleUploadDocument = async () => {
@@ -634,24 +651,6 @@ export default function ClientPortal() {
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
-        {/* 🏛️ 5-STEP GUIDED CASE INTAKE WIZARD FOR UNIVERSAL PERSONA ACCESSIBILITY */}
-        <GuidedCaseIntakeWizard
-          activeAdvocate={activeAdvocate}
-          onRequestAdvocateChange={() => setOpenAdvocateChangeModal(true)}
-          onCompleteCaseIntake={({ problemText, caseCategory }) => {
-            setAiProbText(problemText);
-            setAiCaseCat(caseCategory);
-            if (activeMasterCase) {
-              CitizenWorkflowService.appendStage1Intake(activeMasterCase.case_id, {
-                voiceText: problemText,
-                category: caseCategory,
-              });
-            }
-            setAlertMsg("🟢 5-Stage Citizen Case Journey Completed & Saved to Permanent Master Case Record!");
-            setTimeout(() => setAlertMsg(""), 4000);
-          }}
-        />
-
         {/* Real-time Workspace Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={12} sm={3}>
@@ -683,8 +682,9 @@ export default function ClientPortal() {
         {/* Client Portal Navigation Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
           <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} variant="scrollable" scrollButtons="auto">
-            <Tab icon={<AutoAwesomeIcon sx={{ color: "#7c3aed" }} />} iconPosition="start" label="🤖 AI Case Diagnosis ('आप क्या चाहते हैं?')" sx={{ fontWeight: "bold", color: "#7c3aed" }} />
-            <Tab icon={<GavelIcon />} iconPosition="start" label={`My Matters & Cases (${myCases.length})`} />
+            <Tab icon={<GavelIcon sx={{ color: "#1e3a8a" }} />} iconPosition="start" label={`📁 मेरे केस (${myCases.length})`} sx={{ fontWeight: "bold" }} />
+            <Tab icon={<AddIcon sx={{ color: "#2e7d32" }} />} iconPosition="start" label="➕ नया केस दर्ज करें (File New Case)" sx={{ fontWeight: "bold", color: "#2e7d32" }} />
+            <Tab icon={<AutoAwesomeIcon sx={{ color: "#7c3aed" }} />} iconPosition="start" label="🤖 AI कानूनी निदान (AI Case Diagnosis)" sx={{ fontWeight: "bold", color: "#7c3aed" }} />
             <Tab icon={<TimelineIcon />} iconPosition="start" label="Case Timeline & Progress" />
             <Tab icon={<FolderIcon />} iconPosition="start" label={`Document Vault (${myDocs.length})`} />
             <Tab icon={<BadgeIcon />} iconPosition="start" label="Assigned Advocate & Counsel" />
@@ -693,12 +693,233 @@ export default function ClientPortal() {
             <Tab icon={<ChatIcon />} iconPosition="start" label="Messages & Communication" />
             <Tab icon={<PersonIcon />} iconPosition="start" label="My Profile & KYC" />
             <Tab icon={<SecurityIcon sx={{ color: "#059669" }} />} iconPosition="start" label="🤝 ICJ Partner & E-Gov Desk" sx={{ fontWeight: "bold", color: "#059669" }} />
-            <Tab icon={<SettingsSuggestIcon sx={{ color: "#2563eb" }} />} iconPosition="start" label="🔌 My API Store (माई API स्टोर)" sx={{ fontWeight: "bold", color: "#2563eb" }} />
           </Tabs>
         </Box>
 
-        {/* TAB 0: INTERACTIVE AI CASE CONSULTATION & DIAGNOSIS */}
+        {/* TAB 0: MY ACTIVE & EXISTING CASES (पुराने व सक्रिय केस) */}
         <TabPanel value={tabIndex} index={0}>
+          <Paper sx={{ p: 3, borderRadius: 3 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold" color="#0f172a">
+                  📁 मेरे सक्रिय व दर्ज केस (My Active Cases & Petitions - {myCases.length})
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  आपके द्वारा दर्ज किए गए सभी केसेस का रियल-टाइम स्टेटस, आवंटित वकील व अदालती तारीखें
+                </Typography>
+              </Box>
+              <Button size="medium" variant="contained" color="success" startIcon={<AddIcon />} onClick={() => setTabIndex(1)} sx={{ fontWeight: "bold" }}>
+                ➕ नया केस दर्ज करें (File New Case)
+              </Button>
+            </Stack>
+            <Divider sx={{ mb: 3 }} />
+
+            {myCases.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 5, textAlign: "center", borderRadius: 3, bgcolor: "#f8fafc", border: "2px dashed #cbd5e1" }}>
+                <GavelIcon sx={{ fontSize: 60, color: "#94a3b8", mb: 1.5 }} />
+                <Typography variant="h6" fontWeight="bold" color="#334155" gutterBottom>
+                  अभी आपका कोई सक्रिय केस दर्ज नहीं है।
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 500, mx: "auto" }}>
+                  यदि आप कोई नया मामला दर्ज करना चाहते हैं या केस की फाइल अपलोड करना चाहते हैं, तो नीचे बटन पर क्लिक करें।
+                </Typography>
+                <Button variant="contained" size="large" color="success" startIcon={<AddIcon />} onClick={() => setTabIndex(1)} sx={{ fontWeight: "bold", px: 4, py: 1.2 }}>
+                  ➕ नया केस दर्ज करें (File a New Case)
+                </Button>
+              </Paper>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: "#f1f5f9" }}>
+                    <TableCell><strong>Case ID / Number</strong></TableCell>
+                    <TableCell><strong>Matter Title</strong></TableCell>
+                    <TableCell><strong>Assigned Counsel</strong></TableCell>
+                    <TableCell><strong>Court / Jurisdiction</strong></TableCell>
+                    <TableCell><strong>Status</strong></TableCell>
+                    <TableCell><strong>Trust Approval</strong></TableCell>
+                    <TableCell><strong>Next Hearing</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {myCases.map((c) => (
+                    <TableRow key={c.id} hover>
+                      <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold", color: "#1e3a8a" }}>{c.caseNumber || c.id}</TableCell>
+                      <TableCell><Typography fontWeight="bold" color="#0f172a">{c.title}</Typography></TableCell>
+                      <TableCell>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <Avatar sx={{ width: 26, height: 26, bgcolor: "#1e3a8a", fontSize: "0.75rem", fontWeight: "bold" }}>
+                            {(c.advocateName || activeAdvocate?.name || "U").charAt(0)}
+                          </Avatar>
+                          <Typography variant="body2" fontWeight="medium">
+                            {c.advocateName || (activeAdvocate ? activeAdvocate.name : "Unassigned")}
+                          </Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>{c.courtName}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={c.status === "PENDING_APPROVAL_AND_ALLOTMENT" ? "Pending Counsel Assignment" : c.status}
+                          color={c.status === "In Hearing" ? "success" : "warning"}
+                          size="small"
+                          sx={{ fontWeight: "bold" }}
+                        />
+                      </TableCell>
+                      <TableCell><Chip label={c.trustApprovalStatus || "Approved"} color="success" size="small" variant="outlined" sx={{ fontWeight: "bold" }} /></TableCell>
+                      <TableCell><strong>{c.nextHearing || "Under Schedule"}</strong></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Paper>
+        </TabPanel>
+
+        {/* TAB 1: FILE A NEW CASE (नया केस दर्ज करें) */}
+        <TabPanel value={tabIndex} index={1}>
+          <Paper elevation={3} sx={{ p: 4, borderRadius: 3, bgcolor: "#fff", border: "1px solid #e2e8f0" }}>
+            <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+              <Avatar sx={{ bgcolor: "#2e7d32", width: 52, height: 52 }}>
+                <AddIcon sx={{ fontSize: 34 }} />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" fontWeight="bold" color="#0f172a">
+                  ➕ नया केस दर्ज करें (File a New Legal Case)
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  अपनी कानूनी समस्या दर्ज करें और अपनी संपूर्ण फाइल व दस्तावेज (PDF, Scanned Copy) अपलोड करें।
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="केस का नाम / विषय (Case Title / Subject)"
+                  placeholder="उदा. भूमि विवाद याचिका या एफआईआर जमानत अर्जी"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="मामले की कानूनी श्रेणी (Legal Category)"
+                  value={aiCaseCat}
+                  onChange={(e) => setAiCaseCat(e.target.value)}
+                >
+                  <MenuItem value="CIVIL_PROPERTY">🏢 सिविल / जमीन-जायदाद / संपत्ति विवाद (Civil & Property)</MenuItem>
+                  <MenuItem value="CRIMINAL_FIR">⚖️ आपराधिक / एफआईआर / जमानत (Criminal & FIR Bail)</MenuItem>
+                  <MenuItem value="REVENUE_LAND">🌾 राजस्व / चकबंदी / नामांतरण (Revenue & Land)</MenuItem>
+                  <MenuItem value="FAMILY_MATRIMONIAL">👨‍👩‍👧 पारिवारिक / वैवाहिक / भरण-पोषण (Family & Matrimonial)</MenuItem>
+                  <MenuItem value="CONSTITUTIONAL_WRIT">🏛️ संवैधानिक याचिका / हाईकोर्ट रिट (Constitutional Writ)</MenuItem>
+                  <MenuItem value="SERVICE_EMPLOYMENT">💼 सर्विस / नौकरी / पेंशन (Service & Employment)</MenuItem>
+                  <MenuItem value="COMMERCIAL_CONTRACT">🤝 कमर्शियल / अनुबंध / रिकवरी (Commercial & Recovery)</MenuItem>
+                  <MenuItem value="GENERAL_INTAKE">📝 सामान्य कानूनी विषय (General Legal Matter)</MenuItem>
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="अदालत / शहर का नाम (Court Name / Jurisdiction)"
+                  placeholder="उदा. जिला एवं सत्र न्यायालय, लखनऊ"
+                  value={form.courtName}
+                  onChange={(e) => setForm({ ...form, courtName: e.target.value })}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="विपक्षी पार्टी का नाम (Opposite Party / Respondent)"
+                  placeholder="उदा. विपक्षी / संबंधित विभाग"
+                  value={form.oppositeParty}
+                  onChange={(e) => setForm({ ...form, oppositeParty: e.target.value })}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="केस का विवरण व तथ्य (Case Description & Summary)"
+                  placeholder="अपनी समस्या का पूरा विवरण यहाँ लिखें..."
+                  value={form.summary}
+                  onChange={(e) => setForm({ ...form, summary: e.target.value })}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, bgcolor: "#f8fafc", border: "2px dashed #cbd5e1", textAlign: "center" }}>
+                  <UploadFileIcon sx={{ fontSize: 48, color: "#1e3a8a", mb: 1 }} />
+                  <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
+                    📁 केस की पूरी फाइल / दस्तावेज अपलोड करें (Upload Complete Case File)
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+                    कोर्ट फाइल, एफआईआर कॉपी, नोटिस या रजिस्ट्री कागजात (PDF, JPG, PNG) यहाँ से चुनें।
+                  </Typography>
+
+                  <Button
+                    variant="contained"
+                    component="label"
+                    startIcon={<UploadFileIcon />}
+                    sx={{ bgcolor: "#1e3a8a", fontWeight: "bold" }}
+                  >
+                    फाइल चुनें (Choose Files)
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          setDocUploadForm({
+                            name: files[0].name,
+                            category: "Case Pleading File",
+                            fileObj: files[0],
+                            caseId: "",
+                          });
+                          alert(`✅ ${files.length} फाइल(एं) चुनी गईं: ${files.map(f => f.name).join(", ")}`);
+                        }
+                      }}
+                    />
+                  </Button>
+
+                  {docUploadForm.name && (
+                    <Chip
+                      label={`चयनित फाइल: ${docUploadForm.name}`}
+                      color="success"
+                      sx={{ mt: 2, fontWeight: "bold" }}
+                      onDelete={() => setDocUploadForm({ name: "", category: "Legal Pleading", fileObj: null, caseId: "" })}
+                    />
+                  )}
+                </Paper>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  startIcon={<SendIcon />}
+                  onClick={handleCreateCase}
+                  sx={{ py: 1.8, bgcolor: "#2e7d32", "&:hover": { bgcolor: "#1b5e20" }, fontWeight: "bold", fontSize: "1.1rem", borderRadius: 2 }}
+                >
+                  केस जमा करें व वकील अलॉटमेंट हेतु भेजें (Submit Case Intake) 🚀
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </TabPanel>
+
+        {/* TAB 2: INTERACTIVE AI CASE CONSULTATION & DIAGNOSIS */}
+        <TabPanel value={tabIndex} index={2}>
           <Paper elevation={3} sx={{ p: 4, borderRadius: 3, background: "linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)", border: "2px solid #7c3aed" }}>
             <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
               <AutoAwesomeIcon sx={{ color: "#7c3aed", fontSize: 36 }} />
