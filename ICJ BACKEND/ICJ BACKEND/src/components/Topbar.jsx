@@ -61,7 +61,19 @@ function Topbar() {
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
-  const [isSirenActive, setIsSirenActive] = useState(NotificationRoutingService.isSirenActive());
+  const [roleMenuAnchor, setRoleMenuAnchor] = useState(null);
+  const [isSirenActive, setIsSirenActive] = useState(() => {
+    try {
+      return NotificationRoutingService?.isSirenActive ? NotificationRoutingService.isSirenActive() : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const handleRoleSwitch = (path) => {
+    setRoleMenuAnchor(null);
+    navigate(path);
+  };
 
   const activePath = location?.pathname || "";
   const activeModuleName = MODULE_NAMES[activePath] || 

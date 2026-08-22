@@ -62,6 +62,13 @@ function Topbar() {
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState(null);
+  const [isSirenActive, setIsSirenActive] = useState(() => {
+    try {
+      return NotificationRoutingService?.isSirenActive ? NotificationRoutingService.isSirenActive() : false;
+    } catch {
+      return false;
+    }
+  });
 
   const handleRoleSwitch = (path) => {
     setRoleMenuAnchor(null);
