@@ -102,17 +102,21 @@ export default function SuperAdminDashboard() {
       .then((s) => setStats(s))
       .catch(() => {});
 
-    // Check for new member registrations to trigger popup & chime
+    // Check for pending non-super-admin member registrations to trigger popup & chime
     try {
       const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
-      if (members.length > 0) {
-        const latest = members[0];
+      const pendingMember = members.find(
+        (m) => m.role !== "super_admin" && m.user_type !== "super_admin" && (m.verification_status === "Pending Verification" || m.verification_status === "Pending")
+      );
+      if (pendingMember) {
         setPopupAlert({
-          memberId: latest.member_id || latest.id || "ICJ-2026-MEM-0001",
-          name: latest.name || latest.fullName || "New Litigant Applicant",
-          purpose: latest.purpose || "Legal Dispute Resolution",
-          registeredAt: latest.created_at || new Date().toISOString(),
+          memberId: pendingMember.member_id || pendingMember.id || "ICJ-2026-MEM-0001",
+          name: pendingMember.name || pendingMember.fullName || "New Applicant",
+          purpose: pendingMember.purpose || pendingMember.problemCategory || "Legal Dispute Resolution",
+          registeredAt: pendingMember.created_at || new Date().toISOString(),
         });
+      } else {
+        setPopupAlert(null);
       }
     } catch (e) {}
 
