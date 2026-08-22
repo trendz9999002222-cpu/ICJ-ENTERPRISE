@@ -47,11 +47,17 @@ class ProductionHardeningEngine {
   }
 
   /**
-   * Tier 6: Reset 15-Minute Idle Timer
+   * Tier 6: Reset 15-Minute Idle Timer (respects Presentation / Testing Mode)
    */
   resetIdleTimer() {
     if (typeof window === "undefined") return;
     if (this.idleTimer) clearTimeout(this.idleTimer);
+
+    // If Presentation / Dev mode is enabled by Super Admin, do not lock screen
+    if (localStorage.getItem("icj_dev_presentation_mode") === "true") {
+      return;
+    }
+
     this.idleTimer = setTimeout(() => {
       console.warn("🔒 [SessionGuard] 15-minute idle threshold reached. Triggering Session Lock.");
       const event = new CustomEvent("icj_session_idle_lock");

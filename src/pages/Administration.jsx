@@ -17,6 +17,8 @@ import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import AdvocateResearchDirectory from "../components/admin/AdvocateResearchDirectory.jsx";
 import SystemSecurityCompliance from "../components/admin/SystemSecurityCompliance.jsx";
 import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
+import SandboxAndResetCenter from "../components/admin/SandboxAndResetCenter.jsx";
+import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
 
 export default function Administration() {
   const [activeTab, setActiveTab] = useState(0);
@@ -40,7 +42,7 @@ export default function Administration() {
 
           <Stack direction="row" spacing={1}>
             <Chip label="🔒 System Safeguard Active" color="success" sx={{ fontWeight: 800 }} />
-            <Chip label="⚡ 3 Modular Centers Active" color="info" sx={{ fontWeight: 800 }} />
+            <Chip label="⚡ 4 Modular Centers Active" color="info" sx={{ fontWeight: 800 }} />
           </Stack>
         </Stack>
 
@@ -60,6 +62,7 @@ export default function Administration() {
           <Tab icon={<WorkspacePremiumIcon />} iconPosition="start" label="🏢 1. Advocate Master Directory" />
           <Tab icon={<SecurityIcon />} iconPosition="start" label="🛡️ 2. Security, Access & Role Control" />
           <Tab icon={<ToggleOnIcon />} iconPosition="start" label="🎛️ 3. Feature & Fee Monetization" />
+          <Tab icon={<PlayCircleFilledWhiteIcon sx={{ color: "#10b981" }} />} iconPosition="start" label="⚙️ 4. Sandbox & Factory Reset (डेमो व रीसेट)" sx={{ fontWeight: "bold" }} />
         </Tabs>
       </Paper>
 
@@ -68,6 +71,7 @@ export default function Administration() {
         {activeTab === 0 && <AdvocateResearchDirectory />}
         {activeTab === 1 && <SystemSecurityCompliance />}
         {activeTab === 2 && <FeatureControlCenter />}
+        {activeTab === 3 && <SandboxAndResetCenter />}
       </Box>
     </Box>
   );

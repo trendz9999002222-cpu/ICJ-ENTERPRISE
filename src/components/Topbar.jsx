@@ -61,7 +61,12 @@ function Topbar() {
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
-  const [isSirenActive, setIsSirenActive] = useState(NotificationRoutingService.isSirenActive());
+  const [roleMenuAnchor, setRoleMenuAnchor] = useState(null);
+
+  const handleRoleSwitch = (path) => {
+    setRoleMenuAnchor(null);
+    navigate(path);
+  };
 
   const activePath = location?.pathname || "";
   const activeModuleName = MODULE_NAMES[activePath] || 
@@ -207,9 +212,68 @@ function Topbar() {
             </Badge>
           </IconButton>
 
-          <IconButton size="small" onClick={() => navigate("/settings")} sx={{ p: 0.3 }}>
-            <SettingsIcon color="action" sx={{ fontSize: "1rem" }} />
-          </IconButton>
+          {/* 👑 1-CLICK ROLE SIMULATION & SWITCHER */}
+          <Button
+            variant="contained"
+            size="small"
+            onClick={(e) => setRoleMenuAnchor(e.currentTarget)}
+            sx={{
+              background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: "0.68rem",
+              height: 22,
+              px: 1,
+              textTransform: "none",
+              boxShadow: "0 2px 6px rgba(124, 58, 237, 0.4)",
+              "&:hover": { opacity: 0.95 },
+            }}
+          >
+            🎭 Switch Role View ▾
+          </Button>
+
+          {/* Role Switcher Menu */}
+          <Menu
+            anchorEl={roleMenuAnchor}
+            open={Boolean(roleMenuAnchor)}
+            onClose={() => setRoleMenuAnchor(null)}
+            PaperProps={{ style: { width: 260, borderRadius: 10 } }}
+          >
+            <MenuItem disabled>
+              <Typography variant="caption" fontWeight="bold" color="#7c3aed">
+                👑 ACTIVE ROLE SIMULATOR
+              </Typography>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleRoleSwitch("/")}>
+              <ListItemIcon><Typography fontSize="1rem">👑</Typography></ListItemIcon>
+              <ListItemText primary="Super Admin Command Hub" secondary="Supreme Governance" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/advocate-dashboard")}>
+              <ListItemIcon><Typography fontSize="1rem">⚖️</Typography></ListItemIcon>
+              <ListItemText primary="Advocate Chambers" secondary="Legal Counsel View" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/client-portal")}>
+              <ListItemIcon><Typography fontSize="1rem">👤</Typography></ListItemIcon>
+              <ListItemText primary="Litigant Client Portal" secondary="File New & Active Cases" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/franchise-dashboard")}>
+              <ListItemIcon><Typography fontSize="1rem">🏢</Typography></ListItemIcon>
+              <ListItemText primary="District Franchise Desk" secondary="Network Operations" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/virtual-office")}>
+              <ListItemIcon><Typography fontSize="1rem">🏛️</Typography></ListItemIcon>
+              <ListItemText primary="Virtual Court Chamber" secondary="WebRTC Live Room" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/legal-drafter")}>
+              <ListItemIcon><Typography fontSize="1rem">🤖</Typography></ListItemIcon>
+              <ListItemText primary="AI Legal Drafter Studio" secondary="Auto Draft Pleading" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/admin")}>
+              <ListItemIcon><Typography fontSize="1rem">⚙️</Typography></ListItemIcon>
+              <ListItemText primary="Admin Control Hub" secondary="Security & Sandbox" />
+            </MenuItem>
+          </Menu>
 
           {/* 1 STRAIGHT LINE USER IDENTITY BADGE */}
           <Box
