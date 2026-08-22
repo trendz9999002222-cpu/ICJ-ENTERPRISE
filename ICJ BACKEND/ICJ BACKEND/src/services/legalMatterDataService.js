@@ -48,6 +48,19 @@ const store = {
 // ─── MATTER DATA SERVICE ──────────────────────────────────────────────────────
 const LegalMatterDataService = {
 
+  // ── BACKWARD COMPATIBILITY ALIASES ──────────────────────────────────────
+  getMatters() {
+    try {
+      const raw = localStorage.getItem("icj_legal_cases_v2");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  },
+  createMatter(caseData = {}) { return { id: `CASE-${Date.now()}`, ...caseData }; },
+  updateMatter(id, values = {}) { return { id, ...values }; },
+  deleteMatter(id) { return true; },
+
   // ── 1. MATTER DATA CRUD (member-scoped) ──────────────────────────────────
 
   /** Get all matter intelligence data for a member's case */

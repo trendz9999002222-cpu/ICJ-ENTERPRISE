@@ -1,24 +1,24 @@
-import LegalMatterDataService from "./legalMatterDataService";
+import { LegalEcosystemService } from "./legalEcosystemService.js";
 
 /**
  * Consolidated LegalService
- * Forwarding to single source of truth: legalMatterDataService.js
+ * Forwarding to single source of truth: legalEcosystemService.js
  */
 const LegalService = {
   async getAll() {
-    return LegalMatterDataService.getMatters();
+    return LegalEcosystemService.getCases();
   },
 
   async create(caseData = {}) {
-    return LegalMatterDataService.createMatter(caseData);
+    return LegalEcosystemService.createCase(caseData);
   },
 
   async update(id, values) {
-    return LegalMatterDataService.updateMatter(id, values);
+    return LegalEcosystemService.updateCase(id, values);
   },
 
   async remove(id) {
-    return LegalMatterDataService.deleteMatter(id);
+    return LegalEcosystemService.deleteCase(id);
   },
 };
 
