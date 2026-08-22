@@ -141,7 +141,7 @@ export default function MyAdvocateSettings({ clientUser, onUpdate }) {
           fullWidth
           label="वकील की यूनिक आईडी (Advocate Member ID)"
           variant="outlined"
-          placeholder="उदा. 26ICJ08AA0025"
+          placeholder="उदा. ICJ-ADV-0001"
           value={advocateId}
           onChange={(e) => setAdvocateId(e.target.value)}
           disabled={loading}

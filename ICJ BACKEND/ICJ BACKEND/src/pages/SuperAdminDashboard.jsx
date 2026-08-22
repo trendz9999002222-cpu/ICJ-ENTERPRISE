@@ -68,8 +68,8 @@ export default function SuperAdminDashboard() {
   // SLA & Notification State
   const [slaMins, setSlaMins] = useState(DutyRosterService.getSLATimerMinutes());
   const [popupAlert, setPopupAlert] = useState(null);
-  const [selectedAdvocateId, setSelectedAdvocateId] = useState("26ICJ08AA0003");
   const empaneledAdvocates = ENTERPRISE_SEED_USERS.filter((u) => u.role === "advocate" || u.user_type === "advocate");
+  const [selectedAdvocateId, setSelectedAdvocateId] = useState(empaneledAdvocates[0]?.id || "");
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleString("en-IN", {
     weekday: "short",

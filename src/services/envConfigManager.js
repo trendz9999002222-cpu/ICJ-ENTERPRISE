@@ -77,6 +77,25 @@ export const EnvConfigManager = {
     };
   },
 
+  getReadinessAudit() {
+    const inspected = this.inspectEnvironment();
+    const scores = this.getEnvReadinessScore();
+    return {
+      score: scores.overallScore,
+      readinessScore: scores.overallScore,
+      requiredScore: scores.requiredScore,
+      totalVars: scores.total,
+      totalCount: scores.total,
+      configuredVars: scores.configured,
+      configuredCount: scores.configured,
+      missingRequired: scores.missingRequired,
+      details: inspected,
+      readyForProduction: scores.missingRequired === 0,
+      deploymentReady: scores.missingRequired === 0,
+      timestamp: new Date().toISOString(),
+    };
+  },
+
   getEnvVar,
 };
 

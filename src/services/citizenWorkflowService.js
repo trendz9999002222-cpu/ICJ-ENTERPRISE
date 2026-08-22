@@ -53,14 +53,7 @@ export const CitizenWorkflowService = {
         preferred_language: "hi-IN",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        assigned_advocate: {
-          advocate_id: "26ICJ08AA0003",
-          advocate_name: "Adv. Vikramaditya Singh",
-          advocate_role: "ICJ Central Senior Panel Lead (In-House Default)",
-          allotted_by: "SYSTEM_DEFAULT",
-          allotted_at: new Date().toISOString(),
-          status: "IN_HOUSE_DEFAULT",
-        },
+        assigned_advocate: null,
         advocate_replacement_requests: [],
         master_record: {
           stage0_guidance: {
@@ -69,7 +62,7 @@ export const CitizenWorkflowService = {
             consent_agreed: false,
           },
           stage1_intake: {
-            legal_category: "Property Dispute",
+            legal_category: "General Intake",
             voice_recordings: [],
             typed_inputs: [],
             desired_outcome: "",
@@ -77,8 +70,8 @@ export const CitizenWorkflowService = {
           stage2_documents: [],
           stage3_ai_diagnosis: null,
           stage4_counsel_action: {
-            counsel_assigned: true,
-            consultation_status: "Pending Appointment",
+            counsel_assigned: false,
+            consultation_status: "Pending Counsel Assignment",
           },
         },
         timeline: [
@@ -304,8 +297,8 @@ export const CitizenWorkflowService = {
     const newReq = {
       request_id: reqId,
       requested_at: new Date().toISOString(),
-      previous_advocate_id: item.assigned_advocate?.advocate_id || "26ICJ08AA0003",
-      previous_advocate_name: item.assigned_advocate?.advocate_name || "Adv. Vikramaditya Singh",
+      previous_advocate_id: item.assigned_advocate?.advocate_id || "",
+      previous_advocate_name: item.assigned_advocate?.advocate_name || "Unassigned Counsel",
       reason,
       notes,
       status: "PENDING_ADMIN_APPROVAL",
@@ -392,10 +385,10 @@ Status: ${item.status}
 --------------------------------------------------------------------------------
 1. CURRENT ASSIGNED LEGAL COUNSEL:
 --------------------------------------------------------------------------------
-Name: ${item.assigned_advocate?.advocate_name || "Adv. Vikramaditya Singh"}
-Role: ${item.assigned_advocate?.advocate_role || "ICJ Senior Legal Counsel"}
-ID: ${item.assigned_advocate?.advocate_id || "26ICJ08AA0003"}
-Status: ${item.assigned_advocate?.status || "In-House Default"}
+Name: ${item.assigned_advocate?.advocate_name || "Unassigned Counsel"}
+Role: ${item.assigned_advocate?.advocate_role || "Empaneled Legal Counsel"}
+ID: ${item.assigned_advocate?.advocate_id || "Unassigned"}
+Status: ${item.assigned_advocate?.status || "Pending Allotment"}
 
 --------------------------------------------------------------------------------
 2. STAGE 1 — LEGAL SITUATION & VOICE INTAKE:

@@ -116,22 +116,22 @@ export default function Wallet() {
 
   // Real-time Dashboard Cards (Phase H) & Income Breakdown (Phase A)
   const stats = useMemo(() => {
-    const totalIncome = 327700;
-    const totalExpense = 45000;
+    const totalIncome = transactions.reduce((acc, t) => acc + (Number(t.amount || t.total || 0)), 0);
+    const totalExpense = 0;
     const walletBalance = totalIncome - totalExpense;
-    const donations = 50000;
-    const membershipIncome = 77700;
-    const legalServiceIncome = 150000;
-    const csrFunds = 50000;
-    const todayCollection = 17700;
-    const monthlyCollection = 327700;
+    const donations = 0;
+    const membershipIncome = 0;
+    const legalServiceIncome = 0;
+    const csrFunds = 0;
+    const todayCollection = 0;
+    const monthlyCollection = totalIncome;
 
     const tokenStats = TokenLedgerService.getCirculationStats();
     const tokenRate = TokenRateService.getCurrentRate();
     const chargeRevenue = TransactionChargeService.getTotalChargesCollected();
 
     return { totalIncome, totalExpense, walletBalance, donations, membershipIncome, legalServiceIncome, csrFunds, todayCollection, monthlyCollection, tokenStats, tokenRate, chargeRevenue };
-  }, []);
+  }, [transactions]);
 
   const cards = [
     { title: "Master Wallet Balance", value: `₹${stats.walletBalance.toLocaleString("en-IN")}`, color: "#1976d2", icon: <AccountBalanceWalletIcon /> },
@@ -223,21 +223,21 @@ export default function Wallet() {
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 3, borderLeft: "4px solid #1976d2" }}>
               <Typography variant="h6" fontWeight="bold">Community Master Wallet</Typography>
-              <Typography variant="h4" fontWeight="bold" color="primary.main" sx={{ my: 1 }}>₹2,82,700</Typography>
+              <Typography variant="h4" fontWeight="bold" color="primary.main" sx={{ my: 1 }}>₹{stats.walletBalance.toLocaleString("en-IN")}</Typography>
               <Typography variant="caption" color="text.secondary">Master Treasury & Reserve Account</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 3, borderLeft: "4px solid #2e7d32" }}>
               <Typography variant="h6" fontWeight="bold">Member Wallets Ledger</Typography>
-              <Typography variant="h4" fontWeight="bold" color="success.main" sx={{ my: 1 }}>₹45,000</Typography>
-              <Typography variant="caption" color="text.secondary">25 Active Member Accounts</Typography>
+              <Typography variant="h4" fontWeight="bold" color="success.main" sx={{ my: 1 }}>₹0</Typography>
+              <Typography variant="caption" color="text.secondary">0 Active Member Accounts</Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
             <Paper sx={{ p: 3, borderRadius: 3, borderLeft: "4px solid #9c27b0" }}>
               <Typography variant="h6" fontWeight="bold">Advocate Escrow Wallet</Typography>
-              <Typography variant="h4" fontWeight="bold" color="secondary.main" sx={{ my: 1 }}>₹75,000</Typography>
+              <Typography variant="h4" fontWeight="bold" color="secondary.main" sx={{ my: 1 }}>₹0</Typography>
               <Typography variant="caption" color="text.secondary">Retainer & Fee Escrow Account</Typography>
             </Paper>
           </Grid>
@@ -272,22 +272,22 @@ export default function Wallet() {
                 <TableCell>Membership Registration Income</TableCell>
                 <TableCell><Chip label="Income" color="success" size="small" /></TableCell>
                 <TableCell>₹0</TableCell>
-                <TableCell>₹77,700</TableCell>
-                <TableCell>₹77,700 Cr</TableCell>
+                <TableCell>₹0</TableCell>
+                <TableCell>₹0 Cr</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>Legal Counsel Service Fees</TableCell>
                 <TableCell><Chip label="Income" color="success" size="small" /></TableCell>
                 <TableCell>₹0</TableCell>
-                <TableCell>₹1,50,000</TableCell>
-                <TableCell>₹1,50,000 Cr</TableCell>
+                <TableCell>₹0</TableCell>
+                <TableCell>₹0 Cr</TableCell>
               </TableRow>
               <TableRow>
                 <TableCell>CSR & Grants Fund</TableCell>
                 <TableCell><Chip label="Grant" color="primary" size="small" /></TableCell>
                 <TableCell>₹0</TableCell>
-                <TableCell>₹50,000</TableCell>
-                <TableCell>₹50,000 Cr</TableCell>
+                <TableCell>₹0</TableCell>
+                <TableCell>₹0 Cr</TableCell>
               </TableRow>
             </TableBody>
           </Table>

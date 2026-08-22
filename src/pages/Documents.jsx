@@ -205,12 +205,12 @@ export default function Documents() {
 
   // Phase I — Real-time Dashboard Cards
   const stats = useMemo(() => {
-    const totalDocs = documents.length + 148;
-    const pendingApproval = 12;
-    const signedDocs = documents.length + 96;
-    const archivedDocs = 24;
-    const backupStatus = "🟢 Verified Aug 7, 2026";
-    const storageUsage = "1.2 GB / 50 GB";
+    const totalDocs = documents.length;
+    const pendingApproval = documents.filter((d) => d.workflow === "Draft" || d.workflow === "Review").length;
+    const signedDocs = documents.filter((d) => d.signed || d.workflow === "Signed" || d.workflow === "Approved").length;
+    const archivedDocs = documents.filter((d) => d.workflow === "Archived").length;
+    const backupStatus = "🟢 Operational (Clean)";
+    const storageUsage = "0 MB / 50 GB";
 
     return { totalDocs, pendingApproval, signedDocs, archivedDocs, backupStatus, storageUsage };
   }, [documents]);

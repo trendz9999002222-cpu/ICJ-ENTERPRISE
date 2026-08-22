@@ -309,6 +309,27 @@ const deleteTable = async (table, id, localKey, idField = "id") => {
 // Members (Synchronized Master User Repository)
 // ===========================
 
+const DUMMY_MEMBER_KEYS = new Set([
+  "26adm08aa0002",
+  "26icj08aa0003",
+  "26icj08aa0004",
+  "26icj08aa0005",
+  "26icj08aa0006",
+  "26icj08aa0007",
+  "icjadmin1234@icj.org",
+  "vikramaditya@icj.org",
+  "ananya@icj.org",
+  "ramesh.gupta@gmail.com",
+  "sunita.devi@gmail.com",
+]);
+
+const isDummyMember = (u) => {
+  if (!u) return false;
+  const idKey = String(u.id || u.member_id || u.memberId || "").toLowerCase();
+  const emailKey = String(u.email || "").toLowerCase();
+  return DUMMY_MEMBER_KEYS.has(idKey) || DUMMY_MEMBER_KEYS.has(emailKey);
+};
+
 const readUnifiedUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
@@ -320,18 +341,17 @@ const readUnifiedUsers = () => {
       } catch {}
     }
 
+    const cleanExisting = Array.isArray(existingList) ? existingList.filter((u) => !isDummyMember(u)) : [];
+
     const userMap = new Map();
-    // 1. Seed users as foundational base (clean 7 users)
+    // 1. Seed users as foundational base (strictly Super Admin)
     ENTERPRISE_SEED_USERS.forEach((u) => {
       const k = String(u.member_id || u.memberId || u.email || u.id || "").toLowerCase();
       if (k) userMap.set(k, u);
     });
 
-    // 2. Overlay existing stored users (preserving edits, registration changes)
-    if (Array.isArray(existingList)) {
-      existingList.forEach((u) => {
-        // Find if this user already exists by member_id, email, or id
-        const existingKey = Array.from(userMap.keys()).find((k) => {
+    cleanExisting.forEach((u) => {
+      const existingKey = Array.from(userMap.keys()).find((k) => {
           const item = userMap.get(k);
           return (
             (u.member_id && String(item.member_id || item.memberId) === String(u.member_id)) ||

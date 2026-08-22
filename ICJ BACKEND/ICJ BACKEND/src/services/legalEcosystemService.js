@@ -40,31 +40,8 @@ export const LegalEcosystemService = {
   // Case CRUD
   getCases() {
     const raw = getItem(STORAGE_KEYS.cases);
-    if (Array.isArray(raw) && raw.length > 0) return raw;
-    const initialCase = [
-      {
-        id: "CASE-2026-001",
-        caseNumber: "ICJ/CS/2026/1001",
-        title: "Land Boundary Demarcation & Injunction Suit",
-        clientName: "Ramesh Kumar Gupta",
-        member_id: "26ICJ08AA0005",
-        advocateName: "Adv. Vikramaditya Rao",
-        advocateId: "26ICJ08AA0003",
-        courtName: "IN THE COURT OF SUB-DIVISIONAL MAGISTRATE (SDM) / CIVIL JUDGE",
-        status: "In Hearing",
-        trustApprovalStatus: "Approved",
-        nextHearing: "2026-09-10",
-        filingDate: "2026-08-05",
-        summary: "Boundary demarcation and injunction petition under Section 24 Revenue Code and Order XXXIX CPC.",
-        missingDocs: ["Survey Map Copy"],
-        legalProvisions: ["UP Revenue Code 2006 — Section 24", "Civil Procedure Code 1908 — Order XXXIX Rules 1 & 2"],
-        feeAmount: 35000,
-        paidAmount: 35000,
-        createdAt: "2026-08-05T10:00:00.000Z",
-      },
-    ];
-    setItem(STORAGE_KEYS.cases, initialCase);
-    return initialCase;
+    if (Array.isArray(raw)) return raw;
+    return [];
   },
 
 

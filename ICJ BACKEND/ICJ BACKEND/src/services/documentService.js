@@ -18,41 +18,14 @@ const fileToDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
-const SAMPLE_DOCUMENTS = [
-  {
-    id: "ICJ-2026-DOC-9801",
-    documentNo: "ICJ-2026-DOC-9801",
-    title: "Verified Identity Proof - Government ID",
-    fileType: "PDF",
-    category: "Identity / Personal Documents",
-    department: "Litigant KYC Vault",
-    owner: "Empaneled Member",
-    workflow: "Approved & Locked",
-    hash: "SHA256-ID-9812-ENCRYPTED",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "ICJ-2026-DOC-9802",
-    documentNo: "ICJ-2026-DOC-9802",
-    title: "Certified Pleading & Court Petition Copy",
-    fileType: "PDF",
-    category: "Legal Pleadings",
-    department: "Legal Affairs",
-    owner: "Empaneled Legal Counsel",
-    workflow: "Reviewed",
-    hash: "SHA256-PLEAD-8812-ENCRYPTED",
-    status: "Active",
-    createdAt: new Date().toISOString(),
-  },
-];
+const SAMPLE_DOCUMENTS = [];
 
 const DocumentService = {
 
   async getAll() {
     const list = await getDocuments();
-    if (Array.isArray(list) && list.length > 0) return list;
-    return SAMPLE_DOCUMENTS;
+    if (Array.isArray(list)) return list;
+    return [];
   },
 
   async create(documentData = {}) {

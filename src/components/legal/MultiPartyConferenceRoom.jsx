@@ -41,18 +41,12 @@ function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant
 
   // Participants Grid (Up to 8 Seats)
   const [participants, setParticipants] = useState([
-    { id: "P1", name: clientName || "Sh. Litigant", role: "Litigant / Client", avatarColor: "#3b82f6", activeSpeaker: true },
-    { id: "P2", name: advocateName || "Empaneled Lead Counsel", role: "Empaneled Lead Counsel", avatarColor: "#10b981", activeSpeaker: false },
-    { id: "P3", name: "Adv. Sunita Verma", role: "Senior Co-Counsel", avatarColor: "#8b5cf6", activeSpeaker: false },
-    { id: "P4", name: "District Branch Director", role: "District Franchisee Director", avatarColor: "#f59e0b", activeSpeaker: false },
-    { id: "P5", name: "ICJ Trust Observer", role: "Super Admin Compliance", avatarColor: "#ef4444", activeSpeaker: false },
+    { id: "P1", name: clientName || "Litigant Client", role: "Litigant / Client", avatarColor: "#3b82f6", activeSpeaker: true },
+    { id: "P2", name: advocateName || "Empaneled Counsel", role: "Empaneled Lead Counsel", avatarColor: "#10b981", activeSpeaker: false },
   ]);
 
   // Chat & Transcript
-  const [chatMessages, setChatMessages] = useState([
-    { sender: "System", text: "Multi-party WebRTC chamber initialized with 5 participants.", timestamp: "10:00 AM" },
-    { sender: advocateName, text: "Welcome all. We are reviewing the petition for the district court hearing.", timestamp: "10:01 AM" },
-  ]);
+  const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
 
   // Voice Correction Studio State

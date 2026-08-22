@@ -164,7 +164,7 @@ export default function AdvocateDashboard() {
     async function loadRepo() {
       const allCases = LegalEcosystemService.getCases();
       const allAdvocates = LegalEcosystemService.getAdvocates();
-      const allConsultations = AiLegalConsultationService.getConsultationsForAdvocate ? AiLegalConsultationService.getConsultationsForAdvocate(user?.id || user?.member_id || "26ICJ08AA0003") : [];
+      const allConsultations = AiLegalConsultationService.getConsultationsForAdvocate ? AiLegalConsultationService.getConsultationsForAdvocate(user?.id || user?.member_id || "") : [];
       if (isMounted) {
         const casesList = Array.isArray(allCases) ? allCases : [];
         setCases(casesList);

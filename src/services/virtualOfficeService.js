@@ -50,43 +50,9 @@ export const VirtualOfficeService = {
         specializations: ["Property & Real Estate", "Civil Disputes", "Constitutional Writs"],
         rankedSpecializations: DEFAULT_RANKED_SPECIALIZATIONS,
         officeLocations: DEFAULT_COURT_OFFICES,
-        seniorMentor: "Adv. Ramesh Chandra Verma (Senior Advocate & Mentor)",
+        seniorMentor: "Empaneled Senior Mentor",
         teamQuotaLimit: 5,
-        juniorsList: (memberId === "ICJ-2026-MEM-0105" || memberId === "26ICJ08AA0003") ? [
-          {
-            id: "26ICJ08AA0006",
-            name: "Adv. Ananya Roy",
-            barId: "WB/2026/9815",
-            designation: "Junior Associate (High Court Bench)",
-            assignedOffice: "High Court of Judicature Chamber #108",
-            photoUrl: "",
-            status: "BCI Verified",
-            city: "Kolkata",
-            state: "West Bengal"
-          },
-          {
-            id: "26ICJ08AA0007",
-            name: "Adv. Gurpreet Singh Dhillon",
-            barId: "PB/2026/9816",
-            designation: "Junior Associate (District Court Bench)",
-            assignedOffice: "District & Sessions Court Chamber #42",
-            photoUrl: "",
-            status: "BCI Verified",
-            city: "Chandigarh",
-            state: "Punjab"
-          },
-          {
-            id: "26ICJ08AA0027",
-            name: "Adv. Devendra Pratap Sengar",
-            barId: "UP/2026/9820",
-            designation: "Junior Associate (Tehsil & Executive Bench)",
-            assignedOffice: "Sadar Tehsil & SDM Executive Court Chamber #05",
-            photoUrl: "",
-            status: "BCI Verified",
-            city: "Kanpur",
-            state: "Uttar Pradesh"
-          }
-        ] : [],
+        juniorsList: [],
         empanelledBadgeStatus: "VERIFIED_EMPANELLED",
         verificationQrCode: `https://icj.org.in/verify/${memberId || "DEMO"}`,
         officeAddress: "Virtual Chamber #402, ICJ Digital High Court Complex",
