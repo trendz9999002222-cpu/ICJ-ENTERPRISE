@@ -9,20 +9,7 @@ const FRANCHISE_STORAGE_KEY = "icj_franchise_applications";
 const getApplications = () => {
   try {
     const raw = localStorage.getItem(FRANCHISE_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [
-      {
-        id: "FRAN-2026-001",
-        applicantName: "Rajesh Agarwal",
-        city: "Lucknow",
-        state: "Uttar Pradesh",
-        mobile: "+91 98390 11223",
-        email: "rajesh.agarwal@example.com",
-        experience: "12 Years Legal Documentation & Public Service Center Owner",
-        status: "PENDING_REVIEW",
-        appliedAt: new Date().toISOString(),
-        meetingNotes: "Awaiting Admin initial screening and interaction schedule.",
-      },
-    ];
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
