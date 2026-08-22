@@ -1790,13 +1790,34 @@ export default function ClientPortal() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <TableRow>
-                  <TableCell sx={{ fontFamily: "monospace" }}>ICJ-2026-INV-1001</TableCell>
-                  <TableCell>PIL Legal Representation Fee</TableCell>
-                  <TableCell>₹45,000</TableCell>
-                  <TableCell>₹30,000</TableCell>
-                  <TableCell><Chip label="Partially Paid" color="warning" size="small" /></TableCell>
-                </TableRow>
+                {myCases.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
+                        अभी कोई शुल्क या चालान जारी नहीं किया गया है (No fee invoices issued yet).
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  myCases.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold", color: "#1e3a8a" }}>
+                        INV-{c.caseNumber || c.id}
+                      </TableCell>
+                      <TableCell><Typography fontWeight="bold">{c.title} — Legal Counsel Fee</Typography></TableCell>
+                      <TableCell>₹{(c.feeAmount || 0).toLocaleString("en-IN")}</TableCell>
+                      <TableCell>₹{(c.paidAmount || 0).toLocaleString("en-IN")}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={(c.paidAmount || 0) >= (c.feeAmount || 0) && (c.feeAmount || 0) > 0 ? "Paid" : (c.paidAmount || 0) > 0 ? "Partially Paid" : "Pending Escrow"}
+                          color={(c.paidAmount || 0) >= (c.feeAmount || 0) && (c.feeAmount || 0) > 0 ? "success" : (c.paidAmount || 0) > 0 ? "warning" : "default"}
+                          size="small"
+                          sx={{ fontWeight: "bold" }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </Paper>
