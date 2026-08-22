@@ -182,7 +182,7 @@ export default function DeploymentCenter() {
             </TableHead>
             <TableBody>
               {providers.map((p) => {
-                const missing = (p.envVars || []).filter((v) => !process.env[v]);
+                const missing = (p.envVars || []).filter((v) => !EnvConfigManager.getEnvVar(v));
                 return (
                   <TableRow key={p.id}>
                     <TableCell><strong>{p.name}</strong></TableCell>
