@@ -68,12 +68,15 @@ export default function Wallet() {
     remarks: "Quarterly Member Token Grant",
   });
 
-  // Transactions State
-  const [transactions, setTransactions] = useState([
-    { id: "TXN-2026-9811", type: "Membership Fee", wallet: "Member Wallet", amount: 15000, gst: 2700, total: 17700, date: "2026-08-06", status: "Completed", hash: "SHA256-TXN-9811-OK" },
-    { id: "TXN-2026-9812", type: "Legal Service Fee", wallet: "Advocate Wallet", amount: 45000, gst: 8100, total: 53100, date: "2026-08-05", status: "Completed", hash: "SHA256-TXN-9812-OK" },
-    { id: "TXN-2026-9813", type: "CSR Fund Grant", wallet: "Organization Wallet", amount: 250000, gst: 0, total: 250000, date: "2026-08-01", status: "Completed", hash: "SHA256-TXN-9813-OK" },
-  ]);
+  // Transactions State (Virgin Dynamic State)
+  const [transactions, setTransactions] = useState(() => {
+    try {
+      const saved = localStorage.getItem("icj_wallet_transactions");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -313,17 +316,27 @@ export default function Wallet() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {transactions.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell sx={{ fontFamily: "monospace" }}>{t.id}</TableCell>
-                  <TableCell>{t.type}</TableCell>
-                  <TableCell>998211</TableCell>
-                  <TableCell>₹{t.amount.toLocaleString("en-IN")}</TableCell>
-                  <TableCell>₹{(t.gst / 2).toLocaleString("en-IN")}</TableCell>
-                  <TableCell>₹{(t.gst / 2).toLocaleString("en-IN")}</TableCell>
-                  <TableCell><Chip label={`₹${t.gst.toLocaleString("en-IN")}`} color="secondary" size="small" /></TableCell>
+              {transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
+                      कोई जीएसटी या टैक्स लेन-देन दर्ज नहीं है (No GST transactions recorded yet).
+                    </Typography>
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                transactions.map((t) => (
+                  <TableRow key={t.id}>
+                    <TableCell sx={{ fontFamily: "monospace" }}>{t.id}</TableCell>
+                    <TableCell>{t.type}</TableCell>
+                    <TableCell>998211</TableCell>
+                    <TableCell>₹{t.amount.toLocaleString("en-IN")}</TableCell>
+                    <TableCell>₹{(t.gst / 2).toLocaleString("en-IN")}</TableCell>
+                    <TableCell>₹{(t.gst / 2).toLocaleString("en-IN")}</TableCell>
+                    <TableCell><Chip label={`₹${t.gst.toLocaleString("en-IN")}`} color="secondary" size="small" /></TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </Paper>
@@ -371,15 +384,25 @@ export default function Wallet() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {transactions.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell sx={{ fontFamily: "monospace" }}>{t.id}</TableCell>
-                  <TableCell>{t.type} ({t.wallet})</TableCell>
-                  <TableCell>₹{t.total.toLocaleString("en-IN")}</TableCell>
-                  <TableCell sx={{ fontFamily: "monospace", fontSize: "11px" }}>{t.hash}</TableCell>
-                  <TableCell><Chip label="Integrity Verified" color="success" size="small" /></TableCell>
+              {transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">
+                    <Typography color="text.secondary" variant="body2" sx={{ py: 2 }}>
+                      कोई ऑडिट लेन-देन या लेजर प्रविष्टि नहीं है (No financial audit records yet).
+                    </Typography>
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                transactions.map((t) => (
+                  <TableRow key={t.id}>
+                    <TableCell sx={{ fontFamily: "monospace" }}>{t.id}</TableCell>
+                    <TableCell>{t.type} ({t.wallet})</TableCell>
+                    <TableCell>₹{t.total.toLocaleString("en-IN")}</TableCell>
+                    <TableCell sx={{ fontFamily: "monospace", fontSize: "11px" }}>{t.hash}</TableCell>
+                    <TableCell><Chip label="Integrity Verified" color="success" size="small" /></TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </Paper>
