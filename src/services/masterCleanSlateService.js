@@ -9,7 +9,7 @@
 
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
-const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v30_FINAL_FRANCHISE_CLEAN";
+const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v40_FINAL_VIRTUAL_OFFICE_CLEAN";
 
 const STORAGE_KEYS_TO_PURGE = [
   "icj_members",
@@ -37,6 +37,7 @@ const STORAGE_KEYS_TO_PURGE = [
   "icj_purge_version",
   "icj_citizen_active_case",
   "icj_franchise_applications",
+  "icj_virtual_offices",
 ];
 
 export const MasterCleanSlateService = {

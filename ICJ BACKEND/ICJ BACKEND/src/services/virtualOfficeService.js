@@ -91,10 +91,10 @@ export const VirtualOfficeService = {
         verificationQrCode: `https://icj.org.in/verify/${memberId || "DEMO"}`,
         officeAddress: "Virtual Chamber #402, ICJ Digital High Court Complex",
         workingHours: "10:00 AM - 06:00 PM (Mon-Sat)",
-        clientAppointmentsCount: 14,
-        activeCasesCount: 8,
-        aiDraftsGeneratedCount: 32,
-        documentsVaultCount: 19,
+        clientAppointmentsCount: 0,
+        activeCasesCount: 0,
+        aiDraftsGeneratedCount: 0,
+        documentsVaultCount: 0,
         updatedAt: new Date().toISOString(),
       };
       writeStore(VIRTUAL_OFFICE_KEY, [...offices, office]);
