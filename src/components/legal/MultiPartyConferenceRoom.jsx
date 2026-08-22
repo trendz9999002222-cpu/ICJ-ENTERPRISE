@@ -30,7 +30,7 @@ import SendIcon from "@mui/icons-material/Send";
 import FeatureControlService from "../../services/featureControlService.js";
 import MatterIntelligenceService from "../../services/matterIntelligenceService.js";
 
-function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant", advocateName = "Empaneled Lead Counsel", currentUserId = "ICJ-2026-MEM-0001" }) {
+function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant", advocateName = "Empaneled Lead Counsel", currentUserId = "ICJ-2026-MEM-0001", onClose = null }) {
   // Check Super Admin Feature Switch Access
   const accessCheck = FeatureControlService.isFeatureAccessible("videoConference", currentUserId);
 
@@ -249,7 +249,7 @@ function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant
                 {screenSharing ? <StopScreenShareIcon /> : <ScreenShareIcon />}
               </IconButton>
 
-              <Button variant="contained" color="error" startIcon={<CallEndIcon />} onClick={onClose || (() => window.history.back())} sx={{ fontWeight: 800, borderRadius: 2 }}>
+              <Button variant="contained" color="error" startIcon={<CallEndIcon />} onClick={onClose ? onClose : (() => window.history.back())} sx={{ fontWeight: 800, borderRadius: 2 }}>
                 End Call
               </Button>
             </Stack>
