@@ -207,6 +207,12 @@ export const MemberService = {
 
     const res = await addMember(newMember);
 
+    // Cross-tab real-time event synchronization
+    import("../utils/syncDispatcher.js").then((mod) => {
+      const sd = mod.default || mod.SyncDispatcher;
+      sd.dispatch("icj_sync_member_registered", newMember);
+    }).catch(() => {});
+
     // Trigger central event notification
     import("./notificationService.js").then((mod) => {
       const ns = mod.default || mod.NotificationService;
@@ -229,6 +235,13 @@ export const MemberService = {
       throw new Error(`Invalid status: ${data.verification_status}. Valid statuses: ${VALID_STATUSES.join(", ")}`);
     }
     const res = await updateMember(id, data);
+
+    // Cross-tab real-time event synchronization
+    import("../utils/syncDispatcher.js").then((mod) => {
+      const sd = mod.default || mod.SyncDispatcher;
+      sd.dispatch("icj_sync_member_updated", { id, data });
+    }).catch(() => {});
+
     if (data.verification_status === "Approved") {
       import("./notificationService.js").then((mod) => {
         const ns = mod.default || mod.NotificationService;

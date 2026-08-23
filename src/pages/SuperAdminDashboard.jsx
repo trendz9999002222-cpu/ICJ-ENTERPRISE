@@ -120,7 +120,31 @@ export default function SuperAdminDashboard() {
       }
     } catch (e) {}
 
-    return () => clearInterval(timer);
+    // Real-time Cross-tab Member Registration Listener
+    let unsubscribeMember = null;
+    import("../utils/syncDispatcher.js").then((mod) => {
+      const sd = mod.default || mod.SyncDispatcher;
+      unsubscribeMember = sd.subscribe("icj_sync_member_registered", (newMem) => {
+        DashboardService.getStatistics().then((s) => setStats(s)).catch(() => {});
+        getMembers().then((list) => {
+          if (Array.isArray(list)) setUsersList(list);
+        }).catch(() => {});
+        if (newMem && newMem.role !== "super_admin") {
+          setPopupAlert({
+            memberId: newMem.member_id || newMem.id || "26CLT08AA0002",
+            name: newMem.fullName || newMem.name || "New Applicant",
+            purpose: newMem.purpose || newMem.problemCategory || "Legal Problem Intake",
+            registeredAt: newMem.created_at || new Date().toISOString(),
+          });
+          audioAlertService.playNewMemberChime();
+        }
+      });
+    }).catch(() => {});
+
+    return () => {
+      clearInterval(timer);
+      if (unsubscribeMember) unsubscribeMember();
+    };
   }, []);
 
   const [usersList, setUsersList] = useState(() => AuthService.getSeedUsers() || []);
