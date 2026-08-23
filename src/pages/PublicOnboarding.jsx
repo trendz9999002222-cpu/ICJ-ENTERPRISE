@@ -55,6 +55,7 @@ import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
 import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
+import { CitizenWorkflowService } from "../services/citizenWorkflowService.js";
 import { PAN_INDIA_STATES, PAN_INDIA_DISTRICTS_MAP, DEFAULT_STATE, DEFAULT_DISTRICT } from "../data/panIndiaMaster.js";
 import { LEGAL_TAXONOMY_CATEGORIES, EXPERIENCE_LEVELS } from "../data/legalTaxonomyMaster.js";
 import {
@@ -548,13 +549,84 @@ export default function PublicOnboarding() {
       }
       setCreatedMember(finalMember);
       setOtpModalOpen(false);
-      setStage("SUCCESS");
+
+      if (form.purpose === "PROBLEM") {
+        setStage("CASE_INTAKE");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        setStage("SUCCESS");
+      }
     } catch (err) {
       console.error("Public onboarding creation failed", err);
       alert("Registration failed: " + (err.message || "Unknown error"));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCaseIntakeSubmit = async () => {
+    setSubmitting(true);
+    try {
+      if (createdMember) {
+        // 1. Update Member in MemberService with problem particulars
+        const updatedMember = {
+          ...createdMember,
+          problemCategories: form.problemCategories,
+          problemState: form.problemState,
+          problemDistrict: form.problemDistrict,
+          problemCity: form.problemCity,
+          problemPoliceStation: form.problemPoliceStation,
+          problemPincode: form.problemPincode,
+          problemDescription: form.problemDescription,
+          problemVoiceFiles: form.problemVoiceFiles,
+        };
+        try {
+          await MemberService.update(createdMember.id || createdMember.member_id, updatedMember);
+        } catch (e) {
+          console.warn("MemberService update notice:", e);
+        }
+        persistLocalUser(updatedMember);
+        if (setSessionUser) setSessionUser(updatedMember);
+        setCreatedMember(updatedMember);
+
+        // 2. Initialize Master Case Folder in CitizenWorkflowService
+        try {
+          const masterCase = CitizenWorkflowService.getOrCreateActiveCase(
+            createdMember.member_id || createdMember.id,
+            createdMember.fullName || createdMember.name
+          );
+          if (masterCase) {
+            masterCase.master_record.stage1_intake.legal_category = (form.problemCategories || []).join(", ") || "General Legal Matter";
+            masterCase.master_record.stage1_intake.typed_inputs = [
+              {
+                text: form.problemDescription || "Initial Case Intake Filed",
+                location: `${form.problemCity || ""}, ${form.problemDistrict || ""}, ${form.problemState || ""} - ${form.problemPincode || ""}`,
+                police_station: form.problemPoliceStation || "",
+                submitted_at: new Date().toISOString(),
+              }
+            ];
+            masterCase.master_record.stage1_intake.voice_recordings = form.problemVoiceFiles || [];
+            masterCase.current_stage = 1;
+            masterCase.completed_stages = [0];
+            CitizenWorkflowService.updateCase(masterCase);
+          }
+        } catch (err) {
+          console.warn("CitizenWorkflowService case sync notice:", err);
+        }
+      }
+      setStage("SUCCESS");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      console.error("Case intake submission error:", err);
+      setStage("SUCCESS");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCaseIntakeSkip = () => {
+    setStage("SUCCESS");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDownloadReceipt = () => {
@@ -1109,152 +1181,13 @@ Thank you for joining the ICJ Enterprise Ecosystem.
 
               {/* ─ 1. IF OPTION 1: LITIGANT CLIENT ASSISTANCE ─ */}
               {form.purpose === "PROBLEM" && (
-                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 2.5, bgcolor: "#fff5f5", borderColor: "#fca5a5" }}>
-                  <Typography variant="h6" fontWeight={800} color="#b91c1c" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                    <AssignmentLateIcon /> 3. Legal Dispute & Case Particulars
+                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 2.5, bgcolor: "#fff8f8", borderColor: "#fecaca" }}>
+                  <Typography variant="subtitle1" fontWeight={800} color="#b91c1c" sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                    <AssignmentLateIcon /> 3. Fast Registration & Dispute Intake Roadmap
                   </Typography>
-
-                  <Typography variant="caption" fontWeight={800} color="text.secondary"
-                    sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                    Select Problem Classification * (Select Multiple)
+                  <Typography variant="body2" color="text.secondary">
+                    Complete your identity registration and 6-digit OTP verification below. Immediately upon activation, you will be seamlessly guided to select your legal dispute classification, dictate grievance voice notes, and specify your jurisdictional location.
                   </Typography>
-                  <Grid container spacing={1.5} sx={{ mb: 3 }}>
-                    {PROBLEM_CATEGORIES.map((cat) => {
-                      const isSelected = (form.problemCategories || []).includes(cat);
-                      return (
-                        <Grid item xs={12} sm={6} key={cat}>
-                          <Paper
-                            elevation={0}
-                            onClick={() => handleToggleCategory(cat)}
-                            sx={{
-                              p: 1.8,
-                              border: "2px solid",
-                              borderColor: isSelected ? "#d32f2f" : "#e2e8f0",
-                              bgcolor: isSelected ? "#ffffff" : "#ffffff",
-                              borderRadius: 2,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1.2,
-                              "&:hover": { borderColor: "#d32f2f" },
-                            }}
-                          >
-                            {isSelected && (
-                              <CheckCircleIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
-                            )}
-                            <Typography variant="body2" fontWeight={isSelected ? 800 : 500}>
-                              {cat}
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      );
-                    })}
-                  </Grid>
-
-                  {/* Complete Pan-India Problem Location */}
-                  <Box sx={{ mt: 3, pt: 2.5, borderTop: "1px dashed #cbd5e1" }}>
-                    <Typography variant="caption" fontWeight={800} color="text.secondary"
-                      sx={{ display: "block", mb: 2, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                      Dispute Jurisdiction & Location Details (Pan-India)
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {/* ROW 1: State, District, Tehsil — All 3 in one single line (sm={4} each) */}
-                      <Grid item xs={12} sm={4}>
-                        <Autocomplete
-                          disableClearable
-                          options={PAN_INDIA_STATES}
-                          value={form.problemState}
-                          onChange={(_, newValue) => {
-                            setForm(p => ({
-                              ...p,
-                              problemState: newValue,
-                              problemDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
-                            }));
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              fullWidth
-                              label="State / Union Territory *"
-                              name="problemState"
-                            />
-                          )}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} sm={4}>
-                        <Autocomplete
-                          disableClearable
-                          options={PAN_INDIA_DISTRICTS_MAP[form.problemState] || []}
-                          value={form.problemDistrict}
-                          onChange={(_, newValue) => {
-                            setForm(p => ({
-                              ...p,
-                              problemDistrict: newValue,
-                            }));
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              fullWidth
-                              label="District *"
-                              name="problemDistrict"
-                            />
-                          )}
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="Tehsil / City"
-                          name="problemCity"
-                          value={form.problemCity}
-                          onChange={handleChange}
-                          placeholder="Tehsil or City name..."
-                        />
-                      </Grid>
-
-                      {/* ROW 2: Police Station (Thana) and Pincode (6 Digits) (sm={6} each) */}
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Police Station (Thana)"
-                          name="problemPoliceStation"
-                          value={form.problemPoliceStation}
-                          onChange={handleChange}
-                          placeholder="Jurisdictional police station / Thana..."
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Pincode (6 Digits)"
-                          name="problemPincode"
-                          value={form.problemPincode}
-                          onChange={(e) => {
-                            const val = sanitizeStrictPincode(e.target.value);
-                            setForm(p => ({ ...p, problemPincode: val }));
-                          }}
-                          placeholder="e.g. 110001"
-                          inputProps={{ maxLength: 6, inputMode: "numeric" }}
-                          helperText="6-digit postal pincode"
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
-
-                  {/* Voice commentary studio */}
-                  <Box sx={{ mt: 3, pt: 2.5, borderTop: "1px dashed #cbd5e1" }}>
-                    <VoiceCommentaryStudio
-                      value={form.problemDescription}
-                      onChange={(newValue) => setForm(p => ({ ...p, problemDescription: newValue }))}
-                      onVoiceNotesChange={(updatedNotes) => setForm(p => ({ ...p, problemVoiceFiles: updatedNotes }))}
-                      label="🎙️ Spoken Grievance Dictation & Voice Notes (Optional)"
-                      placeholder="Click mic to record your case details or type your problem..."
-                    />
-                  </Box>
                 </Paper>
               )}
 
@@ -1721,6 +1654,217 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 SUBMIT REGISTRATION & VERIFY OTP ➔
               </Button>
 
+            </Stack>
+          </Paper>
+        )}
+
+        {/* ========================================================================= */}
+        {/* STAGE: CASE_INTAKE — DEDICATED POST-REGISTRATION LEGAL GRIEVANCE SUBMISSION */}
+        {/* ========================================================================= */}
+        {stage === "CASE_INTAKE" && (
+          <Paper sx={{ p: { xs: 3, md: 4.5 }, borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}>
+            <Stack spacing={3.5}>
+              {/* Header Banner with Member Identification */}
+              <Box sx={{ borderBottom: "2px solid #fee2e2", pb: 2.5 }}>
+                <Chip
+                  icon={<CheckCircleIcon />}
+                  label="PHASE 1 COMPLETE: ACCOUNT REGISTERED & OTP VERIFIED"
+                  color="success"
+                  sx={{ fontWeight: 800, mb: 1.5, py: 0.5 }}
+                />
+                <Typography variant="h4" fontWeight={900} color="#b91c1c" gutterBottom>
+                  ⚖️ Submit Your Legal Dispute & Case Particulars
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Welcome <strong>{createdMember?.fullName || fullName}</strong> (Permanent Client ID: <code style={{ color: "#b91c1c", fontWeight: "bold" }}>{createdMember?.member_id || createdMember?.id}</code>). Please provide your case details below to initiate instant legal docketing and advocate assistance.
+                </Typography>
+              </Box>
+
+              {/* 1. Problem Classification (13 Categories) */}
+              <Box>
+                <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                  1. Select Problem Classification * (Select All That Apply)
+                </Typography>
+                <Grid container spacing={1.5}>
+                  {PROBLEM_CATEGORIES.map((cat) => {
+                    const isSelected = (form.problemCategories || []).includes(cat);
+                    return (
+                      <Grid item xs={12} sm={6} md={4} key={cat}>
+                        <Paper
+                          elevation={0}
+                          onClick={() => handleToggleCategory(cat)}
+                          sx={{
+                            p: 2,
+                            border: "2px solid",
+                            borderColor: isSelected ? "#d32f2f" : "#e2e8f0",
+                            bgcolor: isSelected ? "#fff5f5" : "#ffffff",
+                            borderRadius: 2,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.2,
+                            transition: "all 0.15s ease",
+                            "&:hover": { borderColor: "#d32f2f" },
+                          }}
+                        >
+                          {isSelected ? (
+                            <CheckCircleIcon sx={{ color: "#d32f2f", fontSize: 20 }} />
+                          ) : (
+                            <Box sx={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #cbd5e1" }} />
+                          )}
+                          <Typography variant="body2" fontWeight={isSelected ? 800 : 500}>
+                            {cat}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    );
+                  })}
+                </Grid>
+              </Box>
+
+              {/* 2. 🎙️ बोलकर समस्या दर्ज करें (Voice Intake & Grievance Commentary) */}
+              <Box>
+                <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                  2. 🎙️ Voice & Text Grievance Dictation (बोलकर या लिखकर समस्या दर्ज करें)
+                </Typography>
+                <VoiceCommentaryStudio
+                  value={form.problemDescription}
+                  onChange={(newValue) => setForm(p => ({ ...p, problemDescription: newValue }))}
+                  onVoiceNotesChange={(updatedNotes) => setForm(p => ({ ...p, problemVoiceFiles: updatedNotes }))}
+                  label="🎙️ Spoken Grievance Dictation & Case Narrative"
+                  placeholder="Click mic to record your case details or type your problem..."
+                />
+              </Box>
+
+              {/* 3. 📍 Dispute Jurisdiction & Location Details (Pan-India Master) */}
+              <Box sx={{ pt: 2, borderTop: "1px dashed #cbd5e1" }}>
+                <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                  3. Dispute Jurisdiction & Location Details (Pan-India)
+                </Typography>
+
+                <Grid container spacing={2}>
+                  {/* ROW 1: State, District, Tehsil — All 3 in one single line (sm={4} each) */}
+                  <Grid item xs={12} sm={4}>
+                    <Autocomplete
+                      disableClearable
+                      options={PAN_INDIA_STATES}
+                      value={form.problemState}
+                      onChange={(_, newValue) => {
+                        setForm(p => ({
+                          ...p,
+                          problemState: newValue,
+                          problemDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
+                        }));
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          fullWidth
+                          label="State / Union Territory *"
+                          name="problemState"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <Autocomplete
+                      disableClearable
+                      options={PAN_INDIA_DISTRICTS_MAP[form.problemState] || []}
+                      value={form.problemDistrict}
+                      onChange={(_, newValue) => {
+                        setForm(p => ({
+                          ...p,
+                          problemDistrict: newValue,
+                        }));
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          fullWidth
+                          label="District *"
+                          name="problemDistrict"
+                        />
+                      )}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Tehsil / City"
+                      name="problemCity"
+                      value={form.problemCity}
+                      onChange={handleChange}
+                      placeholder="Tehsil or City name..."
+                    />
+                  </Grid>
+
+                  {/* ROW 2: Police Station (Thana) & Pincode (6 Digits) (sm={6} each) */}
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Police Station (Thana)"
+                      name="problemPoliceStation"
+                      value={form.problemPoliceStation}
+                      onChange={handleChange}
+                      placeholder="Jurisdictional police station / Thana..."
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Pincode (6 Digits)"
+                      name="problemPincode"
+                      value={form.problemPincode}
+                      onChange={(e) => {
+                        const val = sanitizeStrictPincode(e.target.value);
+                        setForm(p => ({ ...p, problemPincode: val }));
+                      }}
+                      placeholder="e.g. 110001"
+                      inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                      helperText="6-digit postal pincode"
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Action Buttons */}
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ pt: 2 }}>
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  color="error"
+                  onClick={handleCaseIntakeSubmit}
+                  disabled={submitting}
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{
+                    py: 1.8,
+                    fontWeight: 900,
+                    fontSize: "1.05rem",
+                    borderRadius: 2,
+                  }}
+                >
+                  SUBMIT CASE DOCKET & OPEN CLIENT PORTAL ➔
+                </Button>
+
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="outlined"
+                  onClick={handleCaseIntakeSkip}
+                  disabled={submitting}
+                  sx={{
+                    py: 1.8,
+                    fontWeight: 800,
+                    borderRadius: 2,
+                  }}
+                >
+                  Skip for Now & Go to Dashboard
+                </Button>
+              </Stack>
             </Stack>
           </Paper>
         )}
