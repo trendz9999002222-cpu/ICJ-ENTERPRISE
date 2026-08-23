@@ -17,9 +17,10 @@ export class SMTPProvider extends BaseProvider {
    * @returns {Promise<{success: boolean, messageId?: string, status?: string, error?: string}>}
    */
   async send(to, otp, config = {}) {
-    const host = config.host || "smtp-relay.brevo.com";
-    const passwordOrApiKey = config.password || config.apiKey || config.apiToken || "";
-    const fromAddress = config.from || config.username || "noreply@icj.gov";
+    // Resolve sender email: Prioritize configured verified sender or Brevo login username
+    const fromAddress = (config.from && !config.from.includes("@icj.gov")) 
+      ? config.from 
+      : (config.username || config.from || "noreply@icj.gov");
     const senderName = config.senderName || "International Consortium of Jurists (ICJ)";
 
     // Explicit mock mode check
