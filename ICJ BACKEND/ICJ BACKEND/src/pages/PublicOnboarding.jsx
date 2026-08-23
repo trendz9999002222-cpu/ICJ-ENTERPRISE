@@ -53,6 +53,7 @@ import AuthService, { persistLocalUser } from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
 import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
+import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
 import { CitizenWorkflowService } from "../services/citizenWorkflowService.js";
 import CertificateService from "../services/certificateService.js";
