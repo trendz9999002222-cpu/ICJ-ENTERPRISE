@@ -70,3 +70,6 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
+
+export { useAuth } from "../hooks/useAuth";
+export default AuthProvider;
