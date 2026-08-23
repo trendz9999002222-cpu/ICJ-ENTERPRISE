@@ -17,6 +17,8 @@ export class SMTPProvider extends BaseProvider {
    * @returns {Promise<{success: boolean, messageId?: string, status?: string, error?: string}>}
    */
   async send(to, otp, config = {}) {
+    const host = config.host || "smtp-relay.brevo.com";
+    const passwordOrApiKey = config.password || config.apiKey || config.apiToken || "";
     // Resolve sender email: Prioritize configured verified sender or Brevo login username
     const fromAddress = (config.from && !config.from.includes("@icj.gov")) 
       ? config.from 
