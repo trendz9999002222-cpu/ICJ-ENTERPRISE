@@ -127,10 +127,13 @@ export class SMTPProvider extends BaseProvider {
       }
 
       // If Brevo returned an error code or message
-      const errMsg = responseData.message || responseData.error || `Brevo HTTP error (${response.status})`;
+      let errMsg = responseData.message || responseData.error || `Brevo HTTP error (${response.status})`;
+      if (typeof errMsg === "string" && errMsg.toLowerCase().includes("key not found")) {
+        errMsg = "Brevo API Key is invalid or expired. Please generate a fresh v3 API Key from Brevo Dashboard (under 'SMTP & API' > 'API Keys' tab, starting with 'xkeysib-...') and paste it in the API Configuration Center.";
+      }
       return {
         success: false,
-        error: `Brevo SMTP dispatch rejected: ${errMsg}`,
+        error: errMsg,
       };
     } catch (err) {
       return {
