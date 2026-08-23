@@ -158,8 +158,11 @@ export const MemberService = {
       );
     }
 
-    // Pass full existing list so new ID is date-aware and duplicate-safe
-    const permanentId = generateMemberId(existing || []);
+    // Determine target role from purposeCode or member.role
+    const targetRole = member.role || (member.purposeCode === "SERVICES" || member.purpose === "SERVICES" ? "advocate" : member.purposeCode === "FRANCHISE" || member.purpose === "FRANCHISE" ? "franchise" : "member");
+
+    // Pass full existing list and target role so new ID is role-aware, date-aware and duplicate-safe
+    const permanentId = member.member_id || member.memberId || generateMemberId(existing || [], targetRole);
 
     const aadhaarClean = String(member.aadhaar || member.aadhar || "").replace(/\D/g, "").slice(0, 12);
     const birthYearVal = member.birthYear || member.birth_year || "";
@@ -172,7 +175,7 @@ export const MemberService = {
         throw new Error(`Birth Year must be between ${minBirthYear} and ${maxBirthYear}.`);
       }
     }
-    const rawLevel = member.member_level || member.memberLevel || autoAssignMembershipLevel(member);
+    const rawLevel = member.member_level || member.memberLevel || autoAssignMembershipLevel({ ...member, role: targetRole });
     const memberLevel = normalizeMembershipLevel(rawLevel);
     const statusVal = member.verification_status || "Pending Verification";
 
@@ -180,6 +183,8 @@ export const MemberService = {
       id: member.id || permanentId,
       member_id: permanentId,
       memberId: permanentId,
+      role: targetRole,
+      user_type: targetRole,
       email: emailVal,
       registration_date: new Date().toISOString(),
       created_at: new Date().toISOString(),

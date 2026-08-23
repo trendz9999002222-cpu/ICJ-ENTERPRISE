@@ -53,12 +53,15 @@ import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationa
 import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
 
-// ─── PURPOSE MASTER ───────────────────────────────────────────────────────────
+// ─── PURPOSE MASTER & CAPACITY OPTIONS ──────────────────────────────────────
 
 const PURPOSE_OPTIONS = [
   {
     value: "PROBLEM",
-    label: "Your Problem, Our Solution.",
+    label: "1. Your Problem, Our Solution — पीड़ित नागरिक / क्लाइंट (Litigant Client)",
+    sublabel: "कानूनी समस्या, केस फाइलिंग, नोटिस, कोर्ट केस या विवाद समाधान हेतु सहायता",
+    roleBadge: "👤 Role: Litigant Client | Allocated ID: 26CLT08AA....",
+    targetRole: "member",
     icon: AssignmentLateIcon,
     color: "#d32f2f",
     bg:    "#fff5f5",
@@ -66,7 +69,10 @@ const PURPOSE_OPTIONS = [
   },
   {
     value: "SERVICES",
-    label: "ICJ, The Solution World.",
+    label: "2. ICJ, The Solution World — अधिवक्ता, CA, CS, CMA व लीगल प्रोफेशनल (Professional Partner)",
+    sublabel: "ICJ नेटवर्क में वकील, CA, CS, आर्बिट्रेटर या कंसल्टेंट के रूप में शामिल हों व प्रैक्टिस करें",
+    roleBadge: "⚖️ Role: ICJ Professional Partner | Allocated ID: 26ICJ08AA....",
+    targetRole: "advocate",
     icon: MiscellaneousServicesIcon,
     color: "#1565c0",
     bg:    "#f5f8ff",
@@ -74,12 +80,34 @@ const PURPOSE_OPTIONS = [
   },
   {
     value: "FRANCHISE",
-    label: "Become an ICJ Franchisee Partner.",
+    label: "3. Become an ICJ Franchisee Partner — जिला फ्रेंचाइजी केंद्र (District Franchise Node)",
+    sublabel: "अपने जिले/तहसील में ICJ लीगल हब व सर्विस केंद्र स्थापित एवं संचालित करें",
+    roleBadge: "🏢 Role: District Franchisee Node | Allocated ID: 26FRZ08AA....",
+    targetRole: "franchise",
     icon: HandshakeIcon,
     color: "#2e7d32",
     bg:    "#f5fff5",
     selectedBg: "#e8f5e9",
   },
+];
+
+export const PROFESSIONAL_CATEGORIES = [
+  "Advocate / Legal Counsel (Supreme Court, High Court & Tribunals)",
+  "Chartered Accountant (CA) — Direct & Indirect Taxation, Audit & GST",
+  "Company Secretary (CS) — Corporate Law, ROC & Governance",
+  "Cost & Management Accountant (CMA)",
+  "Patent, Trademark & Copyright Attorney (IPR)",
+  "Empaneled Arbitrator / Dispute Mediator & Conciliator",
+  "Corporate Legal Consultant / Auditor",
+  "Other Legal / Corporate Professional",
+];
+
+export const EXPERIENCE_OPTIONS = [
+  "Entry Level (0 - 2 Years)",
+  "Mid Level (2 - 5 Years)",
+  "Senior Professional (5 - 10 Years)",
+  "Veteran / Expert (10+ Years)",
+  "Distinguished Counsel / Senior Partner (15+ Years)",
 ];
 
 const PROBLEM_CATEGORIES = [
@@ -160,6 +188,11 @@ export default function PublicOnboarding() {
     problemDescription: "",
     problemVoiceFiles: [],
     solutionServices:  [],           // Multi-select solution services
+    professionalCategory: "Advocate / Legal Counsel (Supreme Court, High Court & Tribunals)",
+    professionalRegNo: "",
+    professionalExperience: "Senior Professional (5 - 10 Years)",
+    practiceCourts: "Supreme Court, High Court & District Courts",
+    specializations: "Civil, Criminal, Constitutional Writs & Corporate Law",
     franchiseState:    "Delhi",
     franchiseDistrict: "",
     franchiseCity:     "",
@@ -406,9 +439,23 @@ export default function PublicOnboarding() {
     setSubmitting(true);
     try {
       const existingList = await MemberService.getAll();
-      const permanentMemberId = generateMemberId(existingList);
 
-      const purposeLabel = PURPOSE_OPTIONS.find((p) => p.value === form.purpose)?.label || form.purpose;
+      // Dynamic Role Determination based on chosen Purpose
+      let assignedRole = "member";
+      let assignedLevel = "BASIC";
+
+      if (form.purpose === "SERVICES") {
+        assignedRole = "advocate";
+        assignedLevel = "PRO";
+      } else if (form.purpose === "FRANCHISE") {
+        assignedRole = "franchise";
+        assignedLevel = "EXECUTIVE";
+      }
+
+      const permanentMemberId = generateMemberId(existingList, assignedRole);
+
+      const purposeObj = PURPOSE_OPTIONS.find((p) => p.value === form.purpose);
+      const purposeLabel = purposeObj?.label || form.purpose;
 
       const passwordHash = PasswordPolicyService.hashPassword(form.password);
 
@@ -428,7 +475,12 @@ export default function PublicOnboarding() {
         mobile:   `${form.mobileCountryCode} ${form.mobile.trim()}`,
         whatsapp: form.whatsapp ? `${form.waCountryCode} ${form.whatsapp.trim()}` : "",
         memberType: form.regType.toLowerCase(), regType: form.regType,
-        role: "member", user_type: "member", member_level: "BASIC",
+        role: assignedRole, user_type: assignedRole, member_level: assignedLevel,
+        professionalCategory: form.professionalCategory,
+        professionalRegNo: form.professionalRegNo,
+        professionalExperience: form.professionalExperience,
+        practiceCourts: form.practiceCourts,
+        specializations: form.specializations,
         purpose:    purposeLabel,
         purposeCode: form.purpose,
         problemCategories: form.problemCategories,
@@ -437,8 +489,8 @@ export default function PublicOnboarding() {
         franchiseDistrict: form.franchiseDistrict,
         franchiseCity: form.franchiseCity,
         franchiseBackground: form.franchiseBackground,
-        education: form.education || "Graduate",
-        profession: form.profession || "Business / Professional",
+        education: form.education || (form.purpose === "SERVICES" ? "LL.B / CA / CS Professional" : "Graduate"),
+        profession: form.purpose === "SERVICES" ? (form.professionalCategory || "Advocate / Legal Counsel") : (form.profession || "Business / Professional"),
         areaOfInterest: form.areaOfInterest || "Digital Legal Rights",
         eGovPortals: form.eGovPortals || ["e-Courts Cause List & Orders", "Tehsil Bhulekh"],
         engagementIntent: form.engagementIntent || "Standard Legal Aid Assistance",
@@ -970,24 +1022,39 @@ Thank you for registering with ICJ Enterprise Platform.
                             },
                           }}
                         >
-                          <Icon sx={{ color: opt.color, fontSize: 26, flexShrink: 0 }} />
-                          <Typography
-                            variant="subtitle1"
-                            fontWeight="bold"
-                            sx={{
-                              flex: 1,
-                              color: selected ? opt.color : "text.primary",
-                              letterSpacing: 0.2,
-                              pr: 1,
-                              wordBreak: "break-word",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {opt.label}
-                          </Typography>
+                          <Icon sx={{ color: opt.color, fontSize: 32, flexShrink: 0 }} />
+                          <Box sx={{ flex: 1, overflow: "hidden" }}>
+                            <Typography
+                              variant="subtitle1"
+                              fontWeight="bold"
+                              sx={{
+                                color: selected ? opt.color : "text.primary",
+                                letterSpacing: 0.2,
+                              }}
+                            >
+                              {opt.label}
+                            </Typography>
+                            {opt.sublabel && (
+                              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.3 }}>
+                                {opt.sublabel}
+                              </Typography>
+                            )}
+                            {selected && opt.roleBadge && (
+                              <Chip
+                                label={opt.roleBadge}
+                                size="small"
+                                sx={{
+                                  mt: 0.8,
+                                  fontWeight: 800,
+                                  fontSize: "0.74rem",
+                                  bgcolor: opt.color,
+                                  color: "#ffffff",
+                                }}
+                              />
+                            )}
+                          </Box>
                           {selected && (
-                            <CheckCircleIcon sx={{ color: opt.color, fontSize: 22, flexShrink: 0 }} />
+                            <CheckCircleIcon sx={{ color: opt.color, fontSize: 24, flexShrink: 0 }} />
                           )}
                         </Paper>
 
@@ -1159,12 +1226,101 @@ Thank you for registering with ICJ Enterprise Platform.
                               </Box>
                             )}
 
-                            {/* ─ ICJ SERVICES ─ */}
+                            {/* ─ ICJ SERVICES & PROFESSIONAL CREDENTIALS ─ */}
                             {opt.value === "SERVICES" && (
                               <Box>
                                 <Typography variant="caption" fontWeight="bold" color="text.secondary"
+                                  sx={{ display: "block", mb: 2, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                                  ⚖️ Professional Credentials & Practice Details / व्यावसायिक विवरण *
+                                </Typography>
+
+                                <Grid container spacing={2} sx={{ mb: 2.5 }}>
+                                  {/* Professional Category */}
+                                  <Grid item xs={12} sm={6}>
+                                    <TextField
+                                      select
+                                      fullWidth
+                                      required
+                                      size="small"
+                                      label="Professional Category / व्यावसायिक श्रेणी *"
+                                      name="professionalCategory"
+                                      value={form.professionalCategory}
+                                      onChange={handleChange}
+                                      helperText="वकील, CA, CS, CMA या अन्य विशेषज्ञ श्रेणी चुनें"
+                                    >
+                                      {PROFESSIONAL_CATEGORIES.map((cat) => (
+                                        <MenuItem key={cat} value={cat}>
+                                          {cat}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                  </Grid>
+
+                                  {/* Council Enrollment / Membership No */}
+                                  <Grid item xs={12} sm={6}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      label="Bar / ICAI / ICSI Reg No. (Optional)"
+                                      name="professionalRegNo"
+                                      value={form.professionalRegNo}
+                                      onChange={handleChange}
+                                      placeholder="e.g. UP/2026/1170, ICAI-098234, FCS-8812"
+                                      helperText="काउंसिल/संस्थान एनरोलमेंट नंबर (यदि उपलब्ध हो)"
+                                    />
+                                  </Grid>
+
+                                  {/* Experience */}
+                                  <Grid item xs={12} sm={6}>
+                                    <TextField
+                                      select
+                                      fullWidth
+                                      size="small"
+                                      label="Years of Experience / कार्य अनुभव"
+                                      name="professionalExperience"
+                                      value={form.professionalExperience}
+                                      onChange={handleChange}
+                                    >
+                                      {EXPERIENCE_OPTIONS.map((exp) => (
+                                        <MenuItem key={exp} value={exp}>
+                                          {exp}
+                                        </MenuItem>
+                                      ))}
+                                    </TextField>
+                                  </Grid>
+
+                                  {/* Practice Courts / Jurisdictions */}
+                                  <Grid item xs={12} sm={6}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      label="Practice Courts / Jurisdictions"
+                                      name="practiceCourts"
+                                      value={form.practiceCourts}
+                                      onChange={handleChange}
+                                      placeholder="e.g. Supreme Court, High Court, NCLT, Tehsil"
+                                      helperText="न्यायालय या कार्यक्षेत्र जहाँ आप प्रैक्टिस करते हैं"
+                                    />
+                                  </Grid>
+
+                                  {/* Key Specializations */}
+                                  <Grid item xs={12}>
+                                    <TextField
+                                      fullWidth
+                                      size="small"
+                                      label="Key Specializations / आपकी प्रमुख विशेषताएँ"
+                                      name="specializations"
+                                      value={form.specializations}
+                                      onChange={handleChange}
+                                      placeholder="e.g. Corporate Tax, GST, NCLT, Criminal Trials, Cyber Law, Arbitration"
+                                      helperText="अपनी विशेषज्ञताएँ लिखें (इन्हें बाद में प्रोफ़ाइल में कभी भी एडिट किया जा सकता है)"
+                                    />
+                                  </Grid>
+                                </Grid>
+
+                                <Typography variant="caption" fontWeight="bold" color="text.secondary"
                                   sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                                  Select the ICJ service you need * (Select Multiple)
+                                  Select the ICJ services you can offer or collaborate on *
                                 </Typography>
                                 <Grid container spacing={1}>
                                   {SERVICE_CATEGORIES.map((cat) => {

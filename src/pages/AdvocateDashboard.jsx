@@ -122,6 +122,42 @@ export default function AdvocateDashboard() {
   const [newMessageText, setNewMessageText] = useState("");
   const [activeAdvocateCaseId, setActiveAdvocateCaseId] = useState("");
 
+  // Professional Profile Self-Edit State
+  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    fullName: user?.fullName || user?.name || "Empaneled Professional",
+    professionalCategory: user?.professionalCategory || user?.profession || "Advocate / Legal Counsel",
+    professionalRegNo: user?.professionalRegNo || user?.barNumber || user?.barId || "",
+    specialization: user?.specialization || user?.specializations || "Civil, Criminal, Constitutional Writs & Corporate Law",
+    experience: user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)",
+    practiceCourts: user?.practiceCourts || "Supreme Court, High Court & District Courts",
+    address: user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex",
+  });
+
+  const handleSaveProfile = () => {
+    try {
+      const updatedUser = {
+        ...user,
+        ...profileForm,
+        profession: profileForm.professionalCategory,
+        specializations: profileForm.specialization,
+      };
+      localStorage.setItem("icj_user", JSON.stringify(updatedUser));
+      
+      const allMembers = JSON.parse(localStorage.getItem("icj_members") || "[]");
+      const updatedMembers = allMembers.map((m) =>
+        m.id === user?.id || m.member_id === user?.member_id ? { ...m, ...updatedUser } : m
+      );
+      localStorage.setItem("icj_members", JSON.stringify(updatedMembers));
+
+      setAlertMsg("✅ Professional Profile & Specializations updated successfully!");
+      setEditProfileModalOpen(false);
+      setTimeout(() => setAlertMsg(""), 3500);
+    } catch {
+      setAlertMsg("⚠️ Failed to update profile.");
+    }
+  };
+
   // Accept or dismiss an AI-proposed matter update attached to a client message.
   // MatterUpdateConfirmation called these two handlers, but neither existed —
   // clicking Confirm or Reject threw a ReferenceError and killed the tab.
@@ -430,37 +466,153 @@ export default function AdvocateDashboard() {
           </Paper>
         </TabPanel>
 
-        {/* TAB: ADVOCATE PROFILE */}
+        {/* TAB: ADVOCATE / PROFESSIONAL PROFILE */}
         <TabPanel value={activeTab} index={ADVOCATE_TABS.ADVOCATE_PROFILE}>
           <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Empaneled Advocate Credentials & Profile
-            </Typography>
-            <Grid container spacing={2.5} sx={{ mt: 1 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">
+                  ⚖️ Empaneled Professional Credentials & Practice Roster
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  अधिवक्ता, CA, CS, आर्बिट्रेटर व लीगल पार्टनर्स का आधिकारिक क्रेडेंशियल व स्पेशलाइजेशन रिकॉर्ड
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  setProfileForm({
+                    fullName: user?.fullName || user?.name || "",
+                    professionalCategory: user?.professionalCategory || user?.profession || "Advocate / Legal Counsel",
+                    professionalRegNo: user?.professionalRegNo || user?.barNumber || user?.barId || "",
+                    specialization: user?.specialization || user?.specializations || "Civil, Criminal, Constitutional Writs & Corporate Law",
+                    experience: user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)",
+                    practiceCourts: user?.practiceCourts || "Supreme Court, High Court & District Courts",
+                    address: user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex",
+                  });
+                  setEditProfileModalOpen(true);
+                }}
+                sx={{ fontWeight: "bold" }}
+              >
+                ✏️ Edit Profile & Specializations (विशेषताएँ संपादित करें)
+              </Button>
+            </Stack>
+            <Divider sx={{ mb: 3 }} />
+
+            <Grid container spacing={2.5}>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Empaneled Advocate Name" value={user?.fullName || user?.name || "Empaneled Counsel"} disabled />
+                <TextField fullWidth label="Professional Name" value={user?.fullName || user?.name || "Empaneled Professional"} disabled />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Bar Council Enrollment No." value={user?.barNumber || user?.barId || user?.member_id || "ICJ/ENR/VERIFIED"} disabled />
+                <TextField fullWidth label="Professional Category / Designation" value={user?.professionalCategory || user?.profession || "Advocate / Legal Counsel"} disabled />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Bar Council Authority" value={user?.state ? `Bar Council of ${user.state}` : "Bar Council of India"} disabled />
+                <TextField fullWidth label="Council Enrollment / Reg No." value={user?.professionalRegNo || user?.barNumber || user?.barId || user?.member_id || "ICJ/ENR/VERIFIED"} disabled />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Practice Specialization" value={user?.specialization || (Array.isArray(user?.unlockedSpecialties) && user.unlockedSpecialties.length > 0 ? user.unlockedSpecialties.join(", ") : "Constitutional & Civil Law")} disabled />
+                <TextField fullWidth label="Practice Specializations" value={user?.specialization || user?.specializations || "Civil, Criminal, Corporate & Constitutional Law"} disabled />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Legal Experience" value={user?.experience || "Empaneled Senior Standing"} disabled />
+                <TextField fullWidth label="Professional Standing / Experience" value={user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)"} disabled />
               </Grid>
               <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Verification Status" value={user?.verification_status === "Verified" || user?.verified ? "🟢 Empaneled & Verified Counsel" : "🟡 Verification Pending"} disabled />
+                <TextField fullWidth label="Verification & Empanelment Status" value={user?.verification_status === "Verified" || user?.verified ? "🟢 Empaneled & Verified Counsel" : "🟢 Active Empaneled Professional"} disabled />
               </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Chamber & Office Address" value={user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Lawyers Chambers Complex"} disabled />
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Practice Courts / Jurisdictions" value={user?.practiceCourts || "Supreme Court of India, High Court, NCLT & District Courts"} disabled />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Chamber & Office Address" value={user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex"} disabled />
               </Grid>
             </Grid>
           </Paper>
         </TabPanel>
+
+        {/* ✏️ EDIT PROFESSIONAL PROFILE MODAL */}
+        <Dialog open={editProfileModalOpen} onClose={() => setEditProfileModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: "bold" }}>
+            ✏️ Edit Professional Profile & Specializations
+          </DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Full Name"
+                  value={profileForm.fullName}
+                  onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Professional Category / Designation (e.g. Advocate, CA, CS, CMA)"
+                  value={profileForm.professionalCategory}
+                  onChange={(e) => setProfileForm({ ...profileForm, professionalCategory: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Council Enrollment / Membership No."
+                  value={profileForm.professionalRegNo}
+                  onChange={(e) => setProfileForm({ ...profileForm, professionalRegNo: e.target.value })}
+                  placeholder="e.g. UP/2026/1170, ICAI-092831, FCS-8812"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  size="small"
+                  label="Key Specializations / आपकी विशेषताएँ"
+                  value={profileForm.specialization}
+                  onChange={(e) => setProfileForm({ ...profileForm, specialization: e.target.value })}
+                  placeholder="e.g. Corporate Tax, GST, NCLT, Criminal Trials, High Court Writs, Arbitration"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Years of Experience / Standing"
+                  value={profileForm.experience}
+                  onChange={(e) => setProfileForm({ ...profileForm, experience: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Practice Courts / Jurisdictions"
+                  value={profileForm.practiceCourts}
+                  onChange={(e) => setProfileForm({ ...profileForm, practiceCourts: e.target.value })}
+                  placeholder="e.g. Supreme Court, High Court, NCLT, District Courts"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Chamber / Office Address"
+                  value={profileForm.address}
+                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                />
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button onClick={() => setEditProfileModalOpen(false)}>Cancel</Button>
+            <Button variant="contained" color="primary" onClick={handleSaveProfile}>
+              Save Profile Changes
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         {/* TAB: APPOINTMENTS */}
         <TabPanel value={activeTab} index={ADVOCATE_TABS.APPOINTMENTS}>
