@@ -88,13 +88,14 @@ export const OTPService = {
     if (!sendResult.success) {
       return {
         success: false,
-        message: "Failed to deliver security code. Please try again later.",
+        message: sendResult.error || "Failed to deliver security verification code. Please check your email and network connection.",
       };
     }
 
     return {
       success: true,
-      message: "OTP request processed.",
+      message: "Security verification code dispatched successfully.",
+      messageId: sendResult.messageId,
     };
   },
 

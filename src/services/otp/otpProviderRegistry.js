@@ -8,6 +8,7 @@ import WhatsAppProvider from "./providers/whatsappProvider.js";
 import SMTPProvider from "./providers/smtpProvider.js";
 import OTPAuditService from "./otpAuditService.js";
 import APIKeyVault from "../apiKeyVault.js";
+import EnvConfigManager from "../envConfigManager.js";
 
 const providers = {
   "2factor": new TwoFactorProvider(),
@@ -68,7 +69,7 @@ export const OTPProviderRegistry = {
         provider: primary,
         error: res.error,
       });
-      return { success: false, error: res.error || "SMTP failed" };
+      return { success: false, error: res.error || "SMTP delivery failed." };
     }
 
     return { success: false, error: `Invalid channel: ${channel}` };
@@ -115,19 +116,39 @@ export const OTPProviderRegistry = {
       return { success: false, error: `Provider adapter ${providerId} not found.` };
     }
 
-    // Extract keys from APIKeyVault or process.env configuration
+    // Extract keys from APIKeyVault, InfraService, and EnvConfigManager
     const vaultRec = APIKeyVault.getKeyRecord(this.getVaultId(providerId)) || {};
+
+    let infraConfig = {};
+    try {
+      const rawInfra = localStorage.getItem("icj_infra_providers");
+      if (rawInfra) {
+        const parsed = JSON.parse(rawInfra);
+        infraConfig = parsed?.[providerId.toLowerCase()]?.config || {};
+      }
+    } catch {}
+
+    const envHost = EnvConfigManager.getEnvVar("SMTP_HOST", "") || import.meta.env?.VITE_SMTP_HOST || "";
+    const envPort = EnvConfigManager.getEnvVar("SMTP_PORT", "") || import.meta.env?.VITE_SMTP_PORT || "587";
+    const envUser = EnvConfigManager.getEnvVar("SMTP_USER", "") || import.meta.env?.VITE_SMTP_USER || "";
+    const envPass = EnvConfigManager.getEnvVar("SMTP_PASS", "") || EnvConfigManager.getEnvVar("SMTP_PASSWORD", "") || import.meta.env?.VITE_SMTP_PASS || import.meta.env?.VITE_SMTP_PASSWORD || import.meta.env?.VITE_BREVO_API_KEY || "";
+    const envFrom = EnvConfigManager.getEnvVar("SMTP_FROM", "") || import.meta.env?.VITE_SMTP_FROM || "";
 
     const adapterConfig = {
       mode: isMockMode ? "mock" : "production",
-      apiKey: vaultRec.keyId || import.meta.env?.[`VITE_${providerId.toUpperCase()}_API_KEY`] || "",
+      host: infraConfig.host || envHost || vaultRec.keyId || "smtp-relay.brevo.com",
+      port: infraConfig.port || envPort || "587",
+      username: infraConfig.username || envUser || vaultRec.keyId || "",
+      password: infraConfig.password || envPass || vaultRec.keySecret || "",
+      apiKey: infraConfig.password || envPass || vaultRec.keySecret || vaultRec.keyId || import.meta.env?.[`VITE_${providerId.toUpperCase()}_API_KEY`] || "",
       apiToken: vaultRec.keySecret || import.meta.env?.[`VITE_${providerId.toUpperCase()}_API_TOKEN`] || "",
+      from: infraConfig.from || envFrom || infraConfig.username || envUser || "noreply@icj.gov",
+      tls: infraConfig.tls !== false,
       phoneNumberId: vaultRec.keyId || import.meta.env?.[`VITE_${providerId.toUpperCase()}_PHONE_NUMBER_ID`] || "",
-      host: vaultRec.keyId || import.meta.env?.VITE_SMTP_HOST || "",
     };
 
-    // If key not configured, fall back automatically to mock mode
-    if (!adapterConfig.apiKey && !adapterConfig.apiToken && !adapterConfig.host) {
+    // If no real credentials configured at all, fallback to mock mode
+    if (!adapterConfig.apiKey && !adapterConfig.apiToken && !adapterConfig.password && !adapterConfig.host) {
       adapterConfig.mode = "mock";
     }
 
