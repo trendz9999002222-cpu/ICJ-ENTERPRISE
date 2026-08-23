@@ -153,10 +153,16 @@ export const PasswordPolicyService = {
       errors.push("Password must contain at least one special character (e.g. !@#$%^&*).");
     }
 
+    const isValid = errors.length === 0;
     return {
-      valid: errors.length === 0,
+      valid: isValid,
+      isValid: isValid,
       errors,
     };
+  },
+
+  validate(password = "", customConfig = null) {
+    return this.validatePassword(password, customConfig);
   },
 
   hashPassword(plainText = "") {
