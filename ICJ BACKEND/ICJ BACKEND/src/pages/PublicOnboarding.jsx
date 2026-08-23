@@ -1150,8 +1150,8 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       Dispute Jurisdiction & Location Details (Pan-India)
                     </Typography>
                     <Grid container spacing={2}>
-                      {/* State Dropdown (All 28 States + 8 UTs) */}
-                      <Grid item xs={12} sm={6}>
+                      {/* ROW 1: State, District, Tehsil — All 3 in one single line (sm={4} each) */}
+                      <Grid item xs={12} sm={4}>
                         <Autocomplete
                           disableClearable
                           options={PAN_INDIA_STATES}
@@ -1174,8 +1174,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                         />
                       </Grid>
 
-                      {/* District Dropdown (All Districts of Selected State) */}
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12} sm={4}>
                         <Autocomplete
                           disableClearable
                           options={PAN_INDIA_DISTRICTS_MAP[form.problemState] || []}
@@ -1200,15 +1199,27 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       <Grid item xs={12} sm={4}>
                         <TextField
                           fullWidth
-                          label="City / Tehsil"
+                          label="Tehsil / City"
                           name="problemCity"
                           value={form.problemCity}
                           onChange={handleChange}
-                          placeholder="City or Tehsil name..."
+                          placeholder="Tehsil or City name..."
                         />
                       </Grid>
 
-                      <Grid item xs={12} sm={4}>
+                      {/* ROW 2: Police Station (Thana) and Pincode (6 Digits) (sm={6} each) */}
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Police Station (Thana)"
+                          name="problemPoliceStation"
+                          value={form.problemPoliceStation}
+                          onChange={handleChange}
+                          placeholder="Jurisdictional police station / Thana..."
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
                           label="Pincode (6 Digits)"
@@ -1221,17 +1232,6 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           placeholder="e.g. 110001"
                           inputProps={{ maxLength: 6, inputMode: "numeric" }}
                           helperText="6-digit postal pincode"
-                        />
-                      </Grid>
-
-                      <Grid item xs={12} sm={4}>
-                        <TextField
-                          fullWidth
-                          label="Police Station (Thana)"
-                          name="problemPoliceStation"
-                          value={form.problemPoliceStation}
-                          onChange={handleChange}
-                          placeholder="Jurisdictional police station..."
                         />
                       </Grid>
                     </Grid>
@@ -1388,8 +1388,8 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       </TextField>
                     </Grid>
 
-                    {/* Primary Practice State (Pan-India Master) */}
-                    <Grid item xs={12} sm={6}>
+                    {/* ROW: Primary Practice State, District, Tehsil in one line (sm={4} each) */}
+                    <Grid item xs={12} sm={4}>
                       <Autocomplete
                         disableClearable
                         options={PAN_INDIA_STATES}
@@ -1405,15 +1405,14 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <TextField
                             {...params}
                             fullWidth
-                            label="Primary Practice State / Union Territory *"
+                            label="Practice State / UT *"
                             name="practiceState"
                           />
                         )}
                       />
                     </Grid>
 
-                    {/* Primary Practice District */}
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                       <Autocomplete
                         disableClearable
                         options={PAN_INDIA_DISTRICTS_MAP[form.practiceState] || []}
@@ -1428,10 +1427,21 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <TextField
                             {...params}
                             fullWidth
-                            label="Primary Practice District *"
+                            label="Practice District *"
                             name="practiceDistrict"
                           />
                         )}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        fullWidth
+                        label="Practice Tehsil / City"
+                        name="practiceCity"
+                        value={form.practiceCity || ""}
+                        onChange={handleChange}
+                        placeholder="Tehsil or City name..."
                       />
                     </Grid>
 
@@ -1506,9 +1516,9 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     <HandshakeIcon /> 3. District Franchise Node & Infrastructure Particulars
                   </Typography>
 
-                  <Grid container spacing={2.5}>
-                    {/* Pan-India State Master */}
-                    <Grid item xs={12} sm={6}>
+                  <Grid container spacing={2}>
+                    {/* ROW 1: Target State, District, Tehsil — All 3 in one line (sm={4} each) */}
+                    <Grid item xs={12} sm={4}>
                       <Autocomplete
                         disableClearable
                         options={PAN_INDIA_STATES}
@@ -1525,15 +1535,14 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                             {...params}
                             fullWidth
                             required
-                            label="Target State / Union Territory *"
+                            label="Target State / UT *"
                             name="franchiseState"
                           />
                         )}
                       />
                     </Grid>
 
-                    {/* Pan-India District Master */}
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                       <Autocomplete
                         disableClearable
                         options={PAN_INDIA_DISTRICTS_MAP[form.franchiseState] || []}
@@ -1556,14 +1565,26 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       />
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={4}>
                       <TextField
                         fullWidth required
-                        label="City / Center Location *"
+                        label="Tehsil / Center Location *"
                         name="franchiseCity"
                         value={form.franchiseCity}
                         onChange={handleChange}
-                        placeholder="City or Tehsil name..."
+                        placeholder="Tehsil or Center name..."
+                      />
+                    </Grid>
+
+                    {/* ROW 2: Police Station (Thana) and Pincode (6 Digits) (sm={6} each) */}
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Nearest Police Station (Thana)"
+                        name="franchisePoliceStation"
+                        value={form.franchisePoliceStation || ""}
+                        onChange={handleChange}
+                        placeholder="Jurisdictional police station / Thana..."
                       />
                     </Grid>
 
