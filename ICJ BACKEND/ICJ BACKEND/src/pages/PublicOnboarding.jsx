@@ -53,9 +53,10 @@ import AuthService, { persistLocalUser } from "../services/authService";
 import PasswordPolicyService from "../services/passwordPolicyService";
 import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
-import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
 import { CitizenWorkflowService } from "../services/citizenWorkflowService.js";
+import CertificateService from "../services/certificateService.js";
+import MasterCertificateModal from "../components/common/MasterCertificateModal.jsx";
 import { PAN_INDIA_STATES, PAN_INDIA_DISTRICTS_MAP, DEFAULT_STATE, DEFAULT_DISTRICT } from "../data/panIndiaMaster.js";
 import { LEGAL_TAXONOMY_CATEGORIES, EXPERIENCE_LEVELS } from "../data/legalTaxonomyMaster.js";
 import {
@@ -220,6 +221,7 @@ export default function PublicOnboarding() {
   // ─── UI State: "GATEWAY" -> "FORM" -> "SUCCESS" ──────────────────────────
   const [stage,        setStage]        = useState("GATEWAY");
   const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [certModalOpen,setCertModalOpen]= useState(false);
   const [otpCode,      setOtpCode]      = useState("123456");
   const [otpChannel,   setOtpChannel]   = useState("Email");
   const [createdMember,setCreatedMember]= useState(null);
@@ -1919,14 +1921,23 @@ Thank you for joining the ICJ Enterprise Ecosystem.
               </Grid>
             </Paper>
 
-            <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap">
+            <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" sx={{ gap: 1.5 }}>
+              <Button
+                variant="contained"
+                color="warning"
+                startIcon={<VerifiedUserIcon />}
+                onClick={() => setCertModalOpen(true)}
+                sx={{ fontWeight: 900, px: 3, bgcolor: "#d97706", "&:hover": { bgcolor: "#b45309" } }}
+              >
+                🎓 View & Download Official Certificate (.PDF / Print)
+              </Button>
               <Button
                 variant="outlined"
                 startIcon={<DownloadIcon />}
                 onClick={handleDownloadReceipt}
                 sx={{ fontWeight: 800 }}
               >
-                Download Registration Receipt (.TXT)
+                Download Receipt (.TXT)
               </Button>
               <Button
                 variant="contained"
@@ -1945,6 +1956,15 @@ Thank you for joining the ICJ Enterprise Ecosystem.
         )}
 
       </Container>
+
+      {/* Master Certificate Modal */}
+      {createdMember && (
+        <MasterCertificateModal
+          open={certModalOpen}
+          onClose={() => setCertModalOpen(false)}
+          member={createdMember}
+        />
+      )}
 
       {/* OTP Verification Modal */}
       <Dialog open={otpModalOpen} onClose={() => setOtpModalOpen(false)} maxWidth="xs" fullWidth>

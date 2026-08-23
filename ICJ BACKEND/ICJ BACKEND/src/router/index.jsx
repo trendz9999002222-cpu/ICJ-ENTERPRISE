@@ -62,6 +62,7 @@ import HelpdeskPortal from "../pages/HelpdeskPortal";
 import LegalCommunityFeed from "../pages/LegalCommunityFeed";
 import PublicOnboarding from "../pages/PublicOnboarding";
 import DemoLeadsPortal from "../pages/DemoLeadsPortal";
+import CertificateVerification from "../pages/CertificateVerification";
 import useAuth from "../hooks/useAuth";
 
 function RootDashboard() {
@@ -101,6 +102,8 @@ export default function AppRouter() {
         <Route path="/register" element={<Navigate to="/join" replace />} />
         <Route path="/member-register" element={<Navigate to="/join" replace />} />
         <Route path="/recovery" element={<Recovery />} />
+        <Route path="/verify" element={<CertificateVerification />} />
+        <Route path="/certificate-verify" element={<CertificateVerification />} />
 
         <Route
           path="/"
