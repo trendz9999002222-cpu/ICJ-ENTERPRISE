@@ -57,6 +57,13 @@ import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
 import { PAN_INDIA_STATES, PAN_INDIA_DISTRICTS_MAP, DEFAULT_STATE, DEFAULT_DISTRICT } from "../data/panIndiaMaster.js";
 import { LEGAL_TAXONOMY_CATEGORIES, EXPERIENCE_LEVELS } from "../data/legalTaxonomyMaster.js";
+import {
+  validateStrictMobile,
+  sanitizeStrictMobile,
+  validateStrictEmail,
+  validateStrictPincode,
+  sanitizeStrictPincode,
+} from "../utils/validationStandards.js";
 
 // ─── PURPOSE MASTER & CAPACITY OPTIONS (100% ENGLISH) ───────────────────────
 
@@ -313,15 +320,17 @@ export default function PublicOnboarding() {
     });
   };
 
-  // ─── Validations ─────────────────────────────────────────────────────────
-  const isMobileValid = useMemo(() => {
-    const raw = form.mobile.replace(/\D/g, "");
-    return validatePhoneNumber(form.mobileCountryCode, raw);
+  // ─── Strict Enterprise Validations (10-Digit Mobile, Standard RFC Email) ─
+  const mobileValidation = useMemo(() => {
+    return validateStrictMobile(form.mobile, form.mobileCountryCode);
   }, [form.mobile, form.mobileCountryCode]);
 
-  const isEmailValid = useMemo(() => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const emailValidation = useMemo(() => {
+    return validateStrictEmail(form.email);
   }, [form.email]);
+
+  const isMobileValid = mobileValidation.isValid;
+  const isEmailValid  = emailValidation.isValid;
 
   const isPasswordValid = useMemo(() => {
     return PasswordPolicyService.validate(form.password).isValid;
@@ -940,25 +949,26 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   2. Contact & Secret Login Credentials
                 </Typography>
                 <Grid container spacing={2.5}>
-                  {/* Primary Mobile */}
+                  {/* Primary Mobile (Strict 10 Digits) */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth required
-                      label="Primary Mobile Number *"
+                      label="Primary Mobile Number (10 Digits) *"
                       name="mobile"
                       value={form.mobile}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/[^\d\s-]/g, "").slice(0, mobCfg.maxDigits + 4);
+                        const val = sanitizeStrictMobile(e.target.value, form.mobileCountryCode);
                         setForm((p) => ({ ...p, mobile: val }));
                       }}
-                      placeholder={`e.g. ${mobCfg.example}`}
+                      placeholder="e.g. 9876543210"
+                      inputProps={{ maxLength: form.mobileCountryCode === "+91" ? 10 : 15, inputMode: "numeric" }}
                       error={Boolean(form.mobile && !isMobileValid)}
                       helperText={
                         form.mobile
                           ? isMobileValid
-                            ? `Valid mobile number`
-                            : `Invalid digits for ${mobCfg.name}`
-                          : `Used for OTP authentication`
+                            ? `✓ Valid 10-digit mobile number`
+                            : mobileValidation.message
+                          : `Strictly 10-digit mobile number for OTP authentication`
                       }
                       InputProps={{
                         startAdornment: (
@@ -973,18 +983,20 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     />
                   </Grid>
 
-                  {/* WhatsApp */}
+                  {/* WhatsApp (Strict 10 Digits) */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="WhatsApp Number (Optional)"
+                      label="WhatsApp Number (10 Digits - Optional)"
                       name="whatsapp"
                       value={form.whatsapp}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/[^\d\s-]/g, "").slice(0, waCfg.maxDigits + 4);
+                        const val = sanitizeStrictMobile(e.target.value, form.waCountryCode);
                         setForm((p) => ({ ...p, whatsapp: val }));
                       }}
-                      placeholder={`e.g. ${waCfg.example}`}
+                      placeholder="e.g. 9876543210"
+                      inputProps={{ maxLength: form.waCountryCode === "+91" ? 10 : 15, inputMode: "numeric" }}
+                      helperText="Optional 10-digit WhatsApp number for case alerts"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -998,18 +1010,27 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     />
                   </Grid>
 
-                  {/* Email */}
+                  {/* Email (Standard RFC Format) */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth required
                       type="email"
-                      label="Email Address *"
+                      label="Corporate / Personal Email Address *"
                       name="email"
                       value={form.email}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        const val = e.target.value.trim().toLowerCase();
+                        setForm((p) => ({ ...p, email: val }));
+                      }}
                       placeholder="you@domain.com"
                       error={Boolean(form.email && !isEmailValid)}
-                      helperText="Official email used for account security and case notifications"
+                      helperText={
+                        form.email
+                          ? isEmailValid
+                            ? "✓ Valid standard email format"
+                            : emailValidation.message
+                          : "Standard email format required (e.g. name@domain.com)"
+                      }
                     />
                   </Grid>
 
@@ -1190,15 +1211,16 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       <Grid item xs={12} sm={4}>
                         <TextField
                           fullWidth
-                          label="Pincode"
+                          label="Pincode (6 Digits)"
                           name="problemPincode"
                           value={form.problemPincode}
                           onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                            const val = sanitizeStrictPincode(e.target.value);
                             setForm(p => ({ ...p, problemPincode: val }));
                           }}
-                          placeholder="6-digit pincode"
+                          placeholder="e.g. 110001"
                           inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                          helperText="6-digit postal pincode"
                         />
                       </Grid>
 
@@ -1548,15 +1570,16 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth required
-                        label="Pincode *"
+                        label="Pincode (6 Digits) *"
                         name="franchisePincode"
                         value={form.franchisePincode}
                         onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                          const val = sanitizeStrictPincode(e.target.value);
                           setForm(p => ({ ...p, franchisePincode: val }));
                         }}
-                        placeholder="6-digit pincode"
+                        placeholder="e.g. 110001"
                         inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                        helperText="6-digit postal pincode"
                       />
                     </Grid>
 
