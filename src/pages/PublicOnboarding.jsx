@@ -33,12 +33,16 @@ import DownloadIcon        from "@mui/icons-material/Download";
 import ArrowForwardIcon    from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon       from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon     from "@mui/icons-material/CheckCircle";
+import GavelIcon           from "@mui/icons-material/Gavel";
+import AccountBalanceIcon  from "@mui/icons-material/AccountBalance";
+import SecurityIcon        from "@mui/icons-material/Security";
+import DescriptionIcon     from "@mui/icons-material/Description";
+import VerifiedIcon        from "@mui/icons-material/Verified";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton     from "@mui/material/IconButton";
 import Visibility     from "@mui/icons-material/Visibility";
 import VisibilityOff  from "@mui/icons-material/VisibilityOff";
 import LockIcon       from "@mui/icons-material/Lock";
-import SecurityIcon   from "@mui/icons-material/Security";
 import PlatformLegalTermsModal from "../components/common/PlatformLegalTermsModal.jsx";
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
@@ -51,16 +55,18 @@ import PhoneCodeSelect from "../components/common/PhoneCodeSelect";
 import { validatePhoneNumber, getCountryByCodeOrIso } from "../data/internationalPhoneMaster";
 import useAuth from "../hooks/useAuth";
 import OTPService from "../services/otp/otpService.js";
+import { PAN_INDIA_STATES, PAN_INDIA_DISTRICTS_MAP, DEFAULT_STATE, DEFAULT_DISTRICT } from "../data/panIndiaMaster.js";
+import { LEGAL_TAXONOMY_CATEGORIES, EXPERIENCE_LEVELS } from "../data/legalTaxonomyMaster.js";
 
-// ─── PURPOSE MASTER & CAPACITY OPTIONS ──────────────────────────────────────
+// ─── PURPOSE MASTER & CAPACITY OPTIONS (100% ENGLISH) ───────────────────────
 
 const PURPOSE_OPTIONS = [
   {
     value: "PROBLEM",
-    label: "1. Your Problem, Our Solution — पीड़ित नागरिक / क्लाइंट (Litigant Client)",
+    label: "1. Your Problem, Our Solution — Litigant Client Assistance",
     shortTitle: "Your Problem, Our Solution",
-    sublabel: "कानूनी समस्या, केस फाइलिंग, नोटिस, कोर्ट केस या विवाद समाधान हेतु सहायता",
-    roleBadge: "👤 Role: Litigant Client | Allocated ID: 26CLT08AA....",
+    sublabel: "Legal grievance assistance, case filing, notice handling, court litigation, or dispute resolution",
+    roleBadge: "Role: Litigant Client | Allocated Serial: 26CLT08AA....",
     targetRole: "member",
     icon: AssignmentLateIcon,
     color: "#d32f2f",
@@ -69,10 +75,10 @@ const PURPOSE_OPTIONS = [
   },
   {
     value: "SERVICES",
-    label: "2. ICJ, The Solution World — अधिवक्ता, CA, CS, CMA व लीगल प्रोफेशनल (Professional Partner)",
+    label: "2. ICJ, The Solution World — Professional Legal & Financial Partner",
     shortTitle: "ICJ, The Solution World",
-    sublabel: "ICJ नेटवर्क में वकील, CA, CS, आर्बिट्रेटर या कंसल्टेंट के रूप में शामिल हों व प्रैक्टिस करें",
-    roleBadge: "⚖️ Role: ICJ Professional Partner | Allocated ID: 26ICJ08AA....",
+    sublabel: "Join the ICJ network as an Advocate, CA, CS, CMA, Arbitrator, Notary, or Legal Specialist",
+    roleBadge: "Role: ICJ Professional Partner | Allocated Serial: 26ICJ08AA....",
     targetRole: "advocate",
     icon: MiscellaneousServicesIcon,
     color: "#1565c0",
@@ -81,10 +87,10 @@ const PURPOSE_OPTIONS = [
   },
   {
     value: "FRANCHISE",
-    label: "3. Become an ICJ Franchisee Partner — जिला फ्रेंचाइजी केंद्र (District Franchise Node)",
+    label: "3. Become an ICJ Franchisee Partner — District Legal Service Node",
     shortTitle: "Become an ICJ Franchisee Partner",
-    sublabel: "अपने जिले/तहसील में ICJ लीगल हब व सर्विस केंद्र स्थापित एवं संचालित करें",
-    roleBadge: "🏢 Role: District Franchisee Node | Allocated ID: 26FRZ08AA....",
+    sublabel: "Establish, manage, and operate an official ICJ District Legal Service & Tech Center",
+    roleBadge: "Role: District Franchisee Node | Allocated Serial: 26FRZ08AA....",
     targetRole: "franchise",
     icon: HandshakeIcon,
     color: "#2e7d32",
@@ -93,61 +99,45 @@ const PURPOSE_OPTIONS = [
   },
 ];
 
-export const PROFESSIONAL_CATEGORIES = [
-  "Advocate / Legal Counsel (Supreme Court, High Court & Tribunals)",
-  "Chartered Accountant (CA) — Direct & Indirect Taxation, Audit & GST",
-  "Company Secretary (CS) — Corporate Law, ROC & Governance",
-  "Cost & Management Accountant (CMA)",
-  "Patent, Trademark & Copyright Attorney (IPR)",
-  "Empaneled Arbitrator / Dispute Mediator & Conciliator",
-  "Corporate Legal Consultant / Auditor",
-  "Other Legal / Corporate Professional",
-];
-
-export const EXPERIENCE_OPTIONS = [
-  "Entry Level (0 - 2 Years)",
-  "Mid Level (2 - 5 Years)",
-  "Senior Professional (5 - 10 Years)",
-  "Veteran / Expert (10+ Years)",
-  "Distinguished Counsel / Senior Partner (15+ Years)",
-];
-
 const PROBLEM_CATEGORIES = [
-  "Legal Dispute",
-  "Criminal Matter",
-  "Harassment / Domestic Violence",
-  "Property / Real Estate / Land Dispute",
-  "Consumer Complaint / Exploitation",
-  "Labour / Employment Issue",
-  "Family Law / Divorce / Matrimonial Dispute",
-  "Cyber Crime / Online Fraud",
-  "Cheque Bounce / Debt Recovery",
-  "Human Rights / Public Interest Issue",
-  "Accident Claims / Compensation",
-  "Taxation & Revenue Disputes",
-  "Other Legal Matter",
+  "Property & Real Estate Disputes",
+  "Criminal Litigation & Defense",
+  "Civil Suits & Contractual Disputes",
+  "Cyber Crime & Online Financial Fraud",
+  "Matrimonial, Divorce & Family Disputes",
+  "Cheque Bounce (Sec 138) & Debt Recovery",
+  "Consumer Forum & Service Deficiency Claims",
+  "Labour, Industrial & Employment Matters",
+  "Human Rights & Public Interest Grievances",
+  "Taxation, GST & Revenue Adjudications",
+  "Motor Accident Claims Tribunal (MACT)",
+  "Banking, SARFAESI & DRT Proceedings",
+  "Other Legal & Administrative Matter",
 ];
 
-const SERVICE_CATEGORIES = [
-  "Legal Consultation",
-  "Arbitration / Mediation",
-  "Contract Drafting & Review",
-  "Documentation Services",
-  "Legal Audit & Compliance",
-  "Notarisation / Attestation",
-  "Court Representation",
-  "Property Title Verification",
-  "Debt Recovery Assistance",
-  "Cyber Security Legal Advisory",
-  "Human Rights Protection Desk",
-  "Other ICJ Service",
+const SERVICE_OFFERINGS = [
+  "Comprehensive Legal Consultation",
+  "Arbitration & Dispute Mediation",
+  "Contract & Legal Documentation Drafting",
+  "Statutory Legal & Corporate Audit",
+  "Notarisation & Attestation Services",
+  "High Court & District Court Representation",
+  "Property Title Search & 30-Year Search Report",
+  "Banking & Corporate Debt Recovery",
+  "Cyber Law Advisory & Compliance",
+  "Human Rights Defense Desk",
+  "Intellectual Property (IPR) Registration",
+  "Other ICJ Collaborative Service",
 ];
 
-const STATE_DISTRICTS_MAP = {
-  "Delhi": ["New Delhi", "North Delhi", "South Delhi", "West Delhi", "East Delhi", "North West Delhi", "South West Delhi"],
-  "Uttar Pradesh": ["Noida / Gautam Buddha Nagar", "Ghaziabad", "Lucknow", "Kanpur", "Meerut", "Prayagraj", "Varanasi", "Agra"],
-  "Punjab": ["Amritsar", "Ludhiana", "Jalandhar", "Patiala", "Bathinda", "Mohali"],
-  "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Sonipat", "Rohtak"],
+// Helper to map category icons
+const CATEGORY_ICON_MAP = {
+  Gavel: GavelIcon,
+  AccountBalance: AccountBalanceIcon,
+  Handshake: HandshakeIcon,
+  Verified: VerifiedIcon,
+  Security: SecurityIcon,
+  Description: DescriptionIcon,
 };
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -159,6 +149,9 @@ export default function PublicOnboarding() {
   // Tech Showcase & Privacy Modal State
   const [techShowcaseOpen, setTechShowcaseOpen] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
+
+  // ─── Two-Tier Taxonomy State ─────────────────────────────────────────────
+  const [selectedCategoryId, setSelectedCategoryId] = useState(LEGAL_TAXONOMY_CATEGORIES[0].id);
 
   // ─── Form State ──────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -181,40 +174,48 @@ export default function PublicOnboarding() {
     password:          "",
     confirmPassword:   "",
     purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
-    problemCategories: [],           // Multi-select problem categories
-    problemState:      "Delhi",
-    problemDistrict:   "",
+    
+    // Client Problem Assistance Fields
+    problemCategories: [],
+    problemState:      DEFAULT_STATE,
+    problemDistrict:   DEFAULT_DISTRICT,
     problemCity:       "",
     problemPincode:    "",
     problemPoliceStation: "",
     problemDescription: "",
     problemVoiceFiles: [],
-    solutionServices:  [],           // Multi-select solution services
-    professionalCategory: "Advocate / Legal Counsel (Supreme Court, High Court & Tribunals)",
+
+    // Professional Partner Two-Tier Fields
+    professionalCategory: LEGAL_TAXONOMY_CATEGORIES[0].categoryName,
+    professionalSubCategory: LEGAL_TAXONOMY_CATEGORIES[0].subCategories[0].title,
     professionalRegNo: "",
-    professionalExperience: "Senior Professional (5 - 10 Years)",
-    practiceCourts: "Supreme Court, High Court & District Courts",
-    specializations: "Civil, Criminal, Constitutional Writs & Corporate Law",
-    franchiseState:    "Delhi",
-    franchiseDistrict: "",
+    professionalExperience: EXPERIENCE_LEVELS[2], // "Senior Professional (5 - 10 Years)"
+    practiceState: DEFAULT_STATE,
+    practiceDistrict: DEFAULT_DISTRICT,
+    practiceCourts: "Supreme Court of India, High Court & District Courts",
+    specializations: LEGAL_TAXONOMY_CATEGORIES[0].subCategories[0].defaultSpecialization,
+    solutionServices:  [],
+
+    // Franchise Partner Fields
+    franchiseState:    DEFAULT_STATE,
+    franchiseDistrict: DEFAULT_DISTRICT,
     franchiseCity:     "",
     franchisePincode:  "",
     franchiseBackground: "",
     termsAccepted:     false,
   });
 
-  // ─── UI State: "GATEWAY" -> "FORM" -> "OTP" -> "SUCCESS" ─────────────────
+  // ─── UI State: "GATEWAY" -> "FORM" -> "SUCCESS" ──────────────────────────
   const [stage,        setStage]        = useState("GATEWAY");
   const [otpModalOpen, setOtpModalOpen] = useState(false);
-  const [certOpen,     setCertOpen]     = useState(false);
   const [otpCode,      setOtpCode]      = useState("123456");
-  const [otpChannel,   setOtpChannel]   = useState("SMS");
+  const [otpChannel,   setOtpChannel]   = useState("Email");
   const [createdMember,setCreatedMember]= useState(null);
   const [submitting,   setSubmitting]   = useState(false);  
   const [showPassword, setShowPassword] = useState(false);
   const [error,        setError]        = useState("");
 
-  // ─── Phone config (for maxDigits / placeholder) ──────────────────────────
+  // ─── Phone config ────────────────────────────────────────────────────────
   const mobCfg = useMemo(() => getCountryByCodeOrIso(form.mobileCountryCode), [form.mobileCountryCode]);
   const waCfg  = useMemo(() => getCountryByCodeOrIso(form.waCountryCode),    [form.waCountryCode]);
 
@@ -266,12 +267,30 @@ export default function PublicOnboarding() {
 
   const handleGatewayProceed = () => {
     if (!form.purpose) {
-      setError("कृपया आगे बढ़ने के लिए ऊपर दिए गए 3 विकल्पों में से एक चुनें (Please select one capacity option to proceed).");
+      setError("Please select one of the 3 joining capacities to continue.");
       return;
     }
     setError("");
     setStage("FORM");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategoryId(category.id);
+    setForm((prev) => ({
+      ...prev,
+      professionalCategory: category.categoryName,
+      professionalSubCategory: category.subCategories[0]?.title || "",
+      specializations: category.subCategories[0]?.defaultSpecialization || prev.specializations,
+    }));
+  };
+
+  const handleSubCategorySelect = (subCat) => {
+    setForm((prev) => ({
+      ...prev,
+      professionalSubCategory: subCat.title,
+      specializations: subCat.defaultSpecialization || prev.specializations,
+    }));
   };
 
   const handleToggleCategory = (cat) => {
@@ -346,7 +365,7 @@ export default function PublicOnboarding() {
     setError("");
 
     if (!isNameValid) {
-      setError("Please provide applicant first and last name (or organisation name and representative).");
+      setError("Please provide applicant first and last name (or registered organisation name).");
       return;
     }
     if (!isMobileValid) {
@@ -354,7 +373,7 @@ export default function PublicOnboarding() {
       return;
     }
     if (!isEmailValid) {
-      setError("Please enter a valid email address.");
+      setError("Please enter a valid corporate or personal email address.");
       return;
     }
     if (!isPasswordValid) {
@@ -366,15 +385,13 @@ export default function PublicOnboarding() {
       return;
     }
     if (!form.termsAccepted) {
-      setError("Please accept the ICJ terms and conditions to proceed.");
+      setError("Please accept the ICJ enterprise platform terms and conditions to proceed.");
       return;
     }
 
     setSubmitting(true);
     try {
       const email = form.email.trim();
-      const mobile = `${form.mobileCountryCode} ${form.mobile.trim()}`;
-
       const res = await OTPService.requestOTP(email, "email");
       if (!res.success) {
         throw new Error(res.message || "Failed to dispatch verification code.");
@@ -396,7 +413,7 @@ export default function PublicOnboarding() {
       if (verifyRes.success) {
         await handleVerifyAndSubmit();
       } else {
-        alert(verifyRes.message || "Invalid OTP code.");
+        alert(verifyRes.message || "Invalid OTP verification code.");
       }
     } catch (err) {
       alert(err.message || "Verification failed.");
@@ -447,23 +464,32 @@ export default function PublicOnboarding() {
         memberType: form.regType.toLowerCase(), regType: form.regType,
         role: assignedRole, user_type: assignedRole, member_level: assignedLevel,
         professionalCategory: form.professionalCategory,
+        professionalSubCategory: form.professionalSubCategory,
         professionalRegNo: form.professionalRegNo,
         professionalExperience: form.professionalExperience,
+        practiceState: form.practiceState,
+        practiceDistrict: form.practiceDistrict,
         practiceCourts: form.practiceCourts,
         specializations: form.specializations,
         purpose:    purposeLabel,
         purposeCode: form.purpose,
         problemCategories: form.problemCategories,
+        problemState: form.problemState,
+        problemDistrict: form.problemDistrict,
+        problemCity: form.problemCity,
+        problemPincode: form.problemPincode,
+        problemPoliceStation: form.problemPoliceStation,
         solutionServices: form.solutionServices,
         franchiseState: form.franchiseState,
         franchiseDistrict: form.franchiseDistrict,
         franchiseCity: form.franchiseCity,
+        franchisePincode: form.franchisePincode,
         franchiseBackground: form.franchiseBackground,
-        education: form.education || (form.purpose === "SERVICES" ? "LL.B / CA / CS Professional" : "Graduate"),
-        profession: form.purpose === "SERVICES" ? (form.professionalCategory || "Advocate / Legal Counsel") : (form.profession || "Business / Professional"),
-        areaOfInterest: form.areaOfInterest || "Digital Legal Rights",
-        eGovPortals: form.eGovPortals || ["e-Courts Cause List & Orders", "Tehsil Bhulekh"],
-        engagementIntent: form.engagementIntent || "Standard Legal Aid Assistance",
+        education: form.purpose === "SERVICES" ? "Professional Degree / Certified Council" : "Graduate / Professional",
+        profession: form.purpose === "SERVICES" ? form.professionalSubCategory : (form.profession || "Individual / Corporate Client"),
+        areaOfInterest: "Enterprise Legal Ecosystem",
+        eGovPortals: ["e-Courts Cause List & Orders", "District Land & Revenue Records"],
+        engagementIntent: "Verified Legal Ecosystem Onboarding",
         verification_status: "Approved",
         status:         "Active",
         token_balance: 10,
@@ -480,26 +506,25 @@ export default function PublicOnboarding() {
       const result = await MemberService.create(payload);
       const finalMember = result || payload;
       
-      // Dual-sync into AuthService enterprise user storage for seamless login
+      // Dual-sync into AuthService enterprise user storage
       try {
         await AuthService.register(payload);
       } catch (e) {
         console.log("AuthService sync notice:", e.message);
       }
 
-      // Dispatch Background Web Push Notification & Audio Sound Chime to Super Admin
+      // Background notification
       try {
         import("../services/pushNotificationService.js").then((mod) => {
           const pns = mod.default || mod.PushNotificationService;
           pns.sendBackgroundPush({
             title: "🔔 New Member Registered!",
-            body: `Applicant ${finalMember.fullName} (ID: ${finalMember.member_id || finalMember.id}) registered — Assign Advocate Now (15m SLA)`,
+            body: `Applicant ${finalMember.fullName} (ID: ${finalMember.member_id || finalMember.id}) registered — Assigned Role: ${finalMember.role}`,
             url: "/super-admin-dashboard",
           });
         });
       } catch (e) {}
 
-      // Auto-authenticate newly onboarded member session into local storage and auth context
       persistLocalUser(finalMember);
       if (setSessionUser) {
         setSessionUser(finalMember);
@@ -519,18 +544,20 @@ export default function PublicOnboarding() {
     if (!createdMember) return;
     const content =
 `INTERNATIONAL CONSORTIUM OF JURISTS (ICJ)
-PUBLIC MEMBER REGISTRATION ACKNOWLEDGEMENT
+OFFICIAL MEMBER REGISTRATION ACKNOWLEDGEMENT
 --------------------------------------------------
 PERMANENT MEMBER ID : ${createdMember.member_id || createdMember.memberId}
 APPLICANT NAME      : ${createdMember.name}
 APPLICANT TYPE      : ${createdMember.regType || createdMember.memberType}
+ASSIGNED ROLE       : ${createdMember.role}
+DESIGNATION         : ${createdMember.profession || createdMember.professionalSubCategory || "Member"}
 PRIMARY EMAIL       : ${createdMember.email}
 MOBILE NUMBER       : ${createdMember.mobile}
 PURPOSE             : ${createdMember.purpose}
 REGISTRATION DATE   : ${new Date(createdMember.created_at).toLocaleString()}
-VERIFICATION STATUS : ${createdMember.verification_status || "Pending Verification"}
+VERIFICATION STATUS : ${createdMember.verification_status || "Approved & Active"}
 --------------------------------------------------
-Thank you for registering with ICJ Enterprise Platform.
+Thank you for joining the ICJ Enterprise Ecosystem.
 `;
     const el = document.createElement("a");
     el.href  = URL.createObjectURL(new Blob([content], { type: "text/plain" }));
@@ -539,41 +566,42 @@ Thank you for registering with ICJ Enterprise Platform.
   };
 
   const selectedPurposeObj = PURPOSE_OPTIONS.find((p) => p.value === form.purpose);
+  const activeTaxonomyCategory = LEGAL_TAXONOMY_CATEGORIES.find((c) => c.id === selectedCategoryId) || LEGAL_TAXONOMY_CATEGORIES[0];
 
   // ─── Render ──────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f4f6f8", py: { xs: 3, md: 6 } }}>
-      <Container maxWidth="md">
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f8fafc", py: { xs: 3, md: 6 } }}>
+      <Container maxWidth="lg">
 
         {/* BRANDING HEADER */}
         <Paper elevation={0} sx={{
-          p: { xs: 2.5, sm: 3, md: 4 }, mb: 3, bgcolor: "#002855", color: "#fff",
+          p: { xs: 2.5, sm: 3, md: 4 }, mb: 3.5, bgcolor: "#0f172a", color: "#fff",
           borderRadius: 3, textAlign: "center",
-          boxShadow: "0 8px 32px rgba(0,40,85,0.12)",
+          boxShadow: "0 8px 32px rgba(15,23,42,0.15)",
         }}>
-          <Typography variant="overline" sx={{ letterSpacing: 2, color: "#90caf9", fontWeight: "bold" }}>
+          <Typography variant="overline" sx={{ letterSpacing: 2.5, color: "#38bdf8", fontWeight: 800 }}>
             INTERNATIONAL CONSORTIUM OF JURISTS
           </Typography>
-          <Typography variant="h4" fontWeight="bold" sx={{ mt: 0.5, mb: 1 }}>
-            JOIN / REGISTER WITH ICJ
+          <Typography variant="h4" fontWeight={900} sx={{ mt: 0.5, mb: 1, letterSpacing: -0.5 }}>
+            ENTERPRISE APPLICANT ONBOARDING GATEWAY
           </Typography>
-          <Typography variant="subtitle2" sx={{ opacity: 0.85, maxWidth: 600, mx: "auto" }}>
-            ICJ Enterprise Platform — Official Public Applicant Onboarding Gateway
+          <Typography variant="subtitle2" sx={{ opacity: 0.85, maxWidth: 650, mx: "auto", fontSize: "0.95rem" }}>
+            Secure Digital Identity, Professional Empanelment & Legal Infrastructure Gateway
           </Typography>
         </Paper>
 
         {/* ========================================================================= */}
-        {/* STEP 2 & 3 : DEDICATED CATEGORY SELECTION GATEWAY ("WHAT BRINGS YOU TO ICJ?") */}
+        {/* STEP 2 & 3 : DEDICATED CATEGORY SELECTION GATEWAY */}
         {/* ========================================================================= */}
         {stage === "GATEWAY" && (
-          <Paper sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.08)" }}>
+          <Paper sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}>
             <Box sx={{ textAlign: "center", mb: 4 }}>
-              <Chip label="STEP 1 OF 2 — CHOOSE YOUR JOINING CAPACITY" color="primary" sx={{ fontWeight: 800, mb: 1.5 }} />
-              <Typography variant="h5" fontWeight={800} color="text.primary">
+              <Chip label="STEP 1 OF 2 — CHOOSE YOUR JOINING CAPACITY" color="primary" sx={{ fontWeight: 800, mb: 1.5, px: 1 }} />
+              <Typography variant="h4" fontWeight={900} color="text.primary" sx={{ letterSpacing: -0.5 }}>
                 WHAT BRINGS YOU TO ICJ?
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 550, mx: "auto" }}>
-                कृपया आगे बढ़ने के लिए नीचे दिए गए 3 विकल्पों में से अपनी उपयुक्त भूमिका चुनें:
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 620, mx: "auto" }}>
+                Please select your primary operational capacity to proceed with customized registration:
               </Typography>
             </Box>
 
@@ -583,7 +611,7 @@ Thank you for registering with ICJ Enterprise Platform.
               </Alert>
             )}
 
-            {/* 3 Prominent Capacity Options */}
+            {/* 3 Prominent Capacity Options (Full Width, Zero Truncation) */}
             <Stack spacing={2.5} sx={{ mb: 4 }}>
               {PURPOSE_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
@@ -594,40 +622,40 @@ Thank you for registering with ICJ Enterprise Platform.
                     elevation={isSelected ? 4 : 0}
                     onClick={() => handlePurposeSelect(opt.value)}
                     sx={{
-                      p: { xs: 2, sm: 2.5 },
+                      p: { xs: 2.5, sm: 3 },
                       borderRadius: 2.5,
                       cursor: "pointer",
                       border: "2px solid",
-                      borderColor: isSelected ? opt.color : "#dde3ec",
+                      borderColor: isSelected ? opt.color : "#e2e8f0",
                       bgcolor: isSelected ? opt.selectedBg : opt.bg,
                       transition: "all 0.2s ease",
                       display: "flex",
                       alignItems: "center",
-                      gap: 2,
+                      gap: 2.5,
                       "&:hover": {
                         borderColor: opt.color,
                         bgcolor: opt.selectedBg,
                         transform: "translateY(-2px)",
-                        boxShadow: `0 4px 16px ${opt.color}25`,
+                        boxShadow: `0 6px 20px ${opt.color}25`,
                       },
                     }}
                   >
                     <Box sx={{
-                      width: 52, height: 52, borderRadius: "50%",
+                      width: 56, height: 56, borderRadius: "50%",
                       bgcolor: isSelected ? opt.color : "#ffffff",
                       color: isSelected ? "#ffffff" : opt.color,
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
                       flexShrink: 0
                     }}>
-                      <Icon sx={{ fontSize: 28 }} />
+                      <Icon sx={{ fontSize: 32 }} />
                     </Box>
 
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1" fontWeight={800} color={isSelected ? opt.color : "text.primary"}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="h6" fontWeight={800} color={isSelected ? opt.color : "text.primary"}>
                         {opt.label}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, lineHeight: 1.5 }}>
                         {opt.sublabel}
                       </Typography>
                       {opt.roleBadge && (
@@ -635,9 +663,9 @@ Thank you for registering with ICJ Enterprise Platform.
                           label={opt.roleBadge}
                           size="small"
                           sx={{
-                            mt: 1,
+                            mt: 1.2,
                             fontWeight: 800,
-                            fontSize: "0.74rem",
+                            fontSize: "0.78rem",
                             bgcolor: isSelected ? opt.color : "#e2e8f0",
                             color: isSelected ? "#ffffff" : "#334155",
                           }}
@@ -646,9 +674,9 @@ Thank you for registering with ICJ Enterprise Platform.
                     </Box>
 
                     {isSelected ? (
-                      <CheckCircleIcon sx={{ color: opt.color, fontSize: 28, flexShrink: 0 }} />
+                      <CheckCircleIcon sx={{ color: opt.color, fontSize: 32, flexShrink: 0 }} />
                     ) : (
-                      <Box sx={{ width: 24, height: 24, borderRadius: "50%", border: "2px solid #cbd5e1", flexShrink: 0 }} />
+                      <Box sx={{ width: 26, height: 26, borderRadius: "50%", border: "2px solid #cbd5e1", flexShrink: 0 }} />
                     )}
                   </Paper>
                 );
@@ -664,15 +692,15 @@ Thank you for registering with ICJ Enterprise Platform.
                 onClick={handleGatewayProceed}
                 endIcon={<ArrowForwardIcon />}
                 sx={{
-                  py: 1.6,
-                  fontWeight: 800,
+                  py: 1.8,
+                  fontWeight: 900,
                   fontSize: "1.1rem",
                   borderRadius: 2,
-                  bgcolor: selectedPurposeObj?.color || "#002855",
-                  "&:hover": { bgcolor: selectedPurposeObj?.color || "#001a38" },
+                  bgcolor: selectedPurposeObj?.color || "#0f172a",
+                  "&:hover": { bgcolor: selectedPurposeObj?.color || "#020617" },
                 }}
               >
-                CONTINUE / PROCEED TO REGISTRATION ➔
+                CONTINUE TO APPLICATION FORM ➔
               </Button>
 
               <Button
@@ -680,9 +708,9 @@ Thank you for registering with ICJ Enterprise Platform.
                 to="/login"
                 variant="text"
                 color="inherit"
-                sx={{ textTransform: "none", fontWeight: "bold" }}
+                sx={{ textTransform: "none", fontWeight: 700 }}
               >
-                Already have an account? Sign In / पहले से खाता है? लॉगिन करें
+                Already have an ICJ account? Sign In
               </Button>
             </Stack>
           </Paper>
@@ -692,7 +720,7 @@ Thank you for registering with ICJ Enterprise Platform.
         {/* STEP 4 & 5 : RELEVANT TAILORED REGISTRATION FORM */}
         {/* ========================================================================= */}
         {stage === "FORM" && (
-          <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
+          <Paper component="form" onSubmit={(e) => { e.preventDefault(); if (isFormValid) handleContinueClick(); }} sx={{ p: { xs: 3, md: 5 }, borderRadius: 3, boxShadow: "0 8px 32px rgba(0,0,0,0.06)" }}>
             
             {/* Top Navigation & Category Summary Banner */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} sx={{ mb: 3 }}>
@@ -701,7 +729,7 @@ Thank you for registering with ICJ Enterprise Platform.
                 onClick={() => setStage("GATEWAY")}
                 variant="outlined"
                 size="small"
-                sx={{ fontWeight: "bold", textTransform: "none" }}
+                sx={{ fontWeight: 800, textTransform: "none" }}
               >
                 ← Back to Category Selection
               </Button>
@@ -711,9 +739,10 @@ Thank you for registering with ICJ Enterprise Platform.
                   label={selectedPurposeObj.roleBadge}
                   sx={{
                     fontWeight: 800,
-                    fontSize: "0.78rem",
+                    fontSize: "0.8rem",
                     bgcolor: selectedPurposeObj.color,
                     color: "#ffffff",
+                    px: 1,
                   }}
                 />
               )}
@@ -723,44 +752,44 @@ Thank you for registering with ICJ Enterprise Platform.
             <Paper
               variant="outlined"
               sx={{
-                p: 2,
-                mb: 3,
+                p: 2.5,
+                mb: 4,
                 borderRadius: 2,
                 bgcolor: selectedPurposeObj?.selectedBg || "#f8fafc",
                 borderColor: selectedPurposeObj?.color || "#cbd5e1",
-                borderLeft: `6px solid ${selectedPurposeObj?.color || "#002855"}`,
+                borderLeft: `6px solid ${selectedPurposeObj?.color || "#0f172a"}`,
               }}
             >
-              <Typography variant="subtitle1" fontWeight={800} color={selectedPurposeObj?.color || "text.primary"}>
+              <Typography variant="h6" fontWeight={800} color={selectedPurposeObj?.color || "text.primary"}>
                 {selectedPurposeObj?.label}
               </Typography>
-              <Typography variant="caption" color="text.secondary" display="block">
-                कृपया नीचे दिए गए फ़ॉर्म में अपनी सही जानकारी दर्ज करें:
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Please provide accurate verified details to complete your enterprise registration.
               </Typography>
             </Paper>
 
-            <Stack spacing={3.5}>
+            <Stack spacing={4}>
 
               {/* Applicant Type */}
               <FormControl component="fieldset">
-                <FormLabel component="legend" sx={{ fontWeight: "bold", fontSize: "0.9rem", mb: 0.5, color: "text.primary" }}>
-                  Applicant Type *
+                <FormLabel component="legend" sx={{ fontWeight: 800, fontSize: "0.95rem", mb: 0.5, color: "text.primary" }}>
+                  Applicant Entity Type *
                 </FormLabel>
                 <RadioGroup row name="regType" value={form.regType} onChange={handleRegTypeChange}>
-                  <FormControlLabel value="Individual"   control={<Radio color="primary"   />} label={FieldGovernanceService.getWording("onboarding_ind_label", "Individual Member")} />
-                  <FormControlLabel value="Organisation" control={<Radio color="secondary" />} label={FieldGovernanceService.getWording("onboarding_org_label", "Organisation / Entity / Institution")} />
+                  <FormControlLabel value="Individual"   control={<Radio color="primary"   />} label={FieldGovernanceService.getWording("onboarding_ind_label", "Individual Applicant / Professional")} />
+                  <FormControlLabel value="Organisation" control={<Radio color="secondary" />} label={FieldGovernanceService.getWording("onboarding_org_label", "Organisation / Firm / Corporate Entity")} />
                 </RadioGroup>
               </FormControl>
 
-              {/* ROW 1 — NAME & DEMOGRAPHICS */}
+              {/* SECTION 1 — NAME & DEMOGRAPHICS */}
               <Box>
-                <Typography variant="caption" color="text.secondary"
-                  sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, mb: 1, display: "block" }}>
-                  1. Name & Demographics (व्यक्तिगत विवरण)
+                <Typography variant="subtitle2" color="primary.main"
+                  sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>
+                  1. Applicant Identification & Demographics
                 </Typography>
                 {form.regType === "Individual" ? (
-                  <Stack spacing={2}>
-                    <Grid container spacing={1.5}>
+                  <Stack spacing={2.5}>
+                    <Grid container spacing={2}>
                       <Grid item xs={12} sm={2}>
                         <TextField
                           select fullWidth
@@ -769,7 +798,6 @@ Thank you for registering with ICJ Enterprise Platform.
                           value={form.namePrefix}
                           onChange={handleChange}
                           SelectProps={{ style: { fontWeight: "bold" } }}
-                          sx={{ minWidth: 110 }}
                         >
                           <MenuItem value="Mr.">Mr.</MenuItem>
                           <MenuItem value="Mrs.">Mrs.</MenuItem>
@@ -777,6 +805,9 @@ Thank you for registering with ICJ Enterprise Platform.
                           <MenuItem value="Dr.">Dr.</MenuItem>
                           <MenuItem value="Adv.">Adv.</MenuItem>
                           <MenuItem value="Prof.">Prof.</MenuItem>
+                          <MenuItem value="CA">CA</MenuItem>
+                          <MenuItem value="CS">CS</MenuItem>
+                          <MenuItem value="CMA">CMA</MenuItem>
                         </TextField>
                       </Grid>
                       <Grid item xs={12} sm={4}>
@@ -805,8 +836,7 @@ Thank you for registering with ICJ Enterprise Platform.
                       </Grid>
                     </Grid>
 
-                    {/* DEMOGRAPHICS: GENDER + BIRTH YEAR */}
-                    <Grid container spacing={1.5}>
+                    <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           select fullWidth
@@ -814,8 +844,6 @@ Thank you for registering with ICJ Enterprise Platform.
                           name="gender"
                           value={form.gender}
                           onChange={handleChange}
-                          SelectProps={{ style: { fontWeight: "bold", fontSize: "1rem" } }}
-                          sx={{ "& .MuiSelect-select": { fontWeight: "bold" }, minWidth: 140 }}
                         >
                           <MenuItem value="Male">Male</MenuItem>
                           <MenuItem value="Female">Female</MenuItem>
@@ -836,9 +864,9 @@ Thank you for registering with ICJ Enterprise Platform.
                           helperText={
                             form.birthYear
                               ? Number(form.birthYear) >= minBirthYear && Number(form.birthYear) <= maxBirthYear
-                                ? `✓ Valid (Age ~${currentYear - Number(form.birthYear)} yrs)`
-                                : `${minBirthYear} से ${maxBirthYear} के बीच होना चाहिए`
-                              : "केवल जन्म का साल"
+                                ? `Valid (Approx Age: ${currentYear - Number(form.birthYear)} years)`
+                                : `Must be between ${minBirthYear} and ${maxBirthYear}`
+                              : "Select year of birth"
                           }
                         >
                           {birthYearsList.map((y) => (
@@ -851,20 +879,18 @@ Thank you for registering with ICJ Enterprise Platform.
                     </Grid>
                   </Stack>
                 ) : (
-                  <Stack spacing={2}>
+                  <Stack spacing={2.5}>
                     <TextField fullWidth required
-                      label="Organisation / Entity / Legal Name *" name="orgName"
+                      label="Registered Corporate / Entity / Firm Name *" name="orgName"
                       value={form.orgName} onChange={handleChange}
-                      placeholder="Registered legal entity name..."
-                      helperText="Official registered firm, institution or entity name"
-                      error={Boolean(form.orgName && form.orgName.trim().length < 2)}
+                      placeholder="Official registered company, partnership or LLP name..."
+                      helperText="Full legal name as registered with MCA / Registrar of Firms"
                     />
 
-                    {/* Contact Person details for Organisation */}
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1, fontWeight: "bold", textTransform: "uppercase" }}>
-                      CONTACT PERSON NAME *
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontWeight: 800, textTransform: "uppercase" }}>
+                      Authorized Signatory / Representative Name *
                     </Typography>
-                    <Grid container spacing={1.5}>
+                    <Grid container spacing={2}>
                       <Grid item xs={12} sm={2}>
                         <TextField
                           select fullWidth
@@ -872,8 +898,6 @@ Thank you for registering with ICJ Enterprise Platform.
                           name="namePrefix"
                           value={form.namePrefix}
                           onChange={handleChange}
-                          SelectProps={{ style: { fontWeight: "bold" } }}
-                          sx={{ minWidth: 110 }}
                         >
                           <MenuItem value="Mr.">Mr.</MenuItem>
                           <MenuItem value="Mrs.">Mrs.</MenuItem>
@@ -885,10 +909,9 @@ Thank you for registering with ICJ Enterprise Platform.
                       </Grid>
                       <Grid item xs={12} sm={4}>
                         <TextField fullWidth required
-                          label="First Name *" name="repFirstName"
+                          label="Representative First Name *" name="repFirstName"
                           value={form.repFirstName} onChange={handleChange}
                           placeholder="First Name..."
-                          error={Boolean(form.repFirstName && form.repFirstName.trim().length < 1)}
                         />
                       </Grid>
                       <Grid item xs={12} sm={3}>
@@ -903,7 +926,6 @@ Thank you for registering with ICJ Enterprise Platform.
                           label="Last Name *" name="repLastName"
                           value={form.repLastName} onChange={handleChange}
                           placeholder="Last Name..."
-                          error={Boolean(form.repLastName && form.repLastName.trim().length < 1)}
                         />
                       </Grid>
                     </Grid>
@@ -911,13 +933,13 @@ Thank you for registering with ICJ Enterprise Platform.
                 )}
               </Box>
 
-              {/* ROW 2 — CONTACT & SECURITY CREDENTIALS */}
+              {/* SECTION 2 — CONTACT & SECURITY CREDENTIALS */}
               <Box>
-                <Typography variant="caption" color="text.secondary"
-                  sx={{ fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.8, mb: 1, display: "block" }}>
-                  2. Contact & Secret Login Credentials (संपर्क व गुप्त पासवर्ड)
+                <Typography variant="subtitle2" color="primary.main"
+                  sx={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: 1, mb: 2 }}>
+                  2. Contact & Secret Login Credentials
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={2.5}>
                   {/* Primary Mobile */}
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -934,9 +956,9 @@ Thank you for registering with ICJ Enterprise Platform.
                       helperText={
                         form.mobile
                           ? isMobileValid
-                            ? `✓ Valid ${mobCfg.name} number`
-                            : `Invalid: Enter valid digits for ${mobCfg.name}`
-                          : `Required for OTP verification`
+                            ? `Valid mobile number`
+                            : `Invalid digits for ${mobCfg.name}`
+                          : `Used for OTP authentication`
                       }
                       InputProps={{
                         startAdornment: (
@@ -987,13 +1009,7 @@ Thank you for registering with ICJ Enterprise Platform.
                       onChange={handleChange}
                       placeholder="you@domain.com"
                       error={Boolean(form.email && !isEmailValid)}
-                      helperText={
-                        form.email
-                          ? isEmailValid
-                            ? "✓ Valid email format"
-                            : "सही ईमेल पता दर्ज करें"
-                          : "Used for login and notifications"
-                      }
+                      helperText="Official email used for account security and case notifications"
                     />
                   </Grid>
 
@@ -1006,16 +1022,10 @@ Thank you for registering with ICJ Enterprise Platform.
                       name="password"
                       value={form.password}
                       onChange={handleChange}
-                      placeholder="Choose strong password..."
+                      placeholder="Enter strong password..."
                       error={Boolean(form.password && !isPasswordValid)}
                       autoComplete="new-password"
-                      helperText={
-                        form.password
-                          ? isPasswordValid
-                            ? "✓ Strong Password"
-                            : "Min 8 chars: Upper, Lower, Number & Symbol"
-                          : "Must include Upper, Lower, Number & Symbol"
-                      }
+                      helperText="Must be 8+ chars with uppercase, lowercase, number & symbol"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -1038,7 +1048,7 @@ Thank you for registering with ICJ Enterprise Platform.
                     <TextField
                       fullWidth required
                       type={showPassword ? "text" : "password"}
-                      label="Confirm Password *"
+                      label="Confirm Secret Password *"
                       name="confirmPassword"
                       value={form.confirmPassword}
                       onChange={handleChange}
@@ -1048,8 +1058,8 @@ Thank you for registering with ICJ Enterprise Platform.
                       helperText={
                         form.confirmPassword
                           ? doPasswordsMatch
-                            ? "✓ Passwords Match"
-                            : "पासवर्ड मेल नहीं खा रहे हैं"
+                            ? "Passwords match"
+                            : "Passwords do not match"
                           : "Must match secret password above"
                       }
                       InputProps={{
@@ -1068,18 +1078,18 @@ Thank you for registering with ICJ Enterprise Platform.
               {/* CATEGORY-SPECIFIC TAILORED FORM FIELDS */}
               {/* ========================================================================= */}
 
-              {/* ─ 1. IF OPTION 1: PROBLEM ASSISTANCE (CITIZEN / LITIGANT CLIENT) ─ */}
+              {/* ─ 1. IF OPTION 1: LITIGANT CLIENT ASSISTANCE ─ */}
               {form.purpose === "PROBLEM" && (
-                <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2.5, bgcolor: "#fff5f5", borderColor: "#fca5a5" }}>
-                  <Typography variant="subtitle1" fontWeight={800} color="#b91c1c" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                    <AssignmentLateIcon /> 3. Legal Problem & Dispute Details / कानूनी समस्या विवरण *
+                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 2.5, bgcolor: "#fff5f5", borderColor: "#fca5a5" }}>
+                  <Typography variant="h6" fontWeight={800} color="#b91c1c" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                    <AssignmentLateIcon /> 3. Legal Dispute & Case Particulars
                   </Typography>
 
-                  <Typography variant="caption" fontWeight="bold" color="text.secondary"
+                  <Typography variant="caption" fontWeight={800} color="text.secondary"
                     sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                    Select your problem category * (Select Multiple)
+                    Select Problem Classification * (Select Multiple)
                   </Typography>
-                  <Grid container spacing={1}>
+                  <Grid container spacing={1.5} sx={{ mb: 3 }}>
                     {PROBLEM_CATEGORIES.map((cat) => {
                       const isSelected = (form.problemCategories || []).includes(cat);
                       return (
@@ -1088,22 +1098,22 @@ Thank you for registering with ICJ Enterprise Platform.
                             elevation={0}
                             onClick={() => handleToggleCategory(cat)}
                             sx={{
-                              p: 1.5,
-                              border: "1.5px solid",
-                              borderColor: isSelected ? "#d32f2f" : "#dde3ec",
-                              bgcolor: isSelected ? "#fff" : "#fff",
-                              borderRadius: 1.5,
+                              p: 1.8,
+                              border: "2px solid",
+                              borderColor: isSelected ? "#d32f2f" : "#e2e8f0",
+                              bgcolor: isSelected ? "#ffffff" : "#ffffff",
+                              borderRadius: 2,
                               cursor: "pointer",
                               display: "flex",
                               alignItems: "center",
-                              gap: 1,
+                              gap: 1.2,
                               "&:hover": { borderColor: "#d32f2f" },
                             }}
                           >
                             {isSelected && (
-                              <CheckCircleIcon sx={{ color: "#d32f2f", fontSize: 16 }} />
+                              <CheckCircleIcon sx={{ color: "#d32f2f", fontSize: 18 }} />
                             )}
-                            <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
+                            <Typography variant="body2" fontWeight={isSelected ? 800 : 500}>
                               {cat}
                             </Typography>
                           </Paper>
@@ -1112,46 +1122,44 @@ Thank you for registering with ICJ Enterprise Platform.
                     })}
                   </Grid>
 
-                  {/* Problem Location details */}
-                  <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
-                    <Typography variant="caption" fontWeight="bold" color="text.secondary"
-                      sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                      Problem Location Details (Optional / वैकल्पिक)
+                  {/* Complete Pan-India Problem Location */}
+                  <Box sx={{ mt: 3, pt: 2.5, borderTop: "1px dashed #cbd5e1" }}>
+                    <Typography variant="caption" fontWeight={800} color="text.secondary"
+                      sx={{ display: "block", mb: 2, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                      Dispute Jurisdiction & Location Details (Pan-India)
                     </Typography>
-                    <Grid container spacing={1.5}>
-                      <Grid item xs={12} sm={4} sx={{ minWidth: 260 }}>
+                    <Grid container spacing={2}>
+                      {/* State Dropdown (All 28 States + 8 UTs) */}
+                      <Grid item xs={12} sm={6}>
                         <Autocomplete
-                          freeSolo
                           disableClearable
-                          size="small"
-                          options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
+                          options={PAN_INDIA_STATES}
                           value={form.problemState}
-                          onInputChange={(_, newValue) => {
+                          onChange={(_, newValue) => {
                             setForm(p => ({
                               ...p,
                               problemState: newValue,
-                              problemDistrict: "",
+                              problemDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
                             }));
                           }}
                           renderInput={(params) => (
                             <TextField
                               {...params}
-                              label="State / राज्य"
+                              fullWidth
+                              label="State / Union Territory *"
                               name="problemState"
-                              placeholder="Select or type..."
                             />
                           )}
                         />
                       </Grid>
 
-                      <Grid item xs={12} sm={4} sx={{ minWidth: 260 }}>
+                      {/* District Dropdown (All Districts of Selected State) */}
+                      <Grid item xs={12} sm={6}>
                         <Autocomplete
-                          freeSolo
                           disableClearable
-                          size="small"
-                          options={STATE_DISTRICTS_MAP[form.problemState] || []}
+                          options={PAN_INDIA_DISTRICTS_MAP[form.problemState] || []}
                           value={form.problemDistrict}
-                          onInputChange={(_, newValue) => {
+                          onChange={(_, newValue) => {
                             setForm(p => ({
                               ...p,
                               problemDistrict: newValue,
@@ -1160,9 +1168,9 @@ Thank you for registering with ICJ Enterprise Platform.
                           renderInput={(params) => (
                             <TextField
                               {...params}
-                              label="District / जिला"
+                              fullWidth
+                              label="District *"
                               name="problemDistrict"
-                              placeholder="Select or type..."
                             />
                           )}
                         />
@@ -1170,19 +1178,19 @@ Thank you for registering with ICJ Enterprise Platform.
 
                       <Grid item xs={12} sm={4}>
                         <TextField
-                          fullWidth size="small"
-                          label="City / शहर"
+                          fullWidth
+                          label="City / Tehsil"
                           name="problemCity"
                           value={form.problemCity}
                           onChange={handleChange}
-                          placeholder="City name..."
+                          placeholder="City or Tehsil name..."
                         />
                       </Grid>
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12} sm={4}>
                         <TextField
-                          fullWidth size="small"
-                          label="Pincode / पिन कोड"
+                          fullWidth
+                          label="Pincode"
                           name="problemPincode"
                           value={form.problemPincode}
                           onChange={(e) => {
@@ -1194,87 +1202,163 @@ Thank you for registering with ICJ Enterprise Platform.
                         />
                       </Grid>
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12} sm={4}>
                         <TextField
-                          fullWidth size="small"
-                          label="Police Station / थाना"
+                          fullWidth
+                          label="Police Station (Thana)"
                           name="problemPoliceStation"
                           value={form.problemPoliceStation}
                           onChange={handleChange}
-                          placeholder="Police station name..."
+                          placeholder="Jurisdictional police station..."
                         />
                       </Grid>
                     </Grid>
                   </Box>
 
-                  {/* Voice commentary mic dictation studio */}
-                  <Box sx={{ mt: 3, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
+                  {/* Voice commentary studio */}
+                  <Box sx={{ mt: 3, pt: 2.5, borderTop: "1px dashed #cbd5e1" }}>
                     <VoiceCommentaryStudio
                       value={form.problemDescription}
                       onChange={(newValue) => setForm(p => ({ ...p, problemDescription: newValue }))}
                       onVoiceNotesChange={(updatedNotes) => setForm(p => ({ ...p, problemVoiceFiles: updatedNotes }))}
-                      label="🎙️ Describe your problem / अपनी समस्या विस्तार से बताएं (Optional)"
-                      placeholder="यहाँ क्लिक करें और अपनी पूरी समस्या बोलें या टाइप करें..."
+                      label="🎙️ Spoken Grievance Dictation & Voice Notes (Optional)"
+                      placeholder="Click mic to record your case details or type your problem..."
                     />
                   </Box>
                 </Paper>
               )}
 
-              {/* ─ 2. IF OPTION 2: ICJ THE SOLUTION WORLD (PROFESSIONAL PARTNER) ─ */}
+              {/* ─ 2. IF OPTION 2: TWO-TIER HIERARCHICAL PROFESSIONAL SELECTOR ─ */}
               {form.purpose === "SERVICES" && (
-                <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2.5, bgcolor: "#f5f8ff", borderColor: "#93c5fd" }}>
-                  <Typography variant="subtitle1" fontWeight={800} color="#1d4ed8" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                    <MiscellaneousServicesIcon /> 3. Professional Credentials & Practice Details / व्यावसायिक विवरण *
+                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 2.5, bgcolor: "#f0fdf4", borderColor: "#86efac" }}>
+                  <Typography variant="h6" fontWeight={800} color="#166534" sx={{ mb: 1, display: "flex", alignItems: "center", gap: 1 }}>
+                    <MiscellaneousServicesIcon /> 3. Professional Empanelment & Practice Hierarchy
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    Select your primary professional vertical (Tier 1) and exact designation / practice discipline (Tier 2):
                   </Typography>
 
-                  <Grid container spacing={2} sx={{ mb: 2.5 }}>
-                    {/* Professional Category */}
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        select
-                        fullWidth
-                        required
-                        size="small"
-                        label="Professional Category / व्यावसायिक श्रेणी *"
-                        name="professionalCategory"
-                        value={form.professionalCategory}
-                        onChange={handleChange}
-                        helperText="वकील, CA, CS, CMA या अन्य विशेषज्ञ श्रेणी चुनें"
-                      >
-                        {PROFESSIONAL_CATEGORIES.map((cat) => (
-                          <MenuItem key={cat} value={cat}>
-                            {cat}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </Grid>
+                  {/* TIER 1: PRIMARY CATEGORIES */}
+                  <Typography variant="subtitle2" fontWeight={800} color="text.primary" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                    Tier 1: Select Professional Vertical *
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    {LEGAL_TAXONOMY_CATEGORIES.map((cat) => {
+                      const isSelected = selectedCategoryId === cat.id;
+                      const IconComp = CATEGORY_ICON_MAP[cat.icon] || GavelIcon;
+                      return (
+                        <Grid item xs={12} sm={6} md={4} key={cat.id}>
+                          <Paper
+                            elevation={isSelected ? 3 : 0}
+                            onClick={() => handleCategoryChange(cat)}
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              cursor: "pointer",
+                              border: "2px solid",
+                              borderColor: isSelected ? cat.color : "#e2e8f0",
+                              bgcolor: isSelected ? cat.bg : "#ffffff",
+                              transition: "all 0.18s ease",
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 1.5,
+                              minHeight: 90,
+                              "&:hover": {
+                                borderColor: cat.color,
+                                bgcolor: cat.bg,
+                              },
+                            }}
+                          >
+                            <Box sx={{
+                              width: 38, height: 38, borderRadius: "50%",
+                              bgcolor: isSelected ? cat.color : "#f1f5f9",
+                              color: isSelected ? "#ffffff" : cat.color,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              flexShrink: 0
+                            }}>
+                              <IconComp fontSize="small" />
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" fontWeight={800} color={isSelected ? cat.color : "text.primary"}>
+                                {cat.categoryName}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.3, lineHeight: 1.3 }}>
+                                {cat.description}
+                              </Typography>
+                            </Box>
+                          </Paper>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
 
-                    {/* Council Enrollment / Membership No */}
+                  {/* TIER 2: SUB-CATEGORIES FOR SELECTED VERTICAL (Full Width, Zero Truncation) */}
+                  <Paper sx={{ p: 2.5, mb: 3.5, bgcolor: "#ffffff", borderRadius: 2, border: `1.5px solid ${activeTaxonomyCategory.color}40` }}>
+                    <Typography variant="subtitle2" fontWeight={800} color={activeTaxonomyCategory.color} sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                      Tier 2: Select Specific Designation / Practice Role in {activeTaxonomyCategory.categoryName} *
+                    </Typography>
+                    <Grid container spacing={1.5}>
+                      {activeTaxonomyCategory.subCategories.map((subCat) => {
+                        const isSubSelected = form.professionalSubCategory === subCat.title;
+                        return (
+                          <Grid item xs={12} key={subCat.id}>
+                            <Paper
+                              elevation={0}
+                              onClick={() => handleSubCategorySelect(subCat)}
+                              sx={{
+                                p: 1.8,
+                                border: "2px solid",
+                                borderColor: isSubSelected ? activeTaxonomyCategory.color : "#e2e8f0",
+                                bgcolor: isSubSelected ? activeTaxonomyCategory.bg : "#ffffff",
+                                borderRadius: 1.5,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: 1.5,
+                                "&:hover": {
+                                  borderColor: activeTaxonomyCategory.color,
+                                },
+                              }}
+                            >
+                              <Typography variant="body1" fontWeight={isSubSelected ? 800 : 500} color={isSubSelected ? activeTaxonomyCategory.color : "text.primary"}>
+                                {subCat.title}
+                              </Typography>
+                              {isSubSelected ? (
+                                <CheckCircleIcon sx={{ color: activeTaxonomyCategory.color, fontSize: 22 }} />
+                              ) : (
+                                <Box sx={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid #cbd5e1" }} />
+                              )}
+                            </Paper>
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </Paper>
+
+                  {/* Dynamic Registration Number & Practice Jurisdictions */}
+                  <Grid container spacing={2.5} sx={{ mb: 3 }}>
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        size="small"
-                        label="Bar / ICAI / ICSI Reg No. (Optional)"
+                        label={activeTaxonomyCategory.regFieldLabel}
                         name="professionalRegNo"
                         value={form.professionalRegNo}
                         onChange={handleChange}
-                        placeholder="e.g. UP/2026/1170, ICAI-098234, FCS-8812"
-                        helperText="काउंसिल/संस्थान एनरोलमेंट नंबर (यदि उपलब्ध हो)"
+                        placeholder="e.g. D/1234/2020, ICAI-098234, FCS-8812, License No."
+                        helperText="Official council, bar, institute, or government registration identifier"
                       />
                     </Grid>
 
-                    {/* Experience */}
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        label="Years of Experience / कार्य अनुभव"
+                        select fullWidth
+                        label="Years of Professional Experience *"
                         name="professionalExperience"
                         value={form.professionalExperience}
                         onChange={handleChange}
                       >
-                        {EXPERIENCE_OPTIONS.map((exp) => (
+                        {EXPERIENCE_LEVELS.map((exp) => (
                           <MenuItem key={exp} value={exp}>
                             {exp}
                           </MenuItem>
@@ -1282,41 +1366,84 @@ Thank you for registering with ICJ Enterprise Platform.
                       </TextField>
                     </Grid>
 
-                    {/* Practice Courts / Jurisdictions */}
+                    {/* Primary Practice State (Pan-India Master) */}
                     <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        label="Practice Courts / Jurisdictions"
-                        name="practiceCourts"
-                        value={form.practiceCourts}
-                        onChange={handleChange}
-                        placeholder="e.g. Supreme Court, High Court, NCLT, Tehsil"
-                        helperText="न्यायालय या कार्यक्षेत्र जहाँ आप प्रैक्टिस करते हैं"
+                      <Autocomplete
+                        disableClearable
+                        options={PAN_INDIA_STATES}
+                        value={form.practiceState}
+                        onChange={(_, newValue) => {
+                          setForm(p => ({
+                            ...p,
+                            practiceState: newValue,
+                            practiceDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
+                          }));
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            label="Primary Practice State / Union Territory *"
+                            name="practiceState"
+                          />
+                        )}
                       />
                     </Grid>
 
-                    {/* Key Specializations */}
+                    {/* Primary Practice District */}
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        disableClearable
+                        options={PAN_INDIA_DISTRICTS_MAP[form.practiceState] || []}
+                        value={form.practiceDistrict}
+                        onChange={(_, newValue) => {
+                          setForm(p => ({
+                            ...p,
+                            practiceDistrict: newValue,
+                          }));
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            fullWidth
+                            label="Primary Practice District *"
+                            name="practiceDistrict"
+                          />
+                        )}
+                      />
+                    </Grid>
+
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        size="small"
-                        label="Key Specializations / आपकी प्रमुख विशेषताएँ"
+                        label="Practice Courts, Tribunals & Jurisdictions"
+                        name="practiceCourts"
+                        value={form.practiceCourts}
+                        onChange={handleChange}
+                        placeholder="e.g. Supreme Court of India, Delhi High Court, NCLT Principal Bench, District Courts"
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Key Areas of Expertise & Specializations"
                         name="specializations"
                         value={form.specializations}
                         onChange={handleChange}
-                        placeholder="e.g. Corporate Tax, GST, NCLT, Criminal Trials, Cyber Law, Arbitration"
-                        helperText="अपनी विशेषताएँ लिखें (इन्हें बाद में प्रोफ़ाइल में कभी भी एडिट किया जा सकता है)"
+                        placeholder="e.g. Corporate Tax, GST, NCLT Insolvency, Criminal Appeals, Arbitration, IPR"
+                        helperText="You can update and expand your specializations anytime from your profile desk"
                       />
                     </Grid>
                   </Grid>
 
-                  <Typography variant="caption" fontWeight="bold" color="text.secondary"
+                  {/* Collaborative Services */}
+                  <Typography variant="caption" fontWeight={800} color="text.secondary"
                     sx={{ display: "block", mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                    Select the ICJ services you can offer or collaborate on *
+                    Select ICJ Services you can offer or collaborate on:
                   </Typography>
-                  <Grid container spacing={1}>
-                    {SERVICE_CATEGORIES.map((cat) => {
+                  <Grid container spacing={1.5}>
+                    {SERVICE_OFFERINGS.map((cat) => {
                       const isSelected = (form.solutionServices || []).includes(cat);
                       return (
                         <Grid item xs={12} sm={6} key={cat}>
@@ -1324,22 +1451,22 @@ Thank you for registering with ICJ Enterprise Platform.
                             elevation={0}
                             onClick={() => handleToggleService(cat)}
                             sx={{
-                              p: 1.5,
+                              p: 1.8,
                               border: "1.5px solid",
-                              borderColor: isSelected ? "#1565c0" : "#dde3ec",
-                              bgcolor: isSelected ? "#fff" : "#fff",
+                              borderColor: isSelected ? "#1565c0" : "#e2e8f0",
+                              bgcolor: isSelected ? "#eff6ff" : "#ffffff",
                               borderRadius: 1.5,
                               cursor: "pointer",
                               display: "flex",
                               alignItems: "center",
-                              gap: 1,
+                              gap: 1.2,
                               "&:hover": { borderColor: "#1565c0" },
                             }}
                           >
                             {isSelected && (
-                              <CheckCircleIcon sx={{ color: "#1565c0", fontSize: 16 }} />
+                              <CheckCircleIcon sx={{ color: "#1565c0", fontSize: 18 }} />
                             )}
-                            <Typography variant="body2" fontWeight={isSelected ? 700 : 400}>
+                            <Typography variant="body2" fontWeight={isSelected ? 800 : 500}>
                               {cat}
                             </Typography>
                           </Paper>
@@ -1352,46 +1479,44 @@ Thank you for registering with ICJ Enterprise Platform.
 
               {/* ─ 3. IF OPTION 3: FRANCHISE PARTNER ─ */}
               {form.purpose === "FRANCHISE" && (
-                <Paper variant="outlined" sx={{ p: { xs: 2, md: 3 }, borderRadius: 2.5, bgcolor: "#f5fff5", borderColor: "#86efac" }}>
-                  <Typography variant="subtitle1" fontWeight={800} color="#15803d" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-                    <HandshakeIcon /> 3. Franchise Center Location & Premises / केंद्र विवरण *
+                <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 2.5, bgcolor: "#f5fff5", borderColor: "#86efac" }}>
+                  <Typography variant="h6" fontWeight={800} color="#15803d" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                    <HandshakeIcon /> 3. District Franchise Node & Infrastructure Particulars
                   </Typography>
 
-                  <Grid container spacing={2}>
+                  <Grid container spacing={2.5}>
+                    {/* Pan-India State Master */}
                     <Grid item xs={12} sm={6}>
                       <Autocomplete
-                        freeSolo
                         disableClearable
-                        size="small"
-                        options={["Delhi", "Uttar Pradesh", "Punjab", "Haryana"]}
+                        options={PAN_INDIA_STATES}
                         value={form.franchiseState}
-                        onInputChange={(_, newValue) => {
+                        onChange={(_, newValue) => {
                           setForm(p => ({
                             ...p,
                             franchiseState: newValue,
-                            franchiseDistrict: "",
+                            franchiseDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
                           }));
                         }}
                         renderInput={(params) => (
                           <TextField
                             {...params}
+                            fullWidth
                             required
-                            label="State / राज्य *"
+                            label="Target State / Union Territory *"
                             name="franchiseState"
-                            placeholder="Select or type state..."
                           />
                         )}
                       />
                     </Grid>
 
+                    {/* Pan-India District Master */}
                     <Grid item xs={12} sm={6}>
                       <Autocomplete
-                        freeSolo
                         disableClearable
-                        size="small"
-                        options={STATE_DISTRICTS_MAP[form.franchiseState] || []}
+                        options={PAN_INDIA_DISTRICTS_MAP[form.franchiseState] || []}
                         value={form.franchiseDistrict}
-                        onInputChange={(_, newValue) => {
+                        onChange={(_, newValue) => {
                           setForm(p => ({
                             ...p,
                             franchiseDistrict: newValue,
@@ -1400,10 +1525,10 @@ Thank you for registering with ICJ Enterprise Platform.
                         renderInput={(params) => (
                           <TextField
                             {...params}
+                            fullWidth
                             required
-                            label="District / जिला *"
+                            label="Target District *"
                             name="franchiseDistrict"
-                            placeholder="Select or type district..."
                           />
                         )}
                       />
@@ -1411,19 +1536,19 @@ Thank you for registering with ICJ Enterprise Platform.
 
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        fullWidth required size="small"
-                        label="City / शहर *"
+                        fullWidth required
+                        label="City / Center Location *"
                         name="franchiseCity"
                         value={form.franchiseCity}
                         onChange={handleChange}
-                        placeholder="City name..."
+                        placeholder="City or Tehsil name..."
                       />
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
                       <TextField
-                        fullWidth required size="small"
-                        label="Pincode / पिन कोड *"
+                        fullWidth required
+                        label="Pincode *"
                         name="franchisePincode"
                         value={form.franchisePincode}
                         onChange={(e) => {
@@ -1438,11 +1563,11 @@ Thank you for registering with ICJ Enterprise Platform.
                     <Grid item xs={12}>
                       <TextField
                         fullWidth required
-                        label="Background / Office Premises Details *"
+                        label="Commercial Infrastructure, Office Premises & Background Details *"
                         name="franchiseBackground"
                         value={form.franchiseBackground}
                         onChange={handleChange}
-                        placeholder="Detail your commercial premises, team, or legal background..."
+                        placeholder="Detail your commercial office space, IT infrastructure, legal/business experience, and operational readiness..."
                         multiline
                         rows={4}
                       />
@@ -1452,18 +1577,18 @@ Thank you for registering with ICJ Enterprise Platform.
               )}
 
               {/* ICJ Enterprise Tech & Security Showcase Banner */}
-              <Paper variant="outlined" sx={{ p: 2, bgcolor: "#0f172a", color: "#fff", borderRadius: 2, border: "1px solid #334155" }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+              <Paper variant="outlined" sx={{ p: 2.5, bgcolor: "#0f172a", color: "#fff", borderRadius: 2, border: "1px solid #334155" }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
                   <Box>
-                    <Typography variant="subtitle2" fontWeight="bold" sx={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <SecurityIcon fontSize="small" /> 🚀 Powered by ICJ Next-Gen Enterprise Tech Architecture
+                    <Typography variant="subtitle2" fontWeight={800} sx={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: 0.8 }}>
+                      <SecurityIcon fontSize="small" /> Powered by ICJ Next-Gen Enterprise Legal-Tech Architecture
                     </Typography>
                     <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                      Zero-Trust DRM Security | Multi-Party Encrypted Chamber | Direct Role Routing
+                      Zero-Trust DRM Security | End-to-End Encryption | Instant Dynamic Role-Based Routing
                     </Typography>
                   </Box>
-                  <Button size="small" variant="contained" color="warning" onClick={() => setTechShowcaseOpen(true)} sx={{ fontWeight: "bold" }}>
-                    EXPLORE TECH SHOWCASE 🛡️
+                  <Button size="small" variant="contained" color="warning" onClick={() => setTechShowcaseOpen(true)} sx={{ fontWeight: 800 }}>
+                    EXPLORE TECH ARCHITECTURE 🛡️
                   </Button>
                 </Stack>
               </Paper>
@@ -1480,7 +1605,7 @@ Thank you for registering with ICJ Enterprise Platform.
                 }
                 label={
                   <Typography variant="body2">
-                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setLegalModalOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline", fontWeight: "bold" }}>IT Act Sec 79 Intermediary Immunity, DPDP Act 2023 & Push Alert Consent</Button>, and verification process.
+                    I agree to the ICJ onboarding terms, <Button variant="text" size="small" onClick={() => setLegalModalOpen(true)} sx={{ p: 0, textTransform: "none", textDecoration: "underline", fontWeight: "bold" }}>IT Act Section 79 Intermediary Immunity, DPDP Act 2023 & Push Alert Consent</Button>, and digital verification process.
                   </Typography>
                 }
               />
@@ -1505,12 +1630,12 @@ Thank you for registering with ICJ Enterprise Platform.
                 disabled={submitting}
                 endIcon={<ArrowForwardIcon />}
                 sx={{
-                  py: 1.6,
-                  fontWeight: 800,
+                  py: 1.8,
+                  fontWeight: 900,
                   borderRadius: 2,
                   fontSize: "1.1rem",
-                  bgcolor: selectedPurposeObj?.color || "#002855",
-                  "&:hover": { bgcolor: selectedPurposeObj?.color || "#001a38" },
+                  bgcolor: selectedPurposeObj?.color || "#0f172a",
+                  "&:hover": { bgcolor: selectedPurposeObj?.color || "#020617" },
                 }}
               >
                 SUBMIT REGISTRATION & VERIFY OTP ➔
@@ -1528,42 +1653,42 @@ Thank you for registering with ICJ Enterprise Platform.
             <Box sx={{ color: "success.main", mb: 2 }}>
               <VerifiedUserIcon sx={{ fontSize: 64 }} />
             </Box>
-            <Typography variant="h4" fontWeight="bold" color="primary.main" gutterBottom>
-              REGISTRATION & AUTHENTICATION SUCCESSFUL!
+            <Typography variant="h4" fontWeight={900} color="primary.main" gutterBottom>
+              REGISTRATION & ACTIVATION SUCCESSFUL!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Your member account has been registered and logged in. Below are your permanent credentials.
+              Your permanent member account has been registered and verified. Below are your official credentials.
             </Typography>
 
             <Paper variant="outlined" sx={{ p: 3, mb: 4, textAlign: "left", bgcolor: "#f8fafc", borderRadius: 2 }}>
-              <Grid container spacing={2}>
+              <Grid container spacing={2.5}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary">PERMANENT MEMBER ID</Typography>
-                  <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ fontFamily: "monospace" }}>
+                  <Typography variant="caption" color="text.secondary">PERMANENT SERIAL ID</Typography>
+                  <Typography variant="h6" fontWeight={900} color="primary.main" sx={{ fontFamily: "monospace" }}>
                     {createdMember.member_id || createdMember.memberId}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary">APPLICANT NAME</Typography>
-                  <Typography variant="subtitle1" fontWeight="bold">{createdMember.name}</Typography>
+                  <Typography variant="subtitle1" fontWeight={800}>{createdMember.name}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary">REGISTERED EMAIL</Typography>
-                  <Typography variant="body2" fontWeight="bold">{createdMember.email}</Typography>
+                  <Typography variant="body2" fontWeight={700}>{createdMember.email}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" color="text.secondary">MOBILE NUMBER</Typography>
-                  <Typography variant="body2" fontWeight="bold">{createdMember.mobile}</Typography>
+                  <Typography variant="caption" color="text.secondary">PRIMARY MOBILE</Typography>
+                  <Typography variant="body2" fontWeight={700}>{createdMember.mobile}</Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary">ASSIGNED ROLE & PORTAL</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="secondary.main">
-                    {createdMember.role === "advocate" ? "⚖️ ICJ Professional Chambers" : createdMember.role === "franchise" ? "🏢 District Franchise Desk" : "👤 Litigant Client Portal"}
+                  <Typography variant="body2" fontWeight={800} color="secondary.main">
+                    {createdMember.role === "advocate" ? "ICJ Professional Chambers" : createdMember.role === "franchise" ? "District Franchise Desk" : "Litigant Client Portal"}
                   </Typography>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary">VERIFICATION STATUS</Typography>
-                  <Typography variant="body2" fontWeight="bold" color="success.main">
+                  <Typography variant="body2" fontWeight={800} color="success.main">
                     🟢 {createdMember.verification_status || "Approved & Active"}
                   </Typography>
                 </Grid>
@@ -1575,7 +1700,7 @@ Thank you for registering with ICJ Enterprise Platform.
                 variant="outlined"
                 startIcon={<DownloadIcon />}
                 onClick={handleDownloadReceipt}
-                sx={{ fontWeight: "bold" }}
+                sx={{ fontWeight: 800 }}
               >
                 Download Registration Receipt (.TXT)
               </Button>
@@ -1587,7 +1712,7 @@ Thank you for registering with ICJ Enterprise Platform.
                   else if (createdMember.role === "franchise") navigate("/franchise-dashboard");
                   else navigate("/client-portal");
                 }}
-                sx={{ fontWeight: "bold", px: 4 }}
+                sx={{ fontWeight: 900, px: 4 }}
               >
                 Enter Your Dashboard ➔
               </Button>
@@ -1599,17 +1724,17 @@ Thank you for registering with ICJ Enterprise Platform.
 
       {/* OTP Verification Modal */}
       <Dialog open={otpModalOpen} onClose={() => setOtpModalOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold", textAlign: "center" }}>
+        <DialogTitle sx={{ fontWeight: 800, textAlign: "center" }}>
           🔒 Enter Verification OTP
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2, textAlign: "center" }}>
-            A 6-digit verification code has been sent to <strong>{form.email}</strong>.
+            A 6-digit verification code has been dispatched to <strong>{form.email}</strong>.
           </Typography>
           <TextField
             fullWidth
             autoFocus
-            label="6-Digit OTP Code"
+            label="6-Digit Verification Code"
             value={otpCode}
             onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
             placeholder="123456"

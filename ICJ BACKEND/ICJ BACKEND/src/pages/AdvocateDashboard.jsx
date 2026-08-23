@@ -475,7 +475,7 @@ export default function AdvocateDashboard() {
                   ⚖️ Empaneled Professional Credentials & Practice Roster
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  अधिवक्ता, CA, CS, आर्बिट्रेटर व लीगल पार्टनर्स का आधिकारिक क्रेडेंशियल व स्पेशलाइजेशन रिकॉर्ड
+                  Official credential, enrollment, and specialization record for Advocates, CAs, CSs, Arbitrators & Legal Partners
                 </Typography>
               </Box>
               <Button
@@ -495,7 +495,7 @@ export default function AdvocateDashboard() {
                 }}
                 sx={{ fontWeight: "bold" }}
               >
-                ✏️ Edit Profile & Specializations (विशेषताएँ संपादित करें)
+                ✏️ Edit Profile & Specializations
               </Button>
             </Stack>
             <Divider sx={{ mb: 3 }} />
