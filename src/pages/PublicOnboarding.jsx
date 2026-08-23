@@ -199,6 +199,9 @@ export default function PublicOnboarding() {
     professionalExperience: EXPERIENCE_LEVELS[2], // "Senior Professional (5 - 10 Years)"
     practiceState: DEFAULT_STATE,
     practiceDistrict: DEFAULT_DISTRICT,
+    practiceCity: "",
+    practicePoliceStation: "",
+    practicePincode: "",
     practiceCourts: "Supreme Court of India, High Court & District Courts",
     specializations: LEGAL_TAXONOMY_CATEGORIES[0].subCategories[0].defaultSpecialization,
     solutionServices:  [],
@@ -207,6 +210,7 @@ export default function PublicOnboarding() {
     franchiseState:    DEFAULT_STATE,
     franchiseDistrict: DEFAULT_DISTRICT,
     franchiseCity:     "",
+    franchisePoliceStation: "",
     franchisePincode:  "",
     franchiseBackground: "",
     termsAccepted:     false,
@@ -478,6 +482,9 @@ export default function PublicOnboarding() {
         professionalExperience: form.professionalExperience,
         practiceState: form.practiceState,
         practiceDistrict: form.practiceDistrict,
+        practiceCity: form.practiceCity,
+        practicePoliceStation: form.practicePoliceStation,
+        practicePincode: form.practicePincode,
         practiceCourts: form.practiceCourts,
         specializations: form.specializations,
         purpose:    purposeLabel,
@@ -492,6 +499,7 @@ export default function PublicOnboarding() {
         franchiseState: form.franchiseState,
         franchiseDistrict: form.franchiseDistrict,
         franchiseCity: form.franchiseCity,
+        franchisePoliceStation: form.franchisePoliceStation,
         franchisePincode: form.franchisePincode,
         franchiseBackground: form.franchiseBackground,
         education: form.purpose === "SERVICES" ? "Professional Degree / Certified Council" : "Graduate / Professional",
@@ -1442,6 +1450,34 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                         value={form.practiceCity || ""}
                         onChange={handleChange}
                         placeholder="Tehsil or City name..."
+                      />
+                    </Grid>
+
+                    {/* LOCATION ROW 2: Jurisdictional Police Station (Thana) & Pincode (6 Digits) (sm={6} each) */}
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Jurisdictional Police Station (Thana)"
+                        name="practicePoliceStation"
+                        value={form.practicePoliceStation || ""}
+                        onChange={handleChange}
+                        placeholder="Jurisdictional police station / Thana..."
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Chamber / Office Pincode (6 Digits)"
+                        name="practicePincode"
+                        value={form.practicePincode || ""}
+                        onChange={(e) => {
+                          const val = sanitizeStrictPincode(e.target.value);
+                          setForm(p => ({ ...p, practicePincode: val }));
+                        }}
+                        placeholder="e.g. 110001"
+                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
+                        helperText="6-digit postal pincode"
                       />
                     </Grid>
 
