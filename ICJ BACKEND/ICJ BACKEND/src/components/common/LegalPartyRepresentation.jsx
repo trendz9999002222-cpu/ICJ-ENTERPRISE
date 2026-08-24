@@ -198,34 +198,32 @@ export default function LegalPartyRepresentation({
       }}
     >
       {/* 1. HEADER & CLIENT SIDE SELECTION */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        spacing={2}
-        sx={{ mb: 2.5 }}
-      >
-        <Box>
-          <Typography variant="subtitle2" fontWeight={900} color="#0f172a">
-            STEP 2: LEGAL PARTIES & OUR CLIENT REPRESENTATION (पक्षकार व हमारा पक्ष) *
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            हम किसकी पैरवी कर रहे हैं और विपक्षी पार्टी कौन है?
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography variant="subtitle2" fontWeight={900} color="#0f172a">
+          STEP 2: LEGAL PARTIES & OUR CLIENT REPRESENTATION (पक्षकार व हमारा पक्ष) *
+        </Typography>
+        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+          हम किसकी पैरवी कर रहे हैं और विपक्षी पार्टी कौन है?
+        </Typography>
 
-        {/* TOGGLE BUTTON: SIDE A VS SIDE B */}
-        <Box>
-          <Typography variant="caption" fontWeight={800} color="#475569" display="block" sx={{ mb: 0.5 }}>
-            हमारा क्लाइंट किस पक्ष में है? (Whom are we representing?):
+        {/* TOGGLE BUTTON: SIDE A VS SIDE B (Full-Width Responsive Bar) */}
+        <Box sx={{ p: 1.5, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
+          <Typography variant="caption" fontWeight={800} color="#334155" display="block" sx={{ mb: 1 }}>
+            🎯 हमारा क्लाइंट किस पक्ष में है? (Whom are we representing?):
           </Typography>
           <ToggleButtonGroup
             value={clientSide}
             exclusive
             onChange={(_, val) => val && setClientSide(val)}
-            size="small"
+            size="medium"
             disabled={disabled}
             sx={{
+              width: "100%",
+              display: "flex",
+              "& .MuiToggleButtonGroup-grouped": {
+                flex: 1,
+                py: 1,
+              },
               "& .Mui-selected": {
                 bgcolor: clientSide === "SIDE_A" ? "#1d4ed8 !important" : "#b91c1c !important",
                 color: "#ffffff !important",
@@ -233,15 +231,15 @@ export default function LegalPartyRepresentation({
               },
             }}
           >
-            <ToggleButton value="SIDE_A" sx={{ px: 2, textTransform: "none", fontSize: "0.8rem", fontWeight: 700 }}>
-              🛡️ {partyLabels.sideAName}
+            <ToggleButton value="SIDE_A" sx={{ textTransform: "none", fontSize: "0.88rem", fontWeight: 700 }}>
+              🛡️ {partyLabels.sideAName} ({partyLabels.sideAHindi})
             </ToggleButton>
-            <ToggleButton value="SIDE_B" sx={{ px: 2, textTransform: "none", fontSize: "0.8rem", fontWeight: 700 }}>
-              ⚖️ {partyLabels.sideBName}
+            <ToggleButton value="SIDE_B" sx={{ textTransform: "none", fontSize: "0.88rem", fontWeight: 700 }}>
+              ⚖️ {partyLabels.sideBName} ({partyLabels.sideBHindi})
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
-      </Stack>
+      </Box>
 
       {/* 2. SIDE A & SIDE B PARTIES GRID */}
       <Grid container spacing={2.5} alignItems="flex-start">
