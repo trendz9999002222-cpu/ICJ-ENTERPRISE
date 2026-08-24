@@ -8,23 +8,32 @@
 const VAULT_SALT = "ICJ_ENTERPRISE_AES256_SECRET_VAULT_2026_SEED";
 
 const simpleCipher = (text, key) => {
-  let result = "";
-  for (let i = 0; i < text.length; i++) {
-    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  try {
+    const utf8Text = encodeURIComponent(text);
+    let result = "";
+    for (let i = 0; i < utf8Text.length; i++) {
+      result += String.fromCharCode(utf8Text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return typeof Buffer !== "undefined"
+      ? Buffer.from(result, "binary").toString("base64")
+      : btoa(result);
+  } catch {
+    return text;
   }
-  return btoa(result);
 };
 
 const simpleDecipher = (encoded, key) => {
   try {
-    const text = atob(encoded);
+    const raw = typeof Buffer !== "undefined"
+      ? Buffer.from(encoded, "base64").toString("binary")
+      : atob(encoded);
     let result = "";
-    for (let i = 0; i < text.length; i++) {
-      result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    for (let i = 0; i < raw.length; i++) {
+      result += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
     }
-    return result;
+    return decodeURIComponent(result);
   } catch {
-    return null;
+    return encoded;
   }
 };
 

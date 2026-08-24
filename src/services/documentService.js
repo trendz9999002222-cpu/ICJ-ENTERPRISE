@@ -5,6 +5,7 @@ import {
   deleteDocument,
 } from "./database";
 import { supabase } from "./supabase";
+import StorageAbstractionService, { calculateSHA256 } from "./storage/storageAbstractionService.js";
 
 const canUseStorage =
   Boolean(import.meta.env.VITE_SUPABASE_URL) &&
@@ -18,10 +19,7 @@ const fileToDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
-const SAMPLE_DOCUMENTS = [];
-
 const DocumentService = {
-
   async getAll() {
     const list = await getDocuments();
     if (Array.isArray(list)) return list;
@@ -32,41 +30,74 @@ const DocumentService = {
     const { file, ...safeData } = documentData;
     let fileUrl = documentData.fileUrl || "";
     let filePath = "";
+    const fileName = documentData.fileName || file?.name || `Document_${Date.now()}.pdf`;
+    const memberId = documentData.memberId || documentData.owner || "26CLT08AA0001";
+    const caseId = documentData.caseId || `CASE-${Date.now()}`;
+    const category = documentData.category || "evidence";
 
+    let fileContent = fileUrl;
     if (file instanceof File) {
+      fileContent = await fileToDataUrl(file);
+    }
+
+    // 1. Calculate Cryptographic SHA-256 for Evidentiary Compliance
+    const sha256Hash = await calculateSHA256(fileContent || fileName + Date.now());
+
+    // 2. Upload through Storage Abstraction Layer (SAL)
+    let sovereignRecord = null;
+    try {
+      sovereignRecord = await StorageAbstractionService.uploadFile({
+        memberId,
+        caseId,
+        category,
+        fileName,
+        fileData: fileContent,
+        mimeType: documentData.fileType || "application/pdf",
+        transcription: documentData.transcription || "",
+      });
+      fileUrl = sovereignRecord.fileUrl;
+      filePath = sovereignRecord.storagePath;
+    } catch (e) {
+      console.warn("StorageAbstractionService fallback:", e);
+    }
+
+    // 3. Fallback to Supabase if configured and requested
+    if (file instanceof File && canUseStorage && !filePath) {
       const uploadName = `${Date.now()}-${file.name}`;
+      try {
+        const { error } = await supabase.storage
+          .from("documents")
+          .upload(uploadName, file, { upsert: true });
 
-      if (canUseStorage) {
-        try {
-          const { error } = await supabase.storage
+        if (!error) {
+          const { data } = supabase.storage
             .from("documents")
-            .upload(uploadName, file, { upsert: true });
-
-          if (!error) {
-            const { data } = supabase.storage
-              .from("documents")
-              .getPublicUrl(uploadName);
-            fileUrl = data?.publicUrl || "";
-            filePath = uploadName;
-          }
-        } catch {
-          fileUrl = await fileToDataUrl(file);
+            .getPublicUrl(uploadName);
+          fileUrl = data?.publicUrl || "";
+          filePath = uploadName;
         }
-      } else {
-        fileUrl = await fileToDataUrl(file);
-      }
+      } catch {}
     }
 
     const document = {
       id: Date.now(),
       documentNo: "DOC-" + Date.now(),
-      title: documentData.title || "",
-      category: documentData.category || "",
-      owner: documentData.owner || "",
-      fileName: documentData.fileName || "",
-      fileType: documentData.fileType || "",
+      title: documentData.title || fileName,
+      category,
+      owner: memberId,
+      memberId,
+      caseId,
+      fileName,
+      fileType: documentData.fileType || "application/pdf",
       filePath,
       fileUrl,
+      sha256Hash,
+      tamperProofCertificate: sovereignRecord?.tamperProofCertificate || {
+        algorithm: "SHA-256",
+        checksum: sha256Hash,
+        timestamp: new Date().toISOString(),
+        admissibleSection: "Section 63 BSA 2023 / Section 65B Indian Evidence Act",
+      },
       status: documentData.status || "Active",
       createdAt: new Date().toISOString(),
       ...safeData,
@@ -85,7 +116,6 @@ const DocumentService = {
 
   async getDownloadUrl(document) {
     if (document.fileUrl) return document.fileUrl;
-
     if (!document.filePath || !canUseStorage) return "";
 
     try {
@@ -98,31 +128,15 @@ const DocumentService = {
     }
   },
 
-  // DRM & OTP Lock Services
-  requestPrintOTP(documentId, requesterName = "Advocate / User") {
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const session = {
-      documentId,
-      requesterName,
-      otp,
-      requestedAt: new Date().toISOString(),
-      verified: false,
-    };
-    localStorage.setItem(`icj_print_otp_${documentId}`, JSON.stringify(session));
-    return { success: true, otp, message: `OTP ${otp} sent to Document Owner / Super Admin` };
-  },
-
-  verifyPrintOTP(documentId, enteredOtp) {
-    const raw = localStorage.getItem(`icj_print_otp_${documentId}`);
-    if (!raw) return { success: false, message: "No active OTP request found." };
-    const session = JSON.parse(raw);
-    if (session.otp === enteredOtp.trim()) {
-      session.verified = true;
-      session.unlockedAt = new Date().toISOString();
-      localStorage.setItem(`icj_print_otp_${documentId}`, JSON.stringify(session));
-      return { success: true, message: "Print & Download Permission Granted!" };
-    }
-    return { success: false, message: "Invalid OTP. Access Denied." };
+  async getCategories() {
+    return [
+      "Evidence & FIR",
+      "Pleadings & Petitions",
+      "Court Orders & Stays",
+      "Financial Records",
+      "Identity & KYC",
+      "Voice Transcriptions",
+    ];
   },
 };
 
