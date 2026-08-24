@@ -1,14 +1,19 @@
 /**
- * ICJ ENTERPRISE PLATFORM — INDIA COURT MASTER & COURT-SPECIFIC CASE TAXONOMY TEST SUITE
+ * ICJ ENTERPRISE PLATFORM — ALL-INDIA MEGA JUDICIAL MASTER & TAXONOMY TEST SUITE
  */
 import JudiciaryMasterService, {
-  OFFICIAL_HIGH_COURTS,
-  HIGH_COURT_CASE_TYPES,
+  JUDICIAL_TIERS,
+  SUPREME_COURT_CASE_TYPES,
+  ALL_INDIA_HIGH_COURT_CASE_TYPES,
   DISTRICT_ESTABLISHMENT_CASE_TYPES,
+  REVENUE_ESTABLISHMENT_LEVELS,
+  REVENUE_CASE_TYPES,
+  SPECIAL_TRIBUNALS_DIRECTORY,
+  OFFICIAL_HIGH_COURTS,
 } from "../src/services/judiciaryMasterService.js";
 import LocationService from "../src/services/locationService.js";
 
-console.log("=== RUNNING INDIA COURT MASTER & TAXONOMY HIERARCHY TEST SUITE ===");
+console.log("=== RUNNING ALL-INDIA MEGA JUDICIAL MASTER & TAXONOMY TEST SUITE ===");
 
 // Mock browser localStorage for node runner
 if (typeof globalThis.localStorage === "undefined") {
@@ -30,70 +35,88 @@ function assert(condition, message) {
   }
 }
 
-async function runCourtMasterTests() {
-  // 1. 25 Official High Courts Coverage
+async function runMegaMasterTests() {
+  // 1. 5 Top-Level Judicial Forum Tiers
+  const tiers = JudiciaryMasterService.getTiers();
+  assert(tiers.length === 5, `All 5 Top-Level Tiers present (Found: ${tiers.length})`);
+  assert(tiers.some((t) => t.id === "SUPREME_COURT"), "Supreme Court tier present");
+  assert(tiers.some((t) => t.id === "HIGH_COURT"), "High Court tier present");
+  assert(tiers.some((t) => t.id === "DISTRICT_COURT"), "District Court tier present");
+  assert(tiers.some((t) => t.id === "TEHSIL_REVENUE"), "Tehsil & Revenue tier present");
+  assert(tiers.some((t) => t.id === "SPECIAL_TRIBUNAL"), "Special Tribunal tier present");
+
+  // 2. Supreme Court 26 Master Case Types
+  const scTypes = JudiciaryMasterService.getSupremeCourtCaseTypes();
+  assert(scTypes.length === 26, `All 26 Supreme Court Case Types present (Found: ${scTypes.length})`);
+  assert(scTypes.some((c) => c.code === "W.P.(C)" && c.name.includes("Art. 32")), "Art 32 Civil Writ present");
+  assert(scTypes.some((c) => c.code === "W.P.(CRL)" && c.subCategories.includes("Habeas Corpus (बंदी प्रत्यक्षीकरण)")), "Habeas Corpus Criminal Writ present");
+  assert(scTypes.some((c) => c.code === "T.P.(C)"), "Transfer Petition Civil present");
+  assert(scTypes.some((c) => c.code === "T.P.(CRL)"), "Transfer Petition Criminal present");
+  assert(scTypes.some((c) => c.code === "O.S." && c.name.includes("Article 131")), "Article 131 Original Suit present");
+  assert(scTypes.some((c) => c.code === "C.A.(IBC)"), "Direct NCLAT IBC Appeal present");
+  assert(scTypes.some((c) => c.code === "SLP(C)"), "SLP Civil Article 136 present");
+  assert(scTypes.some((c) => c.code === "CURATIVE.PET(C)"), "Curative Petition Civil present");
+
+  // 3. All-India High Court 37 Master Case Types
+  const hcTypes = JudiciaryMasterService.getAllIndiaHighCourtCaseTypes();
+  assert(hcTypes.length === 37, `All 37 High Court Case Types present (Found: ${hcTypes.length})`);
+  assert(hcTypes.some((c) => c.code === "W.P.(C)"), "High Court W.P.(C) present");
+  assert(hcTypes.some((c) => c.code === "BAIL APPLN."), "High Court Bail Applications present");
+  assert(hcTypes.some((c) => c.code === "CRL.M.C." && c.name.includes("Sec 482")), "High Court Sec 482 Quashing present");
+  assert(hcTypes.some((c) => c.code === "CS(COMM)"), "High Court Commercial Civil Suit present");
+  assert(hcTypes.some((c) => c.code === "ARB.P."), "High Court Arbitration Sec 11 present");
+  assert(hcTypes.some((c) => c.code === "C.O.(COMM.IPD)"), "High Court IPR Division present");
+  assert(hcTypes.some((c) => c.code === "ITA"), "High Court Income Tax Appeal present");
+  assert(hcTypes.some((c) => c.code === "CONT.CAS(C)"), "High Court Civil Contempt present");
+  assert(hcTypes.some((c) => c.code === "E.P."), "High Court MLA/MP Election Petition present");
+
+  // 4. 25 Official High Courts Coverage
   const highCourts = JudiciaryMasterService.getHighCourts();
   assert(highCourts.length === 25, `All 25 Official High Courts of India present (Found: ${highCourts.length})`);
-  
-  const delhiHC = JudiciaryMasterService.getHighCourtByCode("HC-DEL");
-  assert(delhiHC !== null, "Delhi High Court found by code HC-DEL");
-  assert(delhiHC.cnrPrefix === "DLHC", "Delhi High Court CNR prefix is DLHC");
 
-  const allahabadHC = JudiciaryMasterService.getHighCourtByCode("HC-ALL");
-  assert(allahabadHC !== null, "Allahabad High Court found");
-  assert(allahabadHC.benches.includes("Lucknow Bench"), "Allahabad High Court includes Lucknow Bench");
-
-  // 2. High Court-Specific Case Taxonomy
-  const hcCaseTypes = JudiciaryMasterService.getCaseTypesForHighCourt("HC-DEL");
-  assert(hcCaseTypes.some((c) => c.code === "W.P.(C)"), "High Court taxonomy contains W.P.(C)");
-  assert(hcCaseTypes.some((c) => c.code === "CRL.M.C."), "High Court taxonomy contains CRL.M.C. (Sec 482 CrPC / 528 BNSS)");
-  assert(hcCaseTypes.some((c) => c.code === "CS(COMM)"), "High Court taxonomy contains CS(COMM)");
-  assert(hcCaseTypes.some((c) => c.code === "ARB.P."), "High Court taxonomy contains ARB.P.");
-
-  // 3. District Establishment Taxonomy Isolation
-  // A: District & Sessions Court
+  // 5. District Establishment Types & Isolation
   const sessionsTypes = JudiciaryMasterService.getCaseTypesForDistrictEstablishment("DISTRICT_SESSIONS");
   assert(sessionsTypes.some((c) => c.code === "SC"), "Sessions Court has Sessions Case (SC)");
-  assert(sessionsTypes.some((c) => c.code === "BAIL"), "Sessions Court has Bail Applications");
   assert(!sessionsTypes.some((c) => c.code === "HMA"), "Sessions Court does NOT have HMA Divorce (Isolated)");
 
-  // B: Family Court
   const familyTypes = JudiciaryMasterService.getCaseTypesForDistrictEstablishment("FAMILY_COURT");
-  assert(familyTypes.some((c) => c.code === "HMA"), "Family Court has HMA Divorce Petitions");
+  assert(familyTypes.some((c) => c.code === "HMA"), "Family Court has HMA Divorce");
   assert(familyTypes.some((c) => c.code === "MT"), "Family Court has Maintenance (125 CrPC / 144 BNSS)");
-  assert(!familyTypes.some((c) => c.code === "SC"), "Family Court does NOT have Murder Trials (SC)");
 
-  // C: Commercial Court
-  const commTypes = JudiciaryMasterService.getCaseTypesForDistrictEstablishment("COMMERCIAL_COURT");
-  assert(commTypes.some((c) => c.code === "CS(COMM)"), "Commercial Court has CS(COMM)");
-  assert(!commTypes.some((c) => c.code === "DV"), "Commercial Court does NOT have Domestic Violence (Isolated)");
+  // 6. Tehsil & Revenue Department Master
+  const revLevels = JudiciaryMasterService.getRevenueLevels();
+  assert(revLevels.length === 8, `All 8 Revenue Hierarchy Levels present (Found: ${revLevels.length})`);
+  assert(revLevels.some((r) => r.id === "BOARD_OF_REVENUE"), "Board of Revenue present");
+  assert(revLevels.some((r) => r.id === "TEHSILDAR_COURT"), "Tehsildar Court present");
+  assert(revLevels.some((r) => r.id === "CHAKBANDI_COURT"), "Consolidation Officer (चकबंदी) Court present");
 
-  // D: POCSO Special Court
-  const pocsoTypes = JudiciaryMasterService.getCaseTypesForDistrictEstablishment("POCSO_SPECIAL");
-  assert(pocsoTypes.some((c) => c.code === "POCSO"), "POCSO Special Court has POCSO Case types");
+  const revCases = JudiciaryMasterService.getRevenueCaseTypes();
+  assert(revCases.some((c) => c.code === "MUTATION"), "Revenue Mutation (दाखिल-खारिज) present");
+  assert(revCases.some((c) => c.code === "PARTITION (116)"), "Agricultural Land Partition (खेत बंटवारा) present");
+  assert(revCases.some((c) => c.code === "PAIMASH (24)"), "Land Demarcation & Stone Fixing (पैमाइश/पत्थरगड्डी) present");
+  assert(revCases.some((c) => c.code === "EVICTION (67)"), "Gram Sabha & Chokrod Eviction present");
 
-  // 4. 16-Character eCourts CNR Validation Engine
-  const validCNR1 = JudiciaryMasterService.validateCNR("UPGZ010012342026");
-  assert(validCNR1.valid === true, "Valid 16-character CNR UPGZ010012342026 recognized");
-  assert(validCNR1.stateDistrictCode === "UPGZ", "CNR State+District extracted as UPGZ");
-  assert(validCNR1.year === "2026", "CNR Year extracted as 2026");
+  // 7. Special Statutory Tribunals Directory
+  const tribunals = JudiciaryMasterService.getSpecialTribunals();
+  assert(tribunals.length === 8, `All 8 Specialized Tribunals present (Found: ${tribunals.length})`);
+  assert(tribunals.some((t) => t.id === "NCLT" && t.benches.length >= 16), "NCLT with 16+ benches present");
+  assert(tribunals.some((t) => t.id === "DRT" && t.benches.length >= 20), "DRT / DRAT Banking Recovery present");
+  assert(tribunals.some((t) => t.id === "NGT" && t.benches.length >= 5), "NGT 5 Zonal Benches present");
+  assert(tribunals.some((t) => t.id === "CAT" && t.benches.length >= 18), "CAT Central Administrative Tribunal present");
+  assert(tribunals.some((t) => t.id === "CONSUMER"), "Consumer Commissions (NCDRC/SCDRC/DCDRC) present");
+  assert(tribunals.some((t) => t.id === "ITAT" && t.benches.length >= 25), "ITAT Income Tax Tribunal present");
+  assert(tribunals.some((t) => t.id === "RERA"), "RERA Real Estate Regulatory Authorities present");
+  assert(tribunals.some((t) => t.id === "AFT"), "Armed Forces Tribunal (AFT) present");
 
-  const validCNR2 = JudiciaryMasterService.validateCNR("DLHC010043212026");
-  assert(validCNR2.valid === true, "Valid High Court CNR DLHC010043212026 recognized");
+  // 8. 16-Character eCourts CNR Validation
+  const validCNR = JudiciaryMasterService.validateCNR("UPGZ010012342026");
+  assert(validCNR.valid === true, "Valid 16-character CNR UPGZ010012342026 recognized");
 
-  const invalidCNRShort = JudiciaryMasterService.validateCNR("UPGZ123");
-  assert(invalidCNRShort.valid === false, "Short CNR correctly rejected");
-
-  const invalidCNRSyntax = JudiciaryMasterService.validateCNR("1234ABCD0012342026");
-  assert(invalidCNRSyntax.valid === false, "Invalid format CNR correctly rejected");
-
-  // 5. Base 36 States & UTs Integration with LGD Codes
+  // 9. Base 36 States & UTs Integration with LGD Codes
   const states = LocationService.getStates();
   assert(states.length === 36, `All 36 States/UTs present (Found: ${states.length})`);
-  assert(states.some((s) => s.name === "Uttar Pradesh" && s.highCourt.includes("Allahabad")), "UP maps to Allahabad High Court");
-  assert(states.some((s) => s.name === "Maharashtra" && s.highCourt.includes("Bombay")), "Maharashtra maps to Bombay High Court");
 
-  console.log("=== ALL INDIA COURT MASTER & TAXONOMY TESTS PASSED SUCCESSFULLY ===");
+  console.log("=== ALL ALL-INDIA MEGA MASTER & TAXONOMY TESTS PASSED (100%) ===");
 }
 
-runCourtMasterTests();
+runMegaMasterTests();

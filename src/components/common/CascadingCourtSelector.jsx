@@ -9,41 +9,60 @@ import {
   Stack,
   Chip,
   InputAdornment,
-  Alert,
+  ListSubheader,
+  Card,
+  CardActionArea,
+  CardContent,
 } from "@mui/material";
 
 import GavelIcon from "@mui/icons-material/Gavel";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
-import VerifiedIcon from "@mui/icons-material/Verified";
+import BusinessIcon from "@mui/icons-material/Business";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
 
 import LocationService from "../../services/locationService.js";
-import JudiciaryMasterService from "../../services/judiciaryMasterService.js";
+import JudiciaryMasterService, {
+  JUDICIAL_TIERS,
+} from "../../services/judiciaryMasterService.js";
 
 export default function CascadingCourtSelector({
   value = {},
   onChange = () => {},
   disabled = false,
   showCNR = true,
-  defaultForum = "DISTRICT_COURT",
+  defaultForum = "SUPREME_COURT",
 }) {
   const [forumTier, setForumTier] = useState(value.forumTier || defaultForum);
   const [stateCode, setStateCode] = useState(value.stateCode || "ST-09");
   const [highCourtCode, setHighCourtCode] = useState(value.highCourtCode || "HC-ALL");
-  const [bench, setBench] = useState(value.bench || "Principal Seat");
+  const [bench, setBench] = useState(value.bench || "Prayagraj Principal Seat");
   const [districtCode, setDistrictCode] = useState(value.districtCode || "DST-140");
   const [courtComplex, setCourtComplex] = useState(value.courtComplex || "Surajpur District Court Complex");
   const [establishmentType, setEstablishmentType] = useState(value.establishmentType || "DISTRICT_SESSIONS");
+  
+  // Revenue & Tehsil Specifics
+  const [revenueLevel, setRevenueLevel] = useState(value.revenueLevel || "TEHSILDAR_COURT");
+  const [tehsilName, setTehsilName] = useState(value.tehsilName || "Sadar Tehsil");
+
+  // Tribunal Specifics
+  const [tribunalId, setTribunalId] = useState(value.tribunalId || "NCLT");
+  const [tribunalBench, setTribunalBench] = useState(value.tribunalBench || "Principal Bench (New Delhi)");
+
+  // Case Type, Category, Sub-Category & CNR
   const [caseTypeId, setCaseTypeId] = useState(value.caseTypeId || "");
   const [caseCategory, setCaseCategory] = useState(value.caseCategory || "");
   const [caseSubCategory, setCaseSubCategory] = useState(value.caseSubCategory || "");
   const [cnrNumber, setCnrNumber] = useState(value.cnrNumber || "");
 
-  // Master Data Lists
+  // Master Data Catalogs
   const states = useMemo(() => LocationService.getStates(), []);
   const highCourts = useMemo(() => JudiciaryMasterService.getHighCourts(), []);
-  
+  const revenueLevels = useMemo(() => JudiciaryMasterService.getRevenueLevels(), []);
+  const specialTribunals = useMemo(() => JudiciaryMasterService.getSpecialTribunals(), []);
+
   // Active State Record
   const selectedState = useMemo(() => {
     return states.find((s) => s.code === stateCode) || states[0] || {};
@@ -61,34 +80,36 @@ export default function CascadingCourtSelector({
     return highCourts.find((h) => h.code === highCourtCode || h.stateCode === stateCode) || highCourts[0];
   }, [highCourts, highCourtCode, stateCode]);
 
-  // Court-Specific Case Types
+  // Active Special Tribunal Record
+  const selectedTribunal = useMemo(() => {
+    return specialTribunals.find((t) => t.id === tribunalId) || specialTribunals[0];
+  }, [specialTribunals, tribunalId]);
+
+  // Court-Specific Case Types Resolution
   const availableCaseTypes = useMemo(() => {
+    if (forumTier === "SUPREME_COURT") {
+      return JudiciaryMasterService.getSupremeCourtCaseTypes();
+    }
     if (forumTier === "HIGH_COURT") {
-      return JudiciaryMasterService.getCaseTypesForHighCourt(highCourtCode);
+      return JudiciaryMasterService.getAllIndiaHighCourtCaseTypes();
     }
     if (forumTier === "DISTRICT_COURT") {
       return JudiciaryMasterService.getCaseTypesForDistrictEstablishment(establishmentType);
     }
-    if (forumTier === "SUPREME_COURT") {
-      return [
-        { id: "SLP_CIVIL", code: "SLP(C)", name: "Special Leave Petition (Civil) — Art. 136", category: "Constitutional & Civil Special Leave", subCategories: ["Civil Final Order Challenge", "High Court Judgment Appeal", "Tribunal Appeal"] },
-        { id: "SLP_CRL", code: "SLP(CRL)", name: "Special Leave Petition (Criminal) — Art. 136", category: "Criminal Special Leave", subCategories: ["Bail Rejection Appeal", "Conviction Challenge", "Death Sentence Review"] },
-        { id: "WP_CIVIL_SC", code: "W.P.(C)", name: "Writ Petition (Civil) — Art. 32 Fundamental Rights", category: "Constitutional Fundamental Rights", subCategories: ["Right to Life & Liberty (Art 21)", "Equality & Public Policy (Art 14)", "Federal Dispute"] },
-        { id: "CIVIL_APPEAL_SC", code: "C.A.", name: "Civil Appeal (Statutory Appeal / Tax / NCLAT)", category: "Statutory Apex Appeals", subCategories: ["NCLAT Corporate Insolvency Appeal", "National Consumer Commission Appeal", "Customs & Tax Appeal"] },
-      ];
+    if (forumTier === "TEHSIL_REVENUE") {
+      return JudiciaryMasterService.getRevenueCaseTypes();
     }
-    // Tribunals
-    return [
-      { id: "TRIBUNAL_ORIGINAL", code: "OA", name: "Original Application (OA)", category: "Tribunal Dispute", subCategories: ["Dispute Petition", "Statutory Claim", "Service Grievance"] },
-      { id: "TRIBUNAL_APPEAL", code: "TA", name: "Tribunal Appeal / Review", category: "Tribunal Appeal", subCategories: ["Order Appeal", "Interim Stay Application"] },
-    ];
-  }, [forumTier, highCourtCode, establishmentType]);
+    if (forumTier === "SPECIAL_TRIBUNAL") {
+      return selectedTribunal.caseTypes || [];
+    }
+    return [];
+  }, [forumTier, establishmentType, selectedTribunal]);
 
   // Auto-Select Case Type if none selected
   useEffect(() => {
     if (availableCaseTypes.length > 0 && !availableCaseTypes.some((c) => c.id === caseTypeId)) {
       setCaseTypeId(availableCaseTypes[0].id);
-      setCaseCategory(availableCaseTypes[0].category);
+      setCaseCategory(availableCaseTypes[0].category || "");
       if (availableCaseTypes[0].subCategories?.length > 0) {
         setCaseSubCategory(availableCaseTypes[0].subCategories[0]);
       }
@@ -105,7 +126,7 @@ export default function CascadingCourtSelector({
     setCaseTypeId(newTypeId);
     const ct = availableCaseTypes.find((c) => c.id === newTypeId);
     if (ct) {
-      setCaseCategory(ct.category);
+      setCaseCategory(ct.category || "");
       setCaseSubCategory(ct.subCategories?.[0] || "");
     }
   };
@@ -116,35 +137,57 @@ export default function CascadingCourtSelector({
     return JudiciaryMasterService.validateCNR(cnrNumber);
   }, [cnrNumber]);
 
-  // Build Comprehensive Court Name
+  // Build Comprehensive Court Jurisdiction String
   const compiledCourtName = useMemo(() => {
     if (forumTier === "SUPREME_COURT") return "Supreme Court of India, Tilak Marg, New Delhi";
     if (forumTier === "HIGH_COURT") return `${currentHighCourt.name} (${bench})`;
+    if (forumTier === "TEHSIL_REVENUE") {
+      const dist = availableDistricts.find((d) => d.code === districtCode)?.name || "District";
+      const rev = revenueLevels.find((r) => r.id === revenueLevel)?.name || "Revenue Court";
+      return `${rev}, ${tehsilName}, ${dist} (${selectedState.name})`;
+    }
+    if (forumTier === "SPECIAL_TRIBUNAL") {
+      return `${selectedTribunal.name} — ${tribunalBench}`;
+    }
     const dist = availableDistricts.find((d) => d.code === districtCode)?.name || "District";
     const estMap = {
       DISTRICT_SESSIONS: "District & Sessions Court",
       FAMILY_COURT: "Family Court",
       COMMERCIAL_COURT: "Commercial Court",
-      POCSO_SPECIAL: "Special POCSO Court",
+      POCSO_SPECIAL: "Special POCSO / SC-ST Court",
       CJM_MAGISTRATE: "Chief Judicial Magistrate (CJM) Court",
     };
     return `${estMap[establishmentType] || 'District Court'}, ${courtComplex}, ${dist} (${selectedState.name})`;
-  }, [forumTier, currentHighCourt, bench, availableDistricts, districtCode, establishmentType, courtComplex, selectedState]);
+  }, [
+    forumTier,
+    currentHighCourt,
+    bench,
+    revenueLevels,
+    revenueLevel,
+    tehsilName,
+    availableDistricts,
+    districtCode,
+    selectedState,
+    selectedTribunal,
+    tribunalBench,
+    establishmentType,
+    courtComplex,
+  ]);
 
   // Emit Structured State Upwards
   useEffect(() => {
     const distName = availableDistricts.find((d) => d.code === districtCode)?.name || "District";
     onChange({
       forumTier,
-      stateCode,
-      stateName: selectedState.name || "State",
-      districtCode,
-      districtName: distName,
-      highCourtCode: currentHighCourt.code,
-      highCourtName: currentHighCourt.name,
-      bench,
-      courtComplex,
-      establishmentType,
+      stateCode: forumTier === "SUPREME_COURT" ? "NATIONAL" : stateCode,
+      stateName: forumTier === "SUPREME_COURT" ? "India (National)" : (selectedState.name || "State"),
+      districtCode: (forumTier === "DISTRICT_COURT" || forumTier === "TEHSIL_REVENUE") ? districtCode : "",
+      districtName: (forumTier === "DISTRICT_COURT" || forumTier === "TEHSIL_REVENUE") ? distName : "",
+      highCourtCode: forumTier === "HIGH_COURT" ? currentHighCourt.code : "",
+      highCourtName: forumTier === "HIGH_COURT" ? currentHighCourt.name : "",
+      bench: forumTier === "HIGH_COURT" ? bench : (forumTier === "SPECIAL_TRIBUNAL" ? tribunalBench : "Main"),
+      courtComplex: forumTier === "DISTRICT_COURT" ? courtComplex : "",
+      establishmentType: forumTier === "DISTRICT_COURT" ? establishmentType : (forumTier === "TEHSIL_REVENUE" ? revenueLevel : forumTier),
       courtName: compiledCourtName,
       caseTypeId,
       caseTypeCode: selectedCaseType.code || "CS",
@@ -165,6 +208,11 @@ export default function CascadingCourtSelector({
     bench,
     courtComplex,
     establishmentType,
+    revenueLevel,
+    tehsilName,
+    tribunalId,
+    selectedTribunal,
+    tribunalBench,
     compiledCourtName,
     caseTypeId,
     selectedCaseType,
@@ -176,61 +224,127 @@ export default function CascadingCourtSelector({
 
   return (
     <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: "#ffffff" }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <AccountBalanceIcon sx={{ color: "#1e3a8a", fontSize: 24 }} />
-        <Typography variant="subtitle2" fontWeight={900} color="#0f172a" letterSpacing={0.2}>
-          🏛️ OFFICIAL INDIA COURT & CASE TYPE TAXONOMY HIERARCHY
-        </Typography>
-      </Stack>
+      {/* 1. TOP-LEVEL 5 VISUAL TOUCH CARDS */}
+      <Typography variant="subtitle2" fontWeight={900} color="#0f172a" sx={{ mb: 1.5 }}>
+        STEP 1: SELECT JUDICIAL FORUM / COURT JURISDICTION (अदालत का स्तर चुनें) *
+      </Typography>
 
+      <Grid container spacing={1.5} sx={{ mb: 3 }}>
+        {JUDICIAL_TIERS.map((tier) => {
+          const isSelected = forumTier === tier.id;
+          return (
+            <Grid item xs={12} sm={6} md={2.4} key={tier.id}>
+              <Card
+                variant="outlined"
+                sx={{
+                  borderRadius: 2,
+                  borderColor: isSelected ? "#1d4ed8" : "#e2e8f0",
+                  bgcolor: isSelected ? "#eff6ff" : "#ffffff",
+                  borderWidth: isSelected ? 2 : 1,
+                  transition: "all 0.2s ease-in-out",
+                  height: "100%",
+                }}
+              >
+                <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.2, height: "100%" }}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                    <Typography variant="h6">{tier.icon}</Typography>
+                    <Typography variant="body2" fontWeight={800} color={isSelected ? "#1d4ed8" : "#1e293b"}>
+                      {tier.label}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                    {tier.hindiLabel}
+                  </Typography>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+
+      {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS */}
       <Grid container spacing={2}>
-        {/* LEVEL 1: FORUM TIER SELECTOR */}
-        <Grid item xs={12} sm={4}>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            label="1. Judicial Forum Tier *"
-            value={forumTier}
-            onChange={(e) => setForumTier(e.target.value)}
-            disabled={disabled}
-          >
-            <MenuItem value="SUPREME_COURT">🏛️ Supreme Court of India</MenuItem>
-            <MenuItem value="HIGH_COURT">⚖️ High Court of Judicature</MenuItem>
-            <MenuItem value="DISTRICT_COURT">🏢 District & Subordinate Courts</MenuItem>
-            <MenuItem value="TEHSIL_SDM">📜 Tehsil & SDM Revenue Court</MenuItem>
-            <MenuItem value="TRIBUNAL">⚖️ Special Statutory Tribunal</MenuItem>
-          </TextField>
-        </Grid>
+        {/* CASE A: SUPREME COURT OF INDIA (All state/district hidden) */}
+        {forumTier === "SUPREME_COURT" && (
+          <>
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="Supreme Court Case Remedy / Classification *"
+                value={caseTypeId}
+                onChange={(e) => handleCaseTypeChange(e.target.value)}
+                disabled={disabled}
+              >
+                <ListSubheader sx={{ fontWeight: 900, color: "#b91c1c", bgcolor: "#fee2e2" }}>
+                  🚀 DIRECT TO SUPREME COURT (बिना हाई कोर्ट: Art 32 / Transfer Petitions / Original Suits)
+                </ListSubheader>
+                {availableCaseTypes
+                  .filter((c) => c.group?.includes("Direct"))
+                  .map((ct) => (
+                    <MenuItem key={ct.id} value={ct.id}>
+                      <Typography variant="body2" fontWeight={800}>
+                        [{ct.code}] {ct.name}
+                      </Typography>
+                    </MenuItem>
+                  ))}
 
-        {/* LEVEL 2: STATE / UT */}
-        <Grid item xs={12} sm={4}>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            label="2. State / Union Territory *"
-            value={stateCode}
-            onChange={(e) => setStateCode(e.target.value)}
-            disabled={disabled || forumTier === "SUPREME_COURT"}
-          >
-            {states.map((s) => (
-              <MenuItem key={s.code} value={s.code}>
-                {s.name} ({s.type})
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
+                <ListSubheader sx={{ fontWeight: 900, color: "#1d4ed8", bgcolor: "#dbeafe" }}>
+                  ⚖️ APPELLATE & APEX REMEDIES (हाई कोर्ट के बाद: SLP / Review / Curative)
+                </ListSubheader>
+                {availableCaseTypes
+                  .filter((c) => c.group?.includes("Appellate"))
+                  .map((ct) => (
+                    <MenuItem key={ct.id} value={ct.id}>
+                      <Typography variant="body2" fontWeight={800}>
+                        [{ct.code}] {ct.name}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+              </TextField>
+            </Grid>
 
-        {/* LEVEL 3 & 4 CONDITIONAL: HIGH COURT VS DISTRICT */}
-        {forumTier === "HIGH_COURT" ? (
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Constitutional / Statutory Subject Category"
+                value={caseCategory}
+                onChange={(e) => setCaseCategory(e.target.value)}
+                disabled={disabled}
+              />
+            </Grid>
+          </>
+        )}
+
+        {/* CASE B: HIGH COURT OF JUDICATURE */}
+        {forumTier === "HIGH_COURT" && (
           <>
             <Grid item xs={12} sm={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
-                label="3. High Court Registry *"
+                label="1. State / Union Territory *"
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                disabled={disabled}
+              >
+                {states.map((s) => (
+                  <MenuItem key={s.code} value={s.code}>
+                    {s.name} ({s.type})
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="2. High Court Registry *"
                 value={currentHighCourt.code}
                 onChange={(e) => setHighCourtCode(e.target.value)}
                 disabled={disabled}
@@ -248,7 +362,7 @@ export default function CascadingCourtSelector({
                 select
                 fullWidth
                 size="small"
-                label="4. Designated Bench / Circuit *"
+                label="3. Designated Bench / Circuit *"
                 value={bench}
                 onChange={(e) => setBench(e.target.value)}
                 disabled={disabled}
@@ -260,15 +374,76 @@ export default function CascadingCourtSelector({
                 ))}
               </TextField>
             </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="High Court Case Type (All-India Master) *"
+                value={caseTypeId}
+                onChange={(e) => handleCaseTypeChange(e.target.value)}
+                disabled={disabled}
+              >
+                {["1. Constitutional & Writs (Art. 226/227)", "2. Criminal Law (CrPC / BNSS)", "3. Civil & Appellate (CPC)", "4. Commercial, IPR & Arbitration", "5. Taxation & Revenue", "6. Contempt, Transfer & Review"].map((groupName) => (
+                  [
+                    <ListSubheader key={groupName} sx={{ fontWeight: 900, color: "#1e3a8a", bgcolor: "#f1f5f9" }}>
+                      {groupName}
+                    </ListSubheader>,
+                    ...availableCaseTypes
+                      .filter((c) => c.group === groupName)
+                      .map((ct) => (
+                        <MenuItem key={ct.id} value={ct.id}>
+                          <Typography variant="body2" fontWeight={800}>
+                            [{ct.code}] {ct.name}
+                          </Typography>
+                        </MenuItem>
+                      )),
+                  ]
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                label="High Court Subject Category"
+                value={caseCategory}
+                onChange={(e) => setCaseCategory(e.target.value)}
+                disabled={disabled}
+              />
+            </Grid>
           </>
-        ) : forumTier === "DISTRICT_COURT" ? (
+        )}
+
+        {/* CASE C: DISTRICT & SUBORDINATE COURTS */}
+        {forumTier === "DISTRICT_COURT" && (
           <>
             <Grid item xs={12} sm={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
-                label="3. Judicial District *"
+                label="1. State / Union Territory *"
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                disabled={disabled}
+              >
+                {states.map((s) => (
+                  <MenuItem key={s.code} value={s.code}>
+                    {s.name} ({s.type})
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="2. Judicial District *"
                 value={districtCode}
                 onChange={(e) => setDistrictCode(e.target.value)}
                 disabled={disabled}
@@ -285,7 +460,7 @@ export default function CascadingCourtSelector({
               <TextField
                 fullWidth
                 size="small"
-                label="4. Court Complex *"
+                label="3. Court Complex *"
                 value={courtComplex}
                 onChange={(e) => setCourtComplex(e.target.value)}
                 disabled={disabled}
@@ -293,63 +468,205 @@ export default function CascadingCourtSelector({
               />
             </Grid>
 
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="4. Court Establishment Type *"
+                value={establishmentType}
+                onChange={(e) => setEstablishmentType(e.target.value)}
+                disabled={disabled}
+              >
+                <MenuItem value="DISTRICT_SESSIONS">🏢 District & Sessions Judge Court</MenuItem>
+                <MenuItem value="COMMERCIAL_COURT">💼 Commercial Court (Comm. Courts Act 2015)</MenuItem>
+                <MenuItem value="FAMILY_COURT">👨‍👩‍👧 Family Court (Matrimonial / Custody)</MenuItem>
+                <MenuItem value="POCSO_SPECIAL">🛡️ Special POCSO / SC-ST Court</MenuItem>
+                <MenuItem value="CJM_MAGISTRATE">⚖️ Chief Judicial Magistrate (CJM / NI 138)</MenuItem>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="5. District Case Type *"
+                value={caseTypeId}
+                onChange={(e) => handleCaseTypeChange(e.target.value)}
+                disabled={disabled}
+              >
+                {availableCaseTypes.map((ct) => (
+                  <MenuItem key={ct.id} value={ct.id}>
+                    <Typography variant="body2" fontWeight={800}>
+                      [{ct.code}] {ct.name}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </>
+        )}
+
+        {/* CASE D: TEHSIL & REVENUE DEPARTMENT */}
+        {forumTier === "TEHSIL_REVENUE" && (
+          <>
+            <Grid item xs={12} sm={3}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="1. State *"
+                value={stateCode}
+                onChange={(e) => setStateCode(e.target.value)}
+                disabled={disabled}
+              >
+                {states.map((s) => (
+                  <MenuItem key={s.code} value={s.code}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="2. District *"
+                value={districtCode}
+                onChange={(e) => setDistrictCode(e.target.value)}
+                disabled={disabled}
+              >
+                {availableDistricts.map((d) => (
+                  <MenuItem key={d.code} value={d.code}>
+                    {d.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+              <TextField
+                fullWidth
+                size="small"
+                label="3. Tehsil Name *"
+                value={tehsilName}
+                onChange={(e) => setTehsilName(e.target.value)}
+                disabled={disabled}
+                placeholder="e.g. Sadar Tehsil / दादरी"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={3}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="4. Revenue Court Level *"
+                value={revenueLevel}
+                onChange={(e) => setRevenueLevel(e.target.value)}
+                disabled={disabled}
+              >
+                {revenueLevels.map((r) => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="5. Revenue Case Type (दाखिल-खारिज / बंटवारा / पैमाइश) *"
+                value={caseTypeId}
+                onChange={(e) => handleCaseTypeChange(e.target.value)}
+                disabled={disabled}
+              >
+                {availableCaseTypes.map((ct) => (
+                  <MenuItem key={ct.id} value={ct.id}>
+                    <Typography variant="body2" fontWeight={800}>
+                      [{ct.code}] {ct.name}
+                    </Typography>
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          </>
+        )}
+
+        {/* CASE E: SPECIAL STATUTORY TRIBUNALS */}
+        {forumTier === "SPECIAL_TRIBUNAL" && (
+          <>
             <Grid item xs={12} sm={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
-                label="5. Court Establishment Type *"
-                value={establishmentType}
-                onChange={(e) => setEstablishmentType(e.target.value)}
+                label="1. Statutory Tribunal / Commission *"
+                value={tribunalId}
+                onChange={(e) => {
+                  setTribunalId(e.target.value);
+                  const found = specialTribunals.find((t) => t.id === e.target.value);
+                  if (found?.benches?.length > 0) setTribunalBench(found.benches[0]);
+                }}
                 disabled={disabled}
               >
-                <MenuItem value="DISTRICT_SESSIONS">District & Sessions Judge Court</MenuItem>
-                <MenuItem value="COMMERCIAL_COURT">Commercial Court (Comm. Courts Act)</MenuItem>
-                <MenuItem value="FAMILY_COURT">Family Court (Matrimonial/Custody)</MenuItem>
-                <MenuItem value="POCSO_SPECIAL">Special POCSO / SC-ST Court</MenuItem>
-                <MenuItem value="CJM_MAGISTRATE">Chief Judicial Magistrate (CJM)</MenuItem>
+                {specialTribunals.map((t) => (
+                  <MenuItem key={t.id} value={t.id}>
+                    {t.name}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="2. Tribunal Zonal Bench *"
+                value={tribunalBench}
+                onChange={(e) => setTribunalBench(e.target.value)}
+                disabled={disabled}
+              >
+                {selectedTribunal.benches.map((b) => (
+                  <MenuItem key={b} value={b}>
+                    {b}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} sm={4}>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                label="3. Tribunal Petition / Appeal Type *"
+                value={caseTypeId}
+                onChange={(e) => handleCaseTypeChange(e.target.value)}
+                disabled={disabled}
+              >
+                {availableCaseTypes.map((ct) => (
+                  <MenuItem key={ct.id} value={ct.id}>
+                    <Typography variant="body2" fontWeight={800}>
+                      [{ct.code}] {ct.name}
+                    </Typography>
+                  </MenuItem>
+                ))}
               </TextField>
             </Grid>
           </>
-        ) : null}
+        )}
 
-        {/* COURT-SPECIFIC CASE TYPE */}
-        <Grid item xs={12} sm={4}>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            label="Court Case Type (Official Code) *"
-            value={caseTypeId}
-            onChange={(e) => handleCaseTypeChange(e.target.value)}
-            disabled={disabled}
-            helperText={`${availableCaseTypes.length} official case type(s) available for this court.`}
-          >
-            {availableCaseTypes.map((ct) => (
-              <MenuItem key={ct.id} value={ct.id}>
-                <Typography variant="body2" fontWeight={800}>
-                  [{ct.code}] {ct.name}
-                </Typography>
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-
-        {/* CASE CATEGORY */}
-        <Grid item xs={12} sm={4}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Statutory Case Category"
-            value={caseCategory}
-            onChange={(e) => setCaseCategory(e.target.value)}
-            disabled={disabled}
-          />
-        </Grid>
-
-        {/* CASE SUB-CATEGORY */}
-        <Grid item xs={12} sm={4}>
-          {selectedCaseType.subCategories?.length > 0 ? (
+        {/* SUB-CATEGORY (IF APPLICABLE) */}
+        {selectedCaseType.subCategories?.length > 0 && (
+          <Grid item xs={12} md={6}>
             <TextField
               select
               fullWidth
@@ -365,22 +682,12 @@ export default function CascadingCourtSelector({
                 </MenuItem>
               ))}
             </TextField>
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Subject Sub-Category"
-              value={caseSubCategory}
-              onChange={(e) => setCaseSubCategory(e.target.value)}
-              disabled={disabled}
-              placeholder="e.g. Contract Breach / Injunction"
-            />
-          )}
-        </Grid>
+          </Grid>
+        )}
 
         {/* 16-CHARACTER eCOURTS CNR NUMBER */}
         {showCNR && (
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               size="small"
@@ -408,17 +715,24 @@ export default function CascadingCourtSelector({
           </Grid>
         )}
 
-        {/* LIVE RESOLVED JURISDICTION BADGE */}
+        {/* 3. LIVE REAL-TIME JURISDICTION SUMMARY BADGE */}
         <Grid item xs={12}>
-          <Box sx={{ p: 1.5, bgcolor: "#f8fafc", borderRadius: 1.5, border: "1px dashed #cbd5e1", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-            <Typography variant="caption" color="#1e293b">
-              <strong>Resolved Official Forum:</strong> {compiledCourtName}
-            </Typography>
+          <Box sx={{ p: 1.8, bgcolor: "#f8fafc", borderRadius: 2, border: "1px dashed #cbd5e1", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+            <Box>
+              <Typography variant="body2" color="#0f172a" fontWeight={800}>
+                🏛️ {compiledCourtName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {selectedCaseType.category ? `Category: ${selectedCaseType.category}` : "All-India Legal Hierarchy"}
+                {caseSubCategory ? ` • Sub: ${caseSubCategory}` : ""}
+              </Typography>
+            </Box>
+
             <Chip
-              label={selectedCaseType.code ? `Type: [${selectedCaseType.code}] ${selectedCaseType.name}` : "Court Case"}
+              label={selectedCaseType.code ? `[${selectedCaseType.code}] ${selectedCaseType.name}` : "Selected Forum"}
               size="small"
               color="primary"
-              sx={{ fontWeight: 800, fontSize: "0.68rem", height: 20 }}
+              sx={{ fontWeight: 800, fontSize: "0.72rem", height: 24 }}
             />
           </Box>
         </Grid>
