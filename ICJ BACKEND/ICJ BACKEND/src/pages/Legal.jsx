@@ -39,6 +39,7 @@ import CaseDetailModal from "../components/legal/CaseDetailModal";
 import AdvocateAssignmentModal from "../components/legal/AdvocateAssignmentModal";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 import CascadingCourtSelector from "../components/common/CascadingCourtSelector";
+import LegalPartyRepresentation from "../components/common/LegalPartyRepresentation";
 
 export default function Legal() {
   const [cases, setCases] = useState([]);
@@ -51,6 +52,17 @@ export default function Legal() {
   const [alertMsg, setAlertMsg] = useState("");
 
   const [courtHierarchyData, setCourtHierarchyData] = useState({});
+  const [partyData, setPartyData] = useState({
+    clientSide: "SIDE_A",
+    clientRole: "Plaintiff",
+    opponentRole: "Defendant",
+    sideAParties: ["Ramvir Jatav"],
+    sideBParties: ["State of Uttar Pradesh & Ors."],
+    clientName: "Ramvir Jatav",
+    opponentName: "State of Uttar Pradesh & Ors.",
+    causeTitle: "Ramvir Jatav vs. State of Uttar Pradesh & Ors.",
+    representationBadge: "Advocate for Plaintiff #1 (Ramvir Jatav)",
+  });
 
   const [form, setForm] = useState({
     title: "",
@@ -92,10 +104,8 @@ export default function Legal() {
   };
 
   const onCreate = async () => {
-    if (!form.title.trim()) {
-      alert("Case title is required.");
-      return;
-    }
+    const finalTitle = form.title.trim() || partyData.causeTitle || "Legal Matter";
+    const finalClient = form.clientName.trim() || partyData.clientName || "Client";
 
     const newId = `ICJ-2026-CASE-${Math.floor(10000 + Math.random() * 90000)}`;
     const newCaseNumber = form.caseNumber || (courtHierarchyData.caseTypeCode ? `${courtHierarchyData.caseTypeCode}/${Math.floor(1000 + Math.random() * 9000)}/2026` : `WP(C)/${Math.floor(1000 + Math.random() * 9000)}/2026`);
@@ -104,8 +114,20 @@ export default function Legal() {
       ...form,
       id: newId,
       caseId: newId,
+      title: finalTitle,
+      clientName: finalClient,
       caseNumber: newCaseNumber,
+      // Structured Multi-Party Representation
+      clientSide: partyData.clientSide || "SIDE_A",
+      clientRole: partyData.clientRole || "Plaintiff",
+      opponentRole: partyData.opponentRole || "Defendant",
+      sideAParties: partyData.sideAParties || [finalClient],
+      sideBParties: partyData.sideBParties || [partyData.opponentName || "Opponent"],
+      opponentName: partyData.opponentName || "Opposite Party",
+      causeTitle: partyData.causeTitle || finalTitle,
+      representationBadge: partyData.representationBadge || "Advocate for Client",
       // Structured Judicial Taxonomy Data
+      forumTier: courtHierarchyData.forumTier || "DISTRICT_COURT",
       courtName: courtHierarchyData.courtName || form.courtName,
       courtComplex: courtHierarchyData.courtComplex || "",
       establishmentType: courtHierarchyData.establishmentType || "",
@@ -125,12 +147,12 @@ export default function Legal() {
 
     await LegalService.create(payload);
     ActivityService.create({
-      title: `New Case Registered: ${form.title} (${newCaseNumber}) [${courtHierarchyData.courtName || form.courtName}]`,
+      title: `New Case Registered: ${finalTitle} (${newCaseNumber}) [${courtHierarchyData.courtName || form.courtName}]`,
       type: "legal",
       meta: { caseId: newId, status: form.status },
     });
 
-    setAlertMsg(`Case "${form.title}" (${newCaseNumber}) registered successfully with Official Court Taxonomy!`);
+    setAlertMsg(`Case "${finalTitle}" (${newCaseNumber}) registered successfully with Official Court Taxonomy!`);
     setTimeout(() => setAlertMsg(""), 3500);
 
     setForm({
@@ -308,20 +330,25 @@ export default function Legal() {
               />
             </Grid>
 
-            {/* ROW 1: CLIENT & ADVOCATE NAMES (Generous Width) */}
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Petitioner / Client Name *" name="clientName" value={form.clientName} onChange={onChange} placeholder="e.g. Ramvir Jatav" />
+            {/* INTEGRATED MULTI-PARTY REPRESENTATION & AUTO CAUSE-TITLE */}
+            <Grid item xs={12}>
+              <LegalPartyRepresentation
+                forumTier={courtHierarchyData.forumTier}
+                value={partyData}
+                onChange={setPartyData}
+              />
             </Grid>
+
+            {/* ADVOCATE ASSIGNMENT & FILING NUMBER */}
             <Grid item xs={12} md={6}>
               <TextField fullWidth label="Lead Empaneled Advocate Name *" name="advocateName" value={form.advocateName} onChange={onChange} placeholder="e.g. Senior Advocate Mr. PAWAN GUPTA" />
             </Grid>
-
-            {/* ROW 2: FILING DETAILS & STATUS */}
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} md={6}>
               <TextField fullWidth label="Custom Case / Filing No. (Optional)" name="caseNumber" value={form.caseNumber} onChange={onChange} placeholder="Auto-generated if blank" />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            {/* NEXT HEARING DATE, STATUS & SAVE */}
+            <Grid item xs={12} sm={6} md={4}>
               <TextField
                 fullWidth
                 type="date"
@@ -340,7 +367,7 @@ export default function Legal() {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <TextField select fullWidth label="Case Status" name="status" value={form.status} onChange={onChange}>
                 <MenuItem value="Filing">Filing</MenuItem>
                 <MenuItem value="Pending">Pending</MenuItem>
@@ -350,7 +377,7 @@ export default function Legal() {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12} sm={12} md={4}>
               <Button fullWidth size="large" variant="contained" onClick={onCreate} sx={{ height: "40px", fontWeight: 800, letterSpacing: 0.2 }}>
                 SAVE MASTER CASE RECORD ➔
               </Button>
@@ -388,8 +415,8 @@ export default function Legal() {
           <TableHead>
             <TableRow>
               <TableCell><strong>Case ID & Number</strong></TableCell>
-              <TableCell><strong>Case Title</strong></TableCell>
-              <TableCell><strong>Client / Petitioner</strong></TableCell>
+              <TableCell><strong>Case Title (Cause Title)</strong></TableCell>
+              <TableCell><strong>Parties & Representation</strong></TableCell>
               <TableCell><strong>Advocate</strong></TableCell>
               <TableCell><strong>Court Name</strong></TableCell>
               <TableCell><strong>Priority</strong></TableCell>
@@ -416,8 +443,27 @@ export default function Legal() {
                       <Typography variant="body2" fontWeight="bold">{caseId}</Typography>
                       <Typography variant="caption" color="text.secondary">{caseNo}</Typography>
                     </TableCell>
-                    <TableCell><Typography variant="body2" fontWeight="bold">{item.title}</Typography></TableCell>
-                    <TableCell>{item.clientName || item.client_name || "-"}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="bold">
+                        {item.causeTitle || item.title}
+                      </Typography>
+                      <Chip
+                        label={item.clientSide === "SIDE_B" ? "🛡️ For Defendant" : "🛡️ For Plaintiff"}
+                        size="small"
+                        color={item.clientSide === "SIDE_B" ? "error" : "primary"}
+                        sx={{ height: 18, fontSize: "0.62rem", fontWeight: 800, mt: 0.3 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="600" color="#0f172a">
+                        {item.clientName || item.client_name || "Client"}
+                      </Typography>
+                      {item.opponentName && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          vs. {item.opponentName}
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>{item.advocateName || item.advocate_name || "-"}</TableCell>
                     <TableCell>{item.courtName || item.court_name || "Supreme Court"}</TableCell>
                     <TableCell>

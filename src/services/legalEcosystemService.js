@@ -71,6 +71,7 @@ export const LegalEcosystemService = {
       feeAmount: Number(caseData.feeAmount || 25000),
       paidAmount: Number(caseData.paidAmount || 0),
       createdAt: new Date().toISOString(),
+      ...caseData,
     };
 
     const updated = [newCase, ...cases];
