@@ -21,7 +21,9 @@ import {
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import MenuIcon from "@mui/icons-material/Menu";
+import AppsIcon from "@mui/icons-material/Apps";
+import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -29,12 +31,12 @@ import PersonIcon from "@mui/icons-material/Person";
 import GavelIcon from "@mui/icons-material/Gavel";
 import FolderIcon from "@mui/icons-material/Folder";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
 import useAuth from "../hooks/useAuth";
 import NotificationRoutingService from "../services/notificationRoutingService.js";
 import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
-import CampaignIcon from "@mui/icons-material/Campaign";
-import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 
 const MODULE_NAMES = {
   "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
@@ -52,9 +54,10 @@ const MODULE_NAMES = {
   "/payments": "📌 ESCROW FINANCIAL LEDGER",
   "/governance": "📌 STATUTORY BSA COMPLIANCE",
   "/helpdesk": "📌 HELPDESK & SUPPORT",
+  "/member-certificates": "📌 OFFICIAL CERTIFICATES",
 };
 
-function Topbar() {
+function Topbar({ onOpenMobileNav = () => {} }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -73,6 +76,15 @@ function Topbar() {
   const handleRoleSwitch = (path) => {
     setRoleMenuAnchor(null);
     navigate(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (logout) await logout();
+    } catch (err) {
+      console.error("Logout error", err);
+    }
+    navigate("/login");
   };
 
   const activePath = location?.pathname || "";
@@ -107,61 +119,126 @@ function Topbar() {
 
   return (
     <AppBar
-      position="static"
+      position="sticky"
       elevation={0}
       sx={{
         background: "#ffffff",
         color: "#212529",
         borderBottom: "1px solid #cbd5e1",
-        m: 0,
-        p: 0,
+        top: 0,
+        zIndex: 1100,
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", py: 0.1, minHeight: "34px !important", height: 34, px: { xs: 0.6, md: 1.2 } }}>
-        
-        {/* ⬅️ LEFT SIDE: 1 STRAIGHT LINE (BRAND + SEARCH) */}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {/* BRAND NAME SIDE-BY-SIDE IN SAME STRAIGHT LINE */}
-          <Typography
-            variant="caption"
+      <Toolbar
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          minHeight: { xs: "48px !important", md: "42px !important" },
+          height: { xs: 48, md: 42 },
+          px: { xs: 1, sm: 1.5, md: 2 },
+          gap: 1,
+        }}
+      >
+        {/* ⬅️ LEFT SIDE: ALL MODULES BUTTON (MOBILE) + BRAND LOGO + DESKTOP SEARCH */}
+        <Stack direction="row" alignItems="center" spacing={{ xs: 0.8, sm: 1.2 }}>
+          {/* 📱 MOBILE "ALL MODULES" BUTTON — OPENS FULL MODULES DRAWER */}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AppsIcon sx={{ fontSize: "1.1rem" }} />}
+            onClick={onOpenMobileNav}
             sx={{
+              display: { xs: "inline-flex", md: "none" },
+              bgcolor: "#0f172a",
+              color: "#38bdf8",
               fontWeight: 800,
-              color: "#1976d2",
-              lineHeight: 1,
-              whiteSpace: "nowrap",
-              fontSize: "0.82rem",
-              letterSpacing: 0.2,
-              mr: 1,
+              fontSize: "0.72rem",
+              px: 1.2,
+              py: 0.4,
+              minWidth: "auto",
+              height: 32,
+              borderRadius: 1.5,
+              border: "1px solid #0284c7",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              "&:hover": { bgcolor: "#1e293b" },
             }}
           >
-            ICJ ENTERPRISE
-          </Typography>
+            Modules
+          </Button>
 
-          {/* Unified Global Search */}
+          {/* BRAND LOGO & TITLE */}
+          <Box
+            onClick={() => navigate("/")}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.6,
+              cursor: "pointer",
+              userSelect: "none",
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 900,
+                fontSize: "0.75rem",
+                px: 0.8,
+                py: 0.2,
+                borderRadius: 1,
+                display: { xs: "none", sm: "inline-flex" },
+              }}
+            >
+              ICJ
+            </Box>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 900,
+                color: "#1e3a8a",
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+                fontSize: { xs: "0.82rem", md: "0.9rem" },
+                letterSpacing: 0.3,
+              }}
+            >
+              ICJ ENTERPRISE
+            </Typography>
+          </Box>
+
+          {/* DESKTOP SEARCH BAR */}
           <TextField
             size="small"
             value={globalQuery}
             onChange={handleSearchChange}
             placeholder="Global Search (Members, Cases, Documents)..."
-            sx={{ width: { xs: 130, sm: 180, md: 240 }, "& .MuiInputBase-root": { height: 24, fontSize: "0.72rem" } }}
+            sx={{
+              display: { xs: "none", sm: "block" },
+              width: { sm: 160, md: 240, lg: 280 },
+              "& .MuiInputBase-root": { height: 28, fontSize: "0.75rem" },
+            }}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" sx={{ fontSize: "0.85rem" }} /></InputAdornment>,
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="primary" sx={{ fontSize: "0.9rem" }} />
+                </InputAdornment>
+              ),
             }}
           />
 
-          {/* ACTIVE MODULE SINGLE-LINE BADGE */}
+          {/* ACTIVE MODULE BADGE (DESKTOP) */}
           <Chip
             label={activeModuleName}
             size="small"
             sx={{
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: "0.68rem",
-              height: 22,
+              height: 24,
               bgcolor: "#0f172a",
               color: "#38bdf8",
               border: "1px solid #0284c7",
-              letterSpacing: 0.3,
-              display: { xs: "none", sm: "inline-flex" },
+              display: { xs: "none", lg: "inline-flex" },
             }}
           />
 
@@ -172,7 +249,11 @@ function Topbar() {
             onClose={() => setSearchAnchor(null)}
             PaperProps={{ style: { width: 350, maxHeight: 320 } }}
           >
-            <MenuItem disabled><Typography variant="caption" fontWeight="bold">UNIFIED MATCHES FOR "{globalQuery}"</Typography></MenuItem>
+            <MenuItem disabled>
+              <Typography variant="caption" fontWeight="bold">
+                UNIFIED MATCHES FOR "{globalQuery}"
+              </Typography>
+            </MenuItem>
             <Divider />
             <MenuItem onClick={() => handleSearchResultClick(`/membership?search=${encodeURIComponent(globalQuery)}`)}>
               <ListItemIcon><PersonIcon color="primary" fontSize="small" /></ListItemIcon>
@@ -189,8 +270,8 @@ function Topbar() {
           </Menu>
         </Stack>
 
-        {/* ➡️ RIGHT SIDE: 1 STRAIGHT INLINE LINE (USER IDENTITY + ROLE + LOGOUT) */}
-        <Stack direction="row" alignItems="center" spacing={0.8}>
+        {/* ➡️ RIGHT SIDE: ROLE SWITCHER + NOTIFICATIONS + USER IDENTITY + EXIT BUTTON */}
+        <Stack direction="row" alignItems="center" spacing={{ xs: 0.6, sm: 1 }}>
           {isSirenActive && (
             <Button
               variant="contained"
@@ -201,87 +282,166 @@ function Topbar() {
                 NotificationRoutingService.silenceSiren();
                 setIsSirenActive(false);
               }}
-              sx={{ fontWeight: 800, fontSize: "0.7rem", px: 1, py: 0.2, animation: "pulse 1.5s infinite" }}
+              sx={{ fontWeight: 800, fontSize: "0.65rem", px: 0.8, py: 0.2, height: 26 }}
             >
-              🔕 Silence Siren
+              Silence
             </Button>
           )}
 
-          <Tooltip title="Sender-Assigned Notification Dispatcher">
-            <IconButton size="small" onClick={() => setDispatchModalOpen(true)} sx={{ p: 0.3, color: "#f59e0b" }}>
-              <CampaignIcon sx={{ fontSize: "1.1rem" }} />
-            </IconButton>
-          </Tooltip>
+          {/* ROLE SWITCHER BUTTON (TABLET / DESKTOP) */}
+          <Button
+            variant="contained"
+            size="small"
+            onClick={(e) => setRoleMenuAnchor(e.currentTarget)}
+            sx={{
+              display: { xs: "none", sm: "inline-flex" },
+              background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
+              color: "#fff",
+              fontWeight: 800,
+              fontSize: "0.68rem",
+              height: 26,
+              px: 1,
+              textTransform: "none",
+              borderRadius: 1.5,
+              "&:hover": { opacity: 0.95 },
+            }}
+          >
+            🎭 Role View ▾
+          </Button>
 
-          <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ p: 0.3 }}>
+          {/* Role Switcher Menu */}
+          <Menu
+            anchorEl={roleMenuAnchor}
+            open={Boolean(roleMenuAnchor)}
+            onClose={() => setRoleMenuAnchor(null)}
+            PaperProps={{ style: { width: 260, borderRadius: 10 } }}
+          >
+            <MenuItem disabled>
+              <Typography variant="caption" fontWeight="bold" color="#7c3aed">
+                👑 ACTIVE ROLE SIMULATOR
+              </Typography>
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => handleRoleSwitch("/")}>
+              <ListItemIcon><Typography fontSize="1rem">👑</Typography></ListItemIcon>
+              <ListItemText primary="Super Admin Command Hub" secondary="Supreme Governance" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/advocate-dashboard")}>
+              <ListItemIcon><Typography fontSize="1rem">⚖️</Typography></ListItemIcon>
+              <ListItemText primary="Advocate Chambers" secondary="Legal Counsel View" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/client-portal")}>
+              <ListItemIcon><Typography fontSize="1rem">👤</Typography></ListItemIcon>
+              <ListItemText primary="Litigant Client Portal" secondary="File New & Active Cases" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/franchise-dashboard")}>
+              <ListItemIcon><Typography fontSize="1rem">🏢</Typography></ListItemIcon>
+              <ListItemText primary="District Franchise Desk" secondary="Network Operations" />
+            </MenuItem>
+            <MenuItem onClick={() => handleRoleSwitch("/member-certificates")}>
+              <ListItemIcon><Typography fontSize="1rem">🎓</Typography></ListItemIcon>
+              <ListItemText primary="Member Certificates" secondary="Official Verification" />
+            </MenuItem>
+          </Menu>
+
+          <IconButton size="small" onClick={() => navigate("/notifications")} sx={{ p: 0.4 }}>
             <Badge badgeContent={12} color="error">
-              <NotificationsIcon color="action" sx={{ fontSize: "1rem" }} />
+              <NotificationsIcon color="action" sx={{ fontSize: "1.1rem" }} />
             </Badge>
           </IconButton>
 
-          <IconButton size="small" onClick={() => navigate("/settings")} sx={{ p: 0.3 }}>
-            <SettingsIcon color="action" sx={{ fontSize: "1rem" }} />
-          </IconButton>
-
-          {/* 1 STRAIGHT LINE USER IDENTITY BADGE */}
+          {/* USER IDENTITY BADGE (ALWAYS VISIBLE & NEVER OVERFLOWING) */}
           <Box
             sx={{
               display: "inline-flex",
               alignItems: "center",
               gap: 0.8,
-              px: 1,
-              py: 0.2,
-              borderRadius: 1.5,
+              px: { xs: 0.6, sm: 1 },
+              py: 0.3,
+              borderRadius: 2,
               bgcolor: "#0f172a",
               color: "#ffffff",
               border: "1px solid #1e293b",
-              whiteSpace: "nowrap",
             }}
           >
-            <Avatar onClick={() => navigate("/member-profile")} sx={{ bgcolor: "#2563eb", fontWeight: "bold", width: 22, height: 22, fontSize: "0.75rem", cursor: "pointer" }}>
-              {userInitial}
-            </Avatar>
+            <Tooltip title="View Profile">
+              <Avatar
+                onClick={() => navigate("/member-profile")}
+                sx={{
+                  bgcolor: "#2563eb",
+                  fontWeight: "bold",
+                  width: { xs: 24, md: 26 },
+                  height: { xs: 24, md: 26 },
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                }}
+              >
+                {userInitial}
+              </Avatar>
+            </Tooltip>
 
-            <Typography onClick={() => navigate("/member-profile")} variant="caption" sx={{ fontWeight: 800, color: "#ffffff", fontSize: "0.75rem", whiteSpace: "nowrap", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}>
+            <Typography
+              onClick={() => navigate("/member-profile")}
+              variant="caption"
+              sx={{
+                display: { xs: "none", md: "inline" },
+                fontWeight: 800,
+                color: "#ffffff",
+                fontSize: "0.75rem",
+                whiteSpace: "nowrap",
+                cursor: "pointer",
+                "&:hover": { textDecoration: "underline" },
+              }}
+            >
               {userDisplayName}
             </Typography>
 
             <Chip
               label={
                 userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
-                  ? "👑 SUPER ADMIN"
-                  : userRole === "admin"
-                  ? "🛡️ ADMIN"
-                  : userRole === "employee"
-                  ? "💼 STAFF"
-                  : "🟢 MEMBER"
+                  ? "ADMIN"
+                  : userRole === "advocate"
+                  ? "ADVOCATE"
+                  : userRole === "franchise"
+                  ? "FRANCHISE"
+                  : "MEMBER"
               }
               size="small"
               sx={{
                 fontWeight: 800,
-                fontSize: "0.58rem",
-                height: 16,
+                fontSize: "0.55rem",
+                height: 18,
                 bgcolor:
                   userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
                     ? "#7c3aed"
-                    : userRole === "admin"
-                    ? "#1d4ed8"
-                    : userRole === "employee"
+                    : userRole === "advocate"
+                    ? "#b91c1c"
+                    : userRole === "franchise"
                     ? "#d97706"
                     : "#059669",
                 color: "#ffffff",
+                display: { xs: "none", sm: "inline-flex" },
               }}
             />
 
+            {/* 🔴 PROMINENT 1-CLICK EXIT BUTTON (ALWAYS ACCESSIBLE ON MOBILE & DESKTOP) */}
             <Button
               variant="contained"
               size="small"
               color="error"
-              onClick={async () => {
-                await logout();
-                navigate("/login");
+              startIcon={<LogoutIcon sx={{ fontSize: "0.85rem" }} />}
+              onClick={handleLogout}
+              sx={{
+                fontWeight: 900,
+                px: { xs: 0.8, sm: 1.2 },
+                py: 0.2,
+                minWidth: { xs: 54, sm: 64 },
+                height: 24,
+                fontSize: { xs: "0.68rem", sm: "0.72rem" },
+                bgcolor: "#dc2626",
+                borderRadius: 1.5,
+                "&:hover": { bgcolor: "#b91c1c" },
               }}
-              sx={{ fontWeight: 800, px: 0.6, py: 0.1, minWidth: 42, height: 20, fontSize: "0.62rem" }}
             >
               Exit
             </Button>

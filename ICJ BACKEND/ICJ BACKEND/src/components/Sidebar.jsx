@@ -9,8 +9,14 @@ import {
   Typography,
   Box,
   Stack,
+  IconButton,
+  Button,
+  Divider,
   useMediaQuery,
 } from "@mui/material";
+
+import CloseIcon from "@mui/icons-material/Close";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import {
   Dashboard,
@@ -37,10 +43,10 @@ import {
   LocationOn,
 } from "@mui/icons-material";
 
-import { getRoleOrderedModules, UNIVERSAL_PERMISSION_COLORS } from "../core/navigation";
+import { getRoleOrderedModules } from "../core/navigation";
 import useAuth from "../hooks/useAuth";
 
-const drawerWidth = 210;
+const drawerWidth = 220;
 
 const iconMap = {
   dashboard: <Dashboard />,
@@ -124,26 +130,38 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
   const isMobile = useMediaQuery("(max-width:899.95px)");
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const role = String(user?.role || "member").toLowerCase();
   const roleOrderedList = getRoleOrderedModules(role);
+
+  const handleLogout = async () => {
+    onMobileClose();
+    try {
+      if (logout) await logout();
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+    navigate("/login");
+  };
 
   return (
     <Drawer
       variant={isMobile ? "temporary" : "permanent"}
       open={isMobile ? mobileOpen : true}
       onClose={onMobileClose}
-      ModalProps={{ keepMounted: true }} // keep nav responsive on first open
+      ModalProps={{ keepMounted: true }}
       sx={{
         width: { xs: 0, md: drawerWidth },
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: { xs: Math.min(drawerWidth + 40, 280), md: drawerWidth },
+          width: { xs: 280, md: drawerWidth },
           boxSizing: "border-box",
           border: "none",
-          background: "#0a192f", // Deep Navy Professional Theme
+          background: "#0a192f",
           color: "#fff",
+          display: "flex",
+          flexDirection: "column",
           "& ::-webkit-scrollbar": {
             width: "5px",
           },
@@ -160,43 +178,50 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
         },
       }}
     >
-      <Toolbar sx={{ px: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <Box
-          sx={{
-            width: 32,
-            height: 32,
-            borderRadius: "8px",
-            bgcolor: "#2563eb",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            fontWeight: "bold",
-            fontSize: 14,
-            px: 1.2,
-            py: 0.4,
-          }}
-        >
-          ICJ
-        </Box>
-        <Typography
-          variant="h6"
-          fontWeight="bold"
-          sx={{
-            letterSpacing: 0.3,
-            color: "#fff",
-            fontSize: "1rem",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          ENTERPRISE
-        </Typography>
+      {/* DRAWER HEADER WITH BRAND AND MOBILE CLOSE BUTTON */}
+      <Toolbar sx={{ px: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: "8px",
+              bgcolor: "#2563eb",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontWeight: "bold",
+              fontSize: 14,
+            }}
+          >
+            ICJ
+          </Box>
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{
+              letterSpacing: 0.3,
+              color: "#fff",
+              fontSize: "0.95rem",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ENTERPRISE
+          </Typography>
+        </Stack>
+
+        {isMobile && (
+          <IconButton onClick={onMobileClose} sx={{ color: "#94a3b8", "&:hover": { color: "#ffffff" } }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
       </Toolbar>
 
-      {/* CLEAN EXECUTIVE HIGH-DENSITY NAVIGATION LIST (ZERO DEBUG BANNERS) */}
-      <Box sx={{ overflowY: "auto", px: 0.8, py: 1, flex: 1 }}>
+      <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", mb: 1 }} />
+
+      {/* MODULES LIST */}
+      <Box sx={{ overflowY: "auto", px: 1, py: 0.5, flex: 1 }}>
         <List disablePadding>
           {roleOrderedList.map((item) => {
             const isActive = location.pathname === item.route;
@@ -211,14 +236,13 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
                 }}
                 sx={{
                   mx: 0.3,
-                  mb: 0.5,
-                  py: { xs: 1, md: 0.55 },
-                  px: 1,
+                  mb: 0.6,
+                  py: { xs: 1.1, md: 0.6 },
+                  px: 1.2,
                   borderRadius: 1.5,
                   bgcolor: style.bgcolor,
                   borderLeft: style.borderLeft,
                   border: style.border,
-                  // 44px is the minimum comfortable touch target on phones
                   minHeight: { xs: 44, md: 38 },
                   boxShadow: isActive ? "0 2px 8px rgba(0,0,0,0.3)" : "none",
                   transition: "all 0.18s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -242,11 +266,10 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
                 <ListItemText
                   primary={
                     <Stack direction="row" alignItems="center" spacing={0.6}>
-                      {/* PROMINENT HIGH-CONTRAST MOBILE BADGE ICON */}
                       <Box
                         component="span"
                         sx={{
-                          fontSize: "1.1rem",
+                          fontSize: "1rem",
                           lineHeight: 1,
                           display: "inline-flex",
                           alignItems: "center",
@@ -258,7 +281,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
                       <Typography
                         component="span"
                         sx={{
-                          fontSize: "0.78rem",
+                          fontSize: "0.8rem",
                           fontWeight: isActive ? 800 : 600,
                           color: style.textColor,
                           letterSpacing: 0.1,
@@ -278,6 +301,28 @@ export default function Sidebar({ mobileOpen = false, onMobileClose = () => {} }
           })}
         </List>
       </Box>
+
+      {/* MOBILE DRAWER BOTTOM LOGOUT / EXIT BUTTON */}
+      {isMobile && (
+        <Box sx={{ p: 1.5, borderTop: "1px solid rgba(255,255,255,0.1)", bgcolor: "#071322" }}>
+          <Button
+            fullWidth
+            variant="contained"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+            sx={{
+              fontWeight: 900,
+              borderRadius: 2,
+              py: 1.2,
+              bgcolor: "#dc2626",
+              "&:hover": { bgcolor: "#b91c1c" },
+            }}
+          >
+            Exit Account / Logout (लॉगआउट)
+          </Button>
+        </Box>
+      )}
     </Drawer>
   );
 }

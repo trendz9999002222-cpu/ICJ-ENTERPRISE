@@ -64,7 +64,7 @@ function MainLayoutChrome({ children }) {
             </InsideMainLayout.Provider>
           </GlobalErrorBoundary>
         </Box>
-        <MobileBottomNav />
+        <MobileBottomNav onOpenMobileNav={() => setMobileNavOpen(true)} />
       </Box>
     </Box>
   );
