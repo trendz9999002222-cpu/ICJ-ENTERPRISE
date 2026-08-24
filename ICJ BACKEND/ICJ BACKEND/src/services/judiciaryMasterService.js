@@ -237,6 +237,7 @@ export const JudiciaryMasterService = {
   },
 
   getSupremeCourtCaseTypes() { return SUPREME_COURT_CASE_TYPES; },
+  getAllIndiaSupremeCourtCaseTypes() { return SUPREME_COURT_CASE_TYPES; },
   getAllIndiaHighCourtCaseTypes() { return ALL_INDIA_HIGH_COURT_CASE_TYPES; },
   getCaseTypesForHighCourt(highCourtCode) { return ALL_INDIA_HIGH_COURT_CASE_TYPES; },
 
