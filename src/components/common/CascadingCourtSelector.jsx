@@ -12,16 +12,10 @@ import {
   ListSubheader,
   Card,
   CardActionArea,
-  CardContent,
 } from "@mui/material";
 
-import GavelIcon from "@mui/icons-material/Gavel";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningIcon from "@mui/icons-material/Warning";
-import BusinessIcon from "@mui/icons-material/Business";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import LocationCityIcon from "@mui/icons-material/LocationCity";
 
 import LocationService from "../../services/locationService.js";
 import JudiciaryMasterService, {
@@ -77,13 +71,60 @@ export default function CascadingCourtSelector({
 
   // High Courts associated with State
   const currentHighCourt = useMemo(() => {
-    return highCourts.find((h) => h.code === highCourtCode || h.stateCode === stateCode) || highCourts[0];
-  }, [highCourts, highCourtCode, stateCode]);
+    return highCourts.find((h) => h.code === highCourtCode) || highCourts[0];
+  }, [highCourts, highCourtCode]);
 
   // Active Special Tribunal Record
   const selectedTribunal = useMemo(() => {
     return specialTribunals.find((t) => t.id === tribunalId) || specialTribunals[0];
   }, [specialTribunals, tribunalId]);
+
+  // ─── SYNCHRONIZATION HANDLERS ────────────────────────────────────────────
+
+  // Handle State Change -> Auto-Sync High Court, Benches & Districts
+  const handleStateChange = (newStateCode) => {
+    setStateCode(newStateCode);
+    const targetState = states.find((s) => s.code === newStateCode);
+
+    // 1. Match High Court
+    let matchedHC = highCourts.find((h) => h.stateCode === newStateCode);
+    if (!matchedHC && targetState?.highCourt) {
+      matchedHC = highCourts.find((h) => h.name.toLowerCase().includes(targetState.highCourt.toLowerCase()));
+    }
+    if (!matchedHC) matchedHC = highCourts[0];
+
+    setHighCourtCode(matchedHC.code);
+    setBench(matchedHC.benches?.[0] || "Principal Seat");
+
+    // 2. Reset Districts
+    const newDists = LocationService.getDistrictsByState(newStateCode);
+    if (newDists.length > 0) {
+      setDistrictCode(newDists[0].code);
+      setCourtComplex(newDists[0].courtComplex || "District Court Complex");
+    } else {
+      setDistrictCode(`DST-${newStateCode}-01`);
+      setCourtComplex("District Court Complex");
+    }
+  };
+
+  // Handle Direct High Court Registry Change
+  const handleHighCourtChange = (newHCCode) => {
+    setHighCourtCode(newHCCode);
+    const hc = highCourts.find((h) => h.code === newHCCode);
+    if (hc) {
+      setBench(hc.benches?.[0] || "Principal Seat");
+      if (hc.stateCode && hc.stateCode !== stateCode) {
+        setStateCode(hc.stateCode);
+      }
+    }
+  };
+
+  // Handle District Change
+  const handleDistrictChange = (newDistCode) => {
+    setDistrictCode(newDistCode);
+    const d = availableDistricts.find((item) => item.code === newDistCode);
+    if (d?.courtComplex) setCourtComplex(d.courtComplex);
+  };
 
   // Court-Specific Case Types Resolution
   const availableCaseTypes = useMemo(() => {
@@ -238,9 +279,10 @@ export default function CascadingCourtSelector({
                 variant="outlined"
                 sx={{
                   borderRadius: 2,
-                  borderColor: isSelected ? "#1d4ed8" : "#e2e8f0",
+                  borderColor: isSelected ? "#1d4ed8" : "#cbd5e1",
                   bgcolor: isSelected ? "#eff6ff" : "#ffffff",
                   borderWidth: isSelected ? 2 : 1,
+                  boxShadow: isSelected ? "0 2px 8px rgba(29, 78, 216, 0.15)" : "none",
                   transition: "all 0.2s ease-in-out",
                   height: "100%",
                 }}
@@ -264,10 +306,10 @@ export default function CascadingCourtSelector({
 
       {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS */}
       <Grid container spacing={2}>
-        {/* CASE A: SUPREME COURT OF INDIA (All state/district hidden) */}
+        {/* CASE A: SUPREME COURT OF INDIA */}
         {forumTier === "SUPREME_COURT" && (
           <>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={7}>
               <TextField
                 select
                 fullWidth
@@ -305,7 +347,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={5}>
               <TextField
                 fullWidth
                 size="small"
@@ -321,14 +363,14 @@ export default function CascadingCourtSelector({
         {/* CASE B: HIGH COURT OF JUDICATURE */}
         {forumTier === "HIGH_COURT" && (
           <>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="1. State / Union Territory *"
                 value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
+                onChange={(e) => handleStateChange(e.target.value)}
                 disabled={disabled}
               >
                 {states.map((s) => (
@@ -339,14 +381,14 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="2. High Court Registry *"
                 value={currentHighCourt.code}
-                onChange={(e) => setHighCourtCode(e.target.value)}
+                onChange={(e) => handleHighCourtChange(e.target.value)}
                 disabled={disabled}
               >
                 {highCourts.map((h) => (
@@ -357,7 +399,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
@@ -375,12 +417,12 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={7}>
               <TextField
                 select
                 fullWidth
                 size="small"
-                label="High Court Case Type (All-India Master) *"
+                label="4. High Court Case Type (All-India Master) *"
                 value={caseTypeId}
                 onChange={(e) => handleCaseTypeChange(e.target.value)}
                 disabled={disabled}
@@ -404,11 +446,11 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={5}>
               <TextField
                 fullWidth
                 size="small"
-                label="High Court Subject Category"
+                label="5. High Court Subject Category"
                 value={caseCategory}
                 onChange={(e) => setCaseCategory(e.target.value)}
                 disabled={disabled}
@@ -420,14 +462,14 @@ export default function CascadingCourtSelector({
         {/* CASE C: DISTRICT & SUBORDINATE COURTS */}
         {forumTier === "DISTRICT_COURT" && (
           <>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="1. State / Union Territory *"
                 value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
+                onChange={(e) => handleStateChange(e.target.value)}
                 disabled={disabled}
               >
                 {states.map((s) => (
@@ -438,14 +480,14 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="2. Judicial District *"
                 value={districtCode}
-                onChange={(e) => setDistrictCode(e.target.value)}
+                onChange={(e) => handleDistrictChange(e.target.value)}
                 disabled={disabled}
               >
                 {availableDistricts.map((d) => (
@@ -456,7 +498,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 size="small"
@@ -468,7 +510,7 @@ export default function CascadingCourtSelector({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 select
                 fullWidth
@@ -486,7 +528,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <TextField
                 select
                 fullWidth
@@ -511,14 +553,14 @@ export default function CascadingCourtSelector({
         {/* CASE D: TEHSIL & REVENUE DEPARTMENT */}
         {forumTier === "TEHSIL_REVENUE" && (
           <>
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="1. State *"
                 value={stateCode}
-                onChange={(e) => setStateCode(e.target.value)}
+                onChange={(e) => handleStateChange(e.target.value)}
                 disabled={disabled}
               >
                 {states.map((s) => (
@@ -529,14 +571,14 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 select
                 fullWidth
                 size="small"
                 label="2. District *"
                 value={districtCode}
-                onChange={(e) => setDistrictCode(e.target.value)}
+                onChange={(e) => handleDistrictChange(e.target.value)}
                 disabled={disabled}
               >
                 {availableDistricts.map((d) => (
@@ -547,7 +589,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
                 size="small"
@@ -559,7 +601,7 @@ export default function CascadingCourtSelector({
               />
             </Grid>
 
-            <Grid item xs={12} sm={3}>
+            <Grid item xs={12} md={3}>
               <TextField
                 select
                 fullWidth
@@ -602,7 +644,7 @@ export default function CascadingCourtSelector({
         {/* CASE E: SPECIAL STATUTORY TRIBUNALS */}
         {forumTier === "SPECIAL_TRIBUNAL" && (
           <>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
@@ -624,7 +666,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
@@ -642,7 +684,7 @@ export default function CascadingCourtSelector({
               </TextField>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth

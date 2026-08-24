@@ -308,21 +308,40 @@ export default function Legal() {
               />
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Petitioner / Client Name *" name="clientName" value={form.clientName} onChange={onChange} />
+            {/* ROW 1: CLIENT & ADVOCATE NAMES (Generous Width) */}
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Petitioner / Client Name *" name="clientName" value={form.clientName} onChange={onChange} placeholder="e.g. Ramvir Jatav" />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Lead Empaneled Advocate Name *" name="advocateName" value={form.advocateName} onChange={onChange} />
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Lead Empaneled Advocate Name *" name="advocateName" value={form.advocateName} onChange={onChange} placeholder="e.g. Senior Advocate Mr. PAWAN GUPTA" />
             </Grid>
-            <Grid item xs={12} md={4}>
+
+            {/* ROW 2: FILING DETAILS & STATUS */}
+            <Grid item xs={12} sm={6} md={3}>
               <TextField fullWidth label="Custom Case / Filing No. (Optional)" name="caseNumber" value={form.caseNumber} onChange={onChange} placeholder="Auto-generated if blank" />
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth type="date" label="Next Hearing Date" name="nextHearing" value={form.nextHearing} onChange={onChange} InputLabelProps={{ shrink: true }} />
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Next Hearing Date"
+                name="nextHearing"
+                value={form.nextHearing}
+                onChange={onChange}
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  "& .MuiInputLabel-root": {
+                    bgcolor: "#ffffff",
+                    px: 0.6,
+                    fontWeight: 700,
+                  },
+                }}
+              />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField select fullWidth label="Status" name="status" value={form.status} onChange={onChange}>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField select fullWidth label="Case Status" name="status" value={form.status} onChange={onChange}>
                 <MenuItem value="Filing">Filing</MenuItem>
                 <MenuItem value="Pending">Pending</MenuItem>
                 <MenuItem value="Hearing">Hearing</MenuItem>
@@ -330,8 +349,9 @@ export default function Legal() {
                 <MenuItem value="Stayed">Stayed</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Button fullWidth size="large" variant="contained" onClick={onCreate} sx={{ height: "56px", fontWeight: "bold" }}>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Button fullWidth size="large" variant="contained" onClick={onCreate} sx={{ height: "40px", fontWeight: 800, letterSpacing: 0.2 }}>
                 SAVE MASTER CASE RECORD ➔
               </Button>
             </Grid>
