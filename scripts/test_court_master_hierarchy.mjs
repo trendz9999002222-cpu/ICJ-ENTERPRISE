@@ -99,7 +99,7 @@ async function runMegaMasterTests() {
   // 7. Special Statutory Tribunals Directory
   const tribunals = JudiciaryMasterService.getSpecialTribunals();
   assert(tribunals.length === 8, `All 8 Specialized Tribunals present (Found: ${tribunals.length})`);
-  assert(tribunals.some((t) => t.id === "NCLT" && t.benches.length >= 16), "NCLT with 16+ benches present");
+  assert(tribunals.some((t) => t.id === "NCLT" && t.benches.length >= 16 && t.caseTypes.length >= 8), "NCLT with 16+ All-India Benches and 8 Case Types present");
   assert(tribunals.some((t) => t.id === "DRT" && t.benches.length >= 20), "DRT / DRAT Banking Recovery present");
   assert(tribunals.some((t) => t.id === "NGT" && t.benches.length >= 5), "NGT 5 Zonal Benches present");
   assert(tribunals.some((t) => t.id === "CAT" && t.benches.length >= 18), "CAT Central Administrative Tribunal present");
