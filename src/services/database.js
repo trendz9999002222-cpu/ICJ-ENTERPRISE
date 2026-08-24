@@ -1,5 +1,5 @@
 /* eslint-disable no-empty */
-import { supabase } from "./supabase.js";
+import { supabase, isSupabaseConfigured } from "./supabase.js";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 const STORAGE_KEYS = {
@@ -17,11 +17,6 @@ const STORAGE_KEYS = {
 };
 
 const env = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
-
-const isSupabaseConfigured =
-  Boolean(env.VITE_SUPABASE_URL) &&
-  Boolean(env.VITE_SUPABASE_PUBLISHABLE_KEY) &&
-  !env.VITE_SUPABASE_URL.includes("placeholder");
 
 const TABLE_COLUMNS = {
   members: [

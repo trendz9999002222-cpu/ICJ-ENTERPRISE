@@ -1,5 +1,5 @@
 /* eslint-disable no-empty */
-import { supabase } from "./supabase.js";
+import { supabase, isSupabaseConfigured } from "./supabase.js";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 const STORAGE_KEYS = {
@@ -17,11 +17,6 @@ const STORAGE_KEYS = {
 };
 
 const env = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
-
-const isSupabaseConfigured =
-  Boolean(env.VITE_SUPABASE_URL) &&
-  Boolean(env.VITE_SUPABASE_PUBLISHABLE_KEY) &&
-  !env.VITE_SUPABASE_URL.includes("placeholder");
 
 const TABLE_COLUMNS = {
   members: [
@@ -341,44 +336,42 @@ const readUnifiedUsers = () => {
       } catch {}
     }
 
+    // Filter out old dummy seed members from localStorage
     const cleanExisting = Array.isArray(existingList) ? existingList.filter((u) => !isDummyMember(u)) : [];
 
     const userMap = new Map();
-    // 1. Seed users as foundational base (strictly Super Admin)
+    // 1. Seed users as foundational base (strictly 1 Super Admin)
     ENTERPRISE_SEED_USERS.forEach((u) => {
       const k = String(u.member_id || u.memberId || u.email || u.id || "").toLowerCase();
       if (k) userMap.set(k, u);
     });
 
+    // 2. Overlay clean existing stored users (organically registered users)
     cleanExisting.forEach((u) => {
       const existingKey = Array.from(userMap.keys()).find((k) => {
-          const item = userMap.get(k);
-          return (
-            (u.member_id && String(item.member_id || item.memberId) === String(u.member_id)) ||
-            (u.memberId && String(item.member_id || item.memberId) === String(u.memberId)) ||
-            (u.email && item.email && String(item.email).toLowerCase() === String(u.email).toLowerCase()) ||
-            (u.id && String(item.id) === String(u.id))
-          );
-        });
-
-        if (existingKey) {
-          const base = userMap.get(existingKey);
-          userMap.set(existingKey, {
-            ...base,
-            ...u,
-            id: base.id, // Preserve permanent primary ID
-            member_id: base.member_id || base.memberId || u.member_id || u.memberId,
-            memberId: base.memberId || base.member_id || u.memberId || u.member_id,
-            registration_date: base.registration_date || u.registration_date,
-            created_at: base.created_at || u.created_at,
-          });
-        } else {
-          // New organically registered user
-          const k = String(u.member_id || u.memberId || u.email || u.id || Date.now()).toLowerCase();
-          userMap.set(k, u);
-        }
+        const item = userMap.get(k);
+        return (
+          (u.member_id && String(item.member_id || item.memberId) === String(u.member_id)) ||
+          (u.memberId && String(item.member_id || item.memberId) === String(u.memberId)) ||
+          (u.email && item.email && String(item.email).toLowerCase() === String(u.email).toLowerCase()) ||
+          (u.id && String(item.id) === String(u.id))
+        );
       });
-    }
+
+      if (existingKey) {
+        const base = userMap.get(existingKey);
+        userMap.set(existingKey, {
+          ...base,
+          ...u,
+          id: base.id,
+          member_id: base.member_id || base.memberId || u.member_id || u.memberId,
+          memberId: base.memberId || base.member_id || u.memberId || u.member_id,
+        });
+      } else {
+        const k = String(u.member_id || u.memberId || u.email || u.id || Date.now()).toLowerCase();
+        userMap.set(k, u);
+      }
+    });
 
     const merged = Array.from(userMap.values());
     window.localStorage.setItem("icj_enterprise_users", JSON.stringify(merged));
