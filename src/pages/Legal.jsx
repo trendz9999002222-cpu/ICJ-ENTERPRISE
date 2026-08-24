@@ -38,6 +38,7 @@ import ActivityService from "../services/activityService";
 import CaseDetailModal from "../components/legal/CaseDetailModal";
 import AdvocateAssignmentModal from "../components/legal/AdvocateAssignmentModal";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
+import CascadingCourtSelector from "../components/common/CascadingCourtSelector";
 
 export default function Legal() {
   const [cases, setCases] = useState([]);
@@ -48,6 +49,8 @@ export default function Legal() {
   const [assignmentCase, setAssignmentCase] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
+
+  const [courtHierarchyData, setCourtHierarchyData] = useState({});
 
   const [form, setForm] = useState({
     title: "",
@@ -95,24 +98,39 @@ export default function Legal() {
     }
 
     const newId = `ICJ-2026-CASE-${Math.floor(10000 + Math.random() * 90000)}`;
-    const newCaseNumber = form.caseNumber || `WP(C)/${Math.floor(1000 + Math.random() * 9000)}/2026`;
+    const newCaseNumber = form.caseNumber || (courtHierarchyData.caseTypeCode ? `${courtHierarchyData.caseTypeCode}/${Math.floor(1000 + Math.random() * 9000)}/2026` : `WP(C)/${Math.floor(1000 + Math.random() * 9000)}/2026`);
 
     const payload = {
       ...form,
       id: newId,
       caseId: newId,
       caseNumber: newCaseNumber,
+      // Structured Judicial Taxonomy Data
+      courtName: courtHierarchyData.courtName || form.courtName,
+      courtComplex: courtHierarchyData.courtComplex || "",
+      establishmentType: courtHierarchyData.establishmentType || "",
+      stateCode: courtHierarchyData.stateCode || "",
+      stateName: courtHierarchyData.stateName || "",
+      districtCode: courtHierarchyData.districtCode || "",
+      districtName: courtHierarchyData.districtName || "",
+      caseTypeId: courtHierarchyData.caseTypeId || "",
+      caseTypeCode: courtHierarchyData.caseTypeCode || "",
+      caseTypeName: courtHierarchyData.caseTypeName || form.caseType,
+      caseCategory: courtHierarchyData.caseCategory || form.category,
+      caseSubCategory: courtHierarchyData.caseSubCategory || "",
+      cnrNumber: courtHierarchyData.cnrNumber || "",
+      isCNRValid: courtHierarchyData.isCNRValid || false,
       createdAt: new Date().toISOString(),
     };
 
     await LegalService.create(payload);
     ActivityService.create({
-      title: `New Case Registered: ${form.title} (${newCaseNumber})`,
+      title: `New Case Registered: ${form.title} (${newCaseNumber}) [${courtHierarchyData.courtName || form.courtName}]`,
       type: "legal",
       meta: { caseId: newId, status: form.status },
     });
 
-    setAlertMsg(`Case "${form.title}" (${newCaseNumber}) created successfully!`);
+    setAlertMsg(`Case "${form.title}" (${newCaseNumber}) registered successfully with Official Court Taxonomy!`);
     setTimeout(() => setAlertMsg(""), 3500);
 
     setForm({
@@ -269,44 +287,41 @@ export default function Legal() {
             Register New Legal Case in Master Repository
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Case Title / Subject" name="title" value={form.title} onChange={onChange} />
+            <Grid item xs={12} md={8}>
+              <TextField fullWidth label="Case Title / Subject Matter *" name="title" value={form.title} onChange={onChange} placeholder="e.g. Ramvir Jatav vs State of UP & Ors." />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField select fullWidth label="Case Type" name="caseType" value={form.caseType} onChange={onChange}>
-                <MenuItem value="Constitutional / PIL">Constitutional / PIL</MenuItem>
-                <MenuItem value="Civil Dispute">Civil Dispute</MenuItem>
-                <MenuItem value="Criminal Proceeding">Criminal Proceeding</MenuItem>
-                <MenuItem value="Commercial Arbitration">Commercial Arbitration</MenuItem>
-                <MenuItem value="Tax & Finance">Tax & Finance</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField select fullWidth label="Priority" name="priority" value={form.priority} onChange={onChange}>
-                <MenuItem value="Urgent">Urgent Priority</MenuItem>
-                <MenuItem value="High">High Priority</MenuItem>
-                <MenuItem value="Medium">Medium Priority</MenuItem>
-                <MenuItem value="Low">Low Priority</MenuItem>
+                <MenuItem value="Urgent">🔴 Urgent Priority</MenuItem>
+                <MenuItem value="High">🟠 High Priority</MenuItem>
+                <MenuItem value="Medium">🟡 Medium Priority</MenuItem>
+                <MenuItem value="Low">🟢 Low Priority</MenuItem>
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Petitioner / Client Name" name="clientName" value={form.clientName} onChange={onChange} />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Lead Advocate Name" name="advocateName" value={form.advocateName} onChange={onChange} />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Court Name" name="courtName" value={form.courtName} onChange={onChange} />
+            {/* INTEGRATED OFFICIAL INDIA COURT & TAXONOMY HIERARCHY */}
+            <Grid item xs={12}>
+              <CascadingCourtSelector
+                value={courtHierarchyData}
+                onChange={setCourtHierarchyData}
+                showCNR={true}
+              />
             </Grid>
 
-            <Grid item xs={12} md={3}>
-              <TextField fullWidth label="Court Case No. (Optional)" name="caseNumber" value={form.caseNumber} onChange={onChange} placeholder="e.g. WP(C)/1042/2026" />
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Petitioner / Client Name *" name="clientName" value={form.clientName} onChange={onChange} />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Lead Empaneled Advocate Name *" name="advocateName" value={form.advocateName} onChange={onChange} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Custom Case / Filing No. (Optional)" name="caseNumber" value={form.caseNumber} onChange={onChange} placeholder="Auto-generated if blank" />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
               <TextField fullWidth type="date" label="Next Hearing Date" name="nextHearing" value={form.nextHearing} onChange={onChange} InputLabelProps={{ shrink: true }} />
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField select fullWidth label="Status" name="status" value={form.status} onChange={onChange}>
                 <MenuItem value="Filing">Filing</MenuItem>
                 <MenuItem value="Pending">Pending</MenuItem>
@@ -315,9 +330,9 @@ export default function Legal() {
                 <MenuItem value="Stayed">Stayed</MenuItem>
               </TextField>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <Button fullWidth size="large" variant="contained" onClick={onCreate} sx={{ height: "56px", fontWeight: "bold" }}>
-                SAVE MASTER CASE
+                SAVE MASTER CASE RECORD ➔
               </Button>
             </Grid>
           </Grid>
