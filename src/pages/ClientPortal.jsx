@@ -41,6 +41,8 @@ import AudioConsultationModal from "../components/common/AudioConsultationModal.
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
@@ -652,7 +654,7 @@ export default function ClientPortal() {
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
         {/* Real-time Workspace Summary Cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 2.5 }}>
           <Grid item xs={12} sm={3}>
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderLeft: "4px solid #ed6c02" }}>
               <Typography variant="caption" color="text.secondary" fontWeight="bold">My Legal Matters</Typography>
@@ -667,8 +669,10 @@ export default function ClientPortal() {
           </Grid>
           <Grid item xs={12} sm={3}>
             <Paper variant="outlined" sx={{ p: 2, borderRadius: 2.5, borderLeft: "4px solid #9c27b0" }}>
-              <Typography variant="caption" color="text.secondary" fontWeight="bold">Assigned Counsel</Typography>
-              <Typography variant="h6" fontWeight="bold" noWrap>{activeAdvocate ? activeAdvocate.name : "No Counsel Allotted"}</Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight="bold">Assigned Counsel / Officer</Typography>
+              <Typography variant="h6" fontWeight="bold" noWrap>
+                {activeMasterCase?.assigned_advocate?.advocate_name || user?.advocateName || (activeAdvocate ? activeAdvocate.name : "ICJ Care Officer")}
+              </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={3}>
@@ -678,6 +682,70 @@ export default function ClientPortal() {
             </Paper>
           </Grid>
         </Grid>
+
+        {/* 🎧 APPOINTED LEGAL OFFICER & COUNSEL HERO BANNER */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 2.5,
+            mb: 3,
+            borderRadius: 3,
+            background: "linear-gradient(135deg, #0a192f 0%, #1e3a8a 100%)",
+            color: "#ffffff",
+            border: "1px solid #38bdf8",
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Avatar sx={{ width: 48, height: 48, bgcolor: "#38bdf8", color: "#0a192f", fontWeight: 900 }}>
+                🎧
+              </Avatar>
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                    {activeMasterCase?.assigned_advocate?.advocate_name || user?.advocateName || "ICJ Central Customer Care & Legal Helpline"}
+                  </Typography>
+                  <Chip
+                    label={activeMasterCase?.assigned_advocate?.advocate_id ? `ID: ${activeMasterCase.assigned_advocate.advocate_id}` : "🎧 Official Support Desk"}
+                    size="small"
+                    sx={{ bgcolor: "#d97706", color: "#ffffff", fontWeight: 800, fontSize: "0.68rem" }}
+                  />
+                </Stack>
+                <Typography variant="body2" color="#93c5fd">
+                  आपकी समस्या, कानूनी सलाह व केस समाधान हेतु अधिकृत विधिक अधिकारी / अधिवक्ता
+                </Typography>
+                <Typography variant="caption" color="#cbd5e1">
+                  📱 हेल्पलाइन / मोबाइल: <strong>{activeMasterCase?.assigned_advocate?.advocate_mobile || user?.advocateMobile || "7053002222 / 9999002222"}</strong> | ✉️ ईमेल: {activeMasterCase?.assigned_advocate?.advocate_email || "Consortiumofjurist@gmail.com"}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<WhatsAppIcon />}
+                component="a"
+                href={`https://api.whatsapp.com/send?phone=91${(activeMasterCase?.assigned_advocate?.advocate_mobile || user?.advocateMobile || "7053002222").replace(/\D/g, "").slice(-10)}&text=${encodeURIComponent(`नमस्ते, मैं ICJ सदस्य ${clientName} हूँ। मुझे मेरी समस्या के संबंध में सहायता चाहिए।`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ fontWeight: 800, bgcolor: "#16a34a", "&:hover": { bgcolor: "#15803d" } }}
+              >
+                WhatsApp Chat 💬
+              </Button>
+
+              <Button
+                variant="outlined"
+                startIcon={<CallIcon />}
+                component="a"
+                href={`tel:${(activeMasterCase?.assigned_advocate?.advocate_mobile || user?.advocateMobile || "7053002222").replace(/\D/g, "").slice(-10)}`}
+                sx={{ color: "#ffffff", borderColor: "#38bdf8", fontWeight: 800, "&:hover": { borderColor: "#ffffff", bgcolor: "rgba(255,255,255,0.1)" } }}
+              >
+                Call Desk 📞
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
 
         {/* Client Portal Navigation Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>

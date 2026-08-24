@@ -35,7 +35,9 @@ import ActivityService from "../services/activityService";
 import useAuth from "../hooks/useAuth";
 import JudiciaryMasterService from "../services/judiciaryMasterService.js";
 import SpecialtyUpgradeModal from "../components/membership/SpecialtyUpgradeModal.jsx";
+import AdvocateAssignmentModal from "../components/legal/AdvocateAssignmentModal.jsx";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import SafeAccess from "../utils/safeAccess.js";
 
 const STATUS_FILTERS = ["All", "Verified", "Pending", "Rejected", "Suspended"];
@@ -75,6 +77,8 @@ export default function MemberDirectory() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [editOpen, setEditOpen] = useState(false);
   const [specialtyModalOpen, setSpecialtyModalOpen] = useState(false);
+  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
+  const [assignmentMember, setAssignmentMember] = useState(null);
   const [editMember, setEditMember] = useState(null);
   const [editForm, setEditForm] = useState({});
 
@@ -577,16 +581,33 @@ export default function MemberDirectory() {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <Tooltip title="Edit">
-                      <Button size="small" onClick={() => openEdit(member)}>
-                        <EditIcon fontSize="small" />
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <Button size="small" color="error" onClick={() => handleDelete(member)}>
-                        <DeleteIcon fontSize="small" />
-                      </Button>
-                    </Tooltip>
+                    <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
+                      <Tooltip title="🎧 / ⚖️ Assign Customer Care Officer or Legal Counsel">
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color={member.assigned_advocate ? "secondary" : "primary"}
+                          startIcon={<SupportAgentIcon sx={{ fontSize: "0.85rem" }} />}
+                          onClick={() => {
+                            setAssignmentMember(member);
+                            setAssignmentModalOpen(true);
+                          }}
+                          sx={{ fontWeight: 800, fontSize: "0.68rem", py: 0.3, px: 0.8, whiteSpace: "nowrap" }}
+                        >
+                          {member.assigned_advocate ? "Reassign Officer" : "Assign Officer"}
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <Button size="small" onClick={() => openEdit(member)}>
+                          <EditIcon fontSize="small" />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <Button size="small" color="error" onClick={() => handleDelete(member)}>
+                          <DeleteIcon fontSize="small" />
+                        </Button>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))
@@ -594,6 +615,16 @@ export default function MemberDirectory() {
           </TableBody>
         </Table>
       </Paper>
+
+      {/* 🎧 / ⚖️ Advocate & Customer Care Officer Allocation Modal */}
+      {assignmentMember && (
+        <AdvocateAssignmentModal
+          open={assignmentModalOpen}
+          member={assignmentMember}
+          onClose={() => setAssignmentModalOpen(false)}
+          onAssigned={() => refreshMembers()}
+        />
+      )}
 
       <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Edit Member Profile</DialogTitle>

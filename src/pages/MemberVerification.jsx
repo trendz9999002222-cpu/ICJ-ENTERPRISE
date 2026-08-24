@@ -38,11 +38,13 @@ import PendingActionsIcon from "@mui/icons-material/PendingActions";
 import CloseIcon from "@mui/icons-material/Close";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PrintIcon from "@mui/icons-material/Print";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 import { MemberService } from "../services/memberService";
 import ActivityService from "../services/activityService";
 import CertificateService from "../services/certificateService";
 import MasterCertificateModal from "../components/common/MasterCertificateModal";
+import AdvocateAssignmentModal from "../components/legal/AdvocateAssignmentModal";
 
 const getMemberId = (member) =>
   member?.member_id || member?.memberId || member?.id || member?.uuid || "";
@@ -68,6 +70,8 @@ export default function MemberVerification() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [certModalOpen, setCertModalOpen] = useState(false);
+  const [assignmentMember, setAssignmentMember] = useState(null);
+  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
 
   const loadMembers = async () => {
@@ -402,6 +406,22 @@ export default function MemberVerification() {
 
                     <TableCell align="center">
                       <Stack direction="row" spacing={1} justifyContent="center">
+                        <Tooltip title="🎧 / ⚖️ Assign Customer Care Officer or Legal Counsel">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<SupportAgentIcon sx={{ fontSize: "0.85rem" }} />}
+                            onClick={() => {
+                              setAssignmentMember(member);
+                              setAssignmentModalOpen(true);
+                            }}
+                            sx={{ fontWeight: 800, fontSize: "0.72rem", py: 0.3 }}
+                          >
+                            Assign Officer
+                          </Button>
+                        </Tooltip>
+
                         <Tooltip title="View Complete Application Details">
                           <Button
                             size="small"
@@ -572,6 +592,18 @@ export default function MemberVerification() {
               Close Dossier
             </Button>
             <Button
+              variant="contained"
+              color="primary"
+              startIcon={<SupportAgentIcon />}
+              onClick={() => {
+                setAssignmentMember(selectedMember);
+                setAssignmentModalOpen(true);
+              }}
+              sx={{ fontWeight: 800 }}
+            >
+              Assign Care Officer / Advocate
+            </Button>
+            <Button
               variant="outlined"
               color="error"
               startIcon={<CancelIcon />}
@@ -597,6 +629,16 @@ export default function MemberVerification() {
             </Button>
           </DialogActions>
         </Dialog>
+      )}
+
+      {/* 🎧 / ⚖️ Advocate & Customer Care Officer Allocation Modal */}
+      {assignmentMember && (
+        <AdvocateAssignmentModal
+          open={assignmentModalOpen}
+          member={assignmentMember}
+          onClose={() => setAssignmentModalOpen(false)}
+          onAssigned={() => loadMembers()}
+        />
       )}
 
       {/* Master Certificate Modal */}

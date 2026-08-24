@@ -26,6 +26,7 @@ import {
 
 import CloseIcon from "@mui/icons-material/Close";
 import GavelIcon from "@mui/icons-material/Gavel";
+import HeadsetIcon from "@mui/icons-material/Headset";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import EmailIcon from "@mui/icons-material/Email";
@@ -34,13 +35,14 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 import AdvocateAssignmentService from "../../services/advocateAssignmentService.js";
 
 export default function AdvocateAssignmentModal({
   open = false,
   caseItem = null,
+  member = null,
   onClose = () => {},
   onAssigned = () => {},
 }) {
@@ -65,6 +67,12 @@ export default function AdvocateAssignmentModal({
   const [customWhatsApp, setCustomWhatsApp] = useState("");
   const [templateSavedMsg, setTemplateSavedMsg] = useState("");
 
+  const targetClientName = caseItem?.clientName || caseItem?.client_name || member?.fullName || member?.name || "Client / Member";
+  const targetEmail = caseItem?.clientEmail || caseItem?.client_email || member?.email || "";
+  const targetMobile = caseItem?.clientPhone || caseItem?.client_phone || member?.mobile || "";
+  const targetCaseId = caseItem?.caseId || caseItem?.id || caseItem?.case_id || (member ? `MEM-${member.member_id || member.id}` : "ICJ-REF-1001");
+  const targetTitle = caseItem?.title || caseItem?.caseTitle || member?.purpose || (member?.problemCategories ? member.problemCategories.join(", ") : "Legal Assistance & Advisory");
+
   useEffect(() => {
     if (open) {
       setLoading(true);
@@ -81,15 +89,14 @@ export default function AdvocateAssignmentModal({
         .then((list) => {
           setAdvocates(list);
           if (list.length > 0) {
-            // If case already has an advocate, preselect it; otherwise select first advocate
-            const existingId = caseItem?.assigned_advocate?.advocate_id || caseItem?.advocateId;
+            const existingId = caseItem?.assigned_advocate?.advocate_id || caseItem?.advocateId || member?.assigned_advocate?.advocate_id || member?.advocateId;
             const match = list.find((a) => (a.member_id || a.id) === existingId);
             setSelectedAdvocateId(match ? (match.member_id || match.id) : (list[0].member_id || list[0].id));
           }
         })
         .finally(() => setLoading(false));
     }
-  }, [open, caseItem]);
+  }, [open, caseItem, member]);
 
   const selectedAdvocate = useMemo(() => {
     return advocates.find((a) => (a.member_id || a.id) === selectedAdvocateId) || null;
@@ -97,19 +104,18 @@ export default function AdvocateAssignmentModal({
 
   // Context for live preview
   const previewContext = useMemo(() => {
-    if (!caseItem) return {};
-    const advName = selectedAdvocate?.fullName || selectedAdvocate?.name || "Empaneled Advocate";
-    const advId = selectedAdvocate?.member_id || selectedAdvocate?.id || "26ICJ08AA0002";
-    const advMobile = selectedAdvocate?.mobile || "+91 9999002222";
-    const advEmail = selectedAdvocate?.email || "advocate9999002222@gmail.com";
-    const advBar = selectedAdvocate?.professionalRegNo || "Verified Bar Council Member";
+    const advName = selectedAdvocate?.fullName || selectedAdvocate?.name || "Customer Care Officer";
+    const advId = selectedAdvocate?.member_id || selectedAdvocate?.id || "ICJ-CARE-01";
+    const advMobile = selectedAdvocate?.mobile || "+91 7053002222";
+    const advEmail = selectedAdvocate?.email || "Consortiumofjurist@gmail.com";
+    const advBar = selectedAdvocate?.professionalRegNo || (selectedAdvocate?.isOfficialCare ? "ICJ Customer Care & Legal Helpline" : "Verified Bar Council Member");
 
     return {
-      client_name: caseItem.clientName || caseItem.client_name || "Valued Client",
-      client_email: caseItem.clientEmail || caseItem.client_email || caseItem.email || "client@example.com",
-      client_mobile: caseItem.clientPhone || caseItem.client_phone || caseItem.mobile || "+91 7053002222",
-      case_id: caseItem.caseId || caseItem.id || caseItem.case_id || "ICJ-2026-CASE-1001",
-      case_title: caseItem.title || caseItem.caseTitle || "Legal Consultation & Pleading",
+      client_name: targetClientName,
+      client_email: targetEmail,
+      client_mobile: targetMobile,
+      case_id: targetCaseId,
+      case_title: targetTitle,
       advocate_name: advName,
       advocate_id: advId,
       advocate_mobile: advMobile,
@@ -118,7 +124,7 @@ export default function AdvocateAssignmentModal({
       assigned_date: new Date().toLocaleDateString("en-IN"),
       support_phone: "7053002222 / 9999002222",
     };
-  }, [caseItem, selectedAdvocate]);
+  }, [selectedAdvocate, targetClientName, targetEmail, targetMobile, targetCaseId, targetTitle]);
 
   // Live rendered preview text
   const renderedWhatsAppPreview = useMemo(() => {
@@ -134,7 +140,7 @@ export default function AdvocateAssignmentModal({
     };
     AdvocateAssignmentService.saveTemplates(updated);
     setTemplates(updated);
-    setTemplateSavedMsg("Template saved successfully! All future assignments will use this default format.");
+    setTemplateSavedMsg("Template saved successfully! All future assignments will use this custom format.");
     setTimeout(() => setTemplateSavedMsg(""), 4000);
   };
 
@@ -150,7 +156,7 @@ export default function AdvocateAssignmentModal({
 
   const handleConfirmAllocation = async () => {
     if (!selectedAdvocate) {
-      setErrorMsg("Please select an advocate to allocate.");
+      setErrorMsg("Please select an advocate or customer care officer to allocate.");
       return;
     }
 
@@ -158,35 +164,48 @@ export default function AdvocateAssignmentModal({
     setErrorMsg("");
 
     try {
-      const res = await AdvocateAssignmentService.allocateAdvocateToCase({
-        caseItem,
-        advocate: selectedAdvocate,
-        customSubject,
-        customEmailBody,
-        customWhatsApp,
-        channels,
-        assignedBy: "ICJ Super Admin",
-      });
+      let res;
+      if (member) {
+        res = await AdvocateAssignmentService.allocateAdvocateToMember({
+          member,
+          advocate: selectedAdvocate,
+          customSubject,
+          customEmailBody,
+          customWhatsApp,
+          channels,
+          assignedBy: "ICJ Super Admin",
+        });
+      } else {
+        res = await AdvocateAssignmentService.allocateAdvocateToCase({
+          caseItem,
+          advocate: selectedAdvocate,
+          customSubject,
+          customEmailBody,
+          customWhatsApp,
+          channels,
+          assignedBy: "ICJ Super Admin",
+        });
+      }
 
       setSuccessResult(res);
-      if (onAssigned) onAssigned(res.caseItem);
+      if (onAssigned) onAssigned(res.caseItem || res.member);
     } catch (err) {
       console.error(err);
-      setErrorMsg(err.message || "Failed to allocate advocate.");
+      setErrorMsg(err.message || "Failed to allocate.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (!caseItem) return null;
+  if (!caseItem && !member) return null;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ bgcolor: "#0a192f", color: "#ffffff", display: "flex", justifyContent: "space-between", alignItems: "center", py: 1.8 }}>
         <Stack direction="row" alignItems="center" spacing={1.2}>
-          <GavelIcon sx={{ color: "#38bdf8", fontSize: 26 }} />
+          <SupportAgentIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
           <Typography variant="h6" fontWeight={800} letterSpacing={0.3}>
-            ⚖️ Advocate Allocation & Multi-Channel Notification Center
+            ⚖️ Legal Counsel & Customer Care Officer Allocation Center
           </Typography>
         </Stack>
         <IconButton onClick={onClose} sx={{ color: "#94a3b8", "&:hover": { color: "#fff" } }}>
@@ -199,27 +218,25 @@ export default function AdvocateAssignmentModal({
         <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderRadius: 2, bgcolor: "#ffffff" }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={3}>
-              <Typography variant="caption" color="text.secondary">CASE REFERENCE</Typography>
+              <Typography variant="caption" color="text.secondary">ALLOCATION TARGET</Typography>
               <Typography variant="subtitle2" fontWeight={800} color="primary.main" sx={{ fontFamily: "monospace" }}>
-                {caseItem.caseId || caseItem.id || caseItem.case_id}
+                {targetCaseId}
               </Typography>
+              <Chip label={member ? "👤 Direct Member Assistance" : "⚖️ Court Case Allocation"} size="small" sx={{ height: 18, fontSize: "0.62rem", fontWeight: 800, mt: 0.3 }} />
             </Grid>
             <Grid item xs={12} sm={4}>
               <Typography variant="caption" color="text.secondary">CLIENT / PETITIONER</Typography>
               <Typography variant="subtitle2" fontWeight={800}>
-                {caseItem.clientName || caseItem.client_name || caseItem.name || "Client"}
+                {targetClientName}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                📱 {caseItem.clientPhone || caseItem.client_phone || caseItem.mobile || "N/A"}
+                📱 {targetMobile || "No Phone"} | ✉️ {targetEmail || "No Email"}
               </Typography>
             </Grid>
             <Grid item xs={12} sm={5}>
-              <Typography variant="caption" color="text.secondary">CASE TITLE & CATEGORY</Typography>
+              <Typography variant="caption" color="text.secondary">MATTER / PROBLEM DESCRIPTION</Typography>
               <Typography variant="body2" fontWeight={700} noWrap>
-                {caseItem.title || caseItem.caseTitle || "Legal Consultation"}
-              </Typography>
-              <Typography variant="caption" color="secondary.main" fontWeight={700}>
-                {caseItem.caseType || caseItem.category || "General Litigation"}
+                {targetTitle}
               </Typography>
             </Grid>
           </Grid>
@@ -236,10 +253,10 @@ export default function AdvocateAssignmentModal({
           <Paper elevation={2} sx={{ p: 3, textAlign: "center", bgcolor: "#f0fdf4", border: "1px solid #86efac", borderRadius: 2 }}>
             <CheckCircleIcon sx={{ fontSize: 54, color: "#16a34a", mb: 1 }} />
             <Typography variant="h5" fontWeight={900} color="#15803d" gutterBottom>
-              Advocate Successfully Appointed!
+              Officer / Advocate Successfully Appointed!
             </Typography>
             <Typography variant="body1" color="#166534" sx={{ mb: 2 }}>
-              <strong>{selectedAdvocate?.fullName || selectedAdvocate?.name}</strong> (ID: {selectedAdvocate?.member_id || selectedAdvocate?.id}) is now appointed as Legal Counsel for this client.
+              <strong>{selectedAdvocate?.fullName || selectedAdvocate?.name}</strong> (ID: {selectedAdvocate?.member_id || selectedAdvocate?.id}) is now assigned to assist <strong>{targetClientName}</strong>.
             </Typography>
 
             <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" sx={{ mt: 2 }}>
@@ -266,10 +283,10 @@ export default function AdvocateAssignmentModal({
         ) : (
           /* ALLOCATION FORM */
           <Stack spacing={2.5}>
-            {/* 1. ADVOCATE SELECTOR */}
+            {/* 1. OFFICER / ADVOCATE SELECTOR */}
             <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: "#ffffff" }}>
               <Typography variant="subtitle2" fontWeight={800} color="#0f172a" gutterBottom>
-                1. SELECT EMPANELED ADVOCATE (वकील चुनें) *
+                1. SELECT CUSTOMER CARE OFFICER OR ADVOCATE (अधिकारी या वकील चुनें) *
               </Typography>
               <TextField
                 select
@@ -279,19 +296,19 @@ export default function AdvocateAssignmentModal({
                 onChange={(e) => setSelectedAdvocateId(e.target.value)}
                 helperText={
                   advocates.length === 0
-                    ? "No advocates registered yet. Register an advocate to allocate."
-                    : `${advocates.length} registered advocate(s) available in master directory.`
+                    ? "Loading available officers..."
+                    : `${advocates.length} official desks & empaneled advocates available.`
                 }
               >
                 {advocates.map((adv) => {
                   const id = adv.member_id || adv.memberId || adv.id;
                   const name = adv.fullName || adv.name;
-                  const bar = adv.professionalRegNo ? ` | Bar: ${adv.professionalRegNo}` : "";
+                  const isCare = adv.isOfficialCare;
                   const courts = adv.practiceCourts ? ` | ${adv.practiceCourts}` : "";
                   return (
                     <MenuItem key={id} value={id}>
-                      <Typography variant="body2" fontWeight={700}>
-                        ⚖️ {name} ({id}){bar}{courts}
+                      <Typography variant="body2" fontWeight={isCare ? 900 : 700} color={isCare ? "#1e3a8a" : "#0f172a"}>
+                        {isCare ? "🎧 " : "⚖️ "}{name} ({id}){courts}
                       </Typography>
                     </MenuItem>
                   );
@@ -299,11 +316,16 @@ export default function AdvocateAssignmentModal({
               </TextField>
 
               {selectedAdvocate && (
-                <Box sx={{ mt: 1.5, p: 1.5, bgcolor: "#f1f5f9", borderRadius: 1.5, display: "flex", gap: 2, alignItems: "center" }}>
+                <Box sx={{ mt: 1.5, p: 1.5, bgcolor: selectedAdvocate.isOfficialCare ? "#eff6ff" : "#f1f5f9", borderRadius: 1.5, display: "flex", gap: 2, alignItems: "center" }}>
                   <Typography variant="caption" color="#0f172a">
-                    <strong>Selected Advocate:</strong> {selectedAdvocate.fullName} | 📱 {selectedAdvocate.mobile} | ✉️ {selectedAdvocate.email}
+                    <strong>Selected Desk:</strong> {selectedAdvocate.fullName} | 📱 {selectedAdvocate.mobile} | ✉️ {selectedAdvocate.email}
                   </Typography>
-                  <Chip label="Verified Counsel" size="small" color="success" sx={{ height: 18, fontSize: "0.65rem", fontWeight: 800 }} />
+                  <Chip
+                    label={selectedAdvocate.isOfficialCare ? "Official ICJ Desk" : "Empaneled Counsel"}
+                    size="small"
+                    color={selectedAdvocate.isOfficialCare ? "primary" : "success"}
+                    sx={{ height: 18, fontSize: "0.65rem", fontWeight: 800 }}
+                  />
                 </Box>
               )}
             </Paper>
@@ -408,7 +430,7 @@ export default function AdvocateAssignmentModal({
                 )}
 
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
-                  Available Placeholders: <code>{"{{client_name}}"}</code>, <code>{"{{advocate_name}}"}</code>, <code>{"{{advocate_id}}"}</code>, <code>{"{{advocate_mobile}}"}</code>, <code>{"{{advocate_bar_reg}}"}</code>, <code>{"{{case_id}}"}</code>, <code>{"{{case_title}}"}</code>, <code>{"{{support_phone}}"}</code>
+                  Available Placeholders: <code>{"{{client_name}}"}</code>, <code>{"{{advocate_name}}"}</code>, <code>{"{{advocate_id}}"}</code>, <code>{"{{advocate_mobile}}"}</code>, <code>{"{{case_id}}"}</code>, <code>{"{{case_title}}"}</code>, <code>{"{{support_phone}}"}</code>
                 </Typography>
 
                 <Stack spacing={2}>

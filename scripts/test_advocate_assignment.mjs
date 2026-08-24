@@ -1,7 +1,7 @@
 /**
  * ICJ ENTERPRISE PLATFORM — ADVOCATE ASSIGNMENT ENGINE TEST SUITE
  */
-import AdvocateAssignmentService from "../src/services/advocateAssignmentService.js";
+import AdvocateAssignmentService, { OFFICIAL_IN_HOUSE_OFFICERS } from "../src/services/advocateAssignmentService.js";
 
 console.log("=== RUNNING ADVOCATE ASSIGNMENT ENGINE TEST SUITE ===");
 
@@ -30,26 +30,31 @@ const templates = AdvocateAssignmentService.getTemplates();
 assert(templates.emailSubject.includes("{{advocate_name}}"), "Email subject contains advocate placeholder");
 assert(templates.whatsappMessage.includes("{{client_name}}"), "WhatsApp template contains client placeholder");
 
-// 2. Template rendering
-const sampleContext = {
-  client_name: "Ramesh Sharma",
-  client_mobile: "+91 7053002222",
-  case_id: "ICJ-2026-CASE-8801",
-  case_title: "Property Boundary Dispute",
-  advocate_name: "Senior Advocate PAWAN GUPTA",
-  advocate_id: "26ICJ08AA0002",
-  advocate_mobile: "+91 9999002222",
-  advocate_bar_reg: "D/1042/1998",
+// 2. Official Customer Care officers
+assert(OFFICIAL_IN_HOUSE_OFFICERS.length >= 2, "Official customer care desks configured");
+assert(OFFICIAL_IN_HOUSE_OFFICERS[0].id === "ICJ-CARE-01", "ICJ-CARE-01 present");
+assert(OFFICIAL_IN_HOUSE_OFFICERS[0].mobile.includes("7053002222"), "Customer Care mobile matches standard");
+
+// 3. Template rendering for Member-level allocation
+const sampleMemberContext = {
+  client_name: "Suresh Gupta",
+  client_mobile: "+91 9876543210",
+  case_id: "MEM-REF-26CLT08AA0004",
+  case_title: "Land Title Grievance",
+  advocate_name: OFFICIAL_IN_HOUSE_OFFICERS[0].fullName,
+  advocate_id: OFFICIAL_IN_HOUSE_OFFICERS[0].id,
+  advocate_mobile: OFFICIAL_IN_HOUSE_OFFICERS[0].mobile,
+  advocate_email: OFFICIAL_IN_HOUSE_OFFICERS[0].email,
+  advocate_bar_reg: "ICJ Grievance Redressal Desk",
   support_phone: "7053002222 / 9999002222",
 };
 
-const renderedWhatsApp = AdvocateAssignmentService.renderTemplate(templates.whatsappMessage, sampleContext);
-assert(renderedWhatsApp.includes("PAWAN GUPTA"), "Rendered WhatsApp includes Advocate Name");
-assert(renderedWhatsApp.includes("26ICJ08AA0002"), "Rendered WhatsApp includes Advocate ID");
-assert(renderedWhatsApp.includes("Ramesh Sharma"), "Rendered WhatsApp includes Client Name");
+const renderedWhatsApp = AdvocateAssignmentService.renderTemplate(templates.whatsappMessage, sampleMemberContext);
+assert(renderedWhatsApp.includes("Suresh Gupta"), "Rendered WhatsApp includes Member Name");
+assert(renderedWhatsApp.includes("ICJ-CARE-01"), "Rendered WhatsApp includes Care Desk ID");
 assert(!renderedWhatsApp.includes("{{advocate_name}}"), "No un-substituted placeholders remain");
 
-// 3. Custom template save & reset
+// 4. Custom template save & reset
 const custom = {
   ...templates,
   emailSubject: "Custom Allocation: {{advocate_name}} assigned to {{client_name}}",
