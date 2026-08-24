@@ -69,6 +69,11 @@ export default function CascadingCourtSelector({
     return [{ code: `DST-${stateCode}-01`, stateCode, name: `${selectedState.name || 'District'} Central`, courtComplex: "District Court Complex" }];
   }, [stateCode, selectedState]);
 
+  // Selected District Object (Guaranteed Valid Match)
+  const selectedDistrict = useMemo(() => {
+    return availableDistricts.find((d) => d.code === districtCode) || availableDistricts[0] || {};
+  }, [availableDistricts, districtCode]);
+
   // High Courts associated with State
   const currentHighCourt = useMemo(() => {
     return highCourts.find((h) => h.code === highCourtCode) || highCourts[0];
