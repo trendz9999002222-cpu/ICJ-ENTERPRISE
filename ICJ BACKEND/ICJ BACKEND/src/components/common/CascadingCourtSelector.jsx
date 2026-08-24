@@ -24,57 +24,57 @@ import JudiciaryMasterService, {
 
 export const TIER_COLOR_THEMES = {
   SUPREME_COURT: {
-    primary: "#7c3aed",
-    primaryDark: "#5b21b6",
-    bgGlow: "#f5f3ff",
-    borderLight: "#ddd6fe",
-    borderActive: "#7c3aed",
-    chipBg: "#ede9fe",
-    chipText: "#5b21b6",
+    primary: "#6b21a8",      // Deep Royal Violet
+    primaryDark: "#581c87",
+    bgGlow: "#f3e8ff",       // Rich lavender 20%
+    borderLight: "#c084fc",
+    borderActive: "#6b21a8",
+    chipBg: "#6b21a8",
+    chipText: "#ffffff",
     accentBadge: "🟣 SUPREME COURT OF INDIA (सुप्रीम कोर्ट)",
     icon: "🏛️",
   },
   HIGH_COURT: {
-    primary: "#1d4ed8",
-    primaryDark: "#1e40af",
-    bgGlow: "#eff6ff",
-    borderLight: "#bfdbfe",
-    borderActive: "#1d4ed8",
-    chipBg: "#dbeafe",
-    chipText: "#1e40af",
+    primary: "#1a73e8",      // Chrome Pure Blue
+    primaryDark: "#1557b0",
+    bgGlow: "#dbeafe",       // Rich blue 20%
+    borderLight: "#60a5fa",
+    borderActive: "#1a73e8",
+    chipBg: "#1a73e8",
+    chipText: "#ffffff",
     accentBadge: "🔵 HIGH COURT OF JUDICATURE (उच्च न्यायालय)",
     icon: "⚖️",
   },
   DISTRICT_COURT: {
-    primary: "#059669",
-    primaryDark: "#065f46",
-    bgGlow: "#ecfdf5",
-    borderLight: "#a7f3d0",
-    borderActive: "#059669",
-    chipBg: "#d1fae5",
-    chipText: "#065f46",
+    primary: "#047857",      // WhatsApp Forest Green
+    primaryDark: "#064e3b",
+    bgGlow: "#d1fae5",       // Rich mint green 20%
+    borderLight: "#34d399",
+    borderActive: "#047857",
+    chipBg: "#047857",
+    chipText: "#ffffff",
     accentBadge: "🟢 DISTRICT & SUBORDINATE COURTS (जिला व सत्र न्यायालय)",
     icon: "🏢",
   },
   TEHSIL_REVENUE: {
-    primary: "#d97706",
-    primaryDark: "#92400e",
-    bgGlow: "#fffbeb",
-    borderLight: "#fde68a",
-    borderActive: "#d97706",
-    chipBg: "#fef3c7",
-    chipText: "#92400e",
+    primary: "#b45309",      // Rich Mustard Amber
+    primaryDark: "#78350f",
+    bgGlow: "#fef3c7",       // Rich golden amber 20%
+    borderLight: "#fbbf24",
+    borderActive: "#b45309",
+    chipBg: "#b45309",
+    chipText: "#ffffff",
     accentBadge: "🟡 TEHSIL & REVENUE DEPARTMENT (तहसील व राजस्व विभाग)",
     icon: "📜",
   },
   SPECIAL_TRIBUNAL: {
-    primary: "#b91c1c",
-    primaryDark: "#991b1b",
-    bgGlow: "#fef2f2",
-    borderLight: "#fecaca",
+    primary: "#b91c1c",      // Crimson Ruby Red
+    primaryDark: "#7f1d1d",
+    bgGlow: "#fee2e2",       // Rich ruby rose 20%
+    borderLight: "#f87171",
     borderActive: "#b91c1c",
-    chipBg: "#fee2e2",
-    chipText: "#991b1b",
+    chipBg: "#b91c1c",
+    chipText: "#ffffff",
     accentBadge: "🔴 SPECIAL STATUTORY TRIBUNALS (विशेष अधिकरण व आयोग)",
     icon: "💼",
   },
@@ -138,6 +138,14 @@ export default function CascadingCourtSelector({
     return availableDistricts.find((d) => d.code === districtCode) || availableDistricts[0] || {};
   }, [availableDistricts, districtCode]);
 
+  // Auto-Sync District Code if current districtCode is not in availableDistricts
+  useEffect(() => {
+    if (availableDistricts.length > 0 && !availableDistricts.some((d) => d.code === districtCode)) {
+      setDistrictCode(availableDistricts[0].code);
+      setCourtComplex(availableDistricts[0].courtComplex || "District Court Complex");
+    }
+  }, [availableDistricts, districtCode]);
+
   // High Courts associated with State
   const currentHighCourt = useMemo(() => {
     return highCourts.find((h) => h.code === highCourtCode) || highCourts[0];
@@ -192,13 +200,15 @@ export default function CascadingCourtSelector({
   const handleDistrictChange = (newDistCode) => {
     setDistrictCode(newDistCode);
     const d = availableDistricts.find((item) => item.code === newDistCode);
-    if (d?.courtComplex) setCourtComplex(d.courtComplex);
+    if (d?.courtComplex) {
+      setCourtComplex(d.courtComplex);
+    }
   };
 
-  // Court-Specific Case Types Resolution
+  // Dynamic Case Types based on Selected Forum
   const availableCaseTypes = useMemo(() => {
     if (forumTier === "SUPREME_COURT") {
-      return JudiciaryMasterService.getSupremeCourtCaseTypes();
+      return JudiciaryMasterService.getAllIndiaSupremeCourtCaseTypes();
     }
     if (forumTier === "HIGH_COURT") {
       return JudiciaryMasterService.getAllIndiaHighCourtCaseTypes();
@@ -283,38 +293,41 @@ export default function CascadingCourtSelector({
     courtComplex,
   ]);
 
-  // Emit Structured State Upwards
+  // Export Unified Object to Parent
   useEffect(() => {
-    const distName = availableDistricts.find((d) => d.code === districtCode)?.name || "District";
     onChange({
       forumTier,
-      stateCode: forumTier === "SUPREME_COURT" ? "NATIONAL" : stateCode,
-      stateName: forumTier === "SUPREME_COURT" ? "India (National)" : (selectedState.name || "State"),
-      districtCode: (forumTier === "DISTRICT_COURT" || forumTier === "TEHSIL_REVENUE") ? districtCode : "",
-      districtName: (forumTier === "DISTRICT_COURT" || forumTier === "TEHSIL_REVENUE") ? distName : "",
-      highCourtCode: forumTier === "HIGH_COURT" ? currentHighCourt.code : "",
-      highCourtName: forumTier === "HIGH_COURT" ? currentHighCourt.name : "",
-      bench: forumTier === "HIGH_COURT" ? bench : (forumTier === "SPECIAL_TRIBUNAL" ? tribunalBench : "Main"),
-      courtComplex: forumTier === "DISTRICT_COURT" ? courtComplex : "",
-      establishmentType: forumTier === "DISTRICT_COURT" ? establishmentType : (forumTier === "TEHSIL_REVENUE" ? revenueLevel : forumTier),
-      courtName: compiledCourtName,
+      stateCode,
+      stateName: selectedState.name,
+      highCourtCode,
+      highCourtName: currentHighCourt.name,
+      bench,
+      districtCode,
+      districtName: selectedDistrict.name,
+      courtComplex,
+      establishmentType,
+      revenueLevel,
+      tehsilName,
+      tribunalId,
+      tribunalName: selectedTribunal.name,
+      tribunalBench,
+      compiledCourtName,
       caseTypeId,
-      caseTypeCode: selectedCaseType.code || "CS",
-      caseTypeName: selectedCaseType.name || "Case",
+      selectedCaseType,
       caseCategory,
       caseSubCategory,
-      cnrNumber: cnrNumber.trim().toUpperCase(),
-      isCNRValid: cnrValidation ? cnrValidation.valid : false,
+      cnrNumber,
+      cnrValidation,
     });
   }, [
     forumTier,
     stateCode,
     selectedState,
-    districtCode,
-    availableDistricts,
     highCourtCode,
     currentHighCourt,
     bench,
+    districtCode,
+    selectedDistrict,
     courtComplex,
     establishmentType,
     revenueLevel,
@@ -336,10 +349,11 @@ export default function CascadingCourtSelector({
       variant="outlined"
       sx={{
         p: 2.5,
-        borderRadius: 2.5,
+        borderRadius: "20px",
         bgcolor: "#ffffff",
         borderColor: activeTheme.borderLight,
-        borderWidth: 1.5,
+        borderWidth: 2,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
         transition: "all 0.3s ease-in-out",
       }}
     >
@@ -353,10 +367,12 @@ export default function CascadingCourtSelector({
           size="small"
           sx={{
             fontWeight: 900,
-            fontSize: "0.72rem",
-            bgcolor: activeTheme.bgGlow,
-            color: activeTheme.primaryDark,
-            border: `1px solid ${activeTheme.borderActive}`,
+            fontSize: "0.75rem",
+            bgcolor: activeTheme.primary,
+            color: "#ffffff",
+            borderRadius: "20px",
+            px: 1,
+            boxShadow: `0 2px 8px ${activeTheme.primary}40`,
           }}
         />
       </Stack>
@@ -371,36 +387,41 @@ export default function CascadingCourtSelector({
               <Card
                 variant="outlined"
                 sx={{
-                  borderRadius: "16px",
-                  borderColor: isSelected ? tierTheme.primary : tierTheme.borderLight,
-                  bgcolor: isSelected ? tierTheme.bgGlow : `${tierTheme.bgGlow}88`,
-                  borderWidth: isSelected ? 2.5 : 1.5,
+                  borderRadius: "18px",
+                  borderColor: isSelected ? tierTheme.primaryDark : tierTheme.borderLight,
+                  bgcolor: isSelected ? tierTheme.primary : tierTheme.bgGlow,
+                  color: isSelected ? "#ffffff" : tierTheme.primaryDark,
+                  borderWidth: isSelected ? 3 : 2,
                   boxShadow: isSelected
-                    ? `0 6px 20px ${tierTheme.primary}45`
-                    : "0 2px 8px rgba(0,0,0,0.04)",
-                  transform: isSelected ? "translateY(-3px) scale(1.02)" : "none",
-                  transition: "all 0.25s ease-in-out",
+                    ? `0 8px 24px ${tierTheme.primary}60`
+                    : "0 2px 8px rgba(0,0,0,0.06)",
+                  transform: isSelected ? "translateY(-4px) scale(1.03)" : "scale(1)",
+                  transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                   height: "100%",
                   cursor: "pointer",
                   "&:hover": {
                     borderColor: tierTheme.primary,
-                    transform: "translateY(-2px)",
-                    boxShadow: `0 4px 14px ${tierTheme.primary}25`,
+                    transform: isSelected ? "translateY(-4px) scale(1.03)" : "translateY(-2px)",
+                    boxShadow: `0 6px 18px ${tierTheme.primary}35`,
                   },
                 }}
               >
                 <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.5, height: "100%" }}>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                     <Typography variant="h6">{tier.icon}</Typography>
-                    <Typography variant="body2" fontWeight={900} color={isSelected ? tierTheme.primary : "#1e293b"}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={900}
+                      color={isSelected ? "#ffffff" : tierTheme.primaryDark}
+                    >
                       {tier.label}
                     </Typography>
                   </Stack>
                   <Typography
                     variant="caption"
-                    color={isSelected ? tierTheme.primaryDark : "#475569"}
+                    color={isSelected ? "#f1f5f9" : tierTheme.primaryDark}
                     display="block"
-                    sx={{ lineHeight: 1.2, fontWeight: isSelected ? 800 : 600 }}
+                    sx={{ lineHeight: 1.2, fontWeight: 800, opacity: isSelected ? 0.95 : 0.85 }}
                   >
                     {tier.hindiLabel}
                   </Typography>

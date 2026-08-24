@@ -221,20 +221,20 @@ export default function LegalPartyRepresentation({
               startIcon={<ShieldIcon />}
               sx={{
                 borderRadius: "30px",
-                py: 1.2,
+                py: 1.3,
                 px: 2.5,
                 textTransform: "none",
-                fontSize: "0.9rem",
+                fontSize: "0.92rem",
                 fontWeight: 900,
-                transition: "all 0.25s ease-in-out",
-                bgcolor: clientSide === "SIDE_A" ? "#1d4ed8" : "#eff6ff",
-                color: clientSide === "SIDE_A" ? "#ffffff" : "#1d4ed8",
-                border: clientSide === "SIDE_A" ? "2.5px solid #1e40af" : "2px solid #93c5fd",
-                boxShadow: clientSide === "SIDE_A" ? "0 4px 16px rgba(29, 78, 216, 0.4)" : "0 2px 6px rgba(29, 78, 216, 0.1)",
-                transform: clientSide === "SIDE_A" ? "scale(1.02)" : "scale(1)",
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                bgcolor: clientSide === "SIDE_A" ? "#1a73e8" : "#dbeafe",
+                color: clientSide === "SIDE_A" ? "#ffffff" : "#1e40af",
+                border: clientSide === "SIDE_A" ? "3px solid #1557b0" : "2px solid #60a5fa",
+                boxShadow: clientSide === "SIDE_A" ? "0 8px 24px rgba(26, 115, 232, 0.45)" : "0 2px 8px rgba(26, 115, 232, 0.12)",
+                transform: clientSide === "SIDE_A" ? "translateY(-2px) scale(1.02)" : "scale(1)",
                 "&:hover": {
-                  bgcolor: clientSide === "SIDE_A" ? "#1e40af" : "#dbeafe",
-                  border: "2px solid #1d4ed8",
+                  bgcolor: clientSide === "SIDE_A" ? "#1557b0" : "#bfdbfe",
+                  borderColor: "#1a73e8",
                 },
               }}
             >
@@ -251,20 +251,20 @@ export default function LegalPartyRepresentation({
               startIcon={<ShieldIcon />}
               sx={{
                 borderRadius: "30px",
-                py: 1.2,
+                py: 1.3,
                 px: 2.5,
                 textTransform: "none",
-                fontSize: "0.9rem",
+                fontSize: "0.92rem",
                 fontWeight: 900,
-                transition: "all 0.25s ease-in-out",
-                bgcolor: clientSide === "SIDE_B" ? "#b91c1c" : "#fff1f2",
-                color: clientSide === "SIDE_B" ? "#ffffff" : "#b91c1c",
-                border: clientSide === "SIDE_B" ? "2.5px solid #991b1b" : "2px solid #fca5a5",
-                boxShadow: clientSide === "SIDE_B" ? "0 4px 16px rgba(185, 28, 28, 0.4)" : "0 2px 6px rgba(185, 28, 28, 0.1)",
-                transform: clientSide === "SIDE_B" ? "scale(1.02)" : "scale(1)",
+                transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                bgcolor: clientSide === "SIDE_B" ? "#dc2626" : "#fee2e2",
+                color: clientSide === "SIDE_B" ? "#ffffff" : "#991b1b",
+                border: clientSide === "SIDE_B" ? "3px solid #991b1b" : "2px solid #f87171",
+                boxShadow: clientSide === "SIDE_B" ? "0 8px 24px rgba(220, 38, 38, 0.45)" : "0 2px 8px rgba(220, 38, 38, 0.12)",
+                transform: clientSide === "SIDE_B" ? "translateY(-2px) scale(1.02)" : "scale(1)",
                 "&:hover": {
-                  bgcolor: clientSide === "SIDE_B" ? "#991b1b" : "#fee2e2",
-                  border: "2px solid #b91c1c",
+                  bgcolor: clientSide === "SIDE_B" ? "#b91c1c" : "#fecaca",
+                  borderColor: "#dc2626",
                 },
               }}
             >
@@ -348,13 +348,15 @@ export default function LegalPartyRepresentation({
                 disabled={disabled}
                 sx={{
                   textTransform: "none",
-                  fontSize: "0.8rem",
-                  fontWeight: 800,
+                  fontSize: "0.82rem",
+                  fontWeight: 900,
                   borderRadius: "24px",
-                  bgcolor: "#dbeafe",
-                  color: "#1e40af",
-                  border: "1.5px solid #93c5fd",
-                  "&:hover": { bgcolor: "#bfdbfe", border: "1.5px solid #3b82f6" },
+                  py: 0.8,
+                  bgcolor: "#bfdbfe",
+                  color: "#1e3a8a",
+                  border: "2px solid #2563eb",
+                  boxShadow: "0 2px 6px rgba(37, 99, 235, 0.15)",
+                  "&:hover": { bgcolor: "#93c5fd", border: "2px solid #1d4ed8" },
                 }}
               >
                 + Add Another {partyLabels.roleA} (सह-{partyLabels.roleA} जोड़ें)
@@ -371,16 +373,16 @@ export default function LegalPartyRepresentation({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              bgcolor: "#e2e8f0",
+              bgcolor: "#cbd5e1",
               borderRadius: "50%",
-              width: 48,
-              height: 48,
-              border: "2px solid #cbd5e1",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+              width: 50,
+              height: 50,
+              border: "2.5px solid #64748b",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
             }}
           >
-            <CompareArrowsIcon sx={{ color: "#334155", fontSize: 22 }} />
-            <Typography variant="caption" fontWeight={900} color="#0f172a" sx={{ fontSize: "0.65rem", lineHeight: 1 }}>
+            <CompareArrowsIcon sx={{ color: "#0f172a", fontSize: 24 }} />
+            <Typography variant="caption" fontWeight={900} color="#0f172a" sx={{ fontSize: "0.7rem", lineHeight: 1 }}>
               VS
             </Typography>
           </Box>
@@ -392,18 +394,18 @@ export default function LegalPartyRepresentation({
             sx={{
               p: 2.2,
               borderRadius: "16px",
-              bgcolor: clientSide === "SIDE_B" ? "#fef2f2" : "#f8fafc",
-              border: clientSide === "SIDE_B" ? "2.5px solid #ef4444" : "1.5px solid #cbd5e1",
-              boxShadow: clientSide === "SIDE_B" ? "0 4px 14px rgba(239, 68, 68, 0.15)" : "none",
+              bgcolor: clientSide === "SIDE_B" ? "#fee2e2" : "#f8fafc",
+              border: clientSide === "SIDE_B" ? "3px solid #dc2626" : "1.5px solid #cbd5e1",
+              boxShadow: clientSide === "SIDE_B" ? "0 6px 18px rgba(220, 38, 38, 0.2)" : "none",
               height: "100%",
             }}
           >
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
               <Box>
-                <Typography variant="subtitle2" fontWeight={900} color={clientSide === "SIDE_B" ? "#b91c1c" : "#1e293b"}>
+                <Typography variant="subtitle2" fontWeight={900} color={clientSide === "SIDE_B" ? "#991b1b" : "#1e293b"}>
                   {partyLabels.sideBName} (प्रतिवादी / विपक्षी)
                 </Typography>
-                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                <Typography variant="caption" color="text.secondary" fontWeight={700}>
                   {partyLabels.sideBHindi}
                 </Typography>
               </Box>
@@ -414,7 +416,7 @@ export default function LegalPartyRepresentation({
                   color="error"
                   size="small"
                   icon={<ShieldIcon />}
-                  sx={{ fontWeight: 900, fontSize: "0.7rem", height: 24, borderRadius: "14px" }}
+                  sx={{ fontWeight: 900, fontSize: "0.75rem", height: 26, borderRadius: "14px", bgcolor: "#dc2626", color: "#ffffff" }}
                 />
               )}
             </Stack>
@@ -431,7 +433,7 @@ export default function LegalPartyRepresentation({
                     disabled={disabled}
                     placeholder={`e.g. ${index === 0 ? "State of UP / Ramesh Kumar" : "Co-Defendant Name"}`}
                     InputProps={{
-                      startAdornment: <PersonIcon sx={{ color: clientSide === "SIDE_B" ? "#b91c1c" : "#94a3b8", mr: 1, fontSize: 18 }} />,
+                      startAdornment: <PersonIcon sx={{ color: clientSide === "SIDE_B" ? "#dc2626" : "#94a3b8", mr: 1, fontSize: 18 }} />,
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
@@ -457,13 +459,15 @@ export default function LegalPartyRepresentation({
                 disabled={disabled}
                 sx={{
                   textTransform: "none",
-                  fontSize: "0.8rem",
-                  fontWeight: 800,
+                  fontSize: "0.82rem",
+                  fontWeight: 900,
                   borderRadius: "24px",
-                  bgcolor: "#fee2e2",
-                  color: "#991b1b",
-                  border: "1.5px solid #fca5a5",
-                  "&:hover": { bgcolor: "#fecaca", border: "1.5px solid #ef4444" },
+                  py: 0.8,
+                  bgcolor: "#fecaca",
+                  color: "#7f1d1d",
+                  border: "2px solid #ef4444",
+                  boxShadow: "0 2px 6px rgba(239, 68, 68, 0.15)",
+                  "&:hover": { bgcolor: "#fca5a5", border: "2px solid #dc2626" },
                 }}
               >
                 + Add Another {partyLabels.roleB} (सह-{partyLabels.roleB} जोड़ें)
@@ -477,10 +481,10 @@ export default function LegalPartyRepresentation({
           <Box
             sx={{
               p: 2,
-              bgcolor: clientSide === "SIDE_A" ? "#eff6ff" : "#fef2f2",
-              borderRadius: "16px",
-              border: clientSide === "SIDE_A" ? "1.5px solid #93c5fd" : "1.5px solid #fca5a5",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+              bgcolor: clientSide === "SIDE_A" ? "#dbeafe" : "#fee2e2",
+              borderRadius: "18px",
+              border: clientSide === "SIDE_A" ? "2px solid #2563eb" : "2px solid #dc2626",
+              boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
@@ -493,7 +497,7 @@ export default function LegalPartyRepresentation({
               <Typography variant="body2" color="#0f172a" fontWeight={900}>
                 📜 केस का आधिकारिक शीर्षक (Cause Title): {compiledCauseTitle}
               </Typography>
-              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+              <Typography variant="caption" color="#334155" fontWeight={700}>
                 {sideAParties.length} {partyLabels.roleA}(s) बनाम {sideBParties.length} {partyLabels.roleB}(s)
               </Typography>
             </Box>
@@ -501,9 +505,16 @@ export default function LegalPartyRepresentation({
             <Chip
               label={representationBadge}
               size="small"
-              color={clientSide === "SIDE_A" ? "primary" : "error"}
-              sx={{ fontWeight: 900, fontSize: "0.75rem", height: 26, borderRadius: "14px" }}
-              icon={<ShieldIcon />}
+              sx={{
+                fontWeight: 900,
+                fontSize: "0.78rem",
+                height: 28,
+                borderRadius: "16px",
+                bgcolor: clientSide === "SIDE_A" ? "#1a73e8" : "#dc2626",
+                color: "#ffffff",
+                boxShadow: clientSide === "SIDE_A" ? "0 2px 8px rgba(26, 115, 232, 0.4)" : "0 2px 8px rgba(220, 38, 38, 0.4)",
+              }}
+              icon={<ShieldIcon sx={{ color: "#ffffff !important" }} />}
             />
           </Box>
         </Grid>

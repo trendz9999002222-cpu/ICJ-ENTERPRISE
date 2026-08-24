@@ -449,11 +449,11 @@ export default function Legal() {
                   borderRadius: "30px",
                   letterSpacing: 0.3,
                   textTransform: "none",
-                  background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)",
-                  boxShadow: "0 6px 20px rgba(29, 78, 216, 0.4)",
+                  background: "linear-gradient(135deg, #047857 0%, #1a73e8 100%)",
+                  boxShadow: "0 8px 24px rgba(4, 120, 87, 0.45)",
                   "&:hover": {
-                    background: "linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)",
-                    boxShadow: "0 8px 24px rgba(29, 78, 216, 0.5)",
+                    background: "linear-gradient(135deg, #065f46 0%, #1557b0 100%)",
+                    boxShadow: "0 10px 28px rgba(4, 120, 87, 0.55)",
                     transform: "translateY(-2px)",
                   },
                 }}
