@@ -22,6 +22,64 @@ import JudiciaryMasterService, {
   JUDICIAL_TIERS,
 } from "../../services/judiciaryMasterService.js";
 
+export const TIER_COLOR_THEMES = {
+  SUPREME_COURT: {
+    primary: "#7c3aed",
+    primaryDark: "#5b21b6",
+    bgGlow: "#f5f3ff",
+    borderLight: "#ddd6fe",
+    borderActive: "#7c3aed",
+    chipBg: "#ede9fe",
+    chipText: "#5b21b6",
+    accentBadge: "🟣 SUPREME COURT OF INDIA (सुप्रीम कोर्ट)",
+    icon: "🏛️",
+  },
+  HIGH_COURT: {
+    primary: "#1d4ed8",
+    primaryDark: "#1e40af",
+    bgGlow: "#eff6ff",
+    borderLight: "#bfdbfe",
+    borderActive: "#1d4ed8",
+    chipBg: "#dbeafe",
+    chipText: "#1e40af",
+    accentBadge: "🔵 HIGH COURT OF JUDICATURE (उच्च न्यायालय)",
+    icon: "⚖️",
+  },
+  DISTRICT_COURT: {
+    primary: "#059669",
+    primaryDark: "#065f46",
+    bgGlow: "#ecfdf5",
+    borderLight: "#a7f3d0",
+    borderActive: "#059669",
+    chipBg: "#d1fae5",
+    chipText: "#065f46",
+    accentBadge: "🟢 DISTRICT & SUBORDINATE COURTS (जिला व सत्र न्यायालय)",
+    icon: "🏢",
+  },
+  TEHSIL_REVENUE: {
+    primary: "#d97706",
+    primaryDark: "#92400e",
+    bgGlow: "#fffbeb",
+    borderLight: "#fde68a",
+    borderActive: "#d97706",
+    chipBg: "#fef3c7",
+    chipText: "#92400e",
+    accentBadge: "🟡 TEHSIL & REVENUE DEPARTMENT (तहसील व राजस्व विभाग)",
+    icon: "📜",
+  },
+  SPECIAL_TRIBUNAL: {
+    primary: "#b91c1c",
+    primaryDark: "#991b1b",
+    bgGlow: "#fef2f2",
+    borderLight: "#fecaca",
+    borderActive: "#b91c1c",
+    chipBg: "#fee2e2",
+    chipText: "#991b1b",
+    accentBadge: "🔴 SPECIAL STATUTORY TRIBUNALS (विशेष अधिकरण व आयोग)",
+    icon: "💼",
+  },
+};
+
 export default function CascadingCourtSelector({
   value = {},
   onChange = () => {},
@@ -30,6 +88,12 @@ export default function CascadingCourtSelector({
   defaultForum = "SUPREME_COURT",
 }) {
   const [forumTier, setForumTier] = useState(value.forumTier || defaultForum);
+
+  // Synchronized Active Theme
+  const activeTheme = useMemo(() => {
+    return TIER_COLOR_THEMES[forumTier] || TIER_COLOR_THEMES.SUPREME_COURT;
+  }, [forumTier]);
+
   const [stateCode, setStateCode] = useState(value.stateCode || "ST-09");
   const [highCourtCode, setHighCourtCode] = useState(value.highCourtCode || "HC-ALL");
   const [bench, setBench] = useState(value.bench || "Prayagraj Principal Seat");
@@ -268,37 +332,63 @@ export default function CascadingCourtSelector({
   ]);
 
   return (
-    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, bgcolor: "#ffffff" }}>
-      {/* 1. TOP-LEVEL 5 VISUAL TOUCH CARDS */}
-      <Typography variant="subtitle2" fontWeight={900} color="#0f172a" sx={{ mb: 1.5 }}>
-        STEP 1: SELECT JUDICIAL FORUM / COURT JURISDICTION (अदालत का स्तर चुनें) *
-      </Typography>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2.5,
+        borderRadius: 2.5,
+        bgcolor: "#ffffff",
+        borderColor: activeTheme.borderLight,
+        borderWidth: 1.5,
+        transition: "all 0.3s ease-in-out",
+      }}
+    >
+      {/* 1. TOP-LEVEL 5 VISUAL TOUCH CARDS WITH DYNAMIC COLOR HIGHLIGHTING */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+        <Typography variant="subtitle2" fontWeight={900} color="#0f172a">
+          STEP 1: SELECT JUDICIAL FORUM / COURT JURISDICTION (अदालत का स्तर चुनें) *
+        </Typography>
+        <Chip
+          label={activeTheme.accentBadge}
+          size="small"
+          sx={{
+            fontWeight: 900,
+            fontSize: "0.72rem",
+            bgcolor: activeTheme.bgGlow,
+            color: activeTheme.primaryDark,
+            border: `1px solid ${activeTheme.borderActive}`,
+          }}
+        />
+      </Stack>
 
       <Grid container spacing={1.5} sx={{ mb: 3 }}>
         {JUDICIAL_TIERS.map((tier) => {
           const isSelected = forumTier === tier.id;
+          const tierTheme = TIER_COLOR_THEMES[tier.id] || TIER_COLOR_THEMES.SUPREME_COURT;
+
           return (
             <Grid item xs={12} sm={6} md={2.4} key={tier.id}>
               <Card
                 variant="outlined"
                 sx={{
                   borderRadius: 2,
-                  borderColor: isSelected ? "#1d4ed8" : "#cbd5e1",
-                  bgcolor: isSelected ? "#eff6ff" : "#ffffff",
-                  borderWidth: isSelected ? 2 : 1,
-                  boxShadow: isSelected ? "0 2px 8px rgba(29, 78, 216, 0.15)" : "none",
-                  transition: "all 0.2s ease-in-out",
+                  borderColor: isSelected ? tierTheme.primary : "#cbd5e1",
+                  bgcolor: isSelected ? tierTheme.bgGlow : "#ffffff",
+                  borderWidth: isSelected ? 2.5 : 1,
+                  boxShadow: isSelected ? `0 4px 16px ${tierTheme.primary}40` : "none",
+                  transform: isSelected ? "translateY(-2px)" : "none",
+                  transition: "all 0.25s ease-in-out",
                   height: "100%",
                 }}
               >
                 <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.2, height: "100%" }}>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                     <Typography variant="h6">{tier.icon}</Typography>
-                    <Typography variant="body2" fontWeight={800} color={isSelected ? "#1d4ed8" : "#1e293b"}>
+                    <Typography variant="body2" fontWeight={900} color={isSelected ? tierTheme.primary : "#1e293b"}>
                       {tier.label}
                     </Typography>
                   </Stack>
-                  <Typography variant="caption" color="text.secondary" display="block" sx={{ lineHeight: 1.2 }}>
+                  <Typography variant="caption" color={isSelected ? tierTheme.primaryDark : "text.secondary"} display="block" sx={{ lineHeight: 1.2, fontWeight: isSelected ? 700 : 500 }}>
                     {tier.hindiLabel}
                   </Typography>
                 </CardActionArea>
@@ -308,8 +398,18 @@ export default function CascadingCourtSelector({
         })}
       </Grid>
 
-      {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS */}
-      <Grid container spacing={2}>
+      {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS WITH COLOR-MATCHED BORDERS */}
+      <Box
+        sx={{
+          p: 2.2,
+          borderRadius: 2,
+          bgcolor: activeTheme.bgGlow,
+          border: `1.5px solid ${activeTheme.borderLight}`,
+          mb: 2,
+          transition: "all 0.3s ease-in-out",
+        }}
+      >
+        <Grid container spacing={2}>
         {/* CASE A: SUPREME COURT OF INDIA */}
         {forumTier === "SUPREME_COURT" && (
           <>
@@ -763,28 +863,47 @@ export default function CascadingCourtSelector({
           </Grid>
         )}
 
-        {/* 3. LIVE REAL-TIME JURISDICTION SUMMARY BADGE */}
-        <Grid item xs={12}>
-          <Box sx={{ p: 1.8, bgcolor: "#f8fafc", borderRadius: 2, border: "1px dashed #cbd5e1", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-            <Box>
-              <Typography variant="body2" color="#0f172a" fontWeight={800}>
-                🏛️ {compiledCourtName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {selectedCaseType.category ? `Category: ${selectedCaseType.category}` : "All-India Legal Hierarchy"}
-                {caseSubCategory ? ` • Sub: ${caseSubCategory}` : ""}
-              </Typography>
-            </Box>
-
-            <Chip
-              label={selectedCaseType.code ? `[${selectedCaseType.code}] ${selectedCaseType.name}` : "Selected Forum"}
-              size="small"
-              color="primary"
-              sx={{ fontWeight: 800, fontSize: "0.72rem", height: 24 }}
-            />
-          </Box>
         </Grid>
-      </Grid>
+      </Box>
+
+      {/* 3. LIVE REAL-TIME JURISDICTION SUMMARY BADGE (Synchronized Glow) */}
+      <Box
+        sx={{
+          p: 1.8,
+          bgcolor: activeTheme.bgGlow,
+          borderRadius: 2,
+          border: `1.5px solid ${activeTheme.borderActive}`,
+          boxShadow: `0 2px 8px ${activeTheme.primary}20`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 1,
+          transition: "all 0.3s ease-in-out",
+        }}
+      >
+        <Box>
+          <Typography variant="body2" color={activeTheme.primaryDark} fontWeight={900}>
+            🏛️ {compiledCourtName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" fontWeight={600}>
+            {selectedCaseType.category ? `Category: ${selectedCaseType.category}` : "All-India Legal Hierarchy"}
+            {caseSubCategory ? ` • Sub: ${caseSubCategory}` : ""}
+          </Typography>
+        </Box>
+
+        <Chip
+          label={selectedCaseType.code ? `[${selectedCaseType.code}] ${selectedCaseType.name}` : "Selected Forum"}
+          size="small"
+          sx={{
+            fontWeight: 900,
+            fontSize: "0.75rem",
+            height: 26,
+            bgcolor: activeTheme.primary,
+            color: "#ffffff",
+          }}
+        />
+      </Box>
     </Paper>
   );
 }
