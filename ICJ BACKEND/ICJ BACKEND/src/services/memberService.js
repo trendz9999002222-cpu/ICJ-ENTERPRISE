@@ -57,8 +57,34 @@ const alphaGroupToIndex = (code = "AA") => {
  * @returns {string}  New unique Member Serial ID
  */
 export const generateMemberId = (existingList = [], role = "member") => {
-  const total = (Array.isArray(existingList) ? existingList.length : 0) + 1;
-  const seq = String(total).padStart(4, "0");
+  let allMembers = Array.isArray(existingList) && existingList.length > 0 ? existingList : [];
+  
+  if (allMembers.length === 0 && typeof window !== "undefined" && window.localStorage) {
+    try {
+      const stored = window.localStorage.getItem("icj_enterprise_users") || window.localStorage.getItem("icj_members");
+      if (stored) {
+        allMembers = JSON.parse(stored) || [];
+      }
+    } catch {}
+  }
+
+  // Scan highest numerical sequence in all existing member IDs
+  let maxSeq = 0;
+  if (Array.isArray(allMembers)) {
+    for (const m of allMembers) {
+      const id = String(m?.member_id || m?.memberId || m?.id || "");
+      const match = id.match(/\d{4}$/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    }
+  }
+
+  const nextSeq = Math.max(allMembers.length, maxSeq) + 1;
+  const seq = String(nextSeq).padStart(4, "0");
 
   if (role === "franchise") {
     return `26FRZ08AA${seq}`;

@@ -511,8 +511,8 @@ export default function PublicOnboarding() {
         areaOfInterest: "Enterprise Legal Ecosystem",
         eGovPortals: ["e-Courts Cause List & Orders", "District Land & Revenue Records"],
         engagementIntent: "Verified Legal Ecosystem Onboarding",
-        verification_status: "Approved",
-        status:         "Active",
+        verification_status: "Pending Admin Verification",
+        status:         "Pending Verification",
         token_balance: 10,
         welcome_tokens_issued: 10,
         welcome_grant: true,
@@ -1881,10 +1881,10 @@ Thank you for joining the ICJ Enterprise Ecosystem.
               <VerifiedUserIcon sx={{ fontSize: 64 }} />
             </Box>
             <Typography variant="h4" fontWeight={900} color="primary.main" gutterBottom>
-              REGISTRATION & ACTIVATION SUCCESSFUL!
+              REGISTRATION SUCCESSFUL & IN REVIEW!
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-              Your permanent member account has been registered and verified. Below are your official credentials.
+              Your member account has been registered and OTP-verified. Your application is queued for Admin Review and official certification.
             </Typography>
 
             <Paper variant="outlined" sx={{ p: 3, mb: 4, textAlign: "left", bgcolor: "#f8fafc", borderRadius: 2 }}>
@@ -1915,8 +1915,8 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="caption" color="text.secondary">VERIFICATION STATUS</Typography>
-                  <Typography variant="body2" fontWeight={800} color="success.main">
-                    🟢 {createdMember.verification_status || "Approved & Active"}
+                  <Typography variant="body2" fontWeight={800} color="warning.main">
+                    ⏳ {createdMember.verification_status || "Pending Admin Verification"}
                   </Typography>
                 </Grid>
               </Grid>

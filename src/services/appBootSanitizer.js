@@ -92,6 +92,48 @@ export const AppBootSanitizer = {
             console.error("[AppBootSanitizer V50] Error parsing members:", e);
           }
         }
+
+        // Automatic ID Migration for Pawan Gupta (Advocate ID #2: 26ICJ08AA0002)
+        const currentMembersRaw = localStorage.getItem("icj_members");
+        if (currentMembersRaw) {
+          try {
+            const list = JSON.parse(currentMembersRaw);
+            let modified = false;
+            const updated = list.map((m) => {
+              if (
+                (m?.fullName?.toUpperCase().includes("PAWAN") || m?.email === "advocate9999002222@gmail.com" || String(m?.mobile || "").includes("9999002222")) &&
+                (m?.member_id === "26ICJ08AA0001" || m?.id === "26ICJ08AA0001")
+              ) {
+                modified = true;
+                return {
+                  ...m,
+                  id: "26ICJ08AA0002",
+                  member_id: "26ICJ08AA0002",
+                  memberId: "26ICJ08AA0002",
+                  username: "26ICJ08AA0002",
+                };
+              }
+              return m;
+            });
+            if (modified) {
+              localStorage.setItem("icj_members", JSON.stringify(updated));
+              localStorage.setItem("icj_enterprise_users", JSON.stringify(updated));
+              const currentUser = localStorage.getItem("icj_user");
+              if (currentUser) {
+                const u = JSON.parse(currentUser);
+                if (u?.member_id === "26ICJ08AA0001" || u?.email === "advocate9999002222@gmail.com") {
+                  localStorage.setItem("icj_user", JSON.stringify({
+                    ...u,
+                    id: "26ICJ08AA0002",
+                    member_id: "26ICJ08AA0002",
+                    memberId: "26ICJ08AA0002",
+                    username: "26ICJ08AA0002",
+                  }));
+                }
+              }
+            }
+          } catch (e) {}
+        }
       }
     } catch (err) {
       console.error("[AppBootSanitizer V50] Sanitization warning:", err);
