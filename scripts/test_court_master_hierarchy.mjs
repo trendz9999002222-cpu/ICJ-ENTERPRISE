@@ -105,7 +105,7 @@ async function runMegaMasterTests() {
   assert(tribunals.some((t) => t.id === "CAT" && t.benches.length >= 18), "CAT Central Administrative Tribunal present");
   assert(tribunals.some((t) => t.id === "CONSUMER"), "Consumer Commissions (NCDRC/SCDRC/DCDRC) present");
   assert(tribunals.some((t) => t.id === "ITAT" && t.benches.length >= 25), "ITAT Income Tax Tribunal present");
-  assert(tribunals.some((t) => t.id === "RERA"), "RERA Real Estate Regulatory Authorities present");
+  assert(tribunals.some((t) => t.id === "RERA" && t.benches.length >= 40 && t.caseTypes.length >= 6), "RERA with 40+ All-India Benches and 6 Case Types present");
   assert(tribunals.some((t) => t.id === "AFT"), "Armed Forces Tribunal (AFT) present");
 
   // 8. 16-Character eCourts CNR Validation
