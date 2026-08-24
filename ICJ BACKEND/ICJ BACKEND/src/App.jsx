@@ -1,5 +1,7 @@
+import PublicLegalHomepage from "./pages/PublicLegalHomepage";
+
 function App() {
-  return <div>App Working</div>;
+  return <PublicLegalHomepage />;
 }
 
 export default App;

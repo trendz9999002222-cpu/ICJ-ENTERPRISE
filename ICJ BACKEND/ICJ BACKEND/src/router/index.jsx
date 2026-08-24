@@ -63,18 +63,23 @@ import LegalCommunityFeed from "../pages/LegalCommunityFeed";
 import PublicOnboarding from "../pages/PublicOnboarding";
 import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import CertificateVerification from "../pages/CertificateVerification";
+import PublicLegalHomepage from "../pages/PublicLegalHomepage";
 import useAuth from "../hooks/useAuth";
 
 function RootDashboard() {
   const { user } = useAuth();
   const role = String(user?.role || "member").toLowerCase();
+  const userType = String(user?.user_type || "").toLowerCase();
 
-  if (role === "advocate") {
+  if (role === "advocate" || userType === "advocate") {
     return <AdvocateDashboard />;
   }
 
-  // Only true admin roles get the Super Admin dashboard. Trustee/volunteer/
-  // employee are ordinary staff roles and previously landed here by mistake.
+  if (role === "client" || userType === "client") {
+    return <ClientPortal />;
+  }
+
+  // Only true admin roles get the Super Admin dashboard.
   if (["admin", "super_admin", "superadmin"].includes(role)) {
     return <SuperAdminDashboard />;
   }
@@ -95,6 +100,11 @@ export default function AppRouter() {
       <BrowserRouter>
         <Suspense fallback={<LinearProgress color="primary" sx={{ height: 3, bgcolor: "rgba(59, 130, 246, 0.2)" }} />}>
           <Routes>
+        {/* Universal Public Front-Door Citizen Legal Homepage (Mobile & Desktop) */}
+        <Route path="/" element={<PublicLegalHomepage />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+
+        {/* Public Action & Onboarding Portals */}
         <Route path="/login" element={<Login />} />
         <Route path="/demo-leads-portal" element={<DemoLeadsPortal />} />
         <Route path="/loginAuthentication" element={<Navigate to="/login" replace />} />
@@ -105,8 +115,9 @@ export default function AppRouter() {
         <Route path="/verify" element={<CertificateVerification />} />
         <Route path="/certificate-verify" element={<CertificateVerification />} />
 
+        {/* Authenticated Internal Workspace Router */}
         <Route
-          path="/"
+          path="/dashboard"
           element={(
             <ProtectedRoute>
               <RootDashboard />
@@ -114,24 +125,17 @@ export default function AppRouter() {
           )}
         />
 
+        {/* Strict Air-Gapped Super Admin Dashboard */}
         <Route
-          path="/super-admin-dashboard"
+          path="/super-admin"
           element={(
-            <ProtectedRoute roles={["admin"]}>
+            <ProtectedRoute roles={["super_admin", "admin"]}>
               <SuperAdminDashboard />
             </ProtectedRoute>
           )}
         />
-
-        {/* /admin alias — same as /super-admin-dashboard */}
-        <Route
-          path="/admin"
-          element={(
-            <ProtectedRoute roles={["admin"]}>
-              <SuperAdminDashboard />
-            </ProtectedRoute>
-          )}
-        />
+        <Route path="/super-admin-dashboard" element={<Navigate to="/super-admin" replace />} />
+        <Route path="/admin" element={<Navigate to="/super-admin" replace />} />
 
         <Route
           path="/membership"
