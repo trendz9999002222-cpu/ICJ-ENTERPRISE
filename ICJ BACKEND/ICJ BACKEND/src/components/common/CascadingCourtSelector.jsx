@@ -371,24 +371,37 @@ export default function CascadingCourtSelector({
               <Card
                 variant="outlined"
                 sx={{
-                  borderRadius: 2,
-                  borderColor: isSelected ? tierTheme.primary : "#cbd5e1",
-                  bgcolor: isSelected ? tierTheme.bgGlow : "#ffffff",
-                  borderWidth: isSelected ? 2.5 : 1,
-                  boxShadow: isSelected ? `0 4px 16px ${tierTheme.primary}40` : "none",
-                  transform: isSelected ? "translateY(-2px)" : "none",
+                  borderRadius: "16px",
+                  borderColor: isSelected ? tierTheme.primary : tierTheme.borderLight,
+                  bgcolor: isSelected ? tierTheme.bgGlow : `${tierTheme.bgGlow}88`,
+                  borderWidth: isSelected ? 2.5 : 1.5,
+                  boxShadow: isSelected
+                    ? `0 6px 20px ${tierTheme.primary}45`
+                    : "0 2px 8px rgba(0,0,0,0.04)",
+                  transform: isSelected ? "translateY(-3px) scale(1.02)" : "none",
                   transition: "all 0.25s ease-in-out",
                   height: "100%",
+                  cursor: "pointer",
+                  "&:hover": {
+                    borderColor: tierTheme.primary,
+                    transform: "translateY(-2px)",
+                    boxShadow: `0 4px 14px ${tierTheme.primary}25`,
+                  },
                 }}
               >
-                <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.2, height: "100%" }}>
+                <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.5, height: "100%" }}>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
                     <Typography variant="h6">{tier.icon}</Typography>
                     <Typography variant="body2" fontWeight={900} color={isSelected ? tierTheme.primary : "#1e293b"}>
                       {tier.label}
                     </Typography>
                   </Stack>
-                  <Typography variant="caption" color={isSelected ? tierTheme.primaryDark : "text.secondary"} display="block" sx={{ lineHeight: 1.2, fontWeight: isSelected ? 700 : 500 }}>
+                  <Typography
+                    variant="caption"
+                    color={isSelected ? tierTheme.primaryDark : "#475569"}
+                    display="block"
+                    sx={{ lineHeight: 1.2, fontWeight: isSelected ? 800 : 600 }}
+                  >
                     {tier.hindiLabel}
                   </Typography>
                 </CardActionArea>
@@ -402,9 +415,10 @@ export default function CascadingCourtSelector({
       <Box
         sx={{
           p: 2.2,
-          borderRadius: 2,
+          borderRadius: "16px",
           bgcolor: activeTheme.bgGlow,
           border: `1.5px solid ${activeTheme.borderLight}`,
+          boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
           mb: 2,
           transition: "all 0.3s ease-in-out",
         }}

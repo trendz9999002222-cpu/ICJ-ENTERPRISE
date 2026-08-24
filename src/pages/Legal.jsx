@@ -264,9 +264,18 @@ export default function Legal() {
           variant="contained"
           startIcon={<AddCircleIcon />}
           onClick={() => setShowAddForm((p) => !p)}
-          sx={{ fontWeight: "bold" }}
+          sx={{
+            fontWeight: 900,
+            borderRadius: "30px",
+            px: 2.5,
+            py: 1,
+            textTransform: "none",
+            fontSize: "0.9rem",
+            boxShadow: "0 4px 14px rgba(29, 78, 216, 0.35)",
+            background: showAddForm ? "linear-gradient(135deg, #475569 0%, #1e293b 100%)" : "linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)",
+          }}
         >
-          {showAddForm ? "Hide Case Entry Form" : "Register New Legal Case"}
+          {showAddForm ? "Hide Case Entry Form" : "+ Register New Legal Case"}
         </Button>
       </Stack>
 
@@ -288,13 +297,13 @@ export default function Legal() {
                 borderLeftColor: item.color,
               }}
             >
-              <Box sx={{ color: item.color }}>{item.icon}</Box>
+              <Box sx={{ color: item.color, display: "flex" }}>{item.icon}</Box>
               <Box>
-                <Typography color="text.secondary" variant="caption" fontWeight="bold" display="block">
-                  {item.title}
-                </Typography>
-                <Typography variant="h5" fontWeight="bold">
+                <Typography variant="h6" fontWeight="bold">
                   {item.value}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {item.title}
                 </Typography>
               </Box>
             </Paper>
@@ -304,16 +313,41 @@ export default function Legal() {
 
       {/* Case Registration Form */}
       {showAddForm && (
-        <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Register New Legal Case in Master Repository
+        <Paper
+          sx={{
+            p: 3,
+            mb: 4,
+            borderRadius: "20px",
+            border: "1.5px solid #cbd5e1",
+            boxShadow: "0 6px 24px rgba(0,0,0,0.06)",
+            bgcolor: "#ffffff",
+          }}
+        >
+          <Typography variant="h6" fontWeight={900} gutterBottom sx={{ color: "#0f172a", mb: 2 }}>
+            📋 Register New Legal Case in Master Repository
           </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={2.5}>
             <Grid item xs={12} md={8}>
-              <TextField fullWidth label="Case Title / Subject Matter *" name="title" value={form.title} onChange={onChange} placeholder="e.g. Ramvir Jatav vs State of UP & Ors." />
+              <TextField 
+                fullWidth 
+                label="Case Title / Subject Matter *" 
+                name="title" 
+                value={form.title} 
+                onChange={onChange} 
+                placeholder="e.g. Ramvir Jatav vs. State of UP (Bail & Title Dispute)" 
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField select fullWidth label="Priority" name="priority" value={form.priority} onChange={onChange}>
+              <TextField 
+                select 
+                fullWidth 
+                label="Priority" 
+                name="priority" 
+                value={form.priority} 
+                onChange={onChange}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+              >
                 <MenuItem value="Urgent">🔴 Urgent Priority</MenuItem>
                 <MenuItem value="High">🟠 High Priority</MenuItem>
                 <MenuItem value="Medium">🟡 Medium Priority</MenuItem>
@@ -341,10 +375,26 @@ export default function Legal() {
 
             {/* ADVOCATE ASSIGNMENT & FILING NUMBER */}
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Lead Empaneled Advocate Name *" name="advocateName" value={form.advocateName} onChange={onChange} placeholder="e.g. Senior Advocate Mr. PAWAN GUPTA" />
+              <TextField 
+                fullWidth 
+                label="Lead Empaneled Advocate Name *" 
+                name="advocateName" 
+                value={form.advocateName} 
+                onChange={onChange} 
+                placeholder="e.g. Senior Advocate Mr. PAWAN GUPTA" 
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Custom Case / Filing No. (Optional)" name="caseNumber" value={form.caseNumber} onChange={onChange} placeholder="Auto-generated if blank" />
+              <TextField 
+                fullWidth 
+                label="Custom Case / Filing No. (Optional)" 
+                name="caseNumber" 
+                value={form.caseNumber} 
+                onChange={onChange} 
+                placeholder="Auto-generated if blank" 
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+              />
             </Grid>
 
             {/* NEXT HEARING DATE, STATUS & SAVE */}
@@ -358,6 +408,7 @@ export default function Legal() {
                 onChange={onChange}
                 InputLabelProps={{ shrink: true }}
                 sx={{
+                  "& .MuiOutlinedInput-root": { borderRadius: "12px" },
                   "& .MuiInputLabel-root": {
                     bgcolor: "#ffffff",
                     px: 0.6,
@@ -368,7 +419,15 @@ export default function Legal() {
             </Grid>
 
             <Grid item xs={12} sm={6} md={4}>
-              <TextField select fullWidth label="Case Status" name="status" value={form.status} onChange={onChange}>
+              <TextField 
+                select 
+                fullWidth 
+                label="Case Status" 
+                name="status" 
+                value={form.status} 
+                onChange={onChange}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
+              >
                 <MenuItem value="Filing">Filing</MenuItem>
                 <MenuItem value="Pending">Pending</MenuItem>
                 <MenuItem value="Hearing">Hearing</MenuItem>
@@ -378,8 +437,28 @@ export default function Legal() {
             </Grid>
 
             <Grid item xs={12} sm={12} md={4}>
-              <Button fullWidth size="large" variant="contained" onClick={onCreate} sx={{ height: "40px", fontWeight: 800, letterSpacing: 0.2 }}>
-                SAVE MASTER CASE RECORD ➔
+              <Button
+                fullWidth
+                size="large"
+                variant="contained"
+                onClick={onCreate}
+                sx={{
+                  height: "48px",
+                  fontWeight: 900,
+                  fontSize: "0.95rem",
+                  borderRadius: "30px",
+                  letterSpacing: 0.3,
+                  textTransform: "none",
+                  background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)",
+                  boxShadow: "0 6px 20px rgba(29, 78, 216, 0.4)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #1e40af 0%, #6d28d9 100%)",
+                    boxShadow: "0 8px 24px rgba(29, 78, 216, 0.5)",
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
+                💾 SAVE MASTER CASE RECORD ➔
               </Button>
             </Grid>
           </Grid>

@@ -206,38 +206,72 @@ export default function LegalPartyRepresentation({
           हम किसकी पैरवी कर रहे हैं और विपक्षी पार्टी कौन है?
         </Typography>
 
-        {/* TOGGLE BUTTON: SIDE A VS SIDE B (Full-Width Responsive Bar) */}
-        <Box sx={{ p: 1.5, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
-          <Typography variant="caption" fontWeight={800} color="#334155" display="block" sx={{ mb: 1 }}>
-            🎯 हमारा क्लाइंट किस पक्ष में है? (Whom are we representing?):
+        {/* TOGGLE BUTTON: SIDE A VS SIDE B (Tactile Rounded-Pill Buttons) */}
+        <Box sx={{ p: 1.8, bgcolor: "#f1f5f9", borderRadius: "16px", border: "1.5px solid #cbd5e1" }}>
+          <Typography variant="caption" fontWeight={900} color="#1e293b" display="block" sx={{ mb: 1.2 }}>
+            🎯 हमारा क्लाइंट किस पक्ष में है? (Whom are we representing? — नीचे दिए गए बटन दबाएँ):
           </Typography>
-          <ToggleButtonGroup
-            value={clientSide}
-            exclusive
-            onChange={(_, val) => val && setClientSide(val)}
-            size="medium"
-            disabled={disabled}
-            sx={{
-              width: "100%",
-              display: "flex",
-              "& .MuiToggleButtonGroup-grouped": {
-                flex: 1,
-                py: 1,
-              },
-              "& .Mui-selected": {
-                bgcolor: clientSide === "SIDE_A" ? "#1d4ed8 !important" : "#b91c1c !important",
-                color: "#ffffff !important",
-                fontWeight: "900 !important",
-              },
-            }}
-          >
-            <ToggleButton value="SIDE_A" sx={{ textTransform: "none", fontSize: "0.88rem", fontWeight: 700 }}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            {/* SIDE A PILL BUTTON */}
+            <Button
+              fullWidth
+              variant={clientSide === "SIDE_A" ? "contained" : "outlined"}
+              onClick={() => setClientSide("SIDE_A")}
+              disabled={disabled}
+              startIcon={<ShieldIcon />}
+              sx={{
+                borderRadius: "30px",
+                py: 1.2,
+                px: 2.5,
+                textTransform: "none",
+                fontSize: "0.9rem",
+                fontWeight: 900,
+                transition: "all 0.25s ease-in-out",
+                bgcolor: clientSide === "SIDE_A" ? "#1d4ed8" : "#eff6ff",
+                color: clientSide === "SIDE_A" ? "#ffffff" : "#1d4ed8",
+                border: clientSide === "SIDE_A" ? "2.5px solid #1e40af" : "2px solid #93c5fd",
+                boxShadow: clientSide === "SIDE_A" ? "0 4px 16px rgba(29, 78, 216, 0.4)" : "0 2px 6px rgba(29, 78, 216, 0.1)",
+                transform: clientSide === "SIDE_A" ? "scale(1.02)" : "scale(1)",
+                "&:hover": {
+                  bgcolor: clientSide === "SIDE_A" ? "#1e40af" : "#dbeafe",
+                  border: "2px solid #1d4ed8",
+                },
+              }}
+            >
               🛡️ {partyLabels.sideAName} ({partyLabels.sideAHindi})
-            </ToggleButton>
-            <ToggleButton value="SIDE_B" sx={{ textTransform: "none", fontSize: "0.88rem", fontWeight: 700 }}>
+              {clientSide === "SIDE_A" && " • [चयनित]"}
+            </Button>
+
+            {/* SIDE B PILL BUTTON */}
+            <Button
+              fullWidth
+              variant={clientSide === "SIDE_B" ? "contained" : "outlined"}
+              onClick={() => setClientSide("SIDE_B")}
+              disabled={disabled}
+              startIcon={<ShieldIcon />}
+              sx={{
+                borderRadius: "30px",
+                py: 1.2,
+                px: 2.5,
+                textTransform: "none",
+                fontSize: "0.9rem",
+                fontWeight: 900,
+                transition: "all 0.25s ease-in-out",
+                bgcolor: clientSide === "SIDE_B" ? "#b91c1c" : "#fff1f2",
+                color: clientSide === "SIDE_B" ? "#ffffff" : "#b91c1c",
+                border: clientSide === "SIDE_B" ? "2.5px solid #991b1b" : "2px solid #fca5a5",
+                boxShadow: clientSide === "SIDE_B" ? "0 4px 16px rgba(185, 28, 28, 0.4)" : "0 2px 6px rgba(185, 28, 28, 0.1)",
+                transform: clientSide === "SIDE_B" ? "scale(1.02)" : "scale(1)",
+                "&:hover": {
+                  bgcolor: clientSide === "SIDE_B" ? "#991b1b" : "#fee2e2",
+                  border: "2px solid #b91c1c",
+                },
+              }}
+            >
               ⚖️ {partyLabels.sideBName} ({partyLabels.sideBHindi})
-            </ToggleButton>
-          </ToggleButtonGroup>
+              {clientSide === "SIDE_B" && " • [चयनित]"}
+            </Button>
+          </Stack>
         </Box>
       </Box>
 
@@ -247,19 +281,20 @@ export default function LegalPartyRepresentation({
         <Grid item xs={12} md={5.6}>
           <Box
             sx={{
-              p: 2,
-              borderRadius: 2,
+              p: 2.2,
+              borderRadius: "16px",
               bgcolor: clientSide === "SIDE_A" ? "#eff6ff" : "#f8fafc",
-              border: clientSide === "SIDE_A" ? "2px solid #3b82f6" : "1px solid #e2e8f0",
+              border: clientSide === "SIDE_A" ? "2.5px solid #3b82f6" : "1.5px solid #cbd5e1",
+              boxShadow: clientSide === "SIDE_A" ? "0 4px 14px rgba(59, 130, 246, 0.15)" : "none",
               height: "100%",
             }}
           >
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
               <Box>
-                <Typography variant="subtitle2" fontWeight={800} color={clientSide === "SIDE_A" ? "#1d4ed8" : "#1e293b"}>
+                <Typography variant="subtitle2" fontWeight={900} color={clientSide === "SIDE_A" ? "#1d4ed8" : "#1e293b"}>
                   {partyLabels.sideAName} (वादी / याचिकाकर्ता)
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
                   {partyLabels.sideAHindi}
                 </Typography>
               </Box>
@@ -270,7 +305,7 @@ export default function LegalPartyRepresentation({
                   color="primary"
                   size="small"
                   icon={<ShieldIcon />}
-                  sx={{ fontWeight: 800, fontSize: "0.68rem", height: 22 }}
+                  sx={{ fontWeight: 900, fontSize: "0.7rem", height: 24, borderRadius: "14px" }}
                 />
               )}
             </Stack>
@@ -287,12 +322,17 @@ export default function LegalPartyRepresentation({
                     disabled={disabled}
                     placeholder={`e.g. ${index === 0 ? "Ramvir Jatav" : "Co-Petitioner Name"}`}
                     InputProps={{
-                      startAdornment: <PersonIcon sx={{ color: "#94a3b8", mr: 1, fontSize: 18 }} />,
+                      startAdornment: <PersonIcon sx={{ color: clientSide === "SIDE_A" ? "#1d4ed8" : "#94a3b8", mr: 1, fontSize: 18 }} />,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                      },
                     }}
                   />
                   {sideAParties.length > 1 && (
                     <Tooltip title="Remove Co-Party">
-                      <IconButton size="small" color="error" onClick={() => removeSideAParty(index)} disabled={disabled}>
+                      <IconButton size="small" color="error" onClick={() => removeSideAParty(index)} disabled={disabled} sx={{ bgcolor: "#fee2e2", borderRadius: "12px" }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -306,7 +346,16 @@ export default function LegalPartyRepresentation({
                 startIcon={<GroupAddIcon />}
                 onClick={addSideAParty}
                 disabled={disabled}
-                sx={{ textTransform: "none", fontSize: "0.75rem", fontWeight: 700, borderColor: "#cbd5e1" }}
+                sx={{
+                  textTransform: "none",
+                  fontSize: "0.8rem",
+                  fontWeight: 800,
+                  borderRadius: "24px",
+                  bgcolor: "#dbeafe",
+                  color: "#1e40af",
+                  border: "1.5px solid #93c5fd",
+                  "&:hover": { bgcolor: "#bfdbfe", border: "1.5px solid #3b82f6" },
+                }}
               >
                 + Add Another {partyLabels.roleA} (सह-{partyLabels.roleA} जोड़ें)
               </Button>
@@ -322,15 +371,16 @@ export default function LegalPartyRepresentation({
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              bgcolor: "#f1f5f9",
+              bgcolor: "#e2e8f0",
               borderRadius: "50%",
-              width: 44,
-              height: 44,
-              border: "1px solid #cbd5e1",
+              width: 48,
+              height: 48,
+              border: "2px solid #cbd5e1",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
             }}
           >
-            <CompareArrowsIcon sx={{ color: "#475569", fontSize: 20 }} />
-            <Typography variant="caption" fontWeight={900} color="#0f172a" sx={{ fontSize: "0.62rem", lineHeight: 1 }}>
+            <CompareArrowsIcon sx={{ color: "#334155", fontSize: 22 }} />
+            <Typography variant="caption" fontWeight={900} color="#0f172a" sx={{ fontSize: "0.65rem", lineHeight: 1 }}>
               VS
             </Typography>
           </Box>
@@ -340,19 +390,20 @@ export default function LegalPartyRepresentation({
         <Grid item xs={12} md={5.6}>
           <Box
             sx={{
-              p: 2,
-              borderRadius: 2,
+              p: 2.2,
+              borderRadius: "16px",
               bgcolor: clientSide === "SIDE_B" ? "#fef2f2" : "#f8fafc",
-              border: clientSide === "SIDE_B" ? "2px solid #ef4444" : "1px solid #e2e8f0",
+              border: clientSide === "SIDE_B" ? "2.5px solid #ef4444" : "1.5px solid #cbd5e1",
+              boxShadow: clientSide === "SIDE_B" ? "0 4px 14px rgba(239, 68, 68, 0.15)" : "none",
               height: "100%",
             }}
           >
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
               <Box>
-                <Typography variant="subtitle2" fontWeight={800} color={clientSide === "SIDE_B" ? "#b91c1c" : "#1e293b"}>
+                <Typography variant="subtitle2" fontWeight={900} color={clientSide === "SIDE_B" ? "#b91c1c" : "#1e293b"}>
                   {partyLabels.sideBName} (प्रतिवादी / विपक्षी)
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" fontWeight={600}>
                   {partyLabels.sideBHindi}
                 </Typography>
               </Box>
@@ -363,7 +414,7 @@ export default function LegalPartyRepresentation({
                   color="error"
                   size="small"
                   icon={<ShieldIcon />}
-                  sx={{ fontWeight: 800, fontSize: "0.68rem", height: 22 }}
+                  sx={{ fontWeight: 900, fontSize: "0.7rem", height: 24, borderRadius: "14px" }}
                 />
               )}
             </Stack>
@@ -380,12 +431,17 @@ export default function LegalPartyRepresentation({
                     disabled={disabled}
                     placeholder={`e.g. ${index === 0 ? "State of UP / Ramesh Kumar" : "Co-Defendant Name"}`}
                     InputProps={{
-                      startAdornment: <PersonIcon sx={{ color: "#94a3b8", mr: 1, fontSize: 18 }} />,
+                      startAdornment: <PersonIcon sx={{ color: clientSide === "SIDE_B" ? "#b91c1c" : "#94a3b8", mr: 1, fontSize: 18 }} />,
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "12px",
+                      },
                     }}
                   />
                   {sideBParties.length > 1 && (
                     <Tooltip title="Remove Co-Party">
-                      <IconButton size="small" color="error" onClick={() => removeSideBParty(index)} disabled={disabled}>
+                      <IconButton size="small" color="error" onClick={() => removeSideBParty(index)} disabled={disabled} sx={{ bgcolor: "#fee2e2", borderRadius: "12px" }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -399,7 +455,16 @@ export default function LegalPartyRepresentation({
                 startIcon={<GroupAddIcon />}
                 onClick={addSideBParty}
                 disabled={disabled}
-                sx={{ textTransform: "none", fontSize: "0.75rem", fontWeight: 700, borderColor: "#cbd5e1" }}
+                sx={{
+                  textTransform: "none",
+                  fontSize: "0.8rem",
+                  fontWeight: 800,
+                  borderRadius: "24px",
+                  bgcolor: "#fee2e2",
+                  color: "#991b1b",
+                  border: "1.5px solid #fca5a5",
+                  "&:hover": { bgcolor: "#fecaca", border: "1.5px solid #ef4444" },
+                }}
               >
                 + Add Another {partyLabels.roleB} (सह-{partyLabels.roleB} जोड़ें)
               </Button>
@@ -411,22 +476,24 @@ export default function LegalPartyRepresentation({
         <Grid item xs={12}>
           <Box
             sx={{
-              p: 1.8,
-              bgcolor: "#f8fafc",
-              borderRadius: 2,
-              border: "1px dashed #cbd5e1",
+              p: 2,
+              bgcolor: clientSide === "SIDE_A" ? "#eff6ff" : "#fef2f2",
+              borderRadius: "16px",
+              border: clientSide === "SIDE_A" ? "1.5px solid #93c5fd" : "1.5px solid #fca5a5",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
               gap: 1.5,
+              transition: "all 0.3s ease-in-out",
             }}
           >
             <Box>
-              <Typography variant="body2" color="#0f172a" fontWeight={800}>
+              <Typography variant="body2" color="#0f172a" fontWeight={900}>
                 📜 केस का आधिकारिक शीर्षक (Cause Title): {compiledCauseTitle}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" fontWeight={600}>
                 {sideAParties.length} {partyLabels.roleA}(s) बनाम {sideBParties.length} {partyLabels.roleB}(s)
               </Typography>
             </Box>
@@ -435,7 +502,7 @@ export default function LegalPartyRepresentation({
               label={representationBadge}
               size="small"
               color={clientSide === "SIDE_A" ? "primary" : "error"}
-              sx={{ fontWeight: 800, fontSize: "0.72rem", height: 26 }}
+              sx={{ fontWeight: 900, fontSize: "0.75rem", height: 26, borderRadius: "14px" }}
               icon={<ShieldIcon />}
             />
           </Box>
