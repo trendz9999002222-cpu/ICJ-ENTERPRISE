@@ -154,24 +154,27 @@ export const DISTRICT_ESTABLISHMENT_CASE_TYPES = {
   ],
 };
 
-// ─── 5. TEHSIL & REVENUE DEPARTMENT MASTER (8-LEVEL HIERARCHY & 6 CASE TYPES) ───
+// ─── 5. TEHSIL & REVENUE DEPARTMENT MASTER (8-LEVEL HIERARCHY & 8+ CASE TYPES) ───
 export const REVENUE_ESTABLISHMENT_LEVELS = [
-  { id: "BOARD_OF_REVENUE", name: "Board of Revenue (राजस्व परिषद — Apex State Authority)" },
-  { id: "DIVISIONAL_COMMISSIONER", name: "Divisional Commissioner Court (संभागीय आयुक्त न्यायालय)" },
+  { id: "BOARD_OF_REVENUE", name: "Board of Revenue (राजस्व परिषद — Apex State Revenue Court)" },
+  { id: "DIVISIONAL_COMMISSIONER", name: "Divisional Commissioner Court (संभागीय आयुक्त / मंडल न्यायालय)" },
   { id: "DM_COLLECTOR", name: "District Magistrate / Collector Court (जिलाधिकारी / कलेक्टर न्यायालय)" },
-  { id: "ADM_REVENUE", name: "Additional District Magistrate (ADM Revenue / अपर जिलाधिकारी न्यायालय)" },
-  { id: "SDM_ASSISTANT_COLLECTOR", name: "Sub-Divisional Magistrate / SDM Court (उप-जिलाधिकारी न्यायालय)" },
-  { id: "TEHSILDAR_COURT", name: "Tehsildar Court (तहसीलदार न्यायालय — Mutation & Khasra)" },
-  { id: "NAIB_TEHSILDAR_COURT", name: "Naib Tehsildar Court (नायब तहसीलदार न्यायालय — Undisputed Mutation)" },
-  { id: "CHAKBANDI_COURT", name: "Consolidation Officer Court (चकबंदी अधिकारी न्यायालय — Settlement/ACO)" },
+  { id: "ADM_COURTS", name: "Additional District Magistrate (ADM Revenue / Judicial / Land Acquisition)" },
+  { id: "SDM_COURT", name: "Sub-Divisional Magistrate / SDM Court (उप-जिलाधिकारी न्यायालय — Assistant Collector)" },
+  { id: "TEHSILDAR_COURT", name: "Tehsildar & Judicial Tehsildar Court (तहसीलदार / न्यायिक तहसीलदार न्यायालय)" },
+  { id: "NAIB_TEHSILDAR_COURT", name: "Naib Tehsildar Court (नायब तहसीलदार वृत न्यायालय — Undisputed Mutation)" },
+  { id: "CHAKBANDI_COURT", name: "Consolidation Officer Court (चकबंदी न्यायालय — ACO / CO / SOC / DDC Courts)" },
 ];
 
 export const REVENUE_CASE_TYPES = [
   { id: "REV_MUTATION", code: "MUTATION", name: "Revenue Mutation (दाखिल-खारिज — Sec 34/35 Revenue Code)", category: "Land Title Mutation", subCategories: ["Registered Sale Deed Mutation (बैनामा दाखिल-खारिज)", "Inheritance / Succession Mutation (फौती/वारिसान नाम दर्ज)", "Registered Will Mutation (वसीयत नामांतरण)", "Court Decree Mutation (अदालती डिक्री अमलदारामद)"] },
-  { id: "REV_SEC144", code: "SEC 144/145", name: "Executive Injunction & Land Possession (Sec 144/145 CrPC)", category: "Executive Land Dispute", subCategories: ["Imminent Breach of Peace on Land/House", "Order of Attachment of Disputed Land (Sec 146)", "Restoration of Forcibly Dispossessed Land"] },
-  { id: "REV_PARTITION", code: "PARTITION (116)", name: "Agricultural Land Partition Suit (खेत का बंटवारा — Sec 116)", category: "Land Partition", subCategories: ["Separation of Agricultural Shares (कुर्रा बंटवारा)", "Joint Khata Division & Separate Khasra Numbering"] },
-  { id: "REV_PAIMASH", code: "PAIMASH (24)", name: "Land Boundary Demarcation & Stone Fixing (पैमाइश / पत्थरगड्डी — Sec 24)", category: "Land Demarcation", subCategories: ["Demarcation of Encroached Farm Boundary", "Fixing of Boundary Pillars (पत्थरगड्डी आदेश)"] },
+  { id: "REV_PARTITION", code: "PARTITION (116)", name: "Agricultural Land Partition Suit (खेत का बंटवारा — Sec 116)", category: "Land Partition", subCategories: ["Separation of Agricultural Shares (कुर्रा बंटवारा)", "Joint Khata Division & Separate Khasra Numbering", "Preparation of Preliminary / Final Decree"] },
+  { id: "REV_PAIMASH", code: "PAIMASH (24)", name: "Land Boundary Demarcation & Stone Fixing (पैमाइश / पत्थरगड्डी — Sec 24)", category: "Land Demarcation", subCategories: ["Demarcation of Encroached Farm Boundary", "Fixing of Boundary Pillars (पत्थरगड्डी आदेश)", "Measurement of Disturbed Field Boundaries"] },
   { id: "REV_ENCROACHMENT", code: "EVICTION (67)", name: "Gram Sabha & Public Land Eviction (चकरोड/तालाब बेदखली — Sec 67)", category: "Public Land Protection", subCategories: ["Removal of Encroachment on Village Pathway (चकरोड)", "Eviction from Pasture/Pond/Gram Sabha Land", "Damage Compensation Assessment on Encroacher"] },
+  { id: "REV_CORRECTION", code: "CORRECTION (38)", name: "Record & Khatauni Correction (खतौनी दुरुस्ती / शुद्धि — Sec 38)", category: "Land Record Rectification", subCategories: ["Correction of Khasra Area Discrepancy", "Correction of Spelling / Name in Khatauni", "Rectification of Erroneous Revenue Entry"] },
+  { id: "REV_SEC144", code: "SEC 144/145", name: "Executive Injunction & Land Possession (Sec 144/145 CrPC)", category: "Executive Land Dispute", subCategories: ["Imminent Breach of Peace on Land/House", "Order of Attachment of Disputed Land (Sec 146)", "Restoration of Forcibly Dispossessed Land"] },
+  { id: "REV_STAMP", code: "STAMP (47A)", name: "Stamp Deficit Assessment Dispute (स्टाम्प कमी वाद — Sec 47A)", category: "Stamp & Registration Dispute", subCategories: ["Challenge to Circle Rate Value Deficit Notice", "Challenge to Penalty Imposed by Sub-Registrar / ADM", "Appeal against Deficit Stamp Order"] },
+  { id: "REV_CHAKBANDI", code: "CHAKBANDI", name: "Consolidation Objections & Appeals (चकबंदी आपत्ति, कुर्रा व अपील)", category: "Consolidation Disputes", subCategories: ["Objection against Unit Valuation (Sec 9 ACO)", "Chak Allocation & Route Dispute before CO (Sec 20)", "Appeal before Settlement Officer Consolidation (SOC - Sec 11)", "Revision before Deputy Director of Consolidation (DDC - Sec 48)"] },
   { id: "REV_APPEAL_REV", code: "REV.APPEAL", name: "Revenue Appeal / Revision (राजस्व अपील व निगरानी)", category: "Revenue Appellate", subCategories: ["Appeal against Tehsildar Mutation Order to SDM", "Revision to Commissioner against SDM Order", "Board of Revenue Second Appeal / Reference"] },
 ];
 

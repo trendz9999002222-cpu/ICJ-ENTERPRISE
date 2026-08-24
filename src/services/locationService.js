@@ -10,6 +10,8 @@
  * 6. Fast Search Engine (Type-Ahead, PIN Code, Court Jurisdiction & Fuzzy Matching).
  */
 
+import { ALL_INDIA_DISTRICTS } from "../data/indiaDistrictMaster.js";
+
 const STORAGE_KEYS = {
   config: "icj_location_field_config",
   customMaster: "icj_location_custom_master",
@@ -187,9 +189,11 @@ export const LocationService = {
   },
 
   /**
-   * 3. Get Districts by State Code
+   * 3. Get Districts by State Code (All-India 780+ Master Repository)
    */
   getDistrictsByState(stateCode) {
+    const masterHits = ALL_INDIA_DISTRICTS.filter((d) => d.stateCode === stateCode);
+    if (masterHits.length > 0) return masterHits;
     return OFFICIAL_INDIA_MASTER_DATA.districts.filter((d) => d.stateCode === stateCode);
   },
 
@@ -198,7 +202,8 @@ export const LocationService = {
    */
   resolveJurisdiction(stateCode, districtCode) {
     const state = OFFICIAL_INDIA_MASTER_DATA.states.find((s) => s.code === stateCode);
-    const district = OFFICIAL_INDIA_MASTER_DATA.districts.find((d) => d.code === districtCode);
+    const district = ALL_INDIA_DISTRICTS.find((d) => d.code === districtCode) ||
+      OFFICIAL_INDIA_MASTER_DATA.districts.find((d) => d.code === districtCode);
 
     if (!state || !district) {
       return {
