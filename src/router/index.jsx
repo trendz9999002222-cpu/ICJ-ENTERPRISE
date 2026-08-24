@@ -64,6 +64,7 @@ import PublicOnboarding from "../pages/PublicOnboarding";
 import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import CertificateVerification from "../pages/CertificateVerification";
 import PublicLegalHomepage from "../pages/PublicLegalHomepage";
+import PublicCaseTracker from "../pages/PublicCaseTracker";
 import useAuth from "../hooks/useAuth";
 
 function RootDashboard() {
@@ -114,6 +115,9 @@ export default function AppRouter() {
         <Route path="/recovery" element={<Recovery />} />
         <Route path="/verify" element={<CertificateVerification />} />
         <Route path="/certificate-verify" element={<CertificateVerification />} />
+        <Route path="/track-case" element={<PublicCaseTracker />} />
+        <Route path="/track" element={<Navigate to="/track-case" replace />} />
+        <Route path="/case-status" element={<Navigate to="/track-case" replace />} />
 
         {/* Authenticated Internal Workspace Router */}
         <Route

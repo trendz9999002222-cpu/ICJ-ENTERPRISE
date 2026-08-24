@@ -274,7 +274,7 @@ export default function PublicLegalHomepage() {
             <Button
               fullWidth
               component={RouterLink}
-              to="/legal"
+              to="/track-case"
               variant="outlined"
               size="large"
               startIcon={<SearchIcon />}
