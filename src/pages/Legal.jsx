@@ -36,6 +36,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import LegalService from "../services/legalService";
 import ActivityService from "../services/activityService";
 import CaseDetailModal from "../components/legal/CaseDetailModal";
+import AdvocateAssignmentModal from "../components/legal/AdvocateAssignmentModal";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
 export default function Legal() {
@@ -43,6 +44,8 @@ export default function Legal() {
   const [search, setSearch] = useState("");
   const [selectedCase, setSelectedCase] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
+  const [assignmentCase, setAssignmentCase] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [alertMsg, setAlertMsg] = useState("");
 
@@ -390,16 +393,33 @@ export default function Legal() {
                     </TableCell>
                     <TableCell>{item.nextHearing || item.next_hearing || "-"}</TableCell>
                     <TableCell align="right">
-                      <Tooltip title="View / Edit Case Details">
-                        <IconButton size="small" color="primary" onClick={() => handleOpenDetailModal(item)}>
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Case">
-                        <IconButton size="small" color="error" onClick={() => onDeleteCase(caseId)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <Stack direction="row" spacing={0.5} justifyContent="flex-end" alignItems="center">
+                        <Tooltip title="⚖️ Assign / Change Advocate & Notify Client">
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<GavelIcon sx={{ fontSize: "0.85rem" }} />}
+                            onClick={() => {
+                              setAssignmentCase(item);
+                              setAssignmentModalOpen(true);
+                            }}
+                            sx={{ fontWeight: 800, fontSize: "0.68rem", py: 0.2, px: 0.8 }}
+                          >
+                            {item.advocateName ? "Reassign" : "Assign Advocate"}
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title="View / Edit Case Details">
+                          <IconButton size="small" color="primary" onClick={() => handleOpenDetailModal(item)}>
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Case">
+                          <IconButton size="small" color="error" onClick={() => onDeleteCase(caseId)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 );
@@ -417,6 +437,20 @@ export default function Legal() {
           userRole="admin"
           onClose={() => setModalOpen(false)}
           onSave={handleSaveModal}
+        />
+      )}
+
+      {/* ⚖️ Advocate Allocation & Tri-Channel Notification Modal */}
+      {assignmentCase && (
+        <AdvocateAssignmentModal
+          open={assignmentModalOpen}
+          caseItem={assignmentCase}
+          onClose={() => setAssignmentModalOpen(false)}
+          onAssigned={() => {
+            loadCases();
+            setAlertMsg("Advocate allocated and customer care notifications dispatched!");
+            setTimeout(() => setAlertMsg(""), 5000);
+          }}
         />
       )}
     </Box>
