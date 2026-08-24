@@ -394,11 +394,12 @@ export default function CascadingCourtSelector({
                   borderWidth: isSelected ? 3 : 2,
                   boxShadow: isSelected
                     ? `0 8px 24px ${tierTheme.primary}60`
-                    : "0 2px 8px rgba(0,0,0,0.06)",
+                    : `0 2px 8px ${tierTheme.primary}15`,
                   transform: isSelected ? "translateY(-4px) scale(1.03)" : "scale(1)",
                   transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
                   height: "100%",
                   cursor: "pointer",
+                  position: "relative",
                   "&:hover": {
                     borderColor: tierTheme.primary,
                     transform: isSelected ? "translateY(-4px) scale(1.03)" : "translateY(-2px)",
@@ -407,15 +408,31 @@ export default function CascadingCourtSelector({
                 }}
               >
                 <CardActionArea onClick={() => setForumTier(tier.id)} sx={{ p: 1.5, height: "100%" }}>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-                    <Typography variant="h6">{tier.icon}</Typography>
-                    <Typography
-                      variant="body2"
-                      fontWeight={900}
-                      color={isSelected ? "#ffffff" : tierTheme.primaryDark}
-                    >
-                      {tier.label}
-                    </Typography>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Typography variant="h6">{tier.icon}</Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight={900}
+                        color={isSelected ? "#ffffff" : tierTheme.primaryDark}
+                      >
+                        {tier.label}
+                      </Typography>
+                    </Stack>
+                    {isSelected && (
+                      <Chip
+                        label="✓ सक्रिय"
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: "0.65rem",
+                          fontWeight: 900,
+                          bgcolor: "#ffffff",
+                          color: tierTheme.primaryDark,
+                          borderRadius: "10px",
+                        }}
+                      />
+                    )}
                   </Stack>
                   <Typography
                     variant="caption"
@@ -432,18 +449,40 @@ export default function CascadingCourtSelector({
         })}
       </Grid>
 
-      {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS WITH COLOR-MATCHED BORDERS */}
+      {/* 2. DYNAMIC PROGRESSIVE FORM FIELDS WITH EXACT MATCHING ACTIVE COLOR THEME */}
       <Box
         sx={{
           p: 2.2,
-          borderRadius: "16px",
+          borderRadius: "18px",
           bgcolor: activeTheme.bgGlow,
-          border: `1.5px solid ${activeTheme.borderLight}`,
-          boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
-          mb: 2,
+          border: `2.5px solid ${activeTheme.primary}`,
+          boxShadow: `0 6px 20px ${activeTheme.primary}20`,
+          mb: 2.5,
           transition: "all 0.3s ease-in-out",
         }}
       >
+        <Box
+          sx={{
+            mb: 2,
+            p: 1.2,
+            px: 2,
+            borderRadius: "12px",
+            bgcolor: activeTheme.primary,
+            color: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            boxShadow: `0 2px 10px ${activeTheme.primary}40`,
+          }}
+        >
+          <Typography variant="subtitle2" fontWeight={900}>
+            {activeTheme.icon} {activeTheme.accentBadge}
+          </Typography>
+          <Typography variant="caption" sx={{ color: "#ffffff", opacity: 0.9, fontWeight: 700 }}>
+            अदालत स्तर व संबंधित क्षेत्राधिकार
+          </Typography>
+        </Box>
+
         <Grid container spacing={2}>
         {/* CASE A: SUPREME COURT OF INDIA */}
         {forumTier === "SUPREME_COURT" && (
