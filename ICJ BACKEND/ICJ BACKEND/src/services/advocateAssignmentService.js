@@ -1,11 +1,11 @@
 /**
- * ICJ ENTERPRISE PLATFORM — ADVOCATE ASSIGNMENT & TRI-CHANNEL DISPATCH SERVICE
+ * ICJ ENTERPRISE PLATFORM — 3-TIER ALLOCATION & TRI-CHANNEL DISPATCH SERVICE
  * 
- * Handles:
- * 1. Direct Member-Level and Case-Level Allocation (Advocate or Customer Care Officer)
- * 2. In-House Customer Care & Triage Desk Profiles
- * 3. Tri-Channel Dispatch (Brevo SMTP Email, Direct WhatsApp, In-App / SMS Alerts)
- * 4. Editable Message Template Management with dynamic placeholders
+ * Manages:
+ * 1. 3-Tier Assignees (District Franchise Agency, ICJ Customer Care Desk, Empaneled Advocate)
+ * 2. Strict Role Isolation (Hard block preventing Clients from appearing as assignees)
+ * 3. Dynamic Context-Aware Message Templates (Franchise Call Center, Care Desk, Legal Counsel)
+ * 4. 1-Click Advocate Appointment & Replacement Engine for Franchises and Admins
  */
 
 import MemberService from "./memberService.js";
@@ -14,21 +14,21 @@ import ActivityService from "./activityService.js";
 import NotificationService from "./notificationService.js";
 import SMTPProvider from "./otp/providers/smtpProvider.js";
 
-const TEMPLATE_STORAGE_KEY = "icj_advocate_assignment_templates_v1";
+const TEMPLATE_STORAGE_KEY = "icj_3tier_assignment_templates_v2";
 
 export const OFFICIAL_IN_HOUSE_OFFICERS = [
   {
     id: "ICJ-CARE-01",
     member_id: "ICJ-CARE-01",
     memberId: "ICJ-CARE-01",
-    fullName: "🎧 ICJ Central Customer Care & Legal Helpline",
-    name: "🎧 ICJ Central Customer Care & Legal Helpline",
+    fullName: "ICJ Central Customer Care & Legal Helpline",
+    name: "ICJ Central Customer Care & Legal Helpline",
     role: "customer_care",
     user_type: "customer_care",
-    professionalCategory: "ICJ Grievance Redressal & Triage",
+    category: "customer_care",
+    professionalCategory: "Grievance Redressal & Triage Desk",
     professionalRegNo: "ICJ/HQ/CARE/01",
-    practiceCourts: "Pan-India Legal Triage & Client Support",
-    specializations: "Client Onboarding, Case Triage & Legal Consultation",
+    practiceCourts: "Pan-India Legal Triage & Client Call Center",
     mobile: "+91 7053002222",
     email: "Consortiumofjurist@gmail.com",
     isOfficialCare: true,
@@ -37,14 +37,14 @@ export const OFFICIAL_IN_HOUSE_OFFICERS = [
     id: "ICJ-INTAKE-02",
     member_id: "ICJ-INTAKE-02",
     memberId: "ICJ-INTAKE-02",
-    fullName: "🏛️ ICJ In-House Legal Triage & Mediation Officer",
-    name: "🏛️ ICJ In-House Legal Triage & Mediation Officer",
+    fullName: "ICJ In-House Legal Triage & Mediation Officer",
+    name: "ICJ In-House Legal Triage & Mediation Officer",
     role: "legal_officer",
     user_type: "legal_officer",
+    category: "customer_care",
     professionalCategory: "Pre-Litigation Mediation & Legal Review",
     professionalRegNo: "ICJ/HQ/TRIAGE/02",
     practiceCourts: "Supreme Court & High Court Triage Desk",
-    specializations: "Constitutional, Civil, Criminal Dispute Triage",
     mobile: "+91 9999002222",
     email: "Consortiumofjurist@gmail.com",
     isOfficialCare: true,
@@ -52,78 +52,59 @@ export const OFFICIAL_IN_HOUSE_OFFICERS = [
 ];
 
 export const DEFAULT_ASSIGNMENT_TEMPLATES = {
-  emailSubject: "⚖️ ICJ Legal Support: {{advocate_name}} has been appointed to assist you (Ref: {{case_id}})",
-  
-  emailBodyHtml: `
-<div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; max-width: 620px; margin: 0 auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
-  <div style="background: #0a192f; color: #ffffff; padding: 24px; text-align: center; border-bottom: 3px solid #d97706;">
-    <h2 style="margin: 0; font-size: 20px; letter-spacing: 0.5px; text-transform: uppercase;">International Consortium of Jurists (ICJ)</h2>
-    <p style="margin: 4px 0 0 0; color: #38bdf8; font-size: 13px; font-weight: bold;">Official Legal Counsel / Support Officer Allocation Notice</p>
-  </div>
+  // 1. FRANCHISE PARENT AGENCY TEMPLATE
+  franchiseSubject: "🏢 ICJ Regional Support: Your District Franchise Agency {{assignee_name}} has been appointed (ID: {{client_id}})",
+  franchiseWhatsApp: `🏢 *ICJ DISTRICT FRANCHISE AGENCY ALLOCATION NOTICE*
 
-  <div style="padding: 24px; color: #1e293b; line-height: 1.6;">
-    <p style="font-size: 15px; margin-top: 0;"><strong>प्रिय / Dear {{client_name}},</strong></p>
-    <p style="font-size: 14px;">
-      इंटरनेशनल कंसोर्टियम ऑफ ज्यूरिस्ट्स (ICJ) सचिवालय द्वारा आपकी समस्या / केस <strong>(Ref: {{case_id}} - {{case_title}})</strong> के लिए अधिकृत विधिक अधिकारी / अधिवक्ता (Legal Counsel / Support Officer) नियुक्त कर दिया गया है।
-    </p>
+प्रिय *{{client_name}}* (Ref: {{client_id}}),
+इंटरनेशनल कंसोर्टियम ऑफ ज्यूरिस्ट्स (ICJ) सचिवालय द्वारा आपकी विधिक समस्या के समाधान एवं स्थानीय सहायता हेतु अधिकृत जिला पैरेंट फ्रैंचाइज़ी एजेंसी नियुक्त कर दी गई है:
 
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #2563eb; border-radius: 6px; padding: 16px; margin: 20px 0;">
-      <h4 style="margin: 0 0 10px 0; color: #1e3a8a; font-size: 14px; text-transform: uppercase;">📋 नियुक्त अधिकारी / अधिवक्ता विवरण (Appointed Officer / Advocate Particulars)</h4>
-      <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 4px 0; color: #64748b; width: 42%;"><strong>नाम (Name):</strong></td>
-          <td style="padding: 4px 0; color: #0f172a; font-weight: bold;">{{advocate_name}}</td>
-        </tr>
-        <tr>
-          <td style="padding: 4px 0; color: #64748b;"><strong>आईडी / पद (Officer / Member ID):</strong></td>
-          <td style="padding: 4px 0; color: #0f172a; font-family: monospace; font-weight: bold;">{{advocate_id}}</td>
-        </tr>
-        <tr>
-          <td style="padding: 4px 0; color: #64748b;"><strong>मोबाइल नंबर (Contact Mobile):</strong></td>
-          <td style="padding: 4px 0; color: #2563eb; font-weight: bold;">{{advocate_mobile}}</td>
-        </tr>
-        <tr>
-          <td style="padding: 4px 0; color: #64748b;"><strong>ईमेल (Official Email):</strong></td>
-          <td style="padding: 4px 0; color: #0f172a;">{{advocate_email}}</td>
-        </tr>
-      </table>
-    </div>
+🏢 *पैरेंट एजेंसी:* {{assignee_name}}
+🆔 *एजेंसी आईडी:* {{assignee_id}}
+📍 *कार्यक्षेत्र:* {{assignee_jurisdiction}}
+📱 *हेल्पलाइन / फोन:* {{assignee_mobile}}
+✉️ *ईमेल:* {{assignee_email}}
 
-    <p style="font-size: 13.5px; color: #334155;">
-      अधिकारी / एडवोकेट महोदय जल्द ही आपसे समस्या को समझने, विधिक ड्राफ्टिंग एवं समाधान हेतु सीधे संपर्क करेंगे। आप अपने <strong>ICJ Client Portal</strong> पर लॉगिन करके भी सीधे सहायता प्राप्त कर सकते हैं।
-    </p>
+हमारी फ्रैंचाइज़ी टीम (लोकल कॉल सेंटर) जल्द ही आपसे संपर्क कर आपकी समस्या का पूरा विवरण लेगी, कागजात की जांच करेगी और आपके लिए सर्वश्रेष्ठ अधिकृत अधिवक्ता नियुक्त करेगी।
 
-    <div style="text-align: center; margin: 25px 0 15px 0;">
-      <a href="https://icj.co.in/client-portal" style="background: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 22px; font-weight: bold; font-size: 13px; border-radius: 6px; display: inline-block;">
-        Open Your Client Portal ➔
-      </a>
-    </div>
-  </div>
+🌐 *Client Portal:* https://icj.co.in/client-portal
+📞 *ICJ Central Helpline:* {{support_phone}}
+_— ICJ Governance & Secretariat_`,
 
-  <div style="background: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
-    <p style="margin: 0 0 4px 0; font-weight: bold; color: #0f172a;">International Consortium of Jurists (ICJ)</p>
-    <p style="margin: 0;">हेल्पलाइन: {{support_phone}} | वेबसाइट: icj.co.in | ईमेल: Consortiumofjurist@gmail.com</p>
-  </div>
-</div>
-  `,
-
-  whatsappMessage: `⚖️ *ICJ LEGAL COUNSEL / SUPPORT OFFICER APPOINTMENT NOTICE*
+  // 2. CENTRAL CUSTOMER CARE HELPDESK TEMPLATE
+  careSubject: "🎧 ICJ Grievance Support: Customer Care Desk has been assigned to assist you (Ref: {{client_id}})",
+  careWhatsApp: `🎧 *ICJ CUSTOMER CARE ASSISTANCE NOTICE*
 
 प्रिय *{{client_name}}*,
-इंटरनेशनल कंसोर्टियम ऑफ ज्यूरिस्ट्स (ICJ) द्वारा आपकी समस्या/केस *(Ref: {{case_id}})* के लिए सहायता अधिकारी / अधिवक्ता नियुक्त कर दिए गए हैं:
+इंटरनेशनल कंसोर्टियम ऑफ ज्यूरिस्ट्स (ICJ) द्वारा आपकी समस्या के त्वरित समाधान हेतु कस्टमर केयर सहायता अधिकारी नियुक्त कर दिए गए हैं:
 
-👤 *अधिकारी / अधिवक्ता:* {{advocate_name}}
-🆔 *ID / पद:* {{advocate_id}}
-📱 *मोबाइल:* {{advocate_mobile}}
-✉️ *ईमेल:* {{advocate_email}}
+🎧 *सहायता डेस्क:* {{assignee_name}}
+🆔 *डेस्क आईडी:* {{assignee_id}}
+📱 *हेल्पलाइन:* {{assignee_mobile}}
+✉️ *ईमेल:* {{assignee_email}}
 
-वे जल्द ही आपसे कानूनी परामर्श, केस ड्राफ्टिंग व समाधान हेतु संपर्क करेंगे।
+हमारा सहायता प्रतिनिधि जल्द ही आपकी समस्या का विवरण समझने, प्राथमिक विधिक मार्गदर्शन देने व आवश्यकतानुसार संबंधित अधिवक्ता से आपकी बात कराने हेतु संपर्क करेगा।
+
+🌐 *Client Portal:* https://icj.co.in/client-portal
+_— ICJ Customer Care & Secretariat_`,
+
+  // 3. ADVOCATE LEGAL COUNSEL TEMPLATE
+  advocateSubject: "⚖️ ICJ Legal Counsel: Advocate {{assignee_name}} appointed for your legal matter (Ref: {{client_id}})",
+  advocateWhatsApp: `⚖️ *ICJ LEGAL COUNSEL APPOINTMENT NOTICE*
+
+प्रिय *{{client_name}}*,
+इंटरनेशनल कंसोर्टियम ऑफ ज्यूरिस्ट्स (ICJ) द्वारा आपके मामले के विधिक परामर्श, कोर्ट ड्राफ्टिंग एवं अदालती पैरवी हेतु अधिकृत अधिवक्ता नियुक्त कर दिए गए हैं:
+
+👤 *अधिवक्ता:* {{assignee_name}}
+🆔 *बार / सदस्य आईडी:* {{assignee_id}}
+📱 *मोबाइल:* {{assignee_mobile}}
+📜 *बार काउंसिल:* {{assignee_bar_reg}}
+
+एडवोकेट महोदय जल्द ही आपसे कानूनी कार्यवाही व समाधान हेतु संपर्क करेंगे।
 
 🌐 *Client Portal:* https://icj.co.in/client-portal
 📞 *ICJ Helpline:* {{support_phone}}
-_— ICJ Customer Care & Secretariat_`,
-
-  smsMessage: `ICJ Update: {{advocate_name}} (Mob: {{advocate_mobile}}) has been appointed to assist you for {{case_id}}. They will contact you shortly. Helpline: {{support_phone}}`,
+_— ICJ Legal Secretariat_`,
 };
 
 export const AdvocateAssignmentService = {
@@ -135,14 +116,10 @@ export const AdvocateAssignmentService = {
       ? window.localStorage 
       : (typeof globalThis !== "undefined" ? globalThis.localStorage : null);
 
-    if (!storage) {
-      return { ...DEFAULT_ASSIGNMENT_TEMPLATES };
-    }
+    if (!storage) return { ...DEFAULT_ASSIGNMENT_TEMPLATES };
     try {
       const stored = storage.getItem(TEMPLATE_STORAGE_KEY);
-      if (stored) {
-        return { ...DEFAULT_ASSIGNMENT_TEMPLATES, ...JSON.parse(stored) };
-      }
+      if (stored) return { ...DEFAULT_ASSIGNMENT_TEMPLATES, ...JSON.parse(stored) };
     } catch {}
     return { ...DEFAULT_ASSIGNMENT_TEMPLATES };
   },
@@ -194,339 +171,323 @@ export const AdvocateAssignmentService = {
   },
 
   /**
-   * Get list of verified advocates + official in-house Customer Care officers
+   * Get 3-Tier Categorized Assignees with strict role isolation (Clients strictly excluded)
    */
-  async getAvailableAdvocates() {
+  async getCategorizedAssignees(excludeTargetId = null) {
     try {
       const allMembers = await MemberService.getAll();
-      const advocates = Array.isArray(allMembers)
-        ? allMembers.filter((m) => {
-            const role = String(m?.role || m?.user_type || "").toLowerCase();
-            return role === "advocate" ||
-              String(m?.purposeCode || m?.purpose || "").includes("SERVICES") ||
-              Boolean(m?.professionalRegNo || m?.practiceCourts);
-          })
-        : [];
+      const rawList = Array.isArray(allMembers) ? allMembers : [];
 
-      return [...OFFICIAL_IN_HOUSE_OFFICERS, ...advocates];
-    } catch (err) {
-      console.error("Failed to fetch advocates", err);
-      return [...OFFICIAL_IN_HOUSE_OFFICERS];
-    }
-  },
+      const sanitizedTargetId = excludeTargetId ? String(excludeTargetId).toLowerCase() : "";
 
-  /**
-   * Allocate Advocate/Officer directly to a Member (Client / Citizen)
-   */
-  async allocateAdvocateToMember({
-    member,
-    advocate,
-    customSubject = null,
-    customEmailBody = null,
-    customWhatsApp = null,
-    channels = { email: true, whatsapp: true, inApp: true },
-    assignedBy = "ICJ Super Admin",
-  }) {
-    if (!member || !advocate) {
-      throw new Error("Both Member and Officer/Advocate are required for allocation.");
-    }
+      const franchisees = [];
+      const advocates = [];
 
-    const memberId = member.member_id || member.memberId || member.id;
-    const clientName = member.fullName || member.name || "Valued Member";
-    const clientEmail = member.email || "";
-    const clientMobile = member.mobile || "";
+      for (const m of rawList) {
+        const id = String(m?.member_id || m?.memberId || m?.id || "");
+        const idLower = id.toLowerCase();
+        const role = String(m?.role || m?.user_type || "").toLowerCase();
+        const purpose = String(m?.purposeCode || m?.purpose || "").toLowerCase();
 
-    const advocateName = advocate.fullName || advocate.name || "Empaneled Advocate";
-    const advocateId = advocate.member_id || advocate.memberId || advocate.id || "ICJ-CARE-01";
-    const advocateMobile = advocate.mobile || "+91 7053002222";
-    const advocateEmail = advocate.email || "Consortiumofjurist@gmail.com";
-    const advocateBarReg = advocate.professionalRegNo || "ICJ Authorized Legal Representative";
-
-    const caseId = `MEM-REF-${memberId}`;
-    const caseTitle = member.purpose || member.problemCategories?.join(", ") || "Member Legal Assistance Intake";
-
-    // 1. Build Context
-    const context = {
-      client_name: clientName,
-      client_email: clientEmail,
-      client_mobile: clientMobile,
-      case_id: caseId,
-      case_title: caseTitle,
-      advocate_name: advocateName,
-      advocate_id: advocateId,
-      advocate_mobile: advocateMobile,
-      advocate_email: advocateEmail,
-      advocate_bar_reg: advocateBarReg,
-      assigned_date: new Date().toLocaleDateString("en-IN"),
-      support_phone: "7053002222 / 9999002222",
-    };
-
-    const templates = this.getTemplates();
-    const emailSubject = this.renderTemplate(customSubject || templates.emailSubject, context);
-    const emailBodyHtml = this.renderTemplate(customEmailBody || templates.emailBodyHtml, context);
-    const whatsappText = this.renderTemplate(customWhatsApp || templates.whatsappMessage, context);
-
-    // 2. Update Member Record
-    const memberUpdatePayload = {
-      assigned_advocate: {
-        advocate_id: advocateId,
-        advocate_name: advocateName,
-        advocate_mobile: advocateMobile,
-        advocate_email: advocateEmail,
-        advocate_bar_reg: advocateBarReg,
-        allotted_by: assignedBy,
-        allotted_at: new Date().toISOString(),
-        status: "ASSIGNED_ACTIVE",
-      },
-      advocateName,
-      advocateId,
-      advocateMobile,
-    };
-
-    try {
-      await MemberService.update(memberId, memberUpdatePayload);
-    } catch (e) {
-      console.warn("MemberService direct update notice:", e);
-    }
-
-    // 3. Sync to Citizen Active Case so Client Portal displays this immediately
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        const citizenCase = {
-          case_id: caseId,
-          id: caseId,
-          caseNumber: caseId,
-          title: caseTitle,
-          clientName,
-          client_name: clientName,
-          clientEmail,
-          clientPhone: clientMobile,
-          assigned_advocate: memberUpdatePayload.assigned_advocate,
-          advocateName,
-          advocateId,
-          advocateMobile,
-          status: "Under Active Legal Assistance",
-          createdAt: new Date().toISOString(),
-        };
-        window.localStorage.setItem("icj_citizen_active_case", JSON.stringify(citizenCase));
-      } catch {}
-    }
-
-    const dispatchResults = {
-      email: { sent: false, error: null },
-      whatsapp: { generated: false, url: null },
-      inApp: { sent: false },
-    };
-
-    // 4. Dispatch Email via Brevo REST API / SMTP Provider
-    if (channels.email && clientEmail) {
-      try {
-        const smtpRes = await SMTPProvider.sendOTP({
-          email: clientEmail,
-          customSubject: emailSubject,
-          customHtml: emailBodyHtml,
-        });
-        dispatchResults.email = { sent: smtpRes.success, error: smtpRes.error || null };
-      } catch (err) {
-        console.error("Email dispatch failed:", err);
-        dispatchResults.email = { sent: false, error: err.message };
-      }
-    }
-
-    // 5. Generate Direct WhatsApp Link
-    if (channels.whatsapp && clientMobile) {
-      const sanitizedPhone = clientMobile.replace(/\D/g, "");
-      const fullPhone = sanitizedPhone.startsWith("91") ? sanitizedPhone : `91${sanitizedPhone}`;
-      const waUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(whatsappText)}`;
-      dispatchResults.whatsapp = { generated: true, url: waUrl };
-    }
-
-    // 6. In-App Notifications for Client & Advocate
-    if (channels.inApp) {
-      try {
-        NotificationService.create({
-          title: `🎧 Legal Officer Appointed: ${advocateName}`,
-          message: `${advocateName} (${advocateMobile}) has been assigned to assist you with your legal matter.`,
-          type: "officer_assignment",
-          recipient: clientEmail || clientName,
-        });
-
-        dispatchResults.inApp = { sent: true };
-      } catch (e) {}
-    }
-
-    // 7. Log Activity
-    try {
-      ActivityService.create({
-        title: `Officer/Advocate ${advocateName} assigned to Member "${clientName}" (ID: ${memberId})`,
-        type: "membership",
-      });
-    } catch (e) {}
-
-    return {
-      success: true,
-      member: { ...member, ...memberUpdatePayload },
-      dispatchResults,
-      whatsappText,
-      whatsappUrl: dispatchResults.whatsapp.url,
-    };
-  },
-
-  /**
-   * Allocate Advocate to Case & Dispatch Multi-Channel Notifications
-   */
-  async allocateAdvocateToCase({
-    caseItem,
-    advocate,
-    customSubject = null,
-    customEmailBody = null,
-    customWhatsApp = null,
-    channels = { email: true, whatsapp: true, inApp: true },
-    assignedBy = "ICJ Super Admin",
-  }) {
-    if (!caseItem || !advocate) {
-      throw new Error("Both Case and Advocate are required for allocation.");
-    }
-
-    const templates = this.getTemplates();
-    const caseId = caseItem.caseId || caseItem.id || caseItem.case_id || `ICJ-CASE-${Date.now()}`;
-    const clientName = caseItem.clientName || caseItem.client_name || caseItem.name || "Valued Client";
-    const clientEmail = caseItem.clientEmail || caseItem.client_email || caseItem.email || "";
-    const clientMobile = caseItem.clientPhone || caseItem.client_phone || caseItem.mobile || "";
-
-    const advocateName = advocate.fullName || advocate.name || "Empaneled Advocate";
-    const advocateId = advocate.member_id || advocate.memberId || advocate.id || "26ICJ08AA0002";
-    const advocateMobile = advocate.mobile || "+91 9999002222";
-    const advocateEmail = advocate.email || "advocate9999002222@gmail.com";
-    const advocateBarReg = advocate.professionalRegNo || advocate.bar_reg || "Verified Bar Council Member";
-
-    // 1. Build Context
-    const context = {
-      client_name: clientName,
-      client_email: clientEmail,
-      client_mobile: clientMobile,
-      case_id: caseId,
-      case_title: caseItem.title || caseItem.caseTitle || "Legal Consultation & Pleading",
-      advocate_name: advocateName,
-      advocate_id: advocateId,
-      advocate_mobile: advocateMobile,
-      advocate_email: advocateEmail,
-      advocate_bar_reg: advocateBarReg,
-      assigned_date: new Date().toLocaleDateString("en-IN"),
-      support_phone: "7053002222 / 9999002222",
-    };
-
-    // 2. Render Multi-Channel Texts
-    const emailSubject = this.renderTemplate(customSubject || templates.emailSubject, context);
-    const emailBodyHtml = this.renderTemplate(customEmailBody || templates.emailBodyHtml, context);
-    const whatsappText = this.renderTemplate(customWhatsApp || templates.whatsappMessage, context);
-
-    // 3. Update Case Record in Legal Service & Storage
-    const updatedCasePayload = {
-      ...caseItem,
-      assigned_advocate: {
-        advocate_id: advocateId,
-        advocate_name: advocateName,
-        advocate_mobile: advocateMobile,
-        advocate_email: advocateEmail,
-        advocate_bar_reg: advocateBarReg,
-        allotted_by: assignedBy,
-        allotted_at: new Date().toISOString(),
-        status: "ASSIGNED_ACTIVE",
-      },
-      advocateName,
-      advocateId,
-      advocateMobile,
-      status: "In Progress",
-    };
-
-    try {
-      await LegalService.update(caseId, updatedCasePayload);
-    } catch (e) {
-      console.warn("LegalService direct update notice:", e);
-    }
-
-    // Sync to citizen active cases in localStorage
-    if (typeof window !== "undefined" && window.localStorage) {
-      try {
-        const rawCitizen = window.localStorage.getItem("icj_citizen_active_case");
-        if (rawCitizen) {
-          const citizenCase = JSON.parse(rawCitizen);
-          if (citizenCase.case_id === caseId || citizenCase.id === caseId) {
-            window.localStorage.setItem("icj_citizen_active_case", JSON.stringify({
-              ...citizenCase,
-              ...updatedCasePayload,
-            }));
-          }
+        // 1. HARD BLOCK ON CLIENTS (Never allow clients in assignee rosters)
+        if (role === "client" || id.includes("CLT") || purpose.includes("litigant")) {
+          continue;
         }
-      } catch {}
+
+        // 2. EXCLUDE TARGET CLIENT (Self-assignment prevention)
+        if (sanitizedTargetId && (idLower === sanitizedTargetId || String(m?.id || "").toLowerCase() === sanitizedTargetId)) {
+          continue;
+        }
+
+        // 3. FRANCHISE PARTNERS (District / Regional Agencies)
+        if (role === "franchise" || id.includes("FRZ") || purpose.includes("franchise")) {
+          franchisees.push({
+            id,
+            member_id: id,
+            memberId: id,
+            fullName: m.fullName || m.name || `District Franchise Agency (${id})`,
+            name: m.fullName || m.name || `District Franchise Agency (${id})`,
+            role: "franchise",
+            category: "franchise",
+            jurisdiction: m.franchiseDistrict || m.district || m.city || m.franchiseCity || "District Jurisdiction",
+            state: m.franchiseState || m.state || "India",
+            mobile: m.mobile || "+91 9999002222",
+            email: m.email || "Consortiumofjurist@gmail.com",
+            verification_status: m.verification_status || "Approved",
+          });
+          continue;
+        }
+
+        // 4. EMPANELED ADVOCATES (Advocates with bar registration or ICJ ID)
+        if (role === "advocate" || id.includes("ICJ") || id.includes("ADV") || Boolean(m.professionalRegNo)) {
+          advocates.push({
+            id,
+            member_id: id,
+            memberId: id,
+            fullName: m.fullName || m.name || `Advocate (${id})`,
+            name: m.fullName || m.name || `Advocate (${id})`,
+            role: "advocate",
+            category: "advocate",
+            professionalRegNo: m.professionalRegNo || "Verified Bar Council Member",
+            practiceCourts: m.practiceCourts || "Supreme Court & High Courts",
+            specializations: m.specializations || "Civil, Criminal, Constitutional",
+            mobile: m.mobile || "+91 9999002222",
+            email: m.email || "advocate9999002222@gmail.com",
+            verification_status: m.verification_status || "Approved",
+          });
+        }
+      }
+
+      return {
+        franchisees,
+        customerCare: OFFICIAL_IN_HOUSE_OFFICERS,
+        advocates,
+        allFlat: [...franchisees, ...OFFICIAL_IN_HOUSE_OFFICERS, ...advocates],
+      };
+    } catch (err) {
+      console.error("Failed to categorize assignees", err);
+      return {
+        franchisees: [],
+        customerCare: OFFICIAL_IN_HOUSE_OFFICERS,
+        advocates: [],
+        allFlat: OFFICIAL_IN_HOUSE_OFFICERS,
+      };
+    }
+  },
+
+  /**
+   * Universal 3-Tier Allocation Engine for Client or Court Case
+   */
+  async allocate({
+    targetMember = null,
+    targetCase = null,
+    assignee = null,
+    customSubject = null,
+    customWhatsApp = null,
+    channels = { email: true, whatsapp: true, inApp: true },
+    assignedBy = "ICJ Super Admin",
+  }) {
+    if (!assignee) throw new Error("Assignee is required for allocation.");
+    if (!targetMember && !targetCase) throw new Error("Either Target Member or Target Case is required.");
+
+    const clientId = targetMember?.member_id || targetMember?.id || targetCase?.clientMemberId || targetCase?.client_id || (targetCase ? targetCase.id : "ICJ-CLIENT");
+    const clientName = targetMember?.fullName || targetMember?.name || targetCase?.clientName || targetCase?.name || "Valued Client";
+    const clientMobile = targetMember?.mobile || targetCase?.clientPhone || targetCase?.mobile || "";
+    const clientEmail = targetMember?.email || targetCase?.clientEmail || targetCase?.email || "";
+
+    const assigneeCategory = assignee.category || assignee.role || (assignee.isOfficialCare ? "customer_care" : "advocate");
+    const assigneeName = assignee.fullName || assignee.name || "Appointed Representative";
+    const assigneeId = assignee.member_id || assignee.id || "ICJ-REP";
+    const assigneeMobile = assignee.mobile || "+91 7053002222";
+    const assigneeEmail = assignee.email || "Consortiumofjurist@gmail.com";
+    const assigneeBarReg = assignee.professionalRegNo || (assignee.isOfficialCare ? "ICJ Helpdesk" : "Verified Council Member");
+    const assigneeJurisdiction = assignee.jurisdiction || assignee.practiceCourts || "Pan-India";
+
+    // 1. Build Context
+    const context = {
+      client_id: clientId,
+      client_name: clientName,
+      client_mobile: clientMobile,
+      client_email: clientEmail,
+      assignee_name: assigneeName,
+      assignee_id: assigneeId,
+      assignee_mobile: assigneeMobile,
+      assignee_email: assigneeEmail,
+      assignee_bar_reg: assigneeBarReg,
+      assignee_jurisdiction: assigneeJurisdiction,
+      assigned_date: new Date().toLocaleDateString("en-IN"),
+      support_phone: "7053002222 / 9999002222",
+    };
+
+    const templates = this.getTemplates();
+
+    // 2. Select Appropriate Template based on Assignee Category
+    let defaultSubject = templates.advocateSubject;
+    let defaultWhatsApp = templates.advocateWhatsApp;
+
+    if (assigneeCategory === "franchise") {
+      defaultSubject = templates.franchiseSubject;
+      defaultWhatsApp = templates.franchiseWhatsApp;
+    } else if (assigneeCategory === "customer_care") {
+      defaultSubject = templates.careSubject;
+      defaultWhatsApp = templates.careWhatsApp;
     }
 
+    const emailSubject = this.renderTemplate(customSubject || defaultSubject, context);
+    const whatsappText = this.renderTemplate(customWhatsApp || defaultWhatsApp, context);
+
+    // 3. Update Member Record if target is a Member
+    const allocationRecord = {
+      assignee_type: assigneeCategory,
+      assignee_id: assigneeId,
+      assignee_name: assigneeName,
+      assignee_mobile: assigneeMobile,
+      assignee_email: assigneeEmail,
+      assignee_bar_reg: assigneeBarReg,
+      assignee_jurisdiction: assigneeJurisdiction,
+      allotted_by: assignedBy,
+      allotted_at: new Date().toISOString(),
+      status: "ACTIVE_ASSIGNED",
+    };
+
+    if (targetMember) {
+      const updatePayload = {
+        assigned_officer: allocationRecord,
+        assigned_advocate: assigneeCategory === "advocate" ? allocationRecord : (targetMember.assigned_advocate || null),
+        assigned_franchise: assigneeCategory === "franchise" ? allocationRecord : (targetMember.assigned_franchise || null),
+        advocateName: assigneeCategory === "advocate" ? assigneeName : targetMember.advocateName,
+        advocateId: assigneeCategory === "advocate" ? assigneeId : targetMember.advocateId,
+        advocateMobile: assigneeCategory === "advocate" ? assigneeMobile : targetMember.advocateMobile,
+      };
+
+      try {
+        await MemberService.update(clientId, updatePayload);
+      } catch (e) {
+        console.warn("Member update notice:", e);
+      }
+
+      // Sync active citizen case in local storage for Client Portal
+      if (typeof window !== "undefined" && window.localStorage) {
+        try {
+          const citizenCase = {
+            case_id: clientId,
+            id: clientId,
+            caseNumber: clientId,
+            title: "नागरिक विधिक सहायता एवं समस्या निवारण",
+            clientName,
+            clientPhone: clientMobile,
+            clientEmail,
+            assigned_officer: allocationRecord,
+            assigned_advocate: updatePayload.assigned_advocate,
+            assigned_franchise: updatePayload.assigned_franchise,
+            advocateName: updatePayload.advocateName,
+            advocateMobile: updatePayload.advocateMobile,
+            status: "Active Supervision",
+            createdAt: new Date().toISOString(),
+          };
+          window.localStorage.setItem("icj_citizen_active_case", JSON.stringify(citizenCase));
+        } catch {}
+      }
+    }
+
+    // 4. Update Case Record if target is a Case
+    if (targetCase) {
+      const caseId = targetCase.caseId || targetCase.id;
+      const caseUpdate = {
+        ...targetCase,
+        assigned_officer: allocationRecord,
+        assigned_advocate: assigneeCategory === "advocate" ? allocationRecord : (targetCase.assigned_advocate || null),
+        assigned_franchise: assigneeCategory === "franchise" ? allocationRecord : (targetCase.assigned_franchise || null),
+        advocateName: assigneeCategory === "advocate" ? assigneeName : targetCase.advocateName,
+        status: "In Progress",
+      };
+
+      try {
+        await LegalService.update(caseId, caseUpdate);
+      } catch (e) {}
+    }
+
+    // 5. Dispatch Alerts
     const dispatchResults = {
-      email: { sent: false, error: null },
+      email: { sent: false },
       whatsapp: { generated: false, url: null },
       inApp: { sent: false },
     };
 
-    // 4. Dispatch Email via Brevo REST API / SMTP Provider
+    // Email Dispatch
     if (channels.email && clientEmail) {
       try {
         const smtpRes = await SMTPProvider.sendOTP({
           email: clientEmail,
           customSubject: emailSubject,
-          customHtml: emailBodyHtml,
+          customHtml: `<div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; color: #1e293b;">
+            <div style="background: #0a192f; color: #fff; padding: 16px; text-align: center; border-radius: 6px;">
+              <h2 style="margin: 0;">International Consortium of Jurists (ICJ)</h2>
+              <p style="margin: 4px 0 0 0; color: #38bdf8;">Official Allocation Notice</p>
+            </div>
+            <div style="padding: 20px 0;">
+              <p><strong>प्रिय ${clientName},</strong></p>
+              <p style="white-space: pre-line;">${whatsappText.replace(/[*_#]/g, "")}</p>
+            </div>
+          </div>`,
         });
-        dispatchResults.email = { sent: smtpRes.success, error: smtpRes.error || null };
-      } catch (err) {
-        console.error("Email dispatch failed:", err);
-        dispatchResults.email = { sent: false, error: err.message };
-      }
+        dispatchResults.email = { sent: smtpRes.success };
+      } catch (err) {}
     }
 
-    // 5. Generate Direct WhatsApp Link
+    // WhatsApp Link
     if (channels.whatsapp && clientMobile) {
-      const sanitizedPhone = clientMobile.replace(/\D/g, "");
-      const fullPhone = sanitizedPhone.startsWith("91") ? sanitizedPhone : `91${sanitizedPhone}`;
+      const cleanPhone = clientMobile.replace(/\D/g, "");
+      const fullPhone = cleanPhone.startsWith("91") ? cleanPhone : `91${cleanPhone}`;
       const waUrl = `https://api.whatsapp.com/send?phone=${fullPhone}&text=${encodeURIComponent(whatsappText)}`;
       dispatchResults.whatsapp = { generated: true, url: waUrl };
     }
 
-    // 6. In-App Notifications for Client & Advocate
+    // In-App Notification
     if (channels.inApp) {
       try {
         NotificationService.create({
-          title: `⚖️ Legal Counsel Appointed: ${advocateName}`,
-          message: `Advocate ${advocateName} (${advocateMobile}) has been assigned to your case ${caseId}.`,
-          type: "case_update",
+          title: `🏢 Allocated: ${assigneeName}`,
+          message: `${assigneeName} (${assigneeMobile}) has been assigned to support you.`,
+          type: "allocation",
           recipient: clientEmail || clientName,
         });
-
-        NotificationService.create({
-          title: `💼 New Case Brief Allocated: ${caseId}`,
-          message: `You have been allocated Client ${clientName}'s case: "${caseItem.title || 'Legal Matter'}".`,
-          type: "case_allocation",
-          recipient: advocateEmail || advocateName,
-        });
-
         dispatchResults.inApp = { sent: true };
       } catch (e) {}
     }
 
-    // 7. Log Activity
+    // Log Activity
     try {
       ActivityService.create({
-        title: `Advocate ${advocateName} appointed for Client "${clientName}" (Case ${caseId})`,
-        type: "legal",
+        title: `${assigneeCategory.toUpperCase()} "${assigneeName}" assigned to Client "${clientName}" (${clientId})`,
+        type: "allocation",
       });
     } catch (e) {}
 
     return {
       success: true,
-      caseItem: updatedCasePayload,
       dispatchResults,
       whatsappText,
       whatsappUrl: dispatchResults.whatsapp.url,
+      allocationRecord,
     };
+  },
+
+  /**
+   * 1-Click Replace Advocate (For Franchise & Admin)
+   */
+  async replaceAdvocate({
+    targetClientId,
+    clientName,
+    clientMobile,
+    clientEmail,
+    oldAdvocateName = "Previous Counsel",
+    newAdvocate,
+    replacementReason = "Client Service Optimization",
+    replacedBy = "District Franchise Agency",
+  }) {
+    if (!newAdvocate) throw new Error("New Advocate is required for replacement.");
+
+    const res = await this.allocate({
+      targetMember: {
+        id: targetClientId,
+        member_id: targetClientId,
+        fullName: clientName,
+        mobile: clientMobile,
+        email: clientEmail,
+      },
+      assignee: newAdvocate,
+      assignedBy: replacedBy,
+    });
+
+    try {
+      ActivityService.create({
+        title: `🔄 Advocate Replaced: "${newAdvocate.fullName}" replaced "${oldAdvocateName}" for Client ${clientName} (Reason: ${replacementReason})`,
+        type: "advocate_replacement",
+      });
+    } catch (e) {}
+
+    return res;
   },
 };
 

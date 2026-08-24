@@ -1,9 +1,10 @@
 /**
- * ICJ ENTERPRISE PLATFORM — ADVOCATE ASSIGNMENT ENGINE TEST SUITE
+ * ICJ ENTERPRISE PLATFORM — 3-TIER ALLOCATION & STRICT ROLE ISOLATION TEST SUITE
  */
 import AdvocateAssignmentService, { OFFICIAL_IN_HOUSE_OFFICERS } from "../src/services/advocateAssignmentService.js";
+import MemberService from "../src/services/memberService.js";
 
-console.log("=== RUNNING ADVOCATE ASSIGNMENT ENGINE TEST SUITE ===");
+console.log("=== RUNNING 3-TIER ALLOCATION & ROLE ISOLATION TEST SUITE ===");
 
 // Mock browser localStorage for node runner
 if (typeof globalThis.localStorage === "undefined") {
@@ -25,46 +26,72 @@ function assert(condition, message) {
   }
 }
 
-// 1. Template retrieval
-const templates = AdvocateAssignmentService.getTemplates();
-assert(templates.emailSubject.includes("{{advocate_name}}"), "Email subject contains advocate placeholder");
-assert(templates.whatsappMessage.includes("{{client_name}}"), "WhatsApp template contains client placeholder");
+// 1. Setup mock database with mixed roles: Clients, Franchisees, and Advocates
+const mockMembers = [
+  { id: "26SAD08AA0001", member_id: "26SAD08AA0001", fullName: "Super Admin", role: "admin" },
+  { id: "26ICJ08AA0002", member_id: "26ICJ08AA0002", fullName: "Senior Advocate PAWAN GUPTA", role: "advocate", professionalRegNo: "D/1042/1998", mobile: "+91 9999002222" },
+  { id: "26FRZ08AA0003", member_id: "26FRZ08AA0003", fullName: "Delhi Central Franchise Agency", role: "franchise", franchiseDistrict: "New Delhi", mobile: "+91 9876543210" },
+  { id: "26CLT08AA0004", member_id: "26CLT08AA0004", fullName: "Ramvir Jatav", role: "client", purposeCode: "PROBLEM", mobile: "+91 8700974739" },
+  { id: "26CLT08AA0005", member_id: "26CLT08AA0005", fullName: "Suresh Client", role: "client", purposeCode: "PROBLEM", mobile: "+91 9999111122" },
+];
 
-// 2. Official Customer Care officers
-assert(OFFICIAL_IN_HOUSE_OFFICERS.length >= 2, "Official customer care desks configured");
-assert(OFFICIAL_IN_HOUSE_OFFICERS[0].id === "ICJ-CARE-01", "ICJ-CARE-01 present");
-assert(OFFICIAL_IN_HOUSE_OFFICERS[0].mobile.includes("7053002222"), "Customer Care mobile matches standard");
+MemberService.getAll = async () => mockMembers;
 
-// 3. Template rendering for Member-level allocation
-const sampleMemberContext = {
-  client_name: "Suresh Gupta",
-  client_mobile: "+91 9876543210",
-  case_id: "MEM-REF-26CLT08AA0004",
-  case_title: "Land Title Grievance",
-  advocate_name: OFFICIAL_IN_HOUSE_OFFICERS[0].fullName,
-  advocate_id: OFFICIAL_IN_HOUSE_OFFICERS[0].id,
-  advocate_mobile: OFFICIAL_IN_HOUSE_OFFICERS[0].mobile,
-  advocate_email: OFFICIAL_IN_HOUSE_OFFICERS[0].email,
-  advocate_bar_reg: "ICJ Grievance Redressal Desk",
-  support_phone: "7053002222 / 9999002222",
-};
+async function runTests() {
+  // Test A: Get Categorized Assignees for Target Client Ramvir Jatav (26CLT08AA0004)
+  const categorized = await AdvocateAssignmentService.getCategorizedAssignees("26CLT08AA0004");
 
-const renderedWhatsApp = AdvocateAssignmentService.renderTemplate(templates.whatsappMessage, sampleMemberContext);
-assert(renderedWhatsApp.includes("Suresh Gupta"), "Rendered WhatsApp includes Member Name");
-assert(renderedWhatsApp.includes("ICJ-CARE-01"), "Rendered WhatsApp includes Care Desk ID");
-assert(!renderedWhatsApp.includes("{{advocate_name}}"), "No un-substituted placeholders remain");
+  // 1. Zero Clients in any assignee list
+  const hasClients = categorized.allFlat.some((a) => a.role === "client" || a.id.includes("CLT") || a.fullName.includes("Ramvir") || a.fullName.includes("Suresh"));
+  assert(!hasClients, "Clients (Ramvir, Suresh) are STRICTLY EXCLUDED from assignee lists");
 
-// 4. Custom template save & reset
-const custom = {
-  ...templates,
-  emailSubject: "Custom Allocation: {{advocate_name}} assigned to {{client_name}}",
-};
-AdvocateAssignmentService.saveTemplates(custom);
-const retrieved = AdvocateAssignmentService.getTemplates();
-assert(retrieved.emailSubject.startsWith("Custom Allocation"), "Custom template persisted successfully");
+  // 2. Franchise Agency presence
+  assert(categorized.franchisees.length === 1, "District Franchise Agency correctly identified in Franchise Group");
+  assert(categorized.franchisees[0].id === "26FRZ08AA0003", "Franchise ID is 26FRZ08AA0003");
 
-AdvocateAssignmentService.resetTemplatesToDefault();
-const reset = AdvocateAssignmentService.getTemplates();
-assert(!reset.emailSubject.startsWith("Custom Allocation"), "Templates reset to official default");
+  // 3. Central Customer Care Desks
+  assert(categorized.customerCare.length === 2, "Central Customer Care desks present");
+  assert(categorized.customerCare[0].id === "ICJ-CARE-01", "ICJ-CARE-01 desk present");
 
-console.log("=== ALL ADVOCATE ASSIGNMENT TESTS PASSED SUCCESSFULLY ===");
+  // 4. Empaneled Advocates
+  assert(categorized.advocates.length === 1, "Empaneled Advocate correctly identified in Advocate Group");
+  assert(categorized.advocates[0].id === "26ICJ08AA0002", "Advocate ID is 26ICJ08AA0002 (Mr. PAWAN GUPTA)");
+
+  // Test B: Template Rendering for Franchise Agency Allocation
+  const templates = AdvocateAssignmentService.getTemplates();
+  const franchiseContext = {
+    client_id: "26CLT08AA0004",
+    client_name: "Ramvir Jatav",
+    assignee_name: categorized.franchisees[0].fullName,
+    assignee_id: categorized.franchisees[0].id,
+    assignee_jurisdiction: categorized.franchisees[0].jurisdiction,
+    assignee_mobile: categorized.franchisees[0].mobile,
+    assignee_email: categorized.franchisees[0].email,
+    support_phone: "7053002222 / 9999002222",
+  };
+
+  const renderedFranchiseMsg = AdvocateAssignmentService.renderTemplate(templates.franchiseWhatsApp, franchiseContext);
+  assert(renderedFranchiseMsg.includes("Delhi Central Franchise Agency"), "Rendered Franchise Msg includes Franchise Name");
+  assert(renderedFranchiseMsg.includes("Ramvir Jatav"), "Rendered Franchise Msg includes Client Name");
+  assert(renderedFranchiseMsg.includes("26CLT08AA0004"), "Rendered Franchise Msg includes Clean Client ID");
+  assert(renderedFranchiseMsg.includes("लोकल कॉल सेंटर"), "Rendered Franchise Msg emphasizes Local Call Center function");
+
+  // Test C: Advocate Replacement Engine
+  const replaceRes = await AdvocateAssignmentService.replaceAdvocate({
+    targetClientId: "26CLT08AA0004",
+    clientName: "Ramvir Jatav",
+    clientMobile: "+91 8700974739",
+    clientEmail: "ramvir@example.com",
+    oldAdvocateName: "Previous Advocate",
+    newAdvocate: categorized.advocates[0],
+    replacementReason: "Performance Optimization",
+    replacedBy: "Delhi Central Franchise Agency",
+  });
+
+  assert(replaceRes.success === true, "Advocate replacement succeeded seamlessly");
+  assert(replaceRes.allocationRecord.assignee_id === "26ICJ08AA0002", "New Advocate assigned to client record");
+
+  console.log("=== ALL 3-TIER ALLOCATION & ROLE ISOLATION TESTS PASSED ===");
+}
+
+runTests();
