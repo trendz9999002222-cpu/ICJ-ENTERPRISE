@@ -74,6 +74,7 @@ const AILegalIntelligenceHub = lazy(() => import("../pages/hubs/AILegalIntellige
 const LegalCourtWorkspaceHub = lazy(() => import("../pages/hubs/LegalCourtWorkspaceHub"));
 const SystemAdminControlHub = lazy(() => import("../pages/hubs/SystemAdminControlHub"));
 const HelpdeskSupportHub = lazy(() => import("../pages/hubs/HelpdeskSupportHub"));
+const DynamicLegalImmunityWatchdog = lazy(() => import("../pages/DynamicLegalImmunityWatchdog"));
 
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 import useAuth from "../hooks/useAuth";
@@ -238,6 +239,9 @@ export default function AppRouter() {
         <Route path="/community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/feed" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
         <Route path="/legal-community" element={<ProtectedRoute><LegalCommunityFeed /></ProtectedRoute>} />
+        <Route path="/dynamic-legal-watchdog" element={<ProtectedRoute roles={["admin"]}><DynamicLegalImmunityWatchdog /></ProtectedRoute>} />
+        <Route path="/legal-watchdog" element={<Navigate to="/dynamic-legal-watchdog" replace />} />
+        <Route path="/compliance-watchdog" element={<Navigate to="/dynamic-legal-watchdog" replace />} />
 
         {/* Unknown URLs previously rendered a blank page */}
         <Route path="*" element={<Navigate to="/" replace />} />

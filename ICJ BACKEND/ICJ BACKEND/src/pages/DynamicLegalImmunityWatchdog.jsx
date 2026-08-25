@@ -1,0 +1,461 @@
+import React, { useState, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
+import {
+  Box,
+  Container,
+  Paper,
+  Typography,
+  Grid,
+  Stack,
+  Chip,
+  Button,
+  TextField,
+  Divider,
+  Alert,
+  Switch,
+  FormControlLabel,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import ShieldIcon from "@mui/icons-material/Shield";
+import GavelIcon from "@mui/icons-material/Gavel";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DownloadIcon from "@mui/icons-material/Download";
+import PrintIcon from "@mui/icons-material/Print";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
+import DynamicLegalComplianceEngine from "../services/dynamicLegalComplianceEngine.js";
+import MainLayout from "../layouts/MainLayout.jsx";
+
+export default function DynamicLegalImmunityWatchdog() {
+  const [engineState, setEngineState] = useState(DynamicLegalComplianceEngine.getState());
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newStatute, setNewStatute] = useState({
+    actName: "",
+    section: "",
+    jurisdiction: "भारत (India)",
+    legalBenefit: "",
+  });
+
+  const refreshState = () => {
+    setEngineState(DynamicLegalComplianceEngine.getState());
+  };
+
+  useEffect(() => {
+    refreshState();
+  }, []);
+
+  const handleTogglePillar = (pillarId, currentStatus) => {
+    const nextStatus = !currentStatus;
+    DynamicLegalComplianceEngine.togglePillar(
+      pillarId,
+      nextStatus,
+      nextStatus ? "" : "सुरक्षा में संभावित विसंगति दर्ज की गई।"
+    );
+    refreshState();
+  };
+
+  const handleAcknowledge = (breachId) => {
+    DynamicLegalComplianceEngine.acknowledgeBreach(breachId);
+    refreshState();
+    alert("✅ सुरक्षा समीक्षा दर्ज की गई। सिस्टम स्थिति पुनः अद्यतित कर दी गई है।");
+  };
+
+  const handleAddCustomStatute = () => {
+    if (!newStatute.actName || !newStatute.section) {
+      alert("कृपया कानून का नाम और धारा भरें।");
+      return;
+    }
+    DynamicLegalComplianceEngine.addCustomStatute(newStatute);
+    setNewStatute({ actName: "", section: "", jurisdiction: "भारत (India)", legalBenefit: "" });
+    setAddModalOpen(false);
+    refreshState();
+    alert("🎉 नई कानूनी धारा सफलतापूर्वक लाइव व्हाइट पेपर में जोड़ दी गई है!");
+  };
+
+  const downloadLiveDoc = () => {
+    const htmlContent = DynamicLegalComplianceEngine.generateLiveWhitePaperHTML();
+    const blob = new Blob([htmlContent], { type: "application/msword;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ICJ_DYNAMIC_LEGAL_WHITE_PAPER_${Date.now()}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const isAllFortressSafe =
+    engineState.unacknowledgedBreaches.length === 0 &&
+    engineState.pillars.every((p) => p.active);
+
+  return (
+    <MainLayout>
+      <Box sx={{ p: { xs: 2, md: 3.5 }, bgcolor: "#f8fafc", minHeight: "100vh" }}>
+        {/* TOP BREADCRUMB & HEADER */}
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "flex-start", md: "center" }}
+          spacing={2}
+          sx={{ mb: 3 }}
+        >
+          <Box>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "12px",
+                  bgcolor: "#0f172a",
+                  color: "#38bdf8",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <GavelIcon sx={{ fontSize: 26 }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight={900} color="#0f172a">
+                  📜 डायनेमिक लीगल इम्युनिटी एवं वैधानिक वॉचडॉग केंद्र
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700 }}>
+                  [CODE F7] Dynamic Self-Evolving Legal White Paper & Real-Time Statutory Immunity Engine
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
+
+          <Stack direction="row" spacing={1.5}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<AddCircleIcon />}
+              onClick={() => setAddModalOpen(true)}
+              sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#0284c7", color: "#0284c7" }}
+            >
+              ➕ नई धारा जोड़ें (Add Statute)
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<DownloadIcon />}
+              onClick={downloadLiveDoc}
+              sx={{ fontWeight: 900, textTransform: "none", borderRadius: "10px", bgcolor: "#0f172a" }}
+            >
+              📥 लाइव वर्ड फाइल (.doc) डाउनलोड
+            </Button>
+          </Stack>
+        </Stack>
+
+        {/* 🚨 1. BOLD RED PERMANENT ALERT BANNER (If any pillar is degraded/breached) */}
+        {engineState.unacknowledgedBreaches.length > 0 && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: "16px",
+              bgcolor: "#fef2f2",
+              border: "3px solid #ef4444",
+              boxShadow: "0 8px 30px rgba(239, 68, 68, 0.25)",
+              mb: 3.5,
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+              <WarningAmberIcon sx={{ color: "#dc2626", fontSize: 32 }} />
+              <Box>
+                <Typography variant="h6" fontWeight={900} color="#991b1b">
+                  🔴 महत्वपूर्ण वैधानिक व सुरक्षा चेतावनी (CRITICAL COMPLIANCE BREACH ACTIVE)
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#b91c1c", fontWeight: 800 }}>
+                  जब तक सुपर एडमिन इसे पढ़कर स्वीकृत (Acknowledge) नहीं करेगा, यह लाल चेतावनी सक्रिय रहेगी।
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              {engineState.unacknowledgedBreaches.map((breach) => (
+                <Paper
+                  key={breach.id}
+                  sx={{
+                    p: 2,
+                    borderRadius: "10px",
+                    bgcolor: "#ffffff",
+                    border: "1.5px solid #f87171",
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    justifyContent: "space-between",
+                    alignItems: { xs: "flex-start", sm: "center" },
+                    gap: 1.5,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={900} color="#7f1d1d">
+                      ⚠️ {breach.pillarName} — {breach.statute}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: "#991b1b", fontSize: "0.82rem" }}>
+                      {breach.reason} (दर्ज समय: {new Date(breach.timestamp).toLocaleTimeString()})
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleAcknowledge(breach.id)}
+                    sx={{
+                      bgcolor: "#dc2626",
+                      color: "#ffffff",
+                      fontWeight: 900,
+                      borderRadius: "8px",
+                      textTransform: "none",
+                      "&:hover": { bgcolor: "#b91c1c" },
+                    }}
+                  >
+                    ✓ मैंने पढ़ लिया व ठीक कर दिया (Acknowledge & Resolve)
+                  </Button>
+                </Paper>
+              ))}
+            </Stack>
+          </Paper>
+        )}
+
+        {/* 🟢 2. FORTRESS CERTIFICATION BADGE */}
+        {isAllFortressSafe && (
+          <Alert
+            severity="success"
+            icon={<VerifiedUserIcon fontSize="inherit" />}
+            sx={{
+              mb: 3.5,
+              borderRadius: "14px",
+              bgcolor: "#ecfdf5",
+              color: "#065f46",
+              border: "1.5px solid #10b981",
+              fontWeight: 800,
+            }}
+          >
+            🛡️ <strong>100% FORTRESS IMMUNE & CERTIFIED:</strong> सभी 8 कोर विधिक व सुरक्षा स्तंभ पूरी तरह सक्रिय हैं।
+            IT Act Section 79, DPDPA 2023, BSA 2023, US Sec 230 CDA, और EU GDPR के तहत प्लेटफ़ॉर्म 100% सुरक्षित है।
+          </Alert>
+        )}
+
+        {/* 3. 8 COMPLIANCE PILLARS MATRIX */}
+        <Typography variant="h6" fontWeight={900} color="#0f172a" sx={{ mb: 2 }}>
+          🏛️ 8 कोर वैधानिक स्तंभों की रीयल-टाइम स्थिति (Active Legal Pillars Matrix):
+        </Typography>
+
+        <Grid container spacing={2.5} sx={{ mb: 4 }}>
+          {engineState.pillars.map((pillar) => (
+            <Grid item xs={12} sm={6} md={3} key={pillar.id}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2.5,
+                  borderRadius: "16px",
+                  bgcolor: pillar.active ? "#ffffff" : "#fef2f2",
+                  border: `2px solid ${pillar.active ? "#10b981" : "#ef4444"}`,
+                  boxShadow: pillar.active
+                    ? "0 4px 14px rgba(0,0,0,0.04)"
+                    : "0 6px 20px rgba(239,68,68,0.2)",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Box>
+                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 1 }}>
+                    <Chip
+                      label={pillar.active ? "🟢 ACTIVE" : "🔴 DEGRADED"}
+                      size="small"
+                      sx={{
+                        fontWeight: 900,
+                        fontSize: "0.68rem",
+                        bgcolor: pillar.active ? "#ecfdf5" : "#7f1d1d",
+                        color: pillar.active ? "#059669" : "#fecaca",
+                        border: `1px solid ${pillar.active ? "#10b981" : "#dc2626"}`,
+                      }}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          size="small"
+                          checked={pillar.active}
+                          onChange={() => handleTogglePillar(pillar.id, pillar.active)}
+                          color="success"
+                        />
+                      }
+                      label=""
+                      sx={{ m: 0 }}
+                    />
+                  </Stack>
+
+                  <Typography variant="subtitle2" fontWeight={900} color="#0f172a" sx={{ mb: 0.5 }}>
+                    {pillar.name}
+                  </Typography>
+
+                  <Typography variant="caption" sx={{ color: "#0284c7", fontWeight: 800, display: "block", mb: 1 }}>
+                    ⚖️ {pillar.statute}
+                  </Typography>
+
+                  <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.75rem" }}>
+                    {pillar.description}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mt: 2, pt: 1.5, borderTop: "1px dashed #cbd5e1" }}>
+                  <Typography variant="caption" sx={{ color: "#334155", fontWeight: 700, fontSize: "0.7rem", display: "block" }}>
+                    🛡️ {pillar.protectionType}
+                  </Typography>
+                </Box>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* 4. DYNAMIC INJECTED CUSTOM STATUTES LIST */}
+        {engineState.customStatutes.length > 0 && (
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "18px", bgcolor: "#ffffff", border: "1.5px solid #e2e8f0", mb: 4 }}>
+            <Typography variant="h6" fontWeight={900} color="#0f172a" sx={{ mb: 2 }}>
+              📜 एडमिन द्वारा जोड़ी गई विशेष कानूनी धाराएं (Custom Injected Statutes):
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ "& th": { fontWeight: 900, color: "#0f172a" } }}>
+                  <TableCell>अधिनियम (Act Name)</TableCell>
+                  <TableCell>धारा (Section)</TableCell>
+                  <TableCell>क्षेत्राधिकार (Jurisdiction)</TableCell>
+                  <TableCell>विधिक लाभ व सुरक्षा (Legal Immunity Benefit)</TableCell>
+                  <TableCell>जोड़ने का समय</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {engineState.customStatutes.map((cs) => (
+                  <TableRow key={cs.id}>
+                    <TableCell sx={{ fontWeight: 800, color: "#0284c7" }}>{cs.actName}</TableCell>
+                    <TableCell sx={{ fontWeight: 800 }}>{cs.section}</TableCell>
+                    <TableCell>{cs.jurisdiction}</TableCell>
+                    <TableCell>{cs.legalBenefit}</TableCell>
+                    <TableCell sx={{ fontSize: "0.75rem", color: "#64748b" }}>{new Date(cs.addedAt).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+
+        {/* 5. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: { xs: 2.5, md: 4 },
+            borderRadius: "20px",
+            bgcolor: "#ffffff",
+            border: "2px solid #cbd5e1",
+            boxShadow: "0 8px 30px rgba(0,0,0,0.04)",
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
+            <Box>
+              <Typography variant="h6" fontWeight={900} color="#0f172a">
+                📄 लाइव स्वतः विकसित होने वाला श्वेत-पत्र (Live Evolving Legal White Paper View)
+              </Typography>
+              <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700 }}>
+                सॉफ़्टवेयर में किसी भी बदलाव के साथ यह दस्तावेज़ रीयल-टाइम में अपने आप अपडेट होता रहता है।
+              </Typography>
+            </Box>
+
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PrintIcon />}
+              onClick={() => window.print()}
+              sx={{ fontWeight: 800, borderRadius: "8px", textTransform: "none" }}
+            >
+              प्रिंट निकालें (Print)
+            </Button>
+          </Stack>
+
+          <Divider sx={{ mb: 3 }} />
+
+          <Box
+            sx={{
+              p: 3,
+              borderRadius: "12px",
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              fontFamily: "'Segoe UI', Roboto, sans-serif",
+              maxHeight: 500,
+              overflowY: "auto",
+            }}
+          >
+            <div dangerouslySetInnerHTML={{ __html: DynamicLegalComplianceEngine.generateLiveWhitePaperHTML() }} />
+          </Box>
+        </Paper>
+
+        {/* MODAL: ADD NEW CUSTOM STATUTE */}
+        <Dialog open={addModalOpen} onClose={() => setAddModalOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontWeight: 900, color: "#0f172a" }}>
+            ➕ नई कानूनी धारा जोड़ें (Inject New Legal Statute)
+          </DialogTitle>
+          <DialogContent>
+            <Stack spacing={2.5} sx={{ mt: 1 }}>
+              <TextField
+                label="अधिनियम / कानून का नाम (Act Name, e.g. भारतीय साक्ष्य संहिता 2023)"
+                fullWidth
+                size="small"
+                value={newStatute.actName}
+                onChange={(e) => setNewStatute({ ...newStatute, actName: e.target.value })}
+              />
+              <TextField
+                label="धारा / नियम (Section / Clause, e.g. धारा 65B या Article 21)"
+                fullWidth
+                size="small"
+                value={newStatute.section}
+                onChange={(e) => setNewStatute({ ...newStatute, section: e.target.value })}
+              />
+              <TextField
+                label="क्षेत्राधिकार (Jurisdiction, e.g. भारत, सुप्रीम कोर्ट, यूएसए)"
+                fullWidth
+                size="small"
+                value={newStatute.jurisdiction}
+                onChange={(e) => setNewStatute({ ...newStatute, jurisdiction: e.target.value })}
+              />
+              <TextField
+                label="सॉफ़्टवेयर के लिए विधिक लाभ व सुरक्षा (Immunity Benefit & Compliance Rule)"
+                fullWidth
+                multiline
+                rows={3}
+                size="small"
+                value={newStatute.legalBenefit}
+                onChange={(e) => setNewStatute({ ...newStatute, legalBenefit: e.target.value })}
+              />
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5 }}>
+            <Button onClick={() => setAddModalOpen(false)} sx={{ fontWeight: 700 }}>
+              रद्द करें
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleAddCustomStatute}
+              sx={{ bgcolor: "#0f172a", fontWeight: 900 }}
+            >
+              सहेजें व लाइव जोड़ें (Save & Inject)
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </MainLayout>
+  );
+}
