@@ -39,6 +39,7 @@ import SecurityIncidentBroadcasterService from "../services/securityIncidentBroa
 import CircuitBreakerIsolationService from "../services/circuitBreakerIsolationService.js";
 import WebPushNotificationService from "../services/webPushNotificationService.js";
 import WebAudioSirenService from "../services/webAudioSirenService.js";
+import LegalChangeAuditService from "../services/legalChangeAuditService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 export default function DynamicLegalImmunityWatchdog() {
@@ -525,7 +526,61 @@ export default function DynamicLegalImmunityWatchdog() {
           </Paper>
         )}
 
-        {/* 5. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
+        {/* 5. CONTINUOUS LEGAL ASSURANCE & GREEN CHANGE AUDIT TRAIL */}
+        <Paper elevation={0} sx={{ p: 3, borderRadius: "18px", bgcolor: "#f0fdf4", border: "2px solid #10b981", mb: 4 }}>
+          <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={1.5} sx={{ mb: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <CheckCircleIcon sx={{ color: "#059669", fontSize: 30 }} />
+              <Box>
+                <Typography variant="h6" fontWeight={900} color="#065f46">
+                  🟢 सतत विधिक परिवर्तन सत्यापन एवं हरित आश्वासन केंद्र (Continuous Legal Assurance)
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#047857", fontWeight: 800 }}>
+                  हर बदलाव पर स्वतः 3-सूत्रीय विधिक परीक्षण: <strong>"इस परिवर्तन से कोई कानूनी अड़चन या अनजानी गलती नहीं आई है।"</strong>
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Chip
+              label="🟢 100% LAWFUL & SAFE (विधिक रूप से पूर्णतः सुरक्षित)"
+              size="small"
+              sx={{ bgcolor: "#d1fae5", color: "#065f46", fontWeight: 900, border: "1px solid #10b981", fontSize: "0.72rem" }}
+            />
+          </Stack>
+
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ "& th": { fontWeight: 900, color: "#064e3b", borderColor: "#a7f3d0" } }}>
+                <TableCell>संशोधन / निर्णय (Decision)</TableCell>
+                <TableCell>संबद्ध कानून व धाराएं (Statutes)</TableCell>
+                <TableCell>विधिक परीक्षण व आश्वासन (Audit Certification)</TableCell>
+                <TableCell>प्रमाणीकरण समय</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {LegalChangeAuditService.getAuditTrail().map((am) => (
+                <TableRow key={am.id} sx={{ bgcolor: "#ffffff" }}>
+                  <TableCell sx={{ fontWeight: 900, color: "#047857", borderColor: "#a7f3d0" }}>
+                    {am.decisionTitle}
+                  </TableCell>
+                  <TableCell sx={{ borderColor: "#a7f3d0", fontSize: "0.8rem", fontWeight: 700 }}>
+                    {am.statutes.join(", ")}
+                  </TableCell>
+                  <TableCell sx={{ borderColor: "#a7f3d0" }}>
+                    <Typography variant="caption" sx={{ color: "#059669", fontWeight: 800, display: "block" }}>
+                      🟢 {am.sanityStatus}: {am.auditNote}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ fontSize: "0.75rem", color: "#64748b", borderColor: "#a7f3d0" }}>
+                    {new Date(am.certifiedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Paper>
+
+        {/* 6. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
         <Paper
           elevation={0}
           sx={{

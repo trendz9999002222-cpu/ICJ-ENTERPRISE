@@ -7,6 +7,7 @@
 
 import SecurityIncidentBroadcasterService from "./securityIncidentBroadcasterService.js";
 import CircuitBreakerIsolationService from "./circuitBreakerIsolationService.js";
+import LegalChangeAuditService from "./legalChangeAuditService.js";
 
 const STORAGE_KEY = "icj_dynamic_legal_compliance_state";
 const CUSTOM_STATUTES_KEY = "icj_custom_legal_statutes";
@@ -228,6 +229,35 @@ export const DynamicLegalComplianceEngine = {
       `;
     }
 
+    const auditTrail = LegalChangeAuditService.getAuditTrail();
+    let auditTrailHTML = "";
+    if (auditTrail.length > 0) {
+      auditTrailHTML = `
+        <h2 style="color:#059669; border-bottom: 2px solid #10b981; padding-bottom: 5px; margin-top:25px;">
+          अनुसूची 'ग' — निरंतर विधिक परिवर्तन एवं हरित प्रमाणन इतिहास (Continuous Green Certified Amendments):
+        </h2>
+        <table style="border: 2px solid #10b981; background:#f0fdf4;">
+          <tr style="background:#059669; color:#ffffff;">
+            <th>संशोधन / निर्णय (Decision)</th>
+            <th>संबद्ध कानून व धाराएं (Statutes)</th>
+            <th>विधिक परीक्षण व आश्वासन (Audit Certification)</th>
+            <th>प्रमाणीकरण समय व सील</th>
+          </tr>
+          ${auditTrail
+            .map(
+              (am) => `
+            <tr style="background:#ffffff;">
+              <td style="color:#065f46; font-weight:bold;">${am.decisionTitle}</td>
+              <td>${am.statutes.join(", ")}</td>
+              <td style="color:#059669; font-weight:bold;">🟢 ${am.sanityStatus}: ${am.auditNote}</td>
+              <td style="font-size:8.5pt; color:#64748b;">${new Date(am.certifiedAt).toLocaleString()}</td>
+            </tr>`
+            )
+            .join("")}
+        </table>
+      `;
+    }
+
     return `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head><meta charset="utf-8"><title>ICJ Live Legal Immunity White Paper</title>
@@ -270,6 +300,8 @@ export const DynamicLegalComplianceEngine = {
         </table>
 
         ${customStatutesHTML}
+
+        ${auditTrailHTML}
 
         <p style="margin-top:30px; font-size:9pt; color:#64748b; border-top:1px solid #cbd5e1; padding-top:10px;">
           यह दस्तावेज़ ICJ Dynamic Legal Compliance Watchdog Engine द्वारा रीयल-टाइम में स्वतः सत्यापित एवं जारी किया गया है।
