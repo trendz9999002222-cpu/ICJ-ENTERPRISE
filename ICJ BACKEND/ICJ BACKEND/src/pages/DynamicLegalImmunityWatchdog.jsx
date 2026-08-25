@@ -37,6 +37,8 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DynamicLegalComplianceEngine from "../services/dynamicLegalComplianceEngine.js";
 import SecurityIncidentBroadcasterService from "../services/securityIncidentBroadcasterService.js";
 import CircuitBreakerIsolationService from "../services/circuitBreakerIsolationService.js";
+import WebPushNotificationService from "../services/webPushNotificationService.js";
+import WebAudioSirenService from "../services/webAudioSirenService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 export default function DynamicLegalImmunityWatchdog() {
@@ -335,11 +337,59 @@ export default function DynamicLegalImmunityWatchdog() {
                 </Button>
               </Stack>
 
-              <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                <Chip label="📱 4 Phones (SMS/WA)" size="small" sx={{ bgcolor: "#f0fdf4", color: "#166534", fontWeight: 800, border: "1px solid #86efac" }} />
-                <Chip label="✉️ 4 Official Emails" size="small" sx={{ bgcolor: "#f0f9ff", color: "#0369a1", fontWeight: 800, border: "1px solid #7dd3fc" }} />
-                <Chip label="⚡ Instant Auto-Dispatch" size="small" sx={{ bgcolor: "#faf5ff", color: "#6b21a8", fontWeight: 800, border: "1px solid #d8b4fe" }} />
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 2 }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={async () => {
+                    const res = await WebPushNotificationService.pairCurrentDevice("admin_1");
+                    if (res.success) alert("🔔 यह डिवाइस Admin 1 (CTO Desk) के रूप में सफलतापूर्वक पेयर हो गया है!");
+                    refreshState();
+                  }}
+                  sx={{ bgcolor: "#0f172a", color: "#38bdf8", fontWeight: 800, fontSize: "0.72rem", textTransform: "none", borderRadius: "8px" }}
+                >
+                  🔔 इस डिवाइस को पेयर करें (Pair Current Device)
+                </Button>
+
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    WebPushNotificationService.dispatchPushAndSiren(
+                      "🚨 ICJ SOS TEST ALERT",
+                      "यह 4 पेयर किए गए एडमिन ब्राउज़रों के लिए लाइव सायरन व पुश टेस्ट है!"
+                    );
+                  }}
+                  sx={{ bgcolor: "#dc2626", color: "#ffffff", fontWeight: 900, fontSize: "0.72rem", textTransform: "none", borderRadius: "8px" }}
+                >
+                  🔊 टेस्ट सायरन व पुश बजाएं
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => WebAudioSirenService.stopEmergencySiren()}
+                  sx={{ fontWeight: 800, fontSize: "0.72rem", textTransform: "none", borderRadius: "8px", borderColor: "#64748b", color: "#64748b" }}
+                >
+                  🔇 म्यूट सायरन
+                </Button>
               </Stack>
+
+              {/* 4 ADMIN PAIRED SLOTS LIST */}
+              <Grid container spacing={1}>
+                {WebPushNotificationService.getPairedDevices().map((slot) => (
+                  <Grid item xs={6} key={slot.id}>
+                    <Box sx={{ p: 1, borderRadius: "8px", bgcolor: "#f8fafc", border: `1px solid ${slot.isPaired ? "#86efac" : "#cbd5e1"}` }}>
+                      <Typography variant="caption" fontWeight={900} color="#0f172a" display="block">
+                        {slot.isPaired ? "🟢" : "⚪"} {slot.roleName}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#64748b", fontSize: "0.65rem", display: "block" }}>
+                        {slot.browser} • {slot.deviceName}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
             </Paper>
           </Grid>
         </Grid>

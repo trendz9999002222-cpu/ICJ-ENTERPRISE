@@ -7,6 +7,7 @@ import RoleTopNav from "../components/common/RoleTopNav";
 import OfflineNetworkSyncBanner from "../components/common/OfflineNetworkSyncBanner";
 import SessionAutoLockModal from "../components/common/SessionAutoLockModal";
 import SecureWatermarkOverlay from "../components/common/SecureWatermarkOverlay";
+import UnifiedLegalPermissionGate from "../components/common/UnifiedLegalPermissionGate";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 import useAuth from "../hooks/useAuth";
 
@@ -34,6 +35,9 @@ function MainLayoutChrome({ children }) {
     <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden", position: "relative" }} className="mobile-app-container">
       {/* 🛡️ ANTI-LEAK BACKGROUND SECURITY WATERMARK */}
       <SecureWatermarkOverlay />
+
+      {/* 🏛️ 6 ESSENTIAL BROWSER PERMISSIONS HARDWARE GATE */}
+      <UnifiedLegalPermissionGate />
 
       {/* 🔐 COURTROOM SESSION INACTIVITY AUTO-LOCK MODAL */}
       <SessionAutoLockModal />
