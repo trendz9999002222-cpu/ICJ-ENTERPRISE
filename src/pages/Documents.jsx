@@ -45,8 +45,9 @@ import WarningIcon from "@mui/icons-material/Warning";
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment";
 import DocumentService from "../services/documentService";
 import ActivityService from "../services/activityService";
-import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
-import useAuth from "../hooks/useAuth";
+import UniversalActionToolbar from "../components/common/UniversalActionToolbar.jsx";
+import Section79ImmunityBanner from "../components/common/Section79ImmunityBanner.jsx";
+import MainLayout from "../layouts/MainLayout.jsx";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -283,6 +284,9 @@ export default function Documents() {
           </Grid>
         ))}
       </Grid>
+ 
+      {/* ⚖️ SECTION 79 IT ACT STATUTORY SAFE HARBOR & ZERO-KNOWLEDGE BANNER */}
+      <Section79ImmunityBanner />
 
       {/* Navigation Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>

@@ -9,6 +9,7 @@ import Login from "../pages/Login";
 import Recovery from "../pages/Recovery";
 import CertificateVerification from "../pages/CertificateVerification";
 import PublicCaseTracker from "../pages/PublicCaseTracker";
+import SovereignIntermediaryTerms from "../pages/SovereignIntermediaryTerms";
 
 // Lazy-loaded Authenticated / Heavy Dashboards for Ultra-Fast Initial Load
 const Membership = lazy(() => import("../pages/Membership"));
@@ -128,6 +129,9 @@ export default function AppRouter() {
         <Route path="/track-case" element={<PublicCaseTracker />} />
         <Route path="/track" element={<Navigate to="/track-case" replace />} />
         <Route path="/case-status" element={<Navigate to="/track-case" replace />} />
+        <Route path="/statutory-intermediary-terms" element={<SovereignIntermediaryTerms />} />
+        <Route path="/intermediary-terms" element={<Navigate to="/statutory-intermediary-terms" replace />} />
+        <Route path="/legal-immunity" element={<Navigate to="/statutory-intermediary-terms" replace />} />
 
         {/* Authenticated Internal Workspace Router */}
         <Route
