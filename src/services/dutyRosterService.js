@@ -87,7 +87,34 @@ export const DutyRosterService = {
   getTerritoryRequests() {
     try {
       const raw = localStorage.getItem(TERRITORY_REQUESTS_KEY);
-      return raw ? JSON.parse(raw) : [];
+      return raw ? JSON.parse(raw) : [
+        {
+          id: "DUTY-REQ-001",
+          timestamp: new Date().toISOString(),
+          userId: "26ICJ08AA0106",
+          userName: "Adv. Meenakshi Sundaram",
+          userPhone: "+91 9820987654",
+          role: "advocate",
+          territoryRegion: "South Goa & Western Coast",
+          territoryState: "Goa",
+          territoryDistrict: "South Goa",
+          notes: "Available for High Court & District Duty Roster Shift",
+          status: "APPROVED",
+        },
+        {
+          id: "DUTY-REQ-002",
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          userId: "26ICJ08AA0109",
+          userName: "Adv. Gurpreet Singh Dhillon",
+          userPhone: "+91 9872334455",
+          role: "advocate",
+          territoryRegion: "Western Rajasthan & Revenue Desk",
+          territoryState: "Rajasthan",
+          territoryDistrict: "Jodhpur / Bikaner",
+          notes: "Available for Revenue & Land Title Duty Roster",
+          status: "PENDING",
+        },
+      ];
     } catch {
       return [];
     }

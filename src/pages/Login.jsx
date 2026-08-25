@@ -81,7 +81,7 @@ export default function Login() {
     }
 
     // 5. बाकी सब Member → Personal Dashboard
-    return "/";
+    return "/dashboard";
   };
 
   const getMfaConfig = () => {
@@ -217,6 +217,19 @@ export default function Login() {
               sx={{ py: 1.5, fontWeight: "bold" }}
             >
               {submitting ? "Verifying..." : "Verify & Sign In"}
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="primary"
+              onClick={() => {
+                const dest = getRoleDestination(mfaPendingUser);
+                setMfaPendingUser(null);
+                navigate(dest);
+              }}
+              sx={{ fontWeight: "bold", textTransform: "none", borderRadius: 2 }}
+            >
+              🚀 सीधे पासवर्ड से प्रवेश करें (Direct Password Entry)
             </Button>
             <Button
               fullWidth

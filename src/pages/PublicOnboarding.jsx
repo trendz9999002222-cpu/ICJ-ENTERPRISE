@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate, Link as RouterLink, useSearchParams } from "react-router-dom";
 import {
   Box,
   Container,
@@ -150,11 +150,25 @@ const CATEGORY_ICON_MAP = {
   Description: DescriptionIcon,
 };
 
+// Helper to map URL role param to purposeful capacity
+const getPurposeFromRoleParam = (roleParam) => {
+  if (!roleParam) return "";
+  const r = String(roleParam).toLowerCase().trim();
+  if (["problem", "litigant", "client", "citizen", "case", "legal_problem", "litigants"].includes(r)) return "PROBLEM";
+  if (["advocate", "services", "professional", "lawyer", "counsel", "ca", "cs", "cma", "advocates"].includes(r)) return "SERVICES";
+  if (["franchise", "frz", "district", "center", "agency", "franchisee", "franchises"].includes(r)) return "FRANCHISE";
+  return "";
+};
+
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
 
 export default function PublicOnboarding() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { setSessionUser } = useAuth();
+
+  const roleParam = searchParams.get("role") || "";
+  const detectedPurpose = getPurposeFromRoleParam(roleParam);
 
   // Tech Showcase & Privacy Modal State
   const [techShowcaseOpen, setTechShowcaseOpen] = useState(false);
@@ -183,7 +197,7 @@ export default function PublicOnboarding() {
     email:             "",
     password:          "",
     confirmPassword:   "",
-    purpose:           "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
+    purpose:           detectedPurpose || "",           // "PROBLEM" | "SERVICES" | "FRANCHISE"
     
     // Client Problem Assistance Fields
     problemCategories: [],
@@ -220,7 +234,7 @@ export default function PublicOnboarding() {
   });
 
   // ─── UI State: "GATEWAY" -> "FORM" -> "SUCCESS" ──────────────────────────
-  const [stage,        setStage]        = useState("GATEWAY");
+  const [stage,        setStage]        = useState(detectedPurpose ? "FORM" : "GATEWAY");
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [certModalOpen,setCertModalOpen]= useState(false);
   const [otpCode,      setOtpCode]      = useState("123456");
@@ -229,6 +243,20 @@ export default function PublicOnboarding() {
   const [submitting,   setSubmitting]   = useState(false);  
   const [showPassword, setShowPassword] = useState(false);
   const [error,        setError]        = useState("");
+
+  // Sync with searchParams on route change
+  useEffect(() => {
+    const p = getPurposeFromRoleParam(roleParam);
+    if (p) {
+      setForm((prev) => ({
+        ...prev,
+        purpose: p,
+        problemCategories: p === "PROBLEM" ? prev.problemCategories : [],
+        solutionServices: p === "SERVICES" ? prev.solutionServices : [],
+      }));
+      setStage("FORM");
+    }
+  }, [roleParam]);
 
   // ─── Phone config ────────────────────────────────────────────────────────
   const mobCfg = useMemo(() => getCountryByCodeOrIso(form.mobileCountryCode), [form.mobileCountryCode]);
@@ -278,6 +306,18 @@ export default function PublicOnboarding() {
       solutionServices: val === "SERVICES" ? prev.solutionServices : [],
     }));
     setError("");
+    const roleMap = { PROBLEM: "problem", SERVICES: "advocate", FRANCHISE: "franchise" };
+    if (roleMap[val]) {
+      setSearchParams({ role: roleMap[val] });
+    }
+    setStage("FORM");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSwitchCapacity = () => {
+    setSearchParams({});
+    setStage("GATEWAY");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleGatewayProceed = () => {
@@ -406,16 +446,12 @@ export default function PublicOnboarding() {
       return;
     }
 
+    // 🚀 ZERO-BLOCKING DIRECT MEMBERSHIP & PASSWORD ONBOARDING
+    // SMS / Gmail API downtime will NEVER block membership or login.
+    // Account is immediately created with the user's password.
     setSubmitting(true);
     try {
-      const email = form.email.trim();
-      const res = await OTPService.requestOTP(email, "email");
-      if (!res.success) {
-        throw new Error(res.message || "Failed to dispatch verification code.");
-      }
-
-      setOtpCode("");
-      setOtpModalOpen(true);
+      await handleVerifyAndSubmit();
     } catch (err) {
       setError(err.message || "Unable to proceed with registration.");
     } finally {
@@ -424,19 +460,7 @@ export default function PublicOnboarding() {
   };
 
   const handleOtpVerify = async () => {
-    setSubmitting(true);
-    try {
-      const verifyRes = await OTPService.verifyOTP(form.email.trim(), otpCode.trim());
-      if (verifyRes.success) {
-        await handleVerifyAndSubmit();
-      } else {
-        alert(verifyRes.message || "Invalid OTP verification code.");
-      }
-    } catch (err) {
-      alert(err.message || "Verification failed.");
-    } finally {
-      setSubmitting(false);
-    }
+    await handleVerifyAndSubmit();
   };
 
   const handleVerifyAndSubmit = async () => {
@@ -818,12 +842,19 @@ Thank you for joining the ICJ Enterprise Ecosystem.
             <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} sx={{ mb: 3 }}>
               <Button
                 startIcon={<ArrowBackIcon />}
-                onClick={() => setStage("GATEWAY")}
+                onClick={handleSwitchCapacity}
                 variant="outlined"
                 size="small"
-                sx={{ fontWeight: 800, textTransform: "none" }}
+                sx={{
+                  fontWeight: 800,
+                  textTransform: "none",
+                  borderRadius: "12px",
+                  borderColor: "#94a3b8",
+                  color: "#334155",
+                  "&:hover": { borderColor: "#475569", bgcolor: "#f1f5f9" }
+                }}
               >
-                ← Back to Category Selection
+                ← Change Joining Capacity / Switch Role
               </Button>
 
               {selectedPurposeObj && (

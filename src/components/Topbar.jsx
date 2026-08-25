@@ -33,10 +33,14 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import MicIcon from "@mui/icons-material/Mic";
+import LockIcon from "@mui/icons-material/Lock";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 import useAuth from "../hooks/useAuth";
 import NotificationRoutingService from "../services/notificationRoutingService.js";
 import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
+import GlobalCommandPalette from "./common/GlobalCommandPalette.jsx";
 
 const MODULE_NAMES = {
   "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
@@ -61,10 +65,16 @@ function Topbar({ onOpenMobileNav = () => {} }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [globalQuery, setGlobalQuery] = useState("");
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState(null);
+
+  // Global helper for shortcut
+  if (typeof window !== "undefined") {
+    window.toggleCommandPalette = () => setPaletteOpen((prev) => !prev);
+  }
   const [isSirenActive, setIsSirenActive] = useState(() => {
     try {
       return NotificationRoutingService?.isSirenActive ? NotificationRoutingService.isSirenActive() : false;
@@ -207,25 +217,59 @@ function Topbar({ onOpenMobileNav = () => {} }) {
             </Typography>
           </Box>
 
-          {/* DESKTOP SEARCH BAR */}
-          <TextField
+          {/* 🔍 SPOTLIGHT GLOBAL SEARCH WITH CTRL+K & VOICE TRIGGER */}
+          <Button
+            onClick={() => setPaletteOpen(true)}
+            variant="outlined"
             size="small"
-            value={globalQuery}
-            onChange={handleSearchChange}
-            placeholder="Global Search (Members, Cases, Documents)..."
+            startIcon={<SearchIcon sx={{ color: "#2563eb", fontSize: "1.05rem" }} />}
             sx={{
-              display: { xs: "none", sm: "block" },
-              width: { sm: 160, md: 240, lg: 280 },
-              "& .MuiInputBase-root": { height: 28, fontSize: "0.75rem" },
+              display: { xs: "none", sm: "inline-flex" },
+              height: 30,
+              px: 1.5,
+              borderRadius: "16px",
+              borderColor: "#cbd5e1",
+              bgcolor: "#f8fafc",
+              color: "#64748b",
+              fontWeight: 700,
+              fontSize: "0.76rem",
+              textTransform: "none",
+              gap: 1,
+              "&:hover": { borderColor: "#2563eb", bgcolor: "#eff6ff" },
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="primary" sx={{ fontSize: "0.9rem" }} />
-                </InputAdornment>
-              ),
-            }}
-          />
+          >
+            Search Cases, CNR, AI...
+            <Chip
+              label="Ctrl K"
+              size="small"
+              sx={{
+                height: 18,
+                fontSize: "0.62rem",
+                fontWeight: 900,
+                bgcolor: "#e2e8f0",
+                color: "#1e293b",
+                borderRadius: 1,
+              }}
+            />
+          </Button>
+
+          {/* 🎙️ GOOGLE VOICE AI SEARCH BUTTON */}
+          <Tooltip title="Voice Search / Dictation (बोलकर सर्च करें)">
+            <IconButton
+              size="small"
+              onClick={() => setPaletteOpen(true)}
+              sx={{
+                width: 28,
+                height: 28,
+                bgcolor: "#eff6ff",
+                color: "#2563eb",
+                border: "1px solid #bfdbfe",
+                "&:hover": { bgcolor: "#dbeafe" },
+              }}
+            >
+              <MicIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
 
           {/* ACTIVE MODULE BADGE (DESKTOP) */}
           <Chip
@@ -424,6 +468,28 @@ function Topbar({ onOpenMobileNav = () => {} }) {
               }}
             />
 
+            {/* 🔐 1-CLICK COURT PRIVACY SCREEN LOCK BUTTON */}
+            <Tooltip title="Lock Screen (प्राइवेसी स्क्रीन लॉक)">
+              <IconButton
+                size="small"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.lockSessionScreen) {
+                    window.lockSessionScreen();
+                  }
+                }}
+                sx={{
+                  bgcolor: "#f1f5f9",
+                  color: "#334155",
+                  border: "1px solid #cbd5e1",
+                  width: 24,
+                  height: 24,
+                  "&:hover": { bgcolor: "#e2e8f0" },
+                }}
+              >
+                <LockIcon sx={{ fontSize: "0.85rem" }} />
+              </IconButton>
+            </Tooltip>
+
             {/* 🔴 PROMINENT 1-CLICK EXIT BUTTON (ALWAYS ACCESSIBLE ON MOBILE & DESKTOP) */}
             <Button
               variant="contained"
@@ -453,6 +519,12 @@ function Topbar({ onOpenMobileNav = () => {} }) {
           onClose={() => setDispatchModalOpen(false)}
           senderName={user?.name || user?.username || "Super Admin"}
           senderRole={user?.user_type || userRole || "super_admin"}
+        />
+
+        {/* 🔍 GOOGLE SPOTLIGHT COMMAND PALETTE (CTRL+K) */}
+        <GlobalCommandPalette
+          open={paletteOpen}
+          onClose={() => setPaletteOpen(false)}
         />
       </Toolbar>
     </AppBar>

@@ -29,14 +29,39 @@ import PlayForWorkIcon from "@mui/icons-material/PlayForWork";
 export default function EscrowWaterfallPanel() {
   // 4 Master Pools Balances
   const [pools, setPools] = useState({
-    clientInflow: 0,
-    investorPool: 0,
-    advocatePool: 0,
-    trustRevenue: 0,
+    clientInflow: 250000,
+    investorPool: 1200000,
+    advocatePool: 85000,
+    trustRevenue: 45000,
   });
 
-  // Active Escrow Cases
-  const [cases, setCases] = useState([]);
+  // Mock Active Escrow Cases
+  const [cases, setCases] = useState([
+    {
+      id: "CASE-9921",
+      clientName: "Ramesh Sharma",
+      advocateName: "Adv. Harpreet Singh",
+      category: "Cheque Bounce / Debt Recovery",
+      escrowAmount: 118000, // ₹1,00,000 + GST
+      initialPaid: 18000,
+      fundingRequired: 100000,
+      investorId: "INV-8022",
+      status: "PENDING_ESCROW", // PENDING_ESCROW | LIEN_HELD | DISPUTED | RELEASED
+      payoutDistributed: false,
+    },
+    {
+      id: "ICJ-2026-CASE-8842",
+      clientName: "Litigant Member",
+      advocateName: "Empaneled Senior Advocate",
+      category: "Property / Land Dispute",
+      escrowAmount: 236000,
+      initialPaid: 36000,
+      fundingRequired: 200000,
+      investorId: "ICJ-2026-INV-9011",
+      status: "LIEN_HELD",
+      payoutDistributed: false,
+    }
+  ]);
 
   const [selectedCase, setSelectedCase] = useState(null);
   const [disputeOpen, setDisputeOpen] = useState(false);

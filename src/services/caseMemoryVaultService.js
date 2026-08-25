@@ -43,12 +43,8 @@ export const CaseMemoryVaultService = {
         bench: "Single Bench",
         district: "State Jurisdiction",
       },
-      judgesHistory: [
-        { name: "Presiding Judicial Officer", period: "Active", status: "Current Presiding Officer" },
-      ],
-      advocatesHistory: [
-        { name: "Empaneled Lead Counsel (ICJ Verified)", barId: "ICJ/BAR/VERIFIED", period: "Current Standing", status: "Active Lead Counsel" },
-      ],
+      judgesHistory: [],
+      advocatesHistory: [],
       timelineEvents: [],
       rawFactsDossier: [],
     };

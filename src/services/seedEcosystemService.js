@@ -1,26 +1,21 @@
 /**
  * SeedEcosystemService — ICJ Enterprise Platform
- * Master Clean 7-Member Ecosystem Registry & Auto-Hydration Engine.
+ * Master Single Super Admin Ecosystem Registry & Auto-Hydration Engine.
  *
- * Clean Testing Roles:
+ * Active Role:
  * - 1 Super Admin (ICJSuperAdmin1234)
- * - 1 Operations Admin (ICJAdmin1234)
- * - 2 Senior Advocates (Adv. Vikramaditya Rao, Adv. Ananya Sharma)
- * - 2 Litigant Clients (Ramesh Kumar Gupta, Sunita Devi)
- * - 1 Legal Entity / Trust (Green Earth Legal Trust)
  */
 
-import { hashPasswordSync } from "./passwordPolicyService.js";
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
 export const MASTER_SEED_MEMBERS = ENTERPRISE_SEED_USERS;
 export const MASTER_26_SEED_MEMBERS = ENTERPRISE_SEED_USERS;
 
-export const DEFAULT_SEED_PASSWORD = "IcjBeta@2026";
+export const DEFAULT_SEED_PASSWORD = "ICJSuperAdmin1234";
 
 export const SeedEcosystemService = {
   /**
-   * Reset and Hydrate the lean 7-member core ecosystem
+   * Reset and Hydrate strictly the 1 Super Admin account
    */
   resetAndHydrate26CoreMembers() {
     const members = ENTERPRISE_SEED_USERS;
@@ -29,7 +24,8 @@ export const SeedEcosystemService = {
     window.localStorage.setItem("icj_members", JSON.stringify(members));
     window.localStorage.setItem("icj_enterprise_users", JSON.stringify(members));
     window.localStorage.setItem("icj_users_initialized", "true");
-    console.log("⚡ [SeedEcosystemService] Clean 7-Member Core Ecosystem Hydrated Cleanly!");
+    window.localStorage.setItem("icj_purge_version", "2026_V2_SUPER_ADMIN_ONLY");
+    console.log("⚡ [SeedEcosystemService] Single Super Admin Ecosystem Hydrated Cleanly!");
     return members;
   },
 
@@ -39,6 +35,10 @@ export const SeedEcosystemService = {
   get26CoreMembers() {
     if (typeof window === "undefined" || !window.localStorage) return ENTERPRISE_SEED_USERS;
     try {
+      const purgeVer = window.localStorage.getItem("icj_purge_version");
+      if (purgeVer !== "2026_V2_SUPER_ADMIN_ONLY") {
+        return this.resetAndHydrate26CoreMembers();
+      }
       const local = JSON.parse(window.localStorage.getItem("icj_members") || "[]");
       if (Array.isArray(local) && local.length > 0) return local;
       return this.resetAndHydrate26CoreMembers();
@@ -54,6 +54,7 @@ export const SeedEcosystemService = {
     if (typeof window === "undefined" || !window.localStorage) return;
     try {
       window.localStorage.removeItem("icj_users_initialized");
+      window.localStorage.removeItem("icj_purge_version");
       return this.resetAndHydrate26CoreMembers();
     } catch (e) {
       console.error("Purge error", e);

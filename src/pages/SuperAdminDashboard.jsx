@@ -54,6 +54,7 @@ import FranchiseWorkflowService from "../services/franchiseWorkflowService.js";
 import RoleService from "../services/roleService.js";
 import CitizenWorkflowService from "../services/citizenWorkflowService.js";
 import audioAlertService from "../services/audioAlertService.js";
+import ModuleCodeDirectoryConsole from "../components/admin/ModuleCodeDirectoryConsole.jsx";
 import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";
 import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
@@ -68,8 +69,8 @@ export default function SuperAdminDashboard() {
   // SLA & Notification State
   const [slaMins, setSlaMins] = useState(DutyRosterService.getSLATimerMinutes());
   const [popupAlert, setPopupAlert] = useState(null);
-  const [selectedAdvocateId, setSelectedAdvocateId] = useState("");
   const empaneledAdvocates = ENTERPRISE_SEED_USERS.filter((u) => u.role === "advocate" || u.user_type === "advocate");
+  const [selectedAdvocateId, setSelectedAdvocateId] = useState(empaneledAdvocates[0]?.id || "");
 
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleString("en-IN", {
     weekday: "short",
@@ -102,21 +103,17 @@ export default function SuperAdminDashboard() {
       .then((s) => setStats(s))
       .catch(() => {});
 
-    // Check for pending non-super-admin member registrations to trigger popup & chime
+    // Check for new member registrations to trigger popup & chime
     try {
       const members = JSON.parse(localStorage.getItem("icj_members") || "[]");
-      const pendingMember = members.find(
-        (m) => m.role !== "super_admin" && m.user_type !== "super_admin" && (m.verification_status === "Pending Verification" || m.verification_status === "Pending")
-      );
-      if (pendingMember) {
+      if (members.length > 0) {
+        const latest = members[0];
         setPopupAlert({
-          memberId: pendingMember.member_id || pendingMember.id || "ICJ-2026-MEM-0001",
-          name: pendingMember.name || pendingMember.fullName || "New Applicant",
-          purpose: pendingMember.purpose || pendingMember.problemCategory || "Legal Dispute Resolution",
-          registeredAt: pendingMember.created_at || new Date().toISOString(),
+          memberId: latest.member_id || latest.id || "ICJ-2026-MEM-0001",
+          name: latest.name || latest.fullName || "New Litigant Applicant",
+          purpose: latest.purpose || "Legal Dispute Resolution",
+          registeredAt: latest.created_at || new Date().toISOString(),
         });
-      } else {
-        setPopupAlert(null);
       }
     } catch (e) {}
 
@@ -374,6 +371,9 @@ export default function SuperAdminDashboard() {
             version="v3.2.0"
           />
         </Box>
+
+        {/* 📑 1. MASTER MODULE CODE DIRECTORY CONSOLE (GROUPS A TO H) */}
+        <ModuleCodeDirectoryConsole />
 
         {/* 2. DE-CLUTTERED 4-METRIC EXECUTIVE HUB */}
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>

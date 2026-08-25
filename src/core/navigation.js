@@ -45,13 +45,13 @@ export const UNIVERSAL_PERMISSION_COLORS = {
 };
 
 const Modules = [
-  // ─── GROUP A: ACTIVE MEMBER MODULES ─────────────────────────────────────────
+  // ─── 6 UNIFIED MASTER COMMAND HUBS (VISIBLE IN SIDEBAR) ──────────────────────────
   {
     id: "dashboard",
-    name: "Dashboard",
+    name: "📊 मुख्य डैशबोर्ड (Dashboard)",
     category: "Core",
     group: "A",
-    route: "/",
+    route: "/dashboard",
     icon: "dashboard",
     enabled: true,
     sidebar: true,
@@ -59,9 +59,107 @@ const Modules = [
     searchable: true,
     order: 1,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
-    version: "1.0.0",
+    version: "2.0.0",
     permissions: ["view"],
   },
+  {
+    id: "membership-hub",
+    name: "👥 [GROUP A] सदस्यता केंद्र (Codes A1-A6)",
+    category: "Membership",
+    group: "A",
+    route: "/membership-hub",
+    icon: "groups",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 2,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
+    version: "2.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "legal-workspace",
+    name: "⚖️ [GROUP B] विधिक कार्यक्षेत्र (Codes B1-B6)",
+    category: "Legal",
+    group: "B",
+    route: "/legal-workspace",
+    icon: "gavel",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 3,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
+    version: "2.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "ai-legal-hub",
+    name: "🤖 [GROUP C] AI ड्राफ्ट व रिसर्च (Codes C1-C4)",
+    category: "AI",
+    group: "C",
+    route: "/ai-legal-hub",
+    icon: "smart_toy",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 4,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
+    version: "2.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "finance-hub",
+    name: "💳 [GROUP D] वित्त एवं वॉलेट (Codes D1-D6)",
+    category: "Finance",
+    group: "D",
+    route: "/finance-hub",
+    icon: "account_balance_wallet",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 5,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
+    version: "2.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "support-hub",
+    name: "🎧 [GROUP E] हेल्पडेस्क व सहायता (Codes E1-E3)",
+    category: "Support",
+    group: "E",
+    route: "/support-hub",
+    icon: "support_agent",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 6,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
+    version: "2.0.0",
+    permissions: ["view"],
+  },
+  {
+    id: "admin-control-hub",
+    name: "🛡️ [GROUP F] प्रशासन नियंत्रण (Codes F1-F6)",
+    category: "Admin",
+    group: "F",
+    route: "/admin-control-hub",
+    icon: "admin_panel_settings",
+    enabled: true,
+    sidebar: true,
+    dashboard: true,
+    searchable: true,
+    order: 7,
+    colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
+    version: "2.0.0",
+    permissions: ["view", "admin"],
+  },
+
+  // ─── SECONDARY SUB-MODULES (ACCESSIBLE VIA HUBS / DIRECT ROUTES) ───────────────
   {
     id: "membership",
     name: "Membership Engine",
@@ -70,10 +168,10 @@ const Modules = [
     route: "/membership",
     icon: "groups",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 2,
+    order: 10,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "create", "edit", "delete"],
@@ -86,10 +184,10 @@ const Modules = [
     route: "/member-directory",
     icon: "badge",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 2.1,
+    order: 11,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
@@ -102,10 +200,10 @@ const Modules = [
     route: "/member-verification",
     icon: "how_to_reg",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 2.2,
+    order: 12,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "edit"],
@@ -118,16 +216,14 @@ const Modules = [
     route: "/member-profile",
     icon: "badge",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 2.3,
+    order: 13,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "edit"],
   },
-
-  // LEGAL & ADVOCACY (MEMBER DATA FLOW)
   {
     id: "legal",
     name: "Legal Registry",
@@ -136,10 +232,10 @@ const Modules = [
     route: "/legal",
     icon: "gavel",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 3,
+    order: 14,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "create", "edit", "delete"],
@@ -152,10 +248,10 @@ const Modules = [
     route: "/advocate-dashboard",
     icon: "gavel",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 3.1,
+    order: 15,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
@@ -168,10 +264,10 @@ const Modules = [
     route: "/client-portal",
     icon: "folder",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 3.2,
+    order: 16,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
@@ -184,16 +280,14 @@ const Modules = [
     route: "/court-calendar",
     icon: "dashboard",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 3.4,
+    order: 17,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
   },
-
-  // AI & INTELLIGENCE (MEMBER DATA FLOW)
   {
     id: "ai-drafter",
     name: "AI Legal Drafter",
@@ -202,16 +296,14 @@ const Modules = [
     route: "/ai-drafter",
     icon: "smart_toy",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 4,
+    order: 18,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
   },
-
-  // FINANCE & WALLET (MEMBER DATA FLOW)
   {
     id: "billing",
     name: "Billing & Rev.",
@@ -220,10 +312,10 @@ const Modules = [
     route: "/billing",
     icon: "receipt_long",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 5,
+    order: 19,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
@@ -236,10 +328,10 @@ const Modules = [
     route: "/finance",
     icon: "account_balance_wallet",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 5.1,
+    order: 20,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
@@ -252,10 +344,10 @@ const Modules = [
     route: "/payment-management",
     icon: "account_balance_wallet",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 5.2,
+    order: 21,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
@@ -268,16 +360,14 @@ const Modules = [
     route: "/token",
     icon: "savings",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 5.3,
+    order: 22,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FINANCE,
     version: "1.0.0",
     permissions: ["view"],
   },
-
-  // DOCUMENTS & REPOSITORY (MEMBER DATA FLOW)
   {
     id: "documents",
     name: "Document Vault",
@@ -286,16 +376,14 @@ const Modules = [
     route: "/documents",
     icon: "folder",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 6,
+    order: 23,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view", "upload", "delete"],
   },
-
-  // ─── GROUP B: UNFROZEN TECHNICAL INFRASTRUCTURE ─────────────────────────────
   {
     id: "trust-dashboard",
     name: "Trust Executive",
@@ -304,10 +392,10 @@ const Modules = [
     route: "/trust-dashboard",
     icon: "account_balance_wallet",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 3.3,
+    order: 24,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
@@ -320,10 +408,10 @@ const Modules = [
     route: "/ai",
     icon: "smart_toy",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 4.1,
+    order: 25,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
@@ -336,10 +424,10 @@ const Modules = [
     route: "/research",
     icon: "science",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 6.1,
+    order: 26,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
@@ -352,10 +440,10 @@ const Modules = [
     route: "/administration",
     icon: "admin_panel_settings",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7,
+    order: 27,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "edit", "delete"],
@@ -368,10 +456,10 @@ const Modules = [
     route: "/security-compliance",
     icon: "verified_user",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.1,
+    order: 28,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "edit"],
@@ -384,10 +472,10 @@ const Modules = [
     route: "/advocate-directory",
     icon: "badge",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.2,
+    order: 29,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.FREQUENT,
     version: "1.0.0",
     permissions: ["view"],
@@ -400,10 +488,10 @@ const Modules = [
     route: "/feature-control",
     icon: "settings",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.3,
+    order: 30,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "edit"],
@@ -416,10 +504,10 @@ const Modules = [
     route: "/governance-center",
     icon: "verified_user",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.1,
+    order: 31,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -432,10 +520,10 @@ const Modules = [
     route: "/location-master",
     icon: "location_on",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.2,
+    order: 32,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -448,10 +536,10 @@ const Modules = [
     route: "/database-config",
     icon: "storage",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.3,
+    order: 33,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -464,10 +552,10 @@ const Modules = [
     route: "/api-config",
     icon: "api",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.4,
+    order: 34,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -480,10 +568,10 @@ const Modules = [
     route: "/deployment-center",
     icon: "cloud_upload",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.5,
+    order: 35,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -496,10 +584,10 @@ const Modules = [
     route: "/system-health",
     icon: "monitor_heart",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 7.6,
+    order: 36,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -512,10 +600,10 @@ const Modules = [
     route: "/reports",
     icon: "assessment",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 8,
+    order: 37,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view", "create"],
@@ -528,10 +616,10 @@ const Modules = [
     route: "/activity-log",
     icon: "history",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: true,
     searchable: true,
-    order: 8.1,
+    order: 38,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.NORMAL,
     version: "1.0.0",
     permissions: ["view"],
@@ -544,10 +632,10 @@ const Modules = [
     route: "/settings",
     icon: "settings",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: false,
     searchable: false,
-    order: 9,
+    order: 39,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.CRITICAL,
     version: "1.0.0",
     permissions: ["view", "admin"],
@@ -560,10 +648,10 @@ const Modules = [
     route: "/notifications",
     icon: "notifications",
     enabled: true,
-    sidebar: true,
+    sidebar: false,
     dashboard: false,
     searchable: false,
-    order: 9.1,
+    order: 40,
     colorClassification: UNIVERSAL_PERMISSION_COLORS.SYSTEM,
     version: "1.0.0",
     permissions: ["view"],
@@ -579,57 +667,41 @@ export const getDashboardModules = () => Modules.filter((m) => m.enabled && m.da
 export const getSearchModules = () => Modules.filter((m) => m.enabled && m.searchable);
 export const getModuleById = (id) => Modules.find((m) => m.id === id);
 
-/**
- * ROLE-BASED INTELLIGENT MODULE ORDERING LOGIC
- * Combines Operational Relevancy (#1, #2, #3 daily workflow) with Strict Color Safety Hierarchy:
- * 🟢 GREEN (Safe / Operational) -> Weight 1 (TOP)
- * 🔵 BLUE (System / Reference) -> Weight 2
- * 🟣 VIOLET (Finance / Payments) -> Weight 3
- * 🟠 ORANGE (Normal / Functional Admin) -> Weight 4
- * 🔴 RED (Critical / Security / Restricted) -> Weight 5 (STRICTLY LAST AT VERY BOTTOM)
- */
 export const COLOR_SAFETY_WEIGHTS = {
   FREQUENT: 1, // 🟢 Green
   SYSTEM: 2,   // 🔵 Blue
   FINANCE: 3,  // 🟣 Violet
   NORMAL: 4,   // 🟠 Orange
-  CRITICAL: 5, // 🔴 Red (Strictly at very bottom)
+  CRITICAL: 5, // 🔴 Red (Strictly at bottom)
 };
 
 export const ROLE_MODULE_PRIORITY = {
   client: [
-    "dashboard", "client-portal", "member-directory", "documents",
-    "court-calendar", "ai-drafter", "notifications", "finance",
-    "member-profile"
+    "dashboard", "legal-workspace", "membership-hub", "ai-legal-hub",
+    "finance-hub", "support-hub"
   ],
   advocate: [
-    "advocate-dashboard", "legal", "member-directory", "court-calendar",
-    "member-verification", "ai-drafter", "research", "documents",
-    "trust-dashboard", "reports", "member-profile"
+    "dashboard", "legal-workspace", "ai-legal-hub", "membership-hub",
+    "finance-hub", "support-hub"
   ],
   admin: [
-    "dashboard", "member-directory", "member-verification",
-    "legal", "documents", "payment-management", "billing",
-    "reports", "administration", "settings"
+    "dashboard", "legal-workspace", "membership-hub", "finance-hub",
+    "ai-legal-hub", "support-hub", "admin-control-hub"
   ],
   super_admin: [
-    "super-admin-dashboard", "member-directory", "legal",
-    "documents", "payment-management", "token", "billing",
-    "reports", "activity-log", "administration", "governance-center",
-    "api-config", "database-config", "deployment-center", "settings"
+    "dashboard", "admin-control-hub", "legal-workspace", "membership-hub",
+    "finance-hub", "ai-legal-hub", "support-hub"
   ]
 };
 
-/**
- * Which roles may see each module in the sidebar. Mirrors the route guards in
- * src/router/index.jsx — keep the two in step.
- *
- * Modules absent from this map are available to any signed-in user. Previously
- * there was no filter at all here: getRoleOrderedModules only *sorted*, so every
- * member saw Administration, API Config, Database Config and System Health in
- * the navigation and could click straight through to them.
- */
 export const MODULE_ROLE_ACCESS = {
+  "membership-hub": ["admin", "employee", "advocate", "member", "client"],
+  "legal-workspace": ["advocate", "admin", "client", "member"],
+  "ai-legal-hub": ["advocate", "admin", "client", "member"],
+  "finance-hub": ["admin", "advocate", "client", "member"],
+  "support-hub": ["admin", "advocate", "client", "member", "employee"],
+  "admin-control-hub": ["admin", "super_admin"],
+  
   membership: ["admin", "employee"],
   "member-directory": ["admin", "employee"],
   "member-verification": ["admin", "employee"],
@@ -674,18 +746,11 @@ export const getRoleOrderedModules = (roleKey = "member") => {
     else priorityList = ROLE_MODULE_PRIORITY.client;
   }
 
-  const enabled = getEnabledModules().filter((m) => canRoleAccessModule(normalized, m.id));
+  // Only return modules where sidebar is true
+  const enabled = getSidebarModules().filter((m) => canRoleAccessModule(normalized, m.id));
 
   return [...enabled].sort((a, b) => {
-    // Primary Sort: Color Safety Hierarchy (Green 1 -> Blue 2 -> Violet 3 -> Orange 4 -> Red 5)
-    const colorWeightA = COLOR_SAFETY_WEIGHTS[a.colorClassification?.code || "FREQUENT"] || 1;
-    const colorWeightB = COLOR_SAFETY_WEIGHTS[b.colorClassification?.code || "FREQUENT"] || 1;
-
-    if (colorWeightA !== colorWeightB) {
-      return colorWeightA - colorWeightB;
-    }
-
-    // Secondary Sort: Role Operational Relevancy Index (#1, #2, #3 daily workflow)
+    // Primary: Role Priority
     const idxA = priorityList.indexOf(a.id);
     const idxB = priorityList.indexOf(b.id);
     const posA = idxA !== -1 ? idxA : 999;

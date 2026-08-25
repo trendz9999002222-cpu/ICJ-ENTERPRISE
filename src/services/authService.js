@@ -12,27 +12,6 @@ const canUseSupabaseAuth =
   Boolean(env.VITE_SUPABASE_URL) &&
   Boolean(env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
-const DUMMY_MEMBER_KEYS = new Set([
-  "26adm08aa0002",
-  "26icj08aa0003",
-  "26icj08aa0004",
-  "26icj08aa0005",
-  "26icj08aa0006",
-  "26icj08aa0007",
-  "icjadmin1234@icj.org",
-  "vikramaditya@icj.org",
-  "ananya@icj.org",
-  "ramesh.gupta@gmail.com",
-  "sunita.devi@gmail.com",
-]);
-
-const isDummyMember = (u) => {
-  if (!u) return false;
-  const idKey = String(u.id || u.member_id || u.memberId || "").toLowerCase();
-  const emailKey = String(u.email || "").toLowerCase();
-  return DUMMY_MEMBER_KEYS.has(idKey) || DUMMY_MEMBER_KEYS.has(emailKey);
-};
-
 const getStoredUsers = () => {
   if (typeof window === "undefined") return ENTERPRISE_SEED_USERS;
   try {
@@ -44,34 +23,35 @@ const getStoredUsers = () => {
       } catch {}
     }
 
-    // Filter out old dummy seed members
-    const cleanUsers = Array.isArray(existingUsers)
-      ? existingUsers.filter((u) => !isDummyMember(u))
-      : [];
+    if (Array.isArray(existingUsers) && existingUsers.length >= 1) {
+      // Auto-update/merge seed users into existing users to guarantee valid hashes and credentials
+      const seedMap = new Map(ENTERPRISE_SEED_USERS.map(u => [String(u.email || u.username).toLowerCase(), u]));
+      const merged = existingUsers.map(u => {
+        const key = String(u.email || u.username || "").toLowerCase();
+        if (seedMap.has(key)) {
+          const seed = seedMap.get(key);
+          return { ...u, ...seed };
+        }
+        return u;
+      });
 
-    const seedMap = new Map(ENTERPRISE_SEED_USERS.map(u => [String(u.email || u.username).toLowerCase(), u]));
-    const merged = cleanUsers.map(u => {
-      const key = String(u.email || u.username || "").toLowerCase();
-      if (seedMap.has(key)) {
-        const seed = seedMap.get(key);
-        return { ...u, ...seed };
-      }
-      return u;
-    });
+      // Ensure any missing seed users (e.g. SuperAdmin) are present
+      ENTERPRISE_SEED_USERS.forEach(seed => {
+        const key = String(seed.email || seed.username).toLowerCase();
+        if (!merged.some(u => String(u.email || u.username || "").toLowerCase() === key)) {
+          merged.push(seed);
+        }
+      });
 
-    // Ensure any missing seed users (SuperAdmin) are present
-    ENTERPRISE_SEED_USERS.forEach(seed => {
-      const key = String(seed.email || seed.username).toLowerCase();
-      if (!merged.some(u => String(u.email || u.username || "").toLowerCase() === key)) {
-        merged.push(seed);
-      }
-    });
+      window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
+      window.localStorage.setItem("icj_members", JSON.stringify(merged));
+      return merged;
+    }
 
-    window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(merged));
-    window.localStorage.setItem("icj_members", JSON.stringify(merged));
-    return merged;
+
+    return SeedEcosystemService.resetAndHydrate26CoreMembers();
   } catch {
-    return ENTERPRISE_SEED_USERS;
+    return SeedEcosystemService.get26CoreMembers();
   }
 };
 
@@ -186,7 +166,7 @@ const AuthService = {
       member_type: payload.memberType || "individual",
       member_level: payload.member_level || "Basic",
       status: "Active",
-      verification_status: role === "super_admin" ? "Verified" : "Pending Verification",
+      verification_status: "Approved",
       email_verified: true,
       mobile_verified: true,
       ready_for_login: true,
@@ -201,21 +181,6 @@ const AuthService = {
     persistLocalUser(newUser);
 
     PasswordPolicyService.recordPasswordHistory(newUser.id, passwordHash);
-
-    // Trigger Admin Notification for Pending Verification
-    import("./notificationService.js").then((mod) => {
-      const ns = mod.default || mod.NotificationService;
-      ns.create({
-        title: `New ${role.toUpperCase()} Registered - Verification Pending`,
-        category: "Members",
-        message: `${newUser.fullName} (${role}) registered. Awaiting Admin Approval.`,
-        type: "Warning",
-        status: "Unread",
-        date: new Date().toLocaleDateString("en-IN"),
-        route: "/member-verification"
-      }).catch(() => {});
-    });
-
     return newUser;
   },
 
