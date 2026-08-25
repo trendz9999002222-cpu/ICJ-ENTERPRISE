@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Stack,
@@ -32,7 +32,7 @@ export default function GlobalLanguageJurisdictionBar({ onJurisdictionChange, on
     return () => window.removeEventListener("icj_language_changed", handleLangChange);
   }, [onLanguageChange]);
 
-  const activeLangConfig = SUPPORTED_LANGUAGES.find(l => l.code === currentLang) || SUPPORTED_LANGUAGES[0];
+  const activeLangConfig = SUPPORTED_LANGUAGES.find((l) => l.code === currentLang) || SUPPORTED_LANGUAGES[0];
 
   const handleSelectJurisdiction = (jId) => {
     const updated = GlobalLegalJurisdictionService.setActiveJurisdiction(jId);
@@ -46,54 +46,45 @@ export default function GlobalLanguageJurisdictionBar({ onJurisdictionChange, on
     setLangMenuAnchor(null);
   };
 
-  const handleResetToEnglish = () => {
-    LanguageService.setLanguage("en");
-    setCurrentLang("en");
-  };
-
   return (
     <Paper
       elevation={2}
       className="bigtech-card glass-card"
       sx={{
-        p: 1.2,
+        p: 1,
         mb: 2.5,
-        borderRadius: 2.5,
+        borderRadius: "14px",
         bgcolor: "#0f172a",
         color: "#ffffff",
         border: "1px solid #1e293b",
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5}>
-        
-        {/* 🌐 LEFT SIDE: GLOBAL LEGAL JURISDICTION (INDIA, USA, UK, EU) */}
-        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" gap={0.5}>
-          <Typography variant="body2" fontWeight="bold" color="#60a5fa" sx={{ whiteSpace: "nowrap" }}>
-            {LanguageService.t("jurisdictionLabel", "🌐 Global Legal Jurisdiction:")}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+        {/* 🌐 LEFT SIDE: CLEAN JURISDICTION SELECTOR (NO DUPLICATE CHIP) */}
+        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+          <Typography variant="caption" fontWeight={800} color="#38bdf8" sx={{ whiteSpace: "nowrap" }}>
+            🌐 Global Jurisdiction:
           </Typography>
-          <Chip
-            label={`${activeJurisdiction.flag} ${activeJurisdiction.id}`}
-            color="primary"
-            size="small"
-            sx={{ fontWeight: "bold", height: 24, fontSize: "0.72rem" }}
-          />
 
-          <Stack direction="row" spacing={0.5} ml={1}>
+          <Stack direction="row" spacing={0.6}>
             {Object.values(JURISDICTIONS).map((j) => (
               <Button
                 key={j.id}
                 size="small"
                 variant={activeJurisdiction.id === j.id ? "contained" : "outlined"}
-                color="info"
                 onClick={() => handleSelectJurisdiction(j.id)}
                 sx={{
                   py: 0.2,
                   px: 1,
                   fontSize: "0.72rem",
-                  fontWeight: "bold",
+                  fontWeight: 800,
                   textTransform: "none",
-                  height: 24,
-                  borderColor: activeJurisdiction.id === j.id ? "#3b82f6" : "#334155",
+                  height: 26,
+                  bgcolor: activeJurisdiction.id === j.id ? "#0284c7" : "transparent",
+                  color: "#ffffff",
+                  borderColor: activeJurisdiction.id === j.id ? "#0284c7" : "#334155",
+                  borderRadius: "8px",
+                  "&:hover": { bgcolor: "#0369a1" },
                 }}
               >
                 {j.flag} {j.id}
@@ -102,47 +93,27 @@ export default function GlobalLanguageJurisdictionBar({ onJurisdictionChange, on
           </Stack>
         </Stack>
 
-        {/* 🗣️ RIGHT SIDE: DECOUPLED LANGUAGE SELECTOR & PERMANENT ENGLISH FALLBACK */}
-        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-          {/* Active Language Dropdown Button */}
+        {/* 🗣️ RIGHT SIDE: CLEAN LANGUAGE SELECTOR DROPDOWN */}
+        <Stack direction="row" alignItems="center" spacing={1}>
           <Button
             size="small"
             variant="contained"
-            color="secondary"
-            startIcon={<LanguageIcon />}
+            startIcon={<LanguageIcon sx={{ fontSize: 16 }} />}
             onClick={(e) => setLangMenuAnchor(e.currentTarget)}
             sx={{
-              fontWeight: "bold",
+              fontWeight: 800,
               fontSize: "0.75rem",
               textTransform: "none",
-              bgcolor: "#7c3aed",
-              "&:hover": { bgcolor: "#6d28d9" },
-              height: 28,
+              bgcolor: "#1e293b",
+              color: "#f8fafc",
+              border: "1px solid #334155",
+              borderRadius: "8px",
+              height: 26,
+              px: 1.5,
+              "&:hover": { bgcolor: "#334155" },
             }}
           >
             🌐 {activeLangConfig.nativeLabel} ({activeLangConfig.label}) ▼
-          </Button>
-
-          {/* 🚨 PERMANENT ENGLISH FALLBACK BUTTON (Always Visible & Accessible in 1-Click) */}
-          <Button
-            size="small"
-            variant={currentLang === "en" ? "contained" : "outlined"}
-            color="primary"
-            onClick={handleResetToEnglish}
-            sx={{
-              fontWeight: 900,
-              fontSize: "0.75rem",
-              textTransform: "none",
-              bgcolor: currentLang === "en" ? "#2563eb" : "transparent",
-              color: "#ffffff",
-              borderColor: "#3b82f6",
-              letterSpacing: 0.5,
-              height: 28,
-              px: 1.5,
-              "&:hover": { bgcolor: "#1d4ed8" },
-            }}
-          >
-            🇬🇧 ENGLISH
           </Button>
 
           {/* Language Selection Menu (13 Languages) */}
@@ -156,39 +127,34 @@ export default function GlobalLanguageJurisdictionBar({ onJurisdictionChange, on
                 width: 240,
                 backgroundColor: "#1e293b",
                 color: "#ffffff",
+                borderRadius: "12px",
               },
             }}
           >
-            <Box p={1} borderBottom="1px solid #334155">
-              <Typography variant="caption" fontWeight="bold" color="#94a3b8">
-                SELECT INTERFACE LANGUAGE (13)
-              </Typography>
-            </Box>
-
-            {SUPPORTED_LANGUAGES.map((l) => (
+            {SUPPORTED_LANGUAGES.map((lang) => (
               <MenuItem
-                key={l.code}
-                selected={currentLang === l.code}
-                onClick={() => handleSelectLanguage(l.code)}
+                key={lang.code}
+                onClick={() => handleSelectLanguage(lang.code)}
+                selected={currentLang === lang.code}
                 sx={{
-                  color: currentLang === l.code ? "#38bdf8" : "#f8fafc",
-                  fontWeight: currentLang === l.code ? "bold" : "normal",
-                  "&:hover": { bgcolor: "#334155" },
+                  "&:hover": { backgroundColor: "#334155" },
+                  "&.Mui-selected": { backgroundColor: "#0284c7" },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 28, fontSize: "1rem" }}>
-                  {l.flag}
+                <ListItemIcon sx={{ color: "#ffffff", minWidth: 28 }}>
+                  {currentLang === lang.code && <CheckIcon fontSize="small" />}
                 </ListItemIcon>
                 <ListItemText
-                  primary={`${l.nativeLabel} (${l.label})`}
-                  primaryTypographyProps={{ fontSize: "0.82rem", fontWeight: "bold" }}
+                  primary={
+                    <Typography variant="body2" fontWeight={currentLang === lang.code ? "bold" : "normal"}>
+                      {lang.nativeLabel} ({lang.label})
+                    </Typography>
+                  }
                 />
-                {currentLang === l.code && <CheckIcon fontSize="small" color="info" />}
               </MenuItem>
             ))}
           </Menu>
         </Stack>
-
       </Stack>
     </Paper>
   );

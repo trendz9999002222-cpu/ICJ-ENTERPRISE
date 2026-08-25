@@ -9,20 +9,18 @@ import {
   Switch,
   FormControlLabel,
   Grid,
-  Divider,
-  LinearProgress,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import NavigationIcon from "@mui/icons-material/Navigation";
 import PhoneIcon from "@mui/icons-material/Phone";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
-import MyLocationIcon from "@mui/icons-material/MyLocation";
 import ShieldIcon from "@mui/icons-material/Shield";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 
 import LiveAdvocateClientLocationService from "../../services/liveAdvocateClientLocationService.js";
 
-export default function AdvocateClientLocationRadar({ role = "client" }) {
+export default function AdvocateClientLocationRadar({ role = "client", assignedPeerName, assignedCaseNo }) {
   const [session, setSession] = useState(LiveAdvocateClientLocationService.getSession());
   const [distance, setDistance] = useState(LiveAdvocateClientLocationService.calculatePeerDistance());
 
@@ -49,8 +47,19 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
 
   const isAdvocate = role === "advocate";
   const peerTitle = isAdvocate ? "मुवक्किल (Client)" : "आपके अधिकृत अधिवक्ता (Assigned Advocate)";
-  const peerName = isAdvocate ? "श्री सुरेश कुमार (वादी)" : session.peerName;
-  const peerLandmark = isAdvocate ? "मेन कोर्ट गेट नं 2 (पार्किंग के पास)" : session.peerCoordinates?.landmark || "चैंबर नं 42, ब्लॉक B";
+  const peerName = assignedPeerName || (isAdvocate ? "अधिकृत मुवक्किल" : session.peerName || "अधिकृत अधिवक्ता");
+  const peerLandmark = session.peerCoordinates?.landmark || (isAdvocate ? "कोर्ट परिसर (गेट / चैंबर)" : "अधिवक्ता चैंबर ब्लॉक");
+  const caseNo = assignedCaseNo || session.caseNumber || "केस संदर्भ";
+
+  // Dynamic & Logical Travel Time Calculation
+  const isWalkingDistance = distance < 500;
+  const formattedDistance = distance >= 1000 ? `${(distance / 1000).toFixed(1)} किमी` : `${distance} मीटर`;
+  const formattedTimeText =
+    distance <= 150
+      ? "⚡ कोर्ट परिसर में पैदल 1-2 मिनट"
+      : distance < 500
+      ? `🚶 पैदल ~${Math.ceil(distance / 80)} मिनट`
+      : `🚗 वाहन/कैब से ~${Math.ceil(distance / 400)} मिनट`;
 
   return (
     <Paper
@@ -94,7 +103,7 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
                 📍 कोर्ट परिसर लाइव लोकेशन रडार (Court Rendezvous)
               </Typography>
               <Chip
-                label={session.isSharing ? "🟢 LIVE SHARING ON" : "⚪ OFF (PRIVATE)"}
+                label={session.isSharing ? "🟢 LIVE SHARING ON" : "⚪ GPS STANDBY"}
                 size="small"
                 sx={{
                   bgcolor: session.isSharing ? "#d1fae5" : "#f1f5f9",
@@ -105,7 +114,7 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
               />
             </Stack>
             <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700 }}>
-              केस नं: {session.caseNumber} • 100% एन्क्रिप्टेड आपसी लोकेशन
+              केस: {caseNo} • 100% एंड-टू-एंड एन्क्रिप्टेड आपसी लोकेशन
             </Typography>
           </Box>
         </Stack>
@@ -120,14 +129,14 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
           }
           label={
             <Typography variant="caption" fontWeight={900} color={session.isSharing ? "#059669" : "#64748b"}>
-              {session.isSharing ? "लोकेशन चालू है" : "लोकेशन बंद करें"}
+              {session.isSharing ? "लोकेशन चालू है" : "लोकेशन बंद (निजी)"}
             </Typography>
           }
           sx={{ m: 0 }}
         />
       </Stack>
 
-      {/* ACTIVE RADAR VIEW */}
+      {/* ACTIVE RADAR VIEW OR HONEST STANDBY */}
       {session.isSharing ? (
         <Box>
           <Paper
@@ -164,14 +173,21 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
                   }}
                 >
                   <Typography variant="caption" fontWeight={800} color="#065f46" display="block">
-                    आप दोनों के बीच की दूरी:
+                    आप दोनों के बीच की वास्तविक दूरी:
                   </Typography>
                   <Typography variant="h5" fontWeight={900} color="#059669">
-                    {distance} मीटर
+                    {formattedDistance}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: "#047857", fontSize: "0.7rem", fontWeight: 700 }}>
-                    ⚡ पैदल 1-2 मिनट की दूरी पर
-                  </Typography>
+                  <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5} sx={{ mt: 0.3 }}>
+                    {isWalkingDistance ? (
+                      <DirectionsWalkIcon sx={{ fontSize: 14, color: "#047857" }} />
+                    ) : (
+                      <DirectionsCarIcon sx={{ fontSize: 14, color: "#047857" }} />
+                    )}
+                    <Typography variant="caption" sx={{ color: "#047857", fontSize: "0.72rem", fontWeight: 800 }}>
+                      {formattedTimeText}
+                    </Typography>
+                  </Stack>
                 </Box>
               </Grid>
             </Grid>
@@ -179,58 +195,80 @@ export default function AdvocateClientLocationRadar({ role = "client" }) {
 
           {/* 1-CLICK ACTION BUTTONS */}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<NavigationIcon />}
-              onClick={() => {
-                window.open(
-                  `https://www.google.com/maps/dir/?api=1&destination=${session.peerCoordinates.latitude},${session.peerCoordinates.longitude}`,
-                  "_blank"
-                );
-              }}
-              sx={{
-                bgcolor: "#059669",
-                color: "#ffffff",
-                fontWeight: 900,
-                textTransform: "none",
-                borderRadius: "10px",
-                px: 2.5,
-                py: 1,
-                "&:hover": { bgcolor: "#047857" },
-              }}
-            >
-              🗺️ दिशा देखें व नेविगेट करें (Get Directions)
-            </Button>
+            {session.peerCoordinates?.latitude && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<NavigationIcon />}
+                onClick={() => {
+                  window.open(
+                    `https://www.google.com/maps/dir/?api=1&destination=${session.peerCoordinates.latitude},${session.peerCoordinates.longitude}`,
+                    "_blank"
+                  );
+                }}
+                sx={{
+                  bgcolor: "#059669",
+                  color: "#ffffff",
+                  fontWeight: 900,
+                  textTransform: "none",
+                  borderRadius: "10px",
+                  px: 2.5,
+                  py: 1,
+                  "&:hover": { bgcolor: "#047857" },
+                }}
+              >
+                🗺️ दिशा देखें व नेविगेट करें (Get Directions)
+              </Button>
+            )}
 
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<PhoneIcon />}
-              onClick={() => window.open(`tel:${session.peerPhone}`)}
-              sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#0284c7", color: "#0284c7" }}
-            >
-              📞 1-क्लिक कॉल
-            </Button>
+            {session.peerPhone && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<PhoneIcon />}
+                onClick={() => window.open(`tel:${session.peerPhone}`)}
+                sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#0284c7", color: "#0284c7" }}
+              >
+                📞 1-क्लिक कॉल
+              </Button>
+            )}
 
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<WhatsAppIcon />}
-              onClick={() => window.open(`https://wa.me/${session.peerPhone.replace(/[^0-9]/g, "")}?text=नमस्ते, मैं कोर्ट परिसर में हूँ।`)}
-              sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#16a34a", color: "#16a34a" }}
-            >
-              💬 WhatsApp संदेश
-            </Button>
+            {session.peerPhone && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<WhatsAppIcon />}
+                onClick={() => window.open(`https://wa.me/${session.peerPhone.replace(/[^0-9]/g, "")}?text=नमस्ते, मैं कोर्ट परिसर में हूँ।`)}
+                sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#16a34a", color: "#16a34a" }}
+              >
+                💬 WhatsApp संदेश
+              </Button>
+            )}
           </Stack>
         </Box>
       ) : (
-        <Box sx={{ p: 1.5, borderRadius: "10px", bgcolor: "#f8fafc", border: "1px dashed #cbd5e1" }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <ShieldIcon sx={{ color: "#64748b", fontSize: 20 }} />
-            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 700 }}>
-              आपकी लोकेशन अभी <strong>निजी (Private)</strong> है। कोर्ट परिसर में अपने {isAdvocate ? "मुवक्किल" : "वकील"} को ढूंढने के लिए ऊपर दिए गए स्विच को <strong>[लोकेशन चालू करें]</strong> पर टॉगल करें।
-            </Typography>
+        <Box sx={{ p: 2, borderRadius: "12px", bgcolor: "#f8fafc", border: "1.5px dashed #cbd5e1" }}>
+          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={2}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <ShieldIcon sx={{ color: "#64748b", fontSize: 24 }} />
+              <Box>
+                <Typography variant="subtitle2" fontWeight={800} color="#334155">
+                  📍 लोकेशन वर्तमान में सुरक्षित व निजी है (GPS Standby)
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
+                  कोर्ट परिसर में वकील या मुवक्किल से तत्काल मिलने हेतु लोकेशन शेयरिंग चालू करें। कोई भी अनधिकृत डमी डेटा प्रदर्शित नहीं होता।
+                </Typography>
+              </Box>
+            </Stack>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<LocationOnIcon />}
+              onClick={handleToggleSharing}
+              sx={{ bgcolor: "#0f172a", color: "#38bdf8", fontWeight: 900, textTransform: "none", borderRadius: "10px", whiteSpace: "nowrap" }}
+            >
+              📡 लाइव लोकेशन चालू करें
+            </Button>
           </Stack>
         </Box>
       )}

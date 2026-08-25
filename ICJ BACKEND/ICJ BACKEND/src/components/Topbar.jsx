@@ -282,7 +282,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
               bgcolor: "#0f172a",
               color: "#38bdf8",
               border: "1px solid #0284c7",
-              display: { xs: "none", lg: "inline-flex" },
+              display: { xs: "none", xl: "inline-flex" },
             }}
           />
 
@@ -315,7 +315,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
         </Stack>
 
         {/* ➡️ RIGHT SIDE: ROLE SWITCHER + NOTIFICATIONS + USER IDENTITY + EXIT BUTTON */}
-        <Stack direction="row" alignItems="center" spacing={{ xs: 0.6, sm: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={{ xs: 0.8, sm: 1.5 }} sx={{ flexShrink: 0 }}>
           {isSirenActive && (
             <Button
               variant="contained"
@@ -344,7 +344,8 @@ function Topbar({ onOpenMobileNav = () => {} }) {
               fontWeight: 800,
               fontSize: "0.68rem",
               height: 26,
-              px: 1,
+              px: 1.2,
+              mr: 0.5,
               textTransform: "none",
               borderRadius: 1.5,
               "&:hover": { opacity: 0.95 },

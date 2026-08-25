@@ -48,7 +48,7 @@ const Modules = [
   // ─── 6 UNIFIED MASTER COMMAND HUBS (VISIBLE IN SIDEBAR) ──────────────────────────
   {
     id: "dashboard",
-    name: "📊 मुख्य डैशबोर्ड (Dashboard)",
+    name: "📊 मुख्य डैशबोर्ड",
     category: "Core",
     group: "A",
     route: "/dashboard",
@@ -64,7 +64,7 @@ const Modules = [
   },
   {
     id: "membership-hub",
-    name: "👥 [GROUP A] सदस्यता केंद्र (Codes A1-A6)",
+    name: "👥 सदस्य व KYC केंद्र [A]",
     category: "Membership",
     group: "A",
     route: "/membership-hub",
@@ -80,7 +80,7 @@ const Modules = [
   },
   {
     id: "legal-workspace",
-    name: "⚖️ [GROUP B] विधिक कार्यक्षेत्र (Codes B1-B6)",
+    name: "⚖️ वकालत व केस प्रबंधन [B]",
     category: "Legal",
     group: "B",
     route: "/legal-workspace",
@@ -96,7 +96,7 @@ const Modules = [
   },
   {
     id: "ai-legal-hub",
-    name: "🤖 [GROUP C] AI ड्राफ्ट व रिसर्च (Codes C1-C4)",
+    name: "🤖 AI ड्राफ्ट व रिसर्च [C]",
     category: "AI",
     group: "C",
     route: "/ai-legal-hub",
@@ -112,7 +112,7 @@ const Modules = [
   },
   {
     id: "finance-hub",
-    name: "💳 [GROUP D] वित्त एवं वॉलेट (Codes D1-D6)",
+    name: "💳 वित्त, बिलिंग व लेजर [D]",
     category: "Finance",
     group: "D",
     route: "/finance-hub",
@@ -128,7 +128,7 @@ const Modules = [
   },
   {
     id: "support-hub",
-    name: "🎧 [GROUP E] हेल्पडेस्क व सहायता (Codes E1-E3)",
+    name: "🎧 हेल्पडेस्क व सहायता [E]",
     category: "Support",
     group: "E",
     route: "/support-hub",
@@ -144,7 +144,7 @@ const Modules = [
   },
   {
     id: "admin-control-hub",
-    name: "🛡️ [GROUP F] प्रशासन नियंत्रण (Codes F1-F6)",
+    name: "🛡️ सुरक्षा व टाइम मशीन [F]",
     category: "Admin",
     group: "F",
     route: "/admin-control-hub",

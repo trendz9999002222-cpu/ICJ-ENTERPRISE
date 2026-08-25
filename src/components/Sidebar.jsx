@@ -47,7 +47,7 @@ import {
 import { getRoleOrderedModules } from "../core/navigation";
 import useAuth from "../hooks/useAuth";
 
-const drawerWidth = 220;
+const drawerWidth = 240;
 
 const iconMap = {
   dashboard: <Dashboard />,

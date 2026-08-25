@@ -51,6 +51,11 @@ import LanguageService, { useLanguage } from "../services/languageService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
+import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLegalCaseIngestionConsole.jsx";
+import OfflineStatuteNavigatorConsole from "../components/common/OfflineStatuteNavigatorConsole.jsx";
+import AllIndiaStatuteAndJudgmentsExplorerConsole from "../components/common/AllIndiaStatuteAndJudgmentsExplorerConsole.jsx";
+import RepealedActConcordanceNavigator from "../components/common/RepealedActConcordanceNavigator.jsx";
+import SemanticHyperlinkedBareActViewer from "../components/common/SemanticHyperlinkedBareActViewer.jsx";
 import useAuth from "../hooks/useAuth.js";
 import MatterCommunicationService from "../services/matterCommunicationService.js";
 import MatterTimelineService from "../services/matterTimelineService.js";
@@ -335,6 +340,21 @@ export default function AdvocateDashboard() {
 
         {/* 📍 CLIENT-ADVOCATE MUTUAL LIVE COURT RENDEZVOUS RADAR */}
         <AdvocateClientLocationRadar role="advocate" />
+
+        {/* 🏛️ 2,000+ ACTS OFFLINE SOVEREIGN KNOWLEDGE MATRIX & JUDICIAL BRAIN [CODE G7] */}
+        <OfflineStatuteNavigatorConsole />
+
+        {/* 📜 1836-2026 BARE ACTS & LANDMARK SUPREME COURT CITATIONS REPOSITORY [CODE G8] */}
+        <AllIndiaStatuteAndJudgmentsExplorerConsole />
+
+        {/* 🔄 REPEALED ACTS & OLD-VS-NEW CONCORDANCE NAVIGATOR [CODE G10] */}
+        <RepealedActConcordanceNavigator />
+
+        {/* 🌐 WESTLAW-GRADE SEMANTIC LEGAL HYPERGRAPH VIEWER [CODE G9] */}
+        <SemanticHyperlinkedBareActViewer />
+
+        {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
+        <UniversalLegalCaseIngestionConsole />
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
