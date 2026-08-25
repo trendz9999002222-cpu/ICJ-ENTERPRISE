@@ -109,6 +109,7 @@ export const MASTER_MODULE_GROUPS = [
       { code: "F5", keyword: "SYSTEM_HEALTH_LOGS", name: "सिस्टम हेल्थ व ऑडिट लॉग्स", file: "SystemHealth.jsx", route: "/admin-control-hub?tab=health" },
       { code: "F6", keyword: "SETTINGS_REPORTS", name: "ग्लोबल सेटिंग्स व रिपोर्ट्स", file: "Settings.jsx", route: "/admin-control-hub?tab=settings" },
       { code: "F7", keyword: "LEGAL_IMMUNITY_WATCHDOG", name: "डायनेमिक लीगल इम्युनिटी वॉचडॉग", file: "DynamicLegalImmunityWatchdog.jsx", route: "/dynamic-legal-watchdog" },
+      { code: "F8", keyword: "TIME_MACHINE_ROLLBACK", name: "8-दिवसीय टाइम मशीन व 1-क्लिक रोलबैक", file: "SystemTimeMachineRollbackConsole.jsx", route: "/dynamic-legal-watchdog#time-machine" },
     ],
   },
   {

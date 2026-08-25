@@ -40,6 +40,7 @@ import CircuitBreakerIsolationService from "../services/circuitBreakerIsolationS
 import WebPushNotificationService from "../services/webPushNotificationService.js";
 import WebAudioSirenService from "../services/webAudioSirenService.js";
 import LegalChangeAuditService from "../services/legalChangeAuditService.js";
+import SystemTimeMachineRollbackConsole from "../components/admin/SystemTimeMachineRollbackConsole.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 export default function DynamicLegalImmunityWatchdog() {
@@ -580,7 +581,10 @@ export default function DynamicLegalImmunityWatchdog() {
           </Table>
         </Paper>
 
-        {/* 6. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
+        {/* 6. ⏱️ 8-DAY VISUAL TIME MACHINE & RESTORE POINT CONSOLE [CODE F8] */}
+        <SystemTimeMachineRollbackConsole />
+
+        {/* 7. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
         <Paper
           elevation={0}
           sx={{
