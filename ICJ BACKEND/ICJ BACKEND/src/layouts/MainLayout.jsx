@@ -1,15 +1,15 @@
 import { createContext, useContext, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import MobileBottomNav from "../components/MobileBottomNav";
+import RoleTopNav from "../components/common/RoleTopNav";
+import OfflineNetworkSyncBanner from "../components/common/OfflineNetworkSyncBanner";
+import SessionAutoLockModal from "../components/common/SessionAutoLockModal";
+import SecureWatermarkOverlay from "../components/common/SecureWatermarkOverlay";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
+import useAuth from "../hooks/useAuth";
 
-// ProtectedRoute wraps every page in MainLayout, but 16 pages also wrap
-// themselves in it. That rendered two topbars, two sidebars and two footers —
-// a second full set of chrome that ate most of a phone screen. Rather than
-// depend on every page remembering not to, an inner MainLayout detects it is
-// already inside one and renders its children straight through.
 const InsideMainLayout = createContext(false);
 
 function MainLayout({ children }) {
@@ -23,17 +23,36 @@ function MainLayout({ children }) {
 }
 
 function MainLayoutChrome({ children }) {
-  // The sidebar is a dismissable overlay on phones and a fixed rail on desktop.
-  // It used to be `permanent` at every width, so a 76px rail ate a fifth of a
-  // 360px screen and could not be closed.
+  const { user } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  const role = String(user?.role || "member").toLowerCase();
+  const userType = String(user?.user_type || "").toLowerCase();
+  const isAdmin = ["admin", "super_admin", "superadmin", "employee"].includes(role);
+
   return (
-    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden" }} className="mobile-app-container">
-      <Sidebar
-        mobileOpen={mobileNavOpen}
-        onMobileClose={() => setMobileNavOpen(false)}
-      />
+    <Box sx={{ display: "flex", background: "#F5F7FA", minHeight: "100vh", width: "100%", overflowX: "hidden", position: "relative" }} className="mobile-app-container">
+      {/* 🛡️ ANTI-LEAK BACKGROUND SECURITY WATERMARK */}
+      <SecureWatermarkOverlay />
+
+      {/* 🔐 COURTROOM SESSION INACTIVITY AUTO-LOCK MODAL */}
+      <SessionAutoLockModal />
+
+      {/* ⬅️ LEFT SIDEBAR: ONLY FOR ADMINS ON DESKTOP & MOBILE */}
+      {isAdmin && (
+        <Sidebar
+          mobileOpen={mobileNavOpen}
+          onMobileClose={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      {/* 📱 MOBILE-ONLY DRAWER FOR NON-ADMINS */}
+      {!isAdmin && mobileNavOpen && (
+        <Sidebar
+          mobileOpen={mobileNavOpen}
+          onMobileClose={() => setMobileNavOpen(false)}
+        />
+      )}
 
       <Box
         component="main"
@@ -48,12 +67,18 @@ function MainLayoutChrome({ children }) {
           pb: { xs: 9, md: 2 },
         }}
       >
+        {/* 🌐 LIVE OFFLINE / ONLINE NETWORK RESILIENCY BANNER */}
+        <OfflineNetworkSyncBanner />
+
         <Topbar onOpenMobileNav={() => setMobileNavOpen(true)} />
+
+        {/* 🔝 TOP HORIZONTAL ROLE NAVIGATION ROW FOR ADVOCATES, CLIENTS & MEMBERS */}
+        {!isAdmin && <RoleTopNav />}
 
         <Box
           sx={{
             flex: 1,
-            p: { xs: 0.8, sm: 1, md: 1.2 },
+            p: { xs: 0.8, sm: 1.5, md: 2 },
             width: "100%",
             boxSizing: "border-box",
           }}
@@ -71,4 +96,3 @@ function MainLayoutChrome({ children }) {
 }
 
 export default MainLayout;
-        

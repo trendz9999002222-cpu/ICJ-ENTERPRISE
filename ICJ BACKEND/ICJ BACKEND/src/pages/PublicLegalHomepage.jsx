@@ -23,6 +23,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import LockOpenIcon from "@mui/icons-material/LockOpen";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import DescriptionIcon from "@mui/icons-material/Description";
+import JudicialForumsNetworkCard from "../components/common/JudicialForumsNetworkCard.jsx";
 
 export default function PublicLegalHomepage() {
   const navigate = useNavigate();
@@ -187,7 +188,7 @@ export default function PublicLegalHomepage() {
                   "&:hover": { transform: "translateY(-4px)", boxShadow: "0 10px 28px rgba(4, 120, 87, 0.3)" },
                 }}
               >
-                <CardActionArea component={RouterLink} to="/join" sx={{ p: 2.5, textAlign: "left" }}>
+                <CardActionArea component={RouterLink} to="/join?role=problem" sx={{ p: 2.5, textAlign: "left" }}>
                   <Box sx={{ width: 48, height: 48, borderRadius: "14px", bgcolor: "#d1fae5", color: "#047857", display: "flex", alignItems: "center", justifyContent: "center", mb: 1.5 }}>
                     <ShieldIcon sx={{ fontSize: 28 }} />
                   </Box>
@@ -267,6 +268,9 @@ export default function PublicLegalHomepage() {
             </Grid>
           </Grid>
         </Paper>
+
+        {/* 🏛️ 5-TIER ALL-INDIA JUDICIAL NETWORK */}
+        <JudicialForumsNetworkCard />
 
         {/* 4. FAST CITIZEN QUICK-ACCESS UTILITIES */}
         <Grid container spacing={2} sx={{ mb: 4 }}>

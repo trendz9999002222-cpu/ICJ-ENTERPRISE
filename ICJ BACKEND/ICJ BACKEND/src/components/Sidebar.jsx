@@ -41,6 +41,7 @@ import {
   Notifications,
   ReceiptLong,
   LocationOn,
+  SupportAgent,
 } from "@mui/icons-material";
 
 import { getRoleOrderedModules } from "../core/navigation";
@@ -71,6 +72,7 @@ const iconMap = {
   history: <History />,
   settings: <Settings />,
   notifications: <Notifications />,
+  support_agent: <SupportAgent />,
 };
 
 // Helper for rich pill background & border styling based on Universal 5-Color System

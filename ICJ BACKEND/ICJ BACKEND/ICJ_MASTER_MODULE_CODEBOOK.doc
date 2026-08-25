@@ -1,0 +1,549 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset="utf-8">
+<title>ICJ Enterprise Platform - 7 Golden Rules & Master Module Codebook</title>
+<!--[if gte mso 9]>
+<xml>
+ <w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>100</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+ </w:WordDocument>
+</xml>
+<![endif]-->
+<style>
+  body {
+    font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1e293b;
+    margin: 30px;
+  }
+  .header-card {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 8px solid #2563eb;
+  }
+  .header-title {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #38bdf8;
+    margin: 0 0 6px 0;
+  }
+  .header-sub {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #f8fafc;
+    margin: 0 0 10px 0;
+  }
+  .header-desc {
+    font-size: 10pt;
+    color: #cbd5e1;
+    margin: 0;
+  }
+  .rules-card {
+    background-color: #f0fdf4;
+    border: 2.5px solid #16a34a;
+    padding: 18px 22px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+  }
+  .rules-title {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #15803d;
+    margin-bottom: 12px;
+  }
+  .rule-item {
+    font-size: 10.5pt;
+    color: #0f172a;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .rule-num {
+    font-weight: bold;
+    color: #16a34a;
+    background-color: #dcfce7;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  .group-title {
+    font-size: 13.5pt;
+    font-weight: bold;
+    color: #0f172a;
+    margin-top: 25px;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #cbd5e1;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  th {
+    background-color: #1e293b;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 10pt;
+    border: 1px solid #0f172a;
+  }
+  td {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    font-size: 9.5pt;
+    vertical-align: middle;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  .code-badge {
+    font-weight: bold;
+    font-size: 10.5pt;
+    color: #ffffff;
+    background-color: #2563eb;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-align: center;
+    display: inline-block;
+  }
+  .keyword-badge {
+    font-family: Consolas, 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 9pt;
+    color: #0369a1;
+    background-color: #e0f2fe;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #bae6fd;
+  }
+  .file-name {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 9pt;
+    color: #475569;
+    background-color: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 9pt;
+    color: #64748b;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <div class="header-title">INTERNATIONAL CONSORTIUM OF JURISTS (ICJ)</div>
+  <div class="header-sub">7 गोल्डन इंजीनियरिंग नियम एवं मास्टर मॉड्यूल कोड डायरेक्टरी</div>
+  <div class="header-desc">
+    Official Scope Isolation, Stability & Architectural Protection Codebook Specification • 2026
+  </div>
+</div>
+
+<div class="rules-card">
+  <div class="rules-title">🛡️ 7 गोल्डन इंजीनियरिंग नियम (7 Mandatory Engineering Rules):</div>
+  <div class="rule-item"><span class="rule-num">1</span> <strong>Every development request should identify the target module Code whenever possible.</strong></div>
+  <div class="rule-item"><span class="rule-num">2</span> <strong>Use the System Keyword as the stable English identifier for the module.</strong></div>
+  <div class="rule-item"><span class="rule-num">3</span> <strong>Modify only the existing architecture and files relevant to the selected Code.</strong></div>
+  <div class="rule-item"><span class="rule-num">4</span> <strong>Do not create duplicate frontend sections, modules, services or data-entry points when existing functionality can be reused.</strong></div>
+  <div class="rule-item"><span class="rule-num">5</span> <strong>Do not modify unrelated Codes/modules.</strong></div>
+  <div class="rule-item"><span class="rule-num">6</span> <strong>After changes, run the relevant build/validation checks.</strong></div>
+  <div class="rule-item"><span class="rule-num">7</span> <strong>Do not expose secrets, passwords, API keys or other sensitive credentials in source code or UI.</strong></div>
+</div>
+
+<!-- GROUP A -->
+<div class="group-title">👥 GROUP A: सदस्यता एवं प्रोफ़ाइल केंद्र (Membership Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A1</span></td>
+      <td><span class="keyword-badge">MEMBER_DIRECTORY</span></td>
+      <td><strong>सदस्य सूची व डायरेक्टरी</strong></td>
+      <td><span class="file-name">MemberDirectory.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A2</span></td>
+      <td><span class="keyword-badge">MEMBER_VERIFICATION</span></td>
+      <td><strong>सत्यापन व ई-KYC</strong></td>
+      <td><span class="file-name">MemberVerification.jsx, MemberKYC.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A3</span></td>
+      <td><span class="keyword-badge">MEMBER_ID_CERTIFICATES</span></td>
+      <td><strong>पहचान पत्र व प्रमाण-पत्र</strong></td>
+      <td><span class="file-name">MemberCard.jsx, MemberCertificates.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A4</span></td>
+      <td><span class="keyword-badge">MEMBER_DOCS_HISTORY</span></td>
+      <td><strong>दस्तावेज़ व सदस्य इतिहास</strong></td>
+      <td><span class="file-name">MemberDocuments.jsx, MemberHistory.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A5</span></td>
+      <td><span class="keyword-badge">MEMBERSHIP_ENGINE</span></td>
+      <td><strong>सदस्यता पंजीयन इंजन</strong></td>
+      <td><span class="file-name">Membership.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#059669;">A6</span></td>
+      <td><span class="keyword-badge">MEMBER_ACTIVITY_LOG</span></td>
+      <td><strong>गतिविधि व सुरक्षा ऑडिट लॉग</strong></td>
+      <td><span class="file-name">MemberActivity.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP B -->
+<div class="group-title">⚖️ GROUP B: विधिक एवं न्यायालय कार्यक्षेत्र (Legal Workspace Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B1</span></td>
+      <td><span class="keyword-badge">ADVOCATE_DASHBOARD</span></td>
+      <td><strong>अधिवक्ता केस डेस्क</strong></td>
+      <td><span class="file-name">AdvocateDashboard.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B2</span></td>
+      <td><span class="keyword-badge">CLIENT_PORTAL</span></td>
+      <td><strong>मुवक्किल केस पोर्टल</strong></td>
+      <td><span class="file-name">ClientPortal.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B3</span></td>
+      <td><span class="keyword-badge">COURT_CALENDAR</span></td>
+      <td><strong>न्यायालय हियरिंग कैलेंडर</strong></td>
+      <td><span class="file-name">CourtCalendar.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B4</span></td>
+      <td><span class="keyword-badge">DOCUMENT_VAULT</span></td>
+      <td><strong>केस दस्तावेज़ वॉल्ट</strong></td>
+      <td><span class="file-name">Documents.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B5</span></td>
+      <td><span class="keyword-badge">TRUST_DASHBOARD</span></td>
+      <td><strong>लीगल ट्रस्ट एग्जीक्यूटिव</strong></td>
+      <td><span class="file-name">TrustDashboard.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#2563eb;">B6</span></td>
+      <td><span class="keyword-badge">VIRTUAL_OFFICE</span></td>
+      <td><strong>वर्चुअल कोर्ट चैंबर</strong></td>
+      <td><span class="file-name">VirtualOffice.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP C -->
+<div class="group-title">🤖 GROUP C: AI अनुसंधान एवं ड्राफ्टिंग केंद्र (AI Legal Intelligence Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#7c3aed;">C1</span></td>
+      <td><span class="keyword-badge">AI_LEGAL_DRAFTER</span></td>
+      <td><strong>AI कानूनी ड्राफ्टर</strong></td>
+      <td><span class="file-name">LegalDrafter.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#7c3aed;">C2</span></td>
+      <td><span class="keyword-badge">JUDICIAL_RESEARCH</span></td>
+      <td><strong>न्यायिक निर्णय अनुसंधान (Citations)</strong></td>
+      <td><span class="file-name">Research.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#7c3aed;">C3</span></td>
+      <td><span class="keyword-badge">AI_LEGAL_ASSISTANT</span></td>
+      <td><strong>AI विधिक सहायक</strong></td>
+      <td><span class="file-name">AIAssistant.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#7c3aed;">C4</span></td>
+      <td><span class="keyword-badge">LEGAL_REGISTRY</span></td>
+      <td><strong>मास्टर लीगल रजिस्ट्री</strong></td>
+      <td><span class="file-name">Legal.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP D -->
+<div class="group-title">💳 GROUP D: वित्त, बिलिंग एवं वॉलेट केंद्र (Finance Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D1</span></td>
+      <td><span class="keyword-badge">BILLING_INVOICING</span></td>
+      <td><strong>बिलिंग व GST इनवॉइस</strong></td>
+      <td><span class="file-name">BillingInvoicing.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D2</span></td>
+      <td><span class="keyword-badge">PAYMENT_GATEWAY</span></td>
+      <td><strong>भुगतान प्रबंधन व गेटवे</strong></td>
+      <td><span class="file-name">PaymentManagement.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D3</span></td>
+      <td><span class="keyword-badge">DIGITAL_WALLET</span></td>
+      <td><strong>डिजिटल मास्टर वॉलेट</strong></td>
+      <td><span class="file-name">Wallet.jsx, MemberWallet.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D4</span></td>
+      <td><span class="keyword-badge">TOKEN_EXCHANGE</span></td>
+      <td><strong>ICJ टोकन व नियमावली</strong></td>
+      <td><span class="file-name">TokenExchange.jsx, TokenGovernanceManual.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D5</span></td>
+      <td><span class="keyword-badge">DONATIONS_CAMPAIGNS</span></td>
+      <td><strong>दान, क्राउडफंडिंग व अभियान</strong></td>
+      <td><span class="file-name">Donations.jsx, Campaigns.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#d97706;">D6</span></td>
+      <td><span class="keyword-badge">TRANSACTIONS_LEDGER</span></td>
+      <td><strong>वित्तीय खाता बही व लेजर</strong></td>
+      <td><span class="file-name">Transactions.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP E -->
+<div class="group-title">🎧 GROUP E: हेल्पडेस्क एवं नागरिक सहायता (Support Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#ea580c;">E1</span></td>
+      <td><span class="keyword-badge">HELPDESK_PORTAL</span></td>
+      <td><strong>24x7 सहायता टिकट पोर्टल</strong></td>
+      <td><span class="file-name">HelpdeskPortal.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#ea580c;">E2</span></td>
+      <td><span class="keyword-badge">LEGAL_COMMUNITY</span></td>
+      <td><strong>विधिक समुदाय मंच</strong></td>
+      <td><span class="file-name">LegalCommunityFeed.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#ea580c;">E3</span></td>
+      <td><span class="keyword-badge">NOTIFICATIONS_CENTER</span></td>
+      <td><strong>सिस्टम सूचनाएं व अलर्ट्स</strong></td>
+      <td><span class="file-name">Notifications.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP F -->
+<div class="group-title">🛡️ GROUP F: सिस्टम प्रशासन एवं नियंत्रण कक्ष (Admin Control Hub)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F1</span></td>
+      <td><span class="keyword-badge">SUPER_ADMIN_SECURITY</span></td>
+      <td><strong>सुपर एडमिन सुरक्षा व RBAC</strong></td>
+      <td><span class="file-name">SuperAdminDashboard.jsx, SystemSecurityCompliance.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F2</span></td>
+      <td><span class="keyword-badge">FEATURE_FEE_CONTROL</span></td>
+      <td><strong>फ़ीचर व फ़ीस नियंत्रण</strong></td>
+      <td><span class="file-name">FeatureControlCenter.jsx, GovernanceCenter.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F3</span></td>
+      <td><span class="keyword-badge">DATABASE_LOCATIONS</span></td>
+      <td><strong>डेटाबेस व लोकेशन मास्टर</strong></td>
+      <td><span class="file-name">DatabaseConfig.jsx, LocationMasterAdmin.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F4</span></td>
+      <td><span class="keyword-badge">API_DEPLOYMENT</span></td>
+      <td><strong>API गेटवे व डिप्लॉयमेंट</strong></td>
+      <td><span class="file-name">APIConfigCenter.jsx, DeploymentCenter.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F5</span></td>
+      <td><span class="keyword-badge">SYSTEM_HEALTH_LOGS</span></td>
+      <td><strong>सिस्टम हेल्थ व ऑडिट लॉग्स</strong></td>
+      <td><span class="file-name">SystemHealth.jsx, ActivityLog.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#dc2626;">F6</span></td>
+      <td><span class="keyword-badge">SETTINGS_REPORTS</span></td>
+      <td><strong>ग्लोबल सेटिंग्स व रिपोर्ट्स</strong></td>
+      <td><span class="file-name">Settings.jsx, Reports.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP G -->
+<div class="group-title">🌐 GROUP G: पब्लिक व ऑनबोर्डिंग पोर्टल (Public Gateways)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#0891b2;">G1</span></td>
+      <td><span class="keyword-badge">PUBLIC_HOMEPAGE</span></td>
+      <td><strong>मुख्य लीगल होमपेज</strong></td>
+      <td><span class="file-name">PublicLegalHomepage.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#0891b2;">G2</span></td>
+      <td><span class="keyword-badge">PUBLIC_ONBOARDING</span></td>
+      <td><strong>ज़ीरो-ब्लॉकिंग ऑनबोर्डिंग</strong></td>
+      <td><span class="file-name">PublicOnboarding.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#0891b2;">G3</span></td>
+      <td><span class="keyword-badge">AUTH_LOGIN</span></td>
+      <td><strong>सुरक्षित लॉगिन पोर्टल</strong></td>
+      <td><span class="file-name">Login.jsx, authService.js</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#0891b2;">G4</span></td>
+      <td><span class="keyword-badge">PUBLIC_CASE_TRACKER</span></td>
+      <td><strong>सार्वजनिक केस ट्रैकर</strong></td>
+      <td><span class="file-name">PublicCaseTracker.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#0891b2;">G5</span></td>
+      <td><span class="keyword-badge">JUDICIAL_NETWORK</span></td>
+      <td><strong>5-स्तरीय न्यायिक नेटवर्क</strong></td>
+      <td><span class="file-name">JudicialForumsNetworkCard.jsx</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- GROUP H -->
+<div class="group-title">🏗️ GROUP H: कोर लेआउट, सुरक्षा शील्ड व नेविगेशन (Core Infrastructure)</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">कोड</th>
+      <th style="width: 25%;">सिस्टम कीवर्ड (System Keyword)</th>
+      <th style="width: 30%;">मॉड्यूल का नाम</th>
+      <th style="width: 35%;">संबंधित फाइल (Source File)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H1</span></td>
+      <td><span class="keyword-badge">MAIN_LAYOUT</span></td>
+      <td><strong>मुख्य एडॉप्टिव लेआउट</strong></td>
+      <td><span class="file-name">MainLayout.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H2</span></td>
+      <td><span class="keyword-badge">COMMAND_PALETTE</span></td>
+      <td><strong>ग्लोबल टॉपबार व Ctrl+K</strong></td>
+      <td><span class="file-name">Topbar.jsx, GlobalCommandPalette.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H3</span></td>
+      <td><span class="keyword-badge">ROLE_TOP_NAV</span></td>
+      <td><strong>भूमिका आधारित टॉप नेवबार</strong></td>
+      <td><span class="file-name">RoleTopNav.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H4</span></td>
+      <td><span class="keyword-badge">SESSION_AUTO_LOCK</span></td>
+      <td><strong>कोर्ट रूम प्राइवेसी ऑटो-लॉक</strong></td>
+      <td><span class="file-name">SessionAutoLockModal.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H5</span></td>
+      <td><span class="keyword-badge">OFFLINE_SYNC_BANNER</span></td>
+      <td><strong>ऑफलाइन नेटवर्क सिंक बार</strong></td>
+      <td><span class="file-name">OfflineNetworkSyncBanner.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H6</span></td>
+      <td><span class="keyword-badge">WATERMARK_OVERLAY</span></td>
+      <td><strong>एंटी-लीक सुरक्षा वाटरमार्क</strong></td>
+      <td><span class="file-name">SecureWatermarkOverlay.jsx</span></td>
+    </tr>
+    <tr>
+      <td><span class="code-badge" style="background-color:#475569;">H7</span></td>
+      <td><span class="keyword-badge">VAULT_STORAGE</span></td>
+      <td><strong>बैंक-ग्रेड वॉल्ट स्टोरेज</strong></td>
+      <td><span class="file-name">secureVaultStorageService.js</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="footer">
+  <strong>INTERNATIONAL CONSORTIUM OF JURISTS (ICJ)</strong> • All Rights Reserved © 2026<br>
+  Official Enterprise Scope Isolation & Codebook Specification
+</div>
+
+</body>
+</html>

@@ -38,6 +38,7 @@ import SmartCitationSelectorService from "../services/smartCitationSelectorServi
 import { DOCUMENT_SCHEMAS } from "../services/legalKnowledgeBase";
 import MainLayout from "../layouts/MainLayout";
 import useAuth from "../hooks/useAuth";
+import AutoSaveIndicator from "../components/common/AutoSaveIndicator.jsx";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar";
 
 function TabPanel(props) {
@@ -395,8 +396,8 @@ export default function LegalDrafter() {
   return (
     <>
       <Box sx={{ p: 3 }}>
-        {/* Header */}
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        {/* Header with Google Docs style AutoSave Indicator */}
+        <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", sm: "center" }} sx={{ mb: 3 }} gap={2}>
           <Stack direction="row" alignItems="center" spacing={2}>
             <SmartToyIcon color="primary" sx={{ fontSize: 40 }} />
             <Box>
@@ -408,6 +409,7 @@ export default function LegalDrafter() {
               </Typography>
             </Box>
           </Stack>
+          <AutoSaveIndicator isSaving={false} lastSavedTime={Date.now()} />
         </Stack>
 
         {/* Alert */}

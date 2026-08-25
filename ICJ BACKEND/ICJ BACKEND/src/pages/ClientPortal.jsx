@@ -38,6 +38,7 @@ import CallIcon from "@mui/icons-material/Call";
 import CameraDocumentScanner from "../components/common/CameraDocumentScanner.jsx";
 import VideoConsultationModal from "../components/common/VideoConsultationModal.jsx";
 import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
+import LiveCaseMilestoneTracker from "../components/common/LiveCaseMilestoneTracker.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
@@ -652,6 +653,16 @@ export default function ClientPortal() {
         </Stack>
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+
+        {/* 🚀 GOOGLE/UBER-GRADE LIVE CASE MILESTONE TRACKER */}
+        <LiveCaseMilestoneTracker
+          caseId={activePortalCaseId || "CASE-20260824-0001"}
+          cnrNumber={activeMasterCase?.cnr_number || "DLHC010089222026"}
+          courtName={activeMasterCase?.court_name || "Hon'ble High Court of Delhi (Court Room 14)"}
+          advocateName={activeMasterCase?.assigned_advocate?.advocate_name || "Adv. Vikramaditya Singh"}
+          nextHearingDate="28 Aug 2026 (10:30 AM)"
+          currentStageIndex={2}
+        />
 
         {/* Real-time Workspace Summary Cards */}
         <Grid container spacing={2} sx={{ mb: 2.5 }}>

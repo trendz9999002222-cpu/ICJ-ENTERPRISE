@@ -1,70 +1,80 @@
-import { Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LinearProgress } from "@mui/material";
 
 import ProtectedRoute from "./ProtectedRoute";
+import PublicLegalHomepage from "../pages/PublicLegalHomepage";
+import PublicOnboarding from "../pages/PublicOnboarding";
 import Login from "../pages/Login";
 import Recovery from "../pages/Recovery";
-
-import Membership from "../pages/Membership";
-import MemberDirectory from "../pages/MemberDirectory";
-import MemberVerification from "../pages/MemberVerification";
-import MemberDocuments from "../pages/MemberDocuments";
-import MemberWallet from "../pages/MemberWallet";
-import MemberKYC from "../pages/MemberKYC";
-import MemberIdentity from "../pages/MemberIdentity";
-import MemberCertificates from "../pages/MemberCertificates";
-import MemberHistory from "../pages/MemberHistory";
-import MemberActivity from "../pages/MemberActivity";
-import MemberSettings from "../pages/MemberSettings";
-import MemberCard from "../pages/MemberCard";
-import Documents from "../pages/Documents";
-import Wallet from "../pages/Wallet";
-import Token from "../pages/Token";
-import TokenExchange from "../pages/TokenExchange";
-import TokenGovernanceManual from "../pages/TokenGovernanceManual";
-import Campaigns from "../pages/Campaigns";
-import SubscriptionPlans from "../pages/SubscriptionPlans";
-import VirtualOffice from "../pages/VirtualOffice";
-import Donations from "../pages/Donations";
-import Settings from "../pages/Settings";
-import ActivityLog from "../pages/ActivityLog";
-import Transactions from "../pages/Transactions";
-import MemberProfile from "../pages/MemberProfile";
-import Legal from "../pages/Legal";
-import AIAssistant from "../pages/AIAssistant";
-import Research from "../pages/Research";
-import Administration from "../pages/Administration";
-import Notifications from "../pages/Notifications";
-import Reports from "../pages/Reports";
-import AdvocateResearchDirectory from "../components/admin/AdvocateResearchDirectory.jsx";
-import SystemSecurityCompliance from "../components/admin/SystemSecurityCompliance.jsx";
-import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
-
-import SuperAdminDashboard from "../pages/SuperAdminDashboard";
-import MemberPersonalDashboard from "../pages/MemberPersonalDashboard";
-import AdvocateDashboard from "../pages/AdvocateDashboard";
-import ClientPortal from "../pages/ClientPortal";
-import TrustDashboard from "../pages/TrustDashboard";
-import CourtCalendar from "../pages/CourtCalendar";
-import BillingInvoicing from "../pages/BillingInvoicing";
-import LegalDrafter from "../pages/LegalDrafter";
-import PaymentManagement from "../pages/PaymentManagement";
-import LocationMasterAdmin from "../pages/LocationMasterAdmin";
-import DatabaseConfig from "../pages/DatabaseConfig";
-import GovernanceCenter from "../pages/GovernanceCenter";
-import APIConfigCenter from "../pages/APIConfigCenter";
-import DeploymentCenter from "../pages/DeploymentCenter";
-import SystemHealth from "../pages/SystemHealth";
-import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
-
-import HelpdeskPortal from "../pages/HelpdeskPortal";
-import LegalCommunityFeed from "../pages/LegalCommunityFeed";
-import PublicOnboarding from "../pages/PublicOnboarding";
-import DemoLeadsPortal from "../pages/DemoLeadsPortal";
 import CertificateVerification from "../pages/CertificateVerification";
-import PublicLegalHomepage from "../pages/PublicLegalHomepage";
 import PublicCaseTracker from "../pages/PublicCaseTracker";
+
+// Lazy-loaded Authenticated / Heavy Dashboards for Ultra-Fast Initial Load
+const Membership = lazy(() => import("../pages/Membership"));
+const MemberDirectory = lazy(() => import("../pages/MemberDirectory"));
+const MemberVerification = lazy(() => import("../pages/MemberVerification"));
+const MemberDocuments = lazy(() => import("../pages/MemberDocuments"));
+const MemberWallet = lazy(() => import("../pages/MemberWallet"));
+const MemberKYC = lazy(() => import("../pages/MemberKYC"));
+const MemberIdentity = lazy(() => import("../pages/MemberIdentity"));
+const MemberCertificates = lazy(() => import("../pages/MemberCertificates"));
+const MemberHistory = lazy(() => import("../pages/MemberHistory"));
+const MemberActivity = lazy(() => import("../pages/MemberActivity"));
+const MemberSettings = lazy(() => import("../pages/MemberSettings"));
+const MemberCard = lazy(() => import("../pages/MemberCard"));
+const Documents = lazy(() => import("../pages/Documents"));
+const Wallet = lazy(() => import("../pages/Wallet"));
+const Token = lazy(() => import("../pages/Token"));
+const TokenExchange = lazy(() => import("../pages/TokenExchange"));
+const TokenGovernanceManual = lazy(() => import("../pages/TokenGovernanceManual"));
+const Campaigns = lazy(() => import("../pages/Campaigns"));
+const SubscriptionPlans = lazy(() => import("../pages/SubscriptionPlans"));
+const VirtualOffice = lazy(() => import("../pages/VirtualOffice"));
+const Donations = lazy(() => import("../pages/Donations"));
+const Settings = lazy(() => import("../pages/Settings"));
+const ActivityLog = lazy(() => import("../pages/ActivityLog"));
+const Transactions = lazy(() => import("../pages/Transactions"));
+const MemberProfile = lazy(() => import("../pages/MemberProfile"));
+const Legal = lazy(() => import("../pages/Legal"));
+const AIAssistant = lazy(() => import("../pages/AIAssistant"));
+const Research = lazy(() => import("../pages/Research"));
+const Administration = lazy(() => import("../pages/Administration"));
+const Notifications = lazy(() => import("../pages/Notifications"));
+const Reports = lazy(() => import("../pages/Reports"));
+const AdvocateResearchDirectory = lazy(() => import("../components/admin/AdvocateResearchDirectory.jsx"));
+const SystemSecurityCompliance = lazy(() => import("../components/admin/SystemSecurityCompliance.jsx"));
+const FeatureControlCenter = lazy(() => import("../components/admin/FeatureControlCenter.jsx"));
+
+const SuperAdminDashboard = lazy(() => import("../pages/SuperAdminDashboard"));
+const MemberPersonalDashboard = lazy(() => import("../pages/MemberPersonalDashboard"));
+const AdvocateDashboard = lazy(() => import("../pages/AdvocateDashboard"));
+const ClientPortal = lazy(() => import("../pages/ClientPortal"));
+const TrustDashboard = lazy(() => import("../pages/TrustDashboard"));
+const CourtCalendar = lazy(() => import("../pages/CourtCalendar"));
+const BillingInvoicing = lazy(() => import("../pages/BillingInvoicing"));
+const LegalDrafter = lazy(() => import("../pages/LegalDrafter"));
+const PaymentManagement = lazy(() => import("../pages/PaymentManagement"));
+const LocationMasterAdmin = lazy(() => import("../pages/LocationMasterAdmin"));
+const DatabaseConfig = lazy(() => import("../pages/DatabaseConfig"));
+const GovernanceCenter = lazy(() => import("../pages/GovernanceCenter"));
+const APIConfigCenter = lazy(() => import("../pages/APIConfigCenter"));
+const DeploymentCenter = lazy(() => import("../pages/DeploymentCenter"));
+const SystemHealth = lazy(() => import("../pages/SystemHealth"));
+
+const HelpdeskPortal = lazy(() => import("../pages/HelpdeskPortal"));
+const LegalCommunityFeed = lazy(() => import("../pages/LegalCommunityFeed"));
+const DemoLeadsPortal = lazy(() => import("../pages/DemoLeadsPortal"));
+
+// 6 UNIFIED MASTER HUBS
+const MemberOperationsHub = lazy(() => import("../pages/hubs/MemberOperationsHub"));
+const FinanceBillingHub = lazy(() => import("../pages/hubs/FinanceBillingHub"));
+const AILegalIntelligenceHub = lazy(() => import("../pages/hubs/AILegalIntelligenceHub"));
+const LegalCourtWorkspaceHub = lazy(() => import("../pages/hubs/LegalCourtWorkspaceHub"));
+const SystemAdminControlHub = lazy(() => import("../pages/hubs/SystemAdminControlHub"));
+const HelpdeskSupportHub = lazy(() => import("../pages/hubs/HelpdeskSupportHub"));
+
+import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 import useAuth from "../hooks/useAuth";
 
 function RootDashboard() {
@@ -128,6 +138,14 @@ export default function AppRouter() {
             </ProtectedRoute>
           )}
         />
+
+        {/* 6 UNIFIED MASTER COMMAND HUBS */}
+        <Route path="/membership-hub" element={<ProtectedRoute roles={["admin", "employee"]}><MemberOperationsHub /></ProtectedRoute>} />
+        <Route path="/legal-workspace" element={<ProtectedRoute><LegalCourtWorkspaceHub /></ProtectedRoute>} />
+        <Route path="/ai-legal-hub" element={<ProtectedRoute><AILegalIntelligenceHub /></ProtectedRoute>} />
+        <Route path="/finance-hub" element={<ProtectedRoute roles={["admin", "advocate"]}><FinanceBillingHub /></ProtectedRoute>} />
+        <Route path="/admin-control-hub" element={<ProtectedRoute roles={["admin", "super_admin"]}><SystemAdminControlHub /></ProtectedRoute>} />
+        <Route path="/support-hub" element={<ProtectedRoute><HelpdeskSupportHub /></ProtectedRoute>} />
 
         {/* Strict Air-Gapped Super Admin Dashboard */}
         <Route
