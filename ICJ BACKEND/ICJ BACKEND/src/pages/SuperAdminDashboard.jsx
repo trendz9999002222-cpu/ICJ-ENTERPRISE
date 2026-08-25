@@ -54,6 +54,7 @@ import FranchiseWorkflowService from "../services/franchiseWorkflowService.js";
 import RoleService from "../services/roleService.js";
 import CitizenWorkflowService from "../services/citizenWorkflowService.js";
 import audioAlertService from "../services/audioAlertService.js";
+import ModuleCodeDirectoryConsole from "../components/admin/ModuleCodeDirectoryConsole.jsx";
 import DutyRosterService from "../services/dutyRosterService.js";
 import PushNotificationService from "../services/pushNotificationService.js";
 import FeatureControlCenter from "../components/admin/FeatureControlCenter.jsx";
@@ -370,6 +371,9 @@ export default function SuperAdminDashboard() {
             version="v3.2.0"
           />
         </Box>
+
+        {/* 📑 1. MASTER MODULE CODE DIRECTORY CONSOLE (GROUPS A TO H) */}
+        <ModuleCodeDirectoryConsole />
 
         {/* 2. DE-CLUTTERED 4-METRIC EXECUTIVE HUB */}
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>

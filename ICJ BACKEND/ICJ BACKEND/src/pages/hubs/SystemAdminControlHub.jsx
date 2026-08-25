@@ -15,6 +15,7 @@ import StorageIcon from "@mui/icons-material/Storage";
 import ApiIcon from "@mui/icons-material/Api";
 import MonitorHeartIcon from "@mui/icons-material/MonitorHeart";
 import SettingsIcon from "@mui/icons-material/Settings";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 
 // Direct sub-modules
 import SuperAdminDashboard from "../SuperAdminDashboard.jsx";
@@ -29,9 +30,19 @@ import SystemHealth from "../SystemHealth.jsx";
 import ActivityLog from "../ActivityLog.jsx";
 import Settings from "../Settings.jsx";
 import Reports from "../Reports.jsx";
+import ModuleCodeDirectoryConsole from "../../components/admin/ModuleCodeDirectoryConsole.jsx";
 
 // ─── TABS WITH DISTINCT FROZEN SIGNATURE COLORS ─────────────────────────────
 const TABS = [
+  {
+    id: "codebook",
+    label: "📑 कोड डायरेक्टरी (A to H Codebook)",
+    icon: <MenuBookIcon />,
+    color: "#2563eb", // Royal Blue
+    bg: "#eff6ff",
+    border: "#3b82f6",
+    desc: "40+ मॉड्यूल्स की मास्टर अल्फ़ान्यूमेरिक कोड डायरेक्टरी (A1 to H7) एवं सिस्टम कीवर्ड्स",
+  },
   {
     id: "security",
     label: "🛡️ सुरक्षा व रोल्स (Security & RBAC)",
@@ -230,7 +241,9 @@ export default function SystemAdminControlHub() {
 
       {/* 3. TAB CONTENT PANELS */}
       <Box sx={{ borderTop: `2px dashed ${activeTabConfig.color}40`, pt: 2 }}>
-        {activeTab === 0 && (
+        {activeTab === 0 && <ModuleCodeDirectoryConsole />}
+
+        {activeTab === 1 && (
           <Stack spacing={3}>
             <SuperAdminDashboard />
             <Divider sx={{ my: 2 }} />
@@ -238,7 +251,7 @@ export default function SystemAdminControlHub() {
           </Stack>
         )}
 
-        {activeTab === 1 && (
+        {activeTab === 2 && (
           <Stack spacing={3}>
             <FeatureControlCenter />
             <Divider sx={{ my: 2 }} />
@@ -246,7 +259,7 @@ export default function SystemAdminControlHub() {
           </Stack>
         )}
 
-        {activeTab === 2 && (
+        {activeTab === 3 && (
           <Stack spacing={3}>
             <LocationMasterAdmin />
             <Divider sx={{ my: 2 }} />
@@ -254,7 +267,7 @@ export default function SystemAdminControlHub() {
           </Stack>
         )}
 
-        {activeTab === 3 && (
+        {activeTab === 4 && (
           <Stack spacing={3}>
             <APIConfigCenter />
             <Divider sx={{ my: 2 }} />
@@ -262,7 +275,7 @@ export default function SystemAdminControlHub() {
           </Stack>
         )}
 
-        {activeTab === 4 && (
+        {activeTab === 5 && (
           <Stack spacing={3}>
             <SystemHealth />
             <Divider sx={{ my: 2 }} />
@@ -270,7 +283,7 @@ export default function SystemAdminControlHub() {
           </Stack>
         )}
 
-        {activeTab === 5 && (
+        {activeTab === 6 && (
           <Stack spacing={3}>
             <Settings />
             <Divider sx={{ my: 2 }} />
