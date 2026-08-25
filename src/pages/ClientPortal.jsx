@@ -45,6 +45,7 @@ import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLe
 import OfflineStatuteNavigatorConsole from "../components/common/OfflineStatuteNavigatorConsole.jsx";
 import AllIndiaStatuteAndJudgmentsExplorerConsole from "../components/common/AllIndiaStatuteAndJudgmentsExplorerConsole.jsx";
 import RepealedActConcordanceNavigator from "../components/common/RepealedActConcordanceNavigator.jsx";
+import SemanticHyperlinkedBareActViewer from "../components/common/SemanticHyperlinkedBareActViewer.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -667,6 +668,9 @@ export default function ClientPortal() {
 
         {/* 🔄 REPEALED ACTS & OLD-VS-NEW CONCORDANCE NAVIGATOR [CODE G10] */}
         <RepealedActConcordanceNavigator />
+
+        {/* 🌐 WESTLAW-GRADE SEMANTIC LEGAL HYPERGRAPH VIEWER [CODE G9] */}
+        <SemanticHyperlinkedBareActViewer />
 
         {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
         <UniversalLegalCaseIngestionConsole />
