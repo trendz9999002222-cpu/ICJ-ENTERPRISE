@@ -35,6 +35,8 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import DynamicLegalComplianceEngine from "../services/dynamicLegalComplianceEngine.js";
+import SecurityIncidentBroadcasterService from "../services/securityIncidentBroadcasterService.js";
+import CircuitBreakerIsolationService from "../services/circuitBreakerIsolationService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 export default function DynamicLegalImmunityWatchdog() {
@@ -184,53 +186,163 @@ export default function DynamicLegalImmunityWatchdog() {
               </Box>
             </Stack>
 
-            <Stack spacing={1.5} sx={{ mt: 2 }}>
-              {engineState.unacknowledgedBreaches.map((breach) => (
-                <Paper
-                  key={breach.id}
-                  sx={{
-                    p: 2,
-                    borderRadius: "10px",
-                    bgcolor: "#ffffff",
-                    border: "2px solid #ef4444",
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    justifyContent: "space-between",
-                    alignItems: { xs: "flex-start", sm: "center" },
-                    gap: 1.5,
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={900} color="#7f1d1d">
-                      ⚠️ {breach.pillarName} — {breach.statute}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: "#991b1b", fontSize: "0.82rem", fontWeight: 700 }}>
-                      {breach.reason} (दर्ज समय: {new Date(breach.timestamp).toLocaleTimeString()})
-                    </Typography>
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleRestoreSecurity(breach.pillarId)}
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              {engineState.unacknowledgedBreaches.map((breach) => {
+                const solutionPkg = SecurityIncidentBroadcasterService.generateSolutionPackage(breach);
+                return (
+                  <Paper
+                    key={breach.id}
                     sx={{
-                      bgcolor: "#059669",
-                      color: "#ffffff",
-                      fontWeight: 900,
-                      borderRadius: "8px",
-                      textTransform: "none",
-                      px: 2,
-                      py: 1,
-                      "&:hover": { bgcolor: "#047857" },
+                      p: 2.5,
+                      borderRadius: "12px",
+                      bgcolor: "#ffffff",
+                      border: "2px solid #ef4444",
                     }}
                   >
-                    🛡️ सुरक्षा बहाल करें व हरा करें (Restore Security)
-                  </Button>
-                </Paper>
-              ))}
+                    <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems="flex-start" spacing={2} sx={{ mb: 1.5 }}>
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight={900} color="#7f1d1d">
+                          ⚠️ {breach.pillarName} — {breach.statute}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#991b1b", fontWeight: 700 }}>
+                          🛑 समस्या (Root Cause): {breach.reason} (दर्ज समय: {new Date(breach.timestamp).toLocaleTimeString()})
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleRestoreSecurity(breach.pillarId)}
+                        sx={{
+                          bgcolor: "#059669",
+                          color: "#ffffff",
+                          fontWeight: 900,
+                          borderRadius: "8px",
+                          textTransform: "none",
+                          px: 2.5,
+                          py: 1,
+                          flexShrink: 0,
+                          "&:hover": { bgcolor: "#047857" },
+                        }}
+                      >
+                        🛡️ सुरक्षा बहाल करें व हरा करें (Restore Security)
+                      </Button>
+                    </Stack>
+
+                    {/* SOLUTION SOP */}
+                    <Box sx={{ p: 1.5, borderRadius: "8px", bgcolor: "#fff1f2", border: "1px dashed #fca5a5", mb: 1.5 }}>
+                      <Typography variant="caption" fontWeight={900} color="#991b1b" sx={{ display: "block", mb: 0.5 }}>
+                        💡 1-मिनट समाधान निर्देश (Solution SOP):
+                      </Typography>
+                      {solutionPkg.solutionSteps.map((step, idx) => (
+                        <Typography key={idx} variant="caption" sx={{ color: "#7f1d1d", display: "block", fontWeight: 600 }}>
+                          • {step}
+                        </Typography>
+                      ))}
+                    </Box>
+
+                    {/* 🤖 1-CLICK ANTIGRAVITY AI PROMPT */}
+                    <Box sx={{ p: 1.5, borderRadius: "8px", bgcolor: "#0f172a", color: "#f8fafc" }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                        <Typography variant="caption" fontWeight={900} sx={{ color: "#38bdf8" }}>
+                          🤖 एंटी-ग्रेविटी AI एजेंट प्रॉम्प्ट (Ready-to-Paste Antigravity Prompt):
+                        </Typography>
+                        <Button
+                          size="small"
+                          onClick={() => {
+                            navigator.clipboard.writeText(solutionPkg.antigravityPrompt);
+                            alert("📋 एंटी-ग्रेविटी AI प्रॉम्प्ट क्लिपबोर्ड पर कॉपी हो गया है! इसे सीधे चैट में पेस्ट करें।");
+                          }}
+                          sx={{ color: "#38bdf8", fontSize: "0.68rem", fontWeight: 900, textTransform: "none", p: 0 }}
+                        >
+                          📋 AI प्रॉम्प्ट कॉपी करें (Copy Prompt)
+                        </Button>
+                      </Stack>
+                      <Typography variant="caption" sx={{ fontFamily: "monospace", color: "#cbd5e1", display: "block" }}>
+                        "{solutionPkg.antigravityPrompt}"
+                      </Typography>
+                    </Box>
+                  </Paper>
+                );
+              })}
             </Stack>
           </Paper>
         )}
+
+        {/* 🔒 CIRCUIT BREAKER & EMERGENCY MULTI-CHANNEL DISPATCHER GRID */}
+        <Grid container spacing={2.5} sx={{ mb: 3.5 }}>
+          {/* CARD 1: CIRCUIT BREAKER STATUS */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={0} sx={{ p: 2.5, borderRadius: "16px", bgcolor: "#ffffff", border: "1.5px solid #e2e8f0", height: "100%" }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+                <ShieldIcon sx={{ color: CircuitBreakerIsolationService.getState().active ? "#ef4444" : "#059669", fontSize: 28 }} />
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={900} color="#0f172a">
+                    🛑 ऑटो-सर्किट ब्रेकर स्थिति (Compartmentalized Isolation)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700 }}>
+                    रेड अलर्ट आने पर 3 हाई-रिस्क पोर्शन्स स्वतः लॉक हो जाते हैं।
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Grid container spacing={1.5} sx={{ mt: 0.5 }}>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: CircuitBreakerIsolationService.isSignupAllowed() ? "#ecfdf5" : "#fef2f2", border: `1px solid ${CircuitBreakerIsolationService.isSignupAllowed() ? "#10b981" : "#ef4444"}` }}>
+                    <Typography variant="caption" fontWeight={900} display="block">ऑनबोर्डिंग (/join)</Typography>
+                    <Chip label={CircuitBreakerIsolationService.isSignupAllowed() ? "🟢 OPEN" : "🛑 FROZEN"} size="small" sx={{ fontWeight: 900, fontSize: "0.62rem", mt: 0.5 }} />
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: CircuitBreakerIsolationService.isFileUploadAllowed() ? "#ecfdf5" : "#fef2f2", border: `1px solid ${CircuitBreakerIsolationService.isFileUploadAllowed() ? "#10b981" : "#ef4444"}` }}>
+                    <Typography variant="caption" fontWeight={900} display="block">अपलोड (/docs)</Typography>
+                    <Chip label={CircuitBreakerIsolationService.isFileUploadAllowed() ? "🟢 OPEN" : "🛑 READ-ONLY"} size="small" sx={{ fontWeight: 900, fontSize: "0.62rem", mt: 0.5 }} />
+                  </Paper>
+                </Grid>
+                <Grid item xs={4}>
+                  <Paper sx={{ p: 1.5, textAlign: "center", bgcolor: CircuitBreakerIsolationService.isFinanceAllowed() ? "#ecfdf5" : "#fef2f2", border: `1px solid ${CircuitBreakerIsolationService.isFinanceAllowed() ? "#10b981" : "#ef4444"}` }}>
+                    <Typography variant="caption" fontWeight={900} display="block">वॉलेट (/wallet)</Typography>
+                    <Chip label={CircuitBreakerIsolationService.isFinanceAllowed() ? "🟢 OPEN" : "🛑 LOCKED"} size="small" sx={{ fontWeight: 900, fontSize: "0.62rem", mt: 0.5 }} />
+                  </Paper>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Grid>
+
+          {/* CARD 2: EMERGENCY ALERT BROADCASTER (3-4 PHONES & 3-4 EMAILS) */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={0} sx={{ p: 2.5, borderRadius: "16px", bgcolor: "#ffffff", border: "1.5px solid #e2e8f0", height: "100%" }}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={900} color="#0f172a">
+                    🚨 सार्वभौमिक अलर्ट डायरेक्टरी (SMS / Email / WhatsApp)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700 }}>
+                    सभी प्रकार के अलर्ट्स 4 फोन नंबरों और 4 ईमेल्स पर तुरंत जाते हैं।
+                  </Typography>
+                </Box>
+
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    SecurityIncidentBroadcasterService.sendTestBroadcast();
+                    alert("🧪 टेस्ट इमरजेंसी अलर्ट 4 फोन नंबरों (SMS/WA) और 4 ईमेल्स पर सफलतापूर्वक प्रेषित कर दिया गया है!");
+                  }}
+                  sx={{ fontWeight: 800, fontSize: "0.7rem", borderRadius: "8px", textTransform: "none", color: "#0284c7" }}
+                >
+                  🧪 टेस्ट SOS अलर्ट भेजें
+                </Button>
+              </Stack>
+
+              <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                <Chip label="📱 4 Phones (SMS/WA)" size="small" sx={{ bgcolor: "#f0fdf4", color: "#166534", fontWeight: 800, border: "1px solid #86efac" }} />
+                <Chip label="✉️ 4 Official Emails" size="small" sx={{ bgcolor: "#f0f9ff", color: "#0369a1", fontWeight: 800, border: "1px solid #7dd3fc" }} />
+                <Chip label="⚡ Instant Auto-Dispatch" size="small" sx={{ bgcolor: "#faf5ff", color: "#6b21a8", fontWeight: 800, border: "1px solid #d8b4fe" }} />
+              </Stack>
+            </Paper>
+          </Grid>
+        </Grid>
 
         {/* 🟢 2. FORTRESS CERTIFICATION BADGE */}
         {isAllFortressSafe && (

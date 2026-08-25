@@ -5,6 +5,9 @@
  * official Legal Immunity White Paper, and triggers un-dismissible BOLD RED ALERTS upon security degradation.
  */
 
+import SecurityIncidentBroadcasterService from "./securityIncidentBroadcasterService.js";
+import CircuitBreakerIsolationService from "./circuitBreakerIsolationService.js";
+
 const STORAGE_KEY = "icj_dynamic_legal_compliance_state";
 const CUSTOM_STATUTES_KEY = "icj_custom_legal_statutes";
 
@@ -132,6 +135,7 @@ export const DynamicLegalComplianceEngine = {
           pillarId,
           pillarName: state.pillars[pillarIndex].name,
           statute: state.pillars[pillarIndex].statute,
+          category: state.pillars[pillarIndex].category || "LEGAL_COMPLIANCE",
           timestamp: new Date().toISOString(),
           reason: breachReason || `सुरक्षा में गिरावट: ${state.pillars[pillarIndex].name} में खामी आई है। जब तक सुरक्षा बहाल नहीं होगी, यह लाल रहेगा।`,
           status: "LOCKED_RED_UNTIL_FIXED",
@@ -139,11 +143,26 @@ export const DynamicLegalComplianceEngine = {
         ...state.unacknowledgedBreaches.filter((b) => b.pillarId !== pillarId),
       ];
       state.pillars[pillarIndex].isNewGreenAddition = false;
+
+      // 🚨 AUTOMATIC MULTI-CHANNEL DISPATCH TO 3-4 PHONES & 3-4 EMAILS
+      SecurityIncidentBroadcasterService.dispatchIncidentAlert({
+        category: state.pillars[pillarIndex].category || "LEGAL_COMPLIANCE",
+        title: `🔴 वैधानिक सुरक्षा विसंगति: ${state.pillars[pillarIndex].name}`,
+        details: `कानून व धारा: ${state.pillars[pillarIndex].statute}. ${breachReason || "सुरक्षा पिलर में गिरावट दर्ज की गई।"}`,
+      });
+
+      // 🛑 AUTOMATIC CIRCUIT BREAKER TRIP (FREEZE 3 HIGH-RISK PORTIONS)
+      CircuitBreakerIsolationService.tripCircuitBreaker(`Breach on ${state.pillars[pillarIndex].name}`);
     } else {
       // Security has been actively fixed and re-armed -> turn GREEN
       state.unacknowledgedBreaches = state.unacknowledgedBreaches.filter((b) => b.pillarId !== pillarId);
       state.pillars[pillarIndex].isNewGreenAddition = true;
       state.pillars[pillarIndex].restoredAt = new Date().toISOString();
+
+      // If all pillars are active, restore normal circuit breaker operations
+      if (state.pillars.every((p) => p.active)) {
+        CircuitBreakerIsolationService.restoreNormalOperations();
+      }
     }
 
     this.saveState(state);
