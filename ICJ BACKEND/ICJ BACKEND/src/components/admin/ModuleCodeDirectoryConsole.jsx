@@ -129,6 +129,7 @@ export const MASTER_MODULE_GROUPS = [
       { code: "G6", keyword: "MULTI_MODAL_INGESTION", name: "सार्वभौमिक केस अंतर्ग्रहण व क्रोनो-जिस्ट", file: "UniversalLegalCaseIngestionConsole.jsx", route: "/client-portal#ingestion" },
       { code: "G7", keyword: "OFFLINE_STATUTE_MATRIX", name: "2,000+ कानून संप्रभु ज्ञानकोश व पक्ष-विपक्ष", file: "OfflineStatuteNavigatorConsole.jsx", route: "/client-portal#statute-matrix" },
       { code: "G8", keyword: "BARE_ACTS_AND_CITATIONS", name: "1836-2026 बेयर एक्ट्स व सुप्रीम कोर्ट नज़ीरें", file: "AllIndiaStatuteAndJudgmentsExplorerConsole.jsx", route: "/client-portal#bare-acts-citations" },
+      { code: "G10", keyword: "REPEALED_ACTS_CONCORDANCE", name: "निरसित कानून व पुराना vs नया कनवर्टर", file: "RepealedActConcordanceNavigator.jsx", route: "/client-portal#repealed-concordance" },
     ],
   },
   {

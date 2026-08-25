@@ -44,6 +44,7 @@ import AdvocateClientLocationRadar from "../components/common/AdvocateClientLoca
 import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLegalCaseIngestionConsole.jsx";
 import OfflineStatuteNavigatorConsole from "../components/common/OfflineStatuteNavigatorConsole.jsx";
 import AllIndiaStatuteAndJudgmentsExplorerConsole from "../components/common/AllIndiaStatuteAndJudgmentsExplorerConsole.jsx";
+import RepealedActConcordanceNavigator from "../components/common/RepealedActConcordanceNavigator.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -663,6 +664,9 @@ export default function ClientPortal() {
 
         {/* 📜 1836-2026 BARE ACTS & LANDMARK SUPREME COURT CITATIONS REPOSITORY [CODE G8] */}
         <AllIndiaStatuteAndJudgmentsExplorerConsole />
+
+        {/* 🔄 REPEALED ACTS & OLD-VS-NEW CONCORDANCE NAVIGATOR [CODE G10] */}
+        <RepealedActConcordanceNavigator />
 
         {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
         <UniversalLegalCaseIngestionConsole />
