@@ -41,6 +41,7 @@ import AudioConsultationModal from "../components/common/AudioConsultationModal.
 import LiveCaseMilestoneTracker from "../components/common/LiveCaseMilestoneTracker.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
 import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
+import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLegalCaseIngestionConsole.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -654,6 +655,9 @@ export default function ClientPortal() {
         </Stack>
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+
+        {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
+        <UniversalLegalCaseIngestionConsole />
 
         {/* 📍 CLIENT-ADVOCATE MUTUAL LIVE COURT RENDEZVOUS RADAR */}
         <AdvocateClientLocationRadar role="client" />

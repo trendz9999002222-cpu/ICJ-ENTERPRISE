@@ -126,6 +126,7 @@ export const MASTER_MODULE_GROUPS = [
       { code: "G3", keyword: "AUTH_LOGIN", name: "सुरक्षित लॉगिन पोर्टल", file: "Login.jsx", route: "/login" },
       { code: "G4", keyword: "PUBLIC_CASE_TRACKER", name: "सार्वजनिक केस ट्रैकर", file: "PublicCaseTracker.jsx", route: "/track-case" },
       { code: "G5", keyword: "JUDICIAL_NETWORK", name: "5-स्तरीय न्यायिक नेटवर्क", file: "JudicialForumsNetworkCard.jsx", route: "/legal-workspace" },
+      { code: "G6", keyword: "MULTI_MODAL_INGESTION", name: "सार्वभौमिक केस अंतर्ग्रहण व क्रोनो-जिस्ट", file: "UniversalLegalCaseIngestionConsole.jsx", route: "/client-portal#ingestion" },
     ],
   },
   {
