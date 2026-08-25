@@ -65,10 +65,10 @@ export default function DynamicLegalImmunityWatchdog() {
     refreshState();
   };
 
-  const handleAcknowledge = (breachId) => {
-    DynamicLegalComplianceEngine.acknowledgeBreach(breachId);
+  const handleRestoreSecurity = (pillarId) => {
+    DynamicLegalComplianceEngine.restorePillarSecurity(pillarId);
     refreshState();
-    alert("✅ सुरक्षा समीक्षा दर्ज की गई। सिस्टम स्थिति पुनः अद्यतित कर दी गई है।");
+    alert("🟢 सुरक्षा इंतज़ाम 100% बहाल कर दिया गया है! विधिक स्तंभ पुनः हरे (GREEN) रंग में प्रमाणित हो गया है।");
   };
 
   const handleAddCustomStatute = () => {
@@ -80,7 +80,7 @@ export default function DynamicLegalImmunityWatchdog() {
     setNewStatute({ actName: "", section: "", jurisdiction: "भारत (India)", legalBenefit: "" });
     setAddModalOpen(false);
     refreshState();
-    alert("🎉 नई कानूनी धारा सफलतापूर्वक लाइव व्हाइट पेपर में जोड़ दी गई है!");
+    alert("🎉 नई कानूनी धारा सफलतापूर्वक हरे रंग (GREEN) में लाइव व्हाइट पेपर में जोड़ दी गई है!");
   };
 
   const downloadLiveDoc = () => {
@@ -143,9 +143,9 @@ export default function DynamicLegalImmunityWatchdog() {
               size="small"
               startIcon={<AddCircleIcon />}
               onClick={() => setAddModalOpen(true)}
-              sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#0284c7", color: "#0284c7" }}
+              sx={{ fontWeight: 800, textTransform: "none", borderRadius: "10px", borderColor: "#059669", color: "#059669", bgcolor: "#ecfdf5" }}
             >
-              ➕ नई धारा जोड़ें (Add Statute)
+              ➕ नई धारा जोड़ें (Add Statute - Green)
             </Button>
             <Button
               variant="contained"
@@ -159,7 +159,7 @@ export default function DynamicLegalImmunityWatchdog() {
           </Stack>
         </Stack>
 
-        {/* 🚨 1. BOLD RED PERMANENT ALERT BANNER (If any pillar is degraded/breached) */}
+        {/* 🚨 1. BOLD RED PERMANENT ALERT BANNER (Stays strictly RED until security is restored) */}
         {engineState.unacknowledgedBreaches.length > 0 && (
           <Paper
             elevation={0}
@@ -176,10 +176,10 @@ export default function DynamicLegalImmunityWatchdog() {
               <WarningAmberIcon sx={{ color: "#dc2626", fontSize: 32 }} />
               <Box>
                 <Typography variant="h6" fontWeight={900} color="#991b1b">
-                  🔴 महत्वपूर्ण वैधानिक व सुरक्षा चेतावनी (CRITICAL COMPLIANCE BREACH ACTIVE)
+                  🔴 महत्वपूर्ण वैधानिक व सुरक्षा चेतावनी (LOCKED RED ALERT)
                 </Typography>
                 <Typography variant="caption" sx={{ color: "#b91c1c", fontWeight: 800 }}>
-                  जब तक सुपर एडमिन इसे पढ़कर स्वीकृत (Acknowledge) नहीं करेगा, यह लाल चेतावनी सक्रिय रहेगी।
+                  जब तक इसका सिक्योरिटी इंतज़ाम ठीक नहीं कर दिया जाता, तब तक यह लाल ही रहेगा।
                 </Typography>
               </Box>
             </Stack>
@@ -192,7 +192,7 @@ export default function DynamicLegalImmunityWatchdog() {
                     p: 2,
                     borderRadius: "10px",
                     bgcolor: "#ffffff",
-                    border: "1.5px solid #f87171",
+                    border: "2px solid #ef4444",
                     display: "flex",
                     flexDirection: { xs: "column", sm: "row" },
                     justifyContent: "space-between",
@@ -204,7 +204,7 @@ export default function DynamicLegalImmunityWatchdog() {
                     <Typography variant="subtitle2" fontWeight={900} color="#7f1d1d">
                       ⚠️ {breach.pillarName} — {breach.statute}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: "#991b1b", fontSize: "0.82rem" }}>
+                    <Typography variant="body2" sx={{ color: "#991b1b", fontSize: "0.82rem", fontWeight: 700 }}>
                       {breach.reason} (दर्ज समय: {new Date(breach.timestamp).toLocaleTimeString()})
                     </Typography>
                   </Box>
@@ -212,17 +212,19 @@ export default function DynamicLegalImmunityWatchdog() {
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => handleAcknowledge(breach.id)}
+                    onClick={() => handleRestoreSecurity(breach.pillarId)}
                     sx={{
-                      bgcolor: "#dc2626",
+                      bgcolor: "#059669",
                       color: "#ffffff",
                       fontWeight: 900,
                       borderRadius: "8px",
                       textTransform: "none",
-                      "&:hover": { bgcolor: "#b91c1c" },
+                      px: 2,
+                      py: 1,
+                      "&:hover": { bgcolor: "#047857" },
                     }}
                   >
-                    ✓ मैंने पढ़ लिया व ठीक कर दिया (Acknowledge & Resolve)
+                    🛡️ सुरक्षा बहाल करें व हरा करें (Restore Security)
                   </Button>
                 </Paper>
               ))}
@@ -323,30 +325,37 @@ export default function DynamicLegalImmunityWatchdog() {
           ))}
         </Grid>
 
-        {/* 4. DYNAMIC INJECTED CUSTOM STATUTES LIST */}
+        {/* 4. DYNAMIC INJECTED CUSTOM STATUTES LIST (Vibrant Emerald Green) */}
         {engineState.customStatutes.length > 0 && (
-          <Paper elevation={0} sx={{ p: 3, borderRadius: "18px", bgcolor: "#ffffff", border: "1.5px solid #e2e8f0", mb: 4 }}>
-            <Typography variant="h6" fontWeight={900} color="#0f172a" sx={{ mb: 2 }}>
-              📜 एडमिन द्वारा जोड़ी गई विशेष कानूनी धाराएं (Custom Injected Statutes):
-            </Typography>
+          <Paper elevation={0} sx={{ p: 3, borderRadius: "18px", bgcolor: "#ecfdf5", border: "2px solid #10b981", mb: 4 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+              <CheckCircleIcon sx={{ color: "#059669", fontSize: 26 }} />
+              <Typography variant="h6" fontWeight={900} color="#065f46">
+                🟢 नव-संवर्धित विधिक सुरक्षा धाराएं (Newly Enhanced Legal Statutes - ACTIVE GREEN):
+              </Typography>
+            </Stack>
             <Table size="small">
               <TableHead>
-                <TableRow sx={{ "& th": { fontWeight: 900, color: "#0f172a" } }}>
+                <TableRow sx={{ "& th": { fontWeight: 900, color: "#064e3b", borderColor: "#a7f3d0" } }}>
                   <TableCell>अधिनियम (Act Name)</TableCell>
                   <TableCell>धारा (Section)</TableCell>
                   <TableCell>क्षेत्राधिकार (Jurisdiction)</TableCell>
                   <TableCell>विधिक लाभ व सुरक्षा (Legal Immunity Benefit)</TableCell>
+                  <TableCell>सुरक्षा स्थिति</TableCell>
                   <TableCell>जोड़ने का समय</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {engineState.customStatutes.map((cs) => (
-                  <TableRow key={cs.id}>
-                    <TableCell sx={{ fontWeight: 800, color: "#0284c7" }}>{cs.actName}</TableCell>
-                    <TableCell sx={{ fontWeight: 800 }}>{cs.section}</TableCell>
-                    <TableCell>{cs.jurisdiction}</TableCell>
-                    <TableCell>{cs.legalBenefit}</TableCell>
-                    <TableCell sx={{ fontSize: "0.75rem", color: "#64748b" }}>{new Date(cs.addedAt).toLocaleDateString()}</TableCell>
+                  <TableRow key={cs.id} sx={{ bgcolor: "#ffffff" }}>
+                    <TableCell sx={{ fontWeight: 800, color: "#047857", borderColor: "#a7f3d0" }}>{cs.actName}</TableCell>
+                    <TableCell sx={{ fontWeight: 900, borderColor: "#a7f3d0" }}>{cs.section}</TableCell>
+                    <TableCell sx={{ borderColor: "#a7f3d0" }}>{cs.jurisdiction}</TableCell>
+                    <TableCell sx={{ borderColor: "#a7f3d0", fontWeight: 700, color: "#065f46" }}>{cs.legalBenefit}</TableCell>
+                    <TableCell sx={{ borderColor: "#a7f3d0" }}>
+                      <Chip label="🟢 संवर्धित व सक्रिय" size="small" sx={{ bgcolor: "#d1fae5", color: "#047857", fontWeight: 900, fontSize: "0.68rem" }} />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.75rem", color: "#64748b", borderColor: "#a7f3d0" }}>{new Date(cs.addedAt).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

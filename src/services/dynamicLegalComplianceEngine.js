@@ -124,8 +124,8 @@ export const DynamicLegalComplianceEngine = {
     state.pillars[pillarIndex].active = activeStatus;
 
     if (!activeStatus) {
-      // Trigger Bold Red Breach Alert
-      const breachId = `BREACH-${pillarId}-${Date.now()}`;
+      // Trigger Permanent Bold Red Breach Alert (stays RED until security is restored)
+      const breachId = `BREACH-${pillarId}`;
       state.unacknowledgedBreaches = [
         {
           id: breachId,
@@ -133,14 +133,17 @@ export const DynamicLegalComplianceEngine = {
           pillarName: state.pillars[pillarIndex].name,
           statute: state.pillars[pillarIndex].statute,
           timestamp: new Date().toISOString(),
-          reason: breachReason || `सुरक्षा में गिरावट: ${state.pillars[pillarIndex].name} निष्क्रिय हो गया है।`,
-          status: "UNACKNOWLEDGED_RED",
+          reason: breachReason || `सुरक्षा में गिरावट: ${state.pillars[pillarIndex].name} में खामी आई है। जब तक सुरक्षा बहाल नहीं होगी, यह लाल रहेगा।`,
+          status: "LOCKED_RED_UNTIL_FIXED",
         },
         ...state.unacknowledgedBreaches.filter((b) => b.pillarId !== pillarId),
       ];
+      state.pillars[pillarIndex].isNewGreenAddition = false;
     } else {
-      // Remove unacknowledged breach for this pillar
+      // Security has been actively fixed and re-armed -> turn GREEN
       state.unacknowledgedBreaches = state.unacknowledgedBreaches.filter((b) => b.pillarId !== pillarId);
+      state.pillars[pillarIndex].isNewGreenAddition = true;
+      state.pillars[pillarIndex].restoredAt = new Date().toISOString();
     }
 
     this.saveState(state);
@@ -148,17 +151,14 @@ export const DynamicLegalComplianceEngine = {
   },
 
   /**
-   * Super Admin acknowledges and resolves a red breach alert
+   * Actively fixes and restores security for a pillar, clearing the red alert and making it green
    */
-  acknowledgeBreach(breachId, adminNote = "समीक्षा पूर्ण व सुरक्षा पुनः प्रमाणित की गई।") {
-    const state = this.getState();
-    state.unacknowledgedBreaches = state.unacknowledgedBreaches.filter((b) => b.id !== breachId);
-    this.saveState(state);
-    return state;
+  restorePillarSecurity(pillarId) {
+    return this.togglePillar(pillarId, true);
   },
 
   /**
-   * Adds a custom legal statute / section rule dynamically injected by Admin
+   * Adds a custom legal statute / section rule dynamically injected by Admin (Marked as Vibrant Green)
    */
   addCustomStatute(statuteData) {
     if (typeof window === "undefined") return;
@@ -172,6 +172,8 @@ export const DynamicLegalComplianceEngine = {
         section: statuteData.section || "धारा",
         jurisdiction: statuteData.jurisdiction || "भारत (India)",
         legalBenefit: statuteData.legalBenefit || "सॉफ़्टवेयर के लिए अतिरिक्त विधिक सुरक्षा व इम्युनिटी",
+        isNewGreenAddition: true,
+        status: "GREEN_ENHANCED",
         addedAt: new Date().toISOString(),
       };
 
