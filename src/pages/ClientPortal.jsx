@@ -40,6 +40,7 @@ import VideoConsultationModal from "../components/common/VideoConsultationModal.
 import AudioConsultationModal from "../components/common/AudioConsultationModal.jsx";
 import LiveCaseMilestoneTracker from "../components/common/LiveCaseMilestoneTracker.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
+import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -653,6 +654,9 @@ export default function ClientPortal() {
         </Stack>
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
+
+        {/* 📍 CLIENT-ADVOCATE MUTUAL LIVE COURT RENDEZVOUS RADAR */}
+        <AdvocateClientLocationRadar role="client" />
 
         {/* 🚀 GOOGLE/UBER-GRADE LIVE CASE MILESTONE TRACKER */}
         <LiveCaseMilestoneTracker

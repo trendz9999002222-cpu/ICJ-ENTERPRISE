@@ -50,6 +50,7 @@ import AiLegalConsultationService from "../services/aiLegalConsultationService.j
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import MainLayout from "../layouts/MainLayout.jsx";
 import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
+import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
 import useAuth from "../hooks/useAuth.js";
 import MatterCommunicationService from "../services/matterCommunicationService.js";
 import MatterTimelineService from "../services/matterTimelineService.js";
@@ -331,6 +332,9 @@ export default function AdvocateDashboard() {
             }}
           />
         </Stack>
+
+        {/* 📍 CLIENT-ADVOCATE MUTUAL LIVE COURT RENDEZVOUS RADAR */}
+        <AdvocateClientLocationRadar role="advocate" />
 
         {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
 
