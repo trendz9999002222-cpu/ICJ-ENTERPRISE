@@ -43,6 +43,7 @@ import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJu
 import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
 import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLegalCaseIngestionConsole.jsx";
 import OfflineStatuteNavigatorConsole from "../components/common/OfflineStatuteNavigatorConsole.jsx";
+import AllIndiaStatuteAndJudgmentsExplorerConsole from "../components/common/AllIndiaStatuteAndJudgmentsExplorerConsole.jsx";
 import LanguageService, { useLanguage } from "../services/languageService.js";
 import SendIcon from "@mui/icons-material/Send";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
@@ -659,6 +660,9 @@ export default function ClientPortal() {
 
         {/* 🏛️ 2,000+ ACTS OFFLINE SOVEREIGN KNOWLEDGE MATRIX & JUDICIAL BRAIN [CODE G7] */}
         <OfflineStatuteNavigatorConsole />
+
+        {/* 📜 1836-2026 BARE ACTS & LANDMARK SUPREME COURT CITATIONS REPOSITORY [CODE G8] */}
+        <AllIndiaStatuteAndJudgmentsExplorerConsole />
 
         {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
         <UniversalLegalCaseIngestionConsole />
