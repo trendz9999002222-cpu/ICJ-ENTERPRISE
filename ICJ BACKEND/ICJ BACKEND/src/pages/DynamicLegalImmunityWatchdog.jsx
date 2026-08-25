@@ -41,6 +41,7 @@ import WebPushNotificationService from "../services/webPushNotificationService.j
 import WebAudioSirenService from "../services/webAudioSirenService.js";
 import LegalChangeAuditService from "../services/legalChangeAuditService.js";
 import SystemTimeMachineRollbackConsole from "../components/admin/SystemTimeMachineRollbackConsole.jsx";
+import PredictiveEarlyWarningConsole from "../components/admin/PredictiveEarlyWarningConsole.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
 
 export default function DynamicLegalImmunityWatchdog() {
@@ -581,10 +582,13 @@ export default function DynamicLegalImmunityWatchdog() {
           </Table>
         </Paper>
 
-        {/* 6. ⏱️ 8-DAY VISUAL TIME MACHINE & RESTORE POINT CONSOLE [CODE F8] */}
+        {/* 6. 🔮 PREDICTIVE EARLY-WARNING & PROACTIVE THRESHOLD HUB [CODE F9] */}
+        <PredictiveEarlyWarningConsole />
+
+        {/* 7. ⏱️ 8-DAY VISUAL TIME MACHINE & RESTORE POINT CONSOLE [CODE F8] */}
         <SystemTimeMachineRollbackConsole />
 
-        {/* 7. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
+        {/* 8. LIVE SELF-EVOLVING WHITE PAPER PREVIEW CONTAINER */}
         <Paper
           elevation={0}
           sx={{
