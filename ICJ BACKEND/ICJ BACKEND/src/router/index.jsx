@@ -130,10 +130,12 @@ export default function AppRouter() {
         <Route path="/recovery" element={<Recovery />} />
         <Route path="/verify" element={<CertificateVerification />} />
         <Route path="/certificate-verify" element={<CertificateVerification />} />
+        <Route path="/verify-certificate" element={<CertificateVerification />} />
         <Route path="/track-case" element={<PublicCaseTracker />} />
         <Route path="/track" element={<Navigate to="/track-case" replace />} />
         <Route path="/case-status" element={<Navigate to="/track-case" replace />} />
         <Route path="/statutory-intermediary-terms" element={<SovereignIntermediaryTerms />} />
+        <Route path="/terms" element={<Navigate to="/statutory-intermediary-terms" replace />} />
         <Route path="/intermediary-terms" element={<Navigate to="/statutory-intermediary-terms" replace />} />
         <Route path="/legal-immunity" element={<Navigate to="/statutory-intermediary-terms" replace />} />
 

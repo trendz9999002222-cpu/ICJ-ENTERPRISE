@@ -7,15 +7,32 @@ const HISTORY_STORAGE_KEY = "icj_password_history";
 export const DEFAULT_PASSWORD_POLICY = {
   minLength: 8,
   maxLength: 128,
-  requireAlphabet: true,
-  requireNumber: true,
-  requireSpecialChar: true,
+  requireAlphabet: false,
+  requireNumber: false,
+  requireSpecialChar: false,
   passwordExpiryDays: 999999,
-  failedLoginLockout: true,
+  failedLoginLockout: false,
   maxLoginAttempts: 5,
   forcePasswordChange: false,
   passwordHistoryCount: 5,
 };
+
+/**
+ * Generate standard default password for member:
+ * First 3 letters of name (TitleCase) + 12345 (Total 8 characters)
+ * e.g., "Rahul Sharma" -> "Rah12345", "Amit" -> "Ami12345"
+ */
+export function generateMemberDefaultPassword(fullName = "Member") {
+  const clean = String(fullName || "Member").replace(/[^a-zA-Z0-9]/g, "");
+  let prefix = clean.slice(0, 3);
+  if (prefix.length === 0) prefix = "Mem";
+  else if (prefix.length === 1) prefix = `${prefix}00`;
+  else if (prefix.length === 2) prefix = `${prefix}0`;
+  
+  // TitleCase: First letter uppercase, rest lowercase if letters
+  prefix = prefix.charAt(0).toUpperCase() + prefix.slice(1).toLowerCase();
+  return `${prefix}12345`;
+}
 
 // Synchronous SHA-256 string hash implementation for fast, reliable client/server execution
 export function hashPasswordSync(text = "") {
@@ -201,6 +218,10 @@ export const PasswordPolicyService = {
     const newHash = this.hashPassword(newPassword);
     const history = this.getPasswordHistory(userId);
     return history.includes(newHash);
+  },
+
+  generateMemberDefaultPassword(fullName = "Member") {
+    return generateMemberDefaultPassword(fullName);
   },
 };
 
