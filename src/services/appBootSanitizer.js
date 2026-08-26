@@ -6,7 +6,7 @@
 
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
-const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v50_PERMANENT_ZERO_DEFECT";
+const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v51_PURE_7_AUTHENTIC_USERS";
 
 const KEYS_TO_SANITIZE = [
   "icj_members",

@@ -1,0 +1,45 @@
+{
+  "case_id": "HC_DHC_2024_1520",
+  "hc_code": "DHC",
+  "court_name": "High Court of Delhi",
+  "bench_location": "New Delhi",
+  "case_number": "CRL.M.C. 1420/2024",
+  "neutral_citation": "2024:DHC:1520",
+  "parallel_citation": "2024 DHC 1520",
+  "title": "Rajesh Sharma & Anr. v. State (NCT of Delhi) & Ors.",
+  "cause_title": "Rajesh Sharma & Another Versus State of NCT of Delhi & Others",
+  "party_petitioner": "Rajesh Sharma & Anr.",
+  "party_respondent": "State of NCT of Delhi & Ors.",
+  "coram": [
+    "Justice Anoop Kumar Mendiratta"
+  ],
+  "judgment_date": "2024-02-18",
+  "year": 2024,
+  "legal_domain": "Criminal Law & Procedure",
+  "disposal_nature": "Quashed (Allowed)",
+  "linked_sections": [
+    {
+      "act_id": "ACT_BNSS_2023",
+      "section_number": "528"
+    },
+    {
+      "act_id": "ACT_CRPC_1973",
+      "section_number": "482"
+    },
+    {
+      "act_id": "ACT_BNS_2023",
+      "section_number": "318"
+    },
+    {
+      "act_id": "ACT_IPC_1860",
+      "section_number": "420"
+    }
+  ],
+  "ratio_decidendi_en": "Held that purely commercial/civil breach of contract cannot be given a criminal cloak to harass parties. When dispute arises out of civil transaction and arbitration clause exists, criminal proceedings under Section 420 IPC / 318 BNS are liable to be quashed under Section 482 CrPC / 528 BNSS.",
+  "ratio_decidendi_hi": "व्यावसायिक संविदा के उल्लंघन को आपराधिक रंग देकर 420 IPC / 318 BNS के तहत केस दर्ज नहीं कराया जा सकता। धारा 482 / 528 के तहत ऐसी दुर्भावनापूर्ण आपराधिक कार्यवाही निरस्त की जाएगी।",
+  "headnotes": [
+    "Quashing of FIR - Civil breach of contract cannot be converted into criminal cheating.",
+    "Section 482 CrPC / Section 528 BNSS - Abuse of process of law."
+  ],
+  "practice_takeaway": "High-value precedent in Delhi High Court commercial quashing petitions where civil dispute has been turned into criminal FIR."
+}

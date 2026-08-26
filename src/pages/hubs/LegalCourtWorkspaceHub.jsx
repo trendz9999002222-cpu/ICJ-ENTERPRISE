@@ -20,6 +20,9 @@ import ClientPortal from "../ClientPortal.jsx";
 import CourtCalendar from "../CourtCalendar.jsx";
 import TrustDashboard from "../TrustDashboard.jsx";
 import Documents from "../Documents.jsx";
+import BareActsLibrary from "../BareActsLibrary.jsx";
+import PrecedentsLibrary from "../PrecedentsLibrary.jsx";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import JudicialForumsNetworkCard from "../../components/common/JudicialForumsNetworkCard.jsx";
 
 // ─── TABS WITH DISTINCT FROZEN SIGNATURE COLORS ─────────────────────────────
@@ -68,6 +71,24 @@ const TABS = [
     bg: "#eef2ff",
     border: "#6366f1",
     desc: "सॉवरेन लीगल ट्रस्ट मॉनिटरिंग, राष्ट्रीय न्याय मंच आंकड़े",
+  },
+  {
+    id: "bareacts",
+    label: "📖 बेयर एक्ट्स लाइब्रेरी (Bare Acts Engine)",
+    icon: <AutoStoriesIcon />,
+    color: "#1e3a8a", // Deep Navy Blue
+    bg: "#eff6ff",
+    border: "#2563eb",
+    desc: "1836-2026 संपूर्ण भारतीय कानून, इंटरएक्टिव विधिक शब्द परिभाषा, क्रॉस-धारा एवं 100% ऑफलाइन सिंक",
+  },
+  {
+    id: "precedents",
+    label: "🏛️ सुप्रीम कोर्ट निर्णय (e-SCR Precedents)",
+    icon: <AccountBalanceIcon />,
+    color: "#312e81", // Deep Indigo Purple
+    bg: "#eef2ff",
+    border: "#4338ca",
+    desc: "1950-2026 सुप्रीम कोर्ट ऐतिहासिक फैसले, ऑफिशियल e-SCR/INSC साइटेशन एवं लीगल रेश्यो",
   },
 ];
 
@@ -225,6 +246,10 @@ export default function LegalCourtWorkspaceHub() {
         {activeTab === 3 && <Documents />}
 
         {activeTab === 4 && <TrustDashboard />}
+
+        {activeTab === 5 && <BareActsLibrary />}
+
+        {activeTab === 6 && <PrecedentsLibrary />}
       </Box>
     </Box>
   );

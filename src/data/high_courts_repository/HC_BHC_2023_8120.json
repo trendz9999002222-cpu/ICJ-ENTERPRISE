@@ -1,0 +1,41 @@
+{
+  "case_id": "HC_BHC_2023_8120",
+  "hc_code": "BHC",
+  "court_name": "High Court of Judicature at Bombay",
+  "bench_location": "Mumbai (Principal Bench)",
+  "case_number": "COMMERCIAL ARBITRATION PETITION No. 450 of 2023",
+  "neutral_citation": "2023:BHC-OS:8120",
+  "parallel_citation": "2023 BHC-OS 8120",
+  "title": "Lodha Developers Ltd. v. Municipal Corporation of Greater Mumbai",
+  "cause_title": "Lodha Developers Limited Versus MCGM",
+  "party_petitioner": "Lodha Developers Ltd.",
+  "party_respondent": "Municipal Corporation of Greater Mumbai",
+  "coram": [
+    "Justice G.S. Kulkarni"
+  ],
+  "judgment_date": "2023-09-14",
+  "year": 2023,
+  "legal_domain": "Arbitration & Alternative Dispute Resolution (ADR)",
+  "disposal_nature": "Interim Injunction Granted",
+  "linked_sections": [
+    {
+      "act_id": "ACT_ARBITRATION_1996",
+      "section_number": "9"
+    },
+    {
+      "act_id": "ACT_ARBITRATION_1996",
+      "section_number": "17"
+    },
+    {
+      "act_id": "ACT_CONTRACT_1872",
+      "section_number": "73"
+    }
+  ],
+  "ratio_decidendi_en": "Laid down principles for grant of pre-arbitration protective relief under Section 9 of Arbitration and Conciliation Act, 1996. Held that court can restrain encashment of bank guarantees if fraud or irretrievable injustice is demonstrated.",
+  "ratio_decidendi_hi": "मध्यस्थता अधिनियम की धारा 9 के तहत अंतरिम राहत: यदि धोखाधड़ी या अपूरणीय अन्याय साबित हो, तो अदालत बैंक गारंटी को इनकैश कराने पर रोक लगा सकती है।",
+  "headnotes": [
+    "Section 9 Arbitration Act - Scope of interim measures by Commercial Court.",
+    "Bank Guarantee - Restraint permissible in cases of egregious fraud."
+  ],
+  "practice_takeaway": "Standard authority in commercial division of Bombay High Court for Section 9 Arbitration Injunction Petitions."
+}

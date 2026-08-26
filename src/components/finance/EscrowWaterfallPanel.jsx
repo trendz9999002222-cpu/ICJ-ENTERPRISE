@@ -39,8 +39,8 @@ export default function EscrowWaterfallPanel() {
   const [cases, setCases] = useState([
     {
       id: "CASE-9921",
-      clientName: "Ramesh Sharma",
-      advocateName: "Adv. Harpreet Singh",
+      clientName: "Suresh Sharma",
+      advocateName: "Senior Advocate PAWAN GUPTA",
       category: "Cheque Bounce / Debt Recovery",
       escrowAmount: 118000, // ₹1,00,000 + GST
       initialPaid: 18000,

@@ -66,7 +66,7 @@ export default function LiveCaseMilestoneTracker({
   caseId = "CASE-20260824-0001",
   cnrNumber = "DLHC010089222026",
   courtName = "Hon'ble High Court of Delhi (Court Room 14)",
-  advocateName = "Adv. Vikramaditya Singh (Supreme Court & High Court Lead)",
+  advocateName = "Senior Advocate PAWAN GUPTA (Lead Appellate Counsel)",
   nextHearingDate = "28 Aug 2026 (10:30 AM)",
   currentStageIndex = 2, // 0-based: Stage 3 is active
 }) {

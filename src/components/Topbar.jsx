@@ -36,11 +36,13 @@ import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import MicIcon from "@mui/icons-material/Mic";
 import LockIcon from "@mui/icons-material/Lock";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import KeyIcon from "@mui/icons-material/Key";
 
 import useAuth from "../hooks/useAuth";
 import NotificationRoutingService from "../services/notificationRoutingService.js";
 import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
 import GlobalCommandPalette from "./common/GlobalCommandPalette.jsx";
+import ChangePasswordModal from "./common/ChangePasswordModal.jsx";
 
 const MODULE_NAMES = {
   "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
@@ -70,6 +72,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
   const [searchAnchor, setSearchAnchor] = useState(null);
   const [dispatchModalOpen, setDispatchModalOpen] = useState(false);
   const [roleMenuAnchor, setRoleMenuAnchor] = useState(null);
+  const [pwdModalOpen, setPwdModalOpen] = useState(false);
 
   // Global helper for shortcut
   if (typeof window !== "undefined") {
@@ -469,6 +472,24 @@ function Topbar({ onOpenMobileNav = () => {} }) {
               }}
             />
 
+            {/* 🔑 1-CLICK CHANGE PASSWORD BUTTON */}
+            <Tooltip title="Change Password (पासवर्ड बदलें)">
+              <IconButton
+                size="small"
+                onClick={() => setPwdModalOpen(true)}
+                sx={{
+                  bgcolor: "#1e293b",
+                  color: "#38bdf8",
+                  border: "1px solid #334155",
+                  width: 24,
+                  height: 24,
+                  "&:hover": { bgcolor: "#334155" },
+                }}
+              >
+                <KeyIcon sx={{ fontSize: "0.85rem" }} />
+              </IconButton>
+            </Tooltip>
+
             {/* 🔐 1-CLICK COURT PRIVACY SCREEN LOCK BUTTON */}
             <Tooltip title="Lock Screen (प्राइवेसी स्क्रीन लॉक)">
               <IconButton
@@ -514,6 +535,12 @@ function Topbar({ onOpenMobileNav = () => {} }) {
             </Button>
           </Box>
         </Stack>
+
+        <ChangePasswordModal
+          open={pwdModalOpen}
+          onClose={() => setPwdModalOpen(false)}
+          user={user}
+        />
 
         <NotificationDispatcherModal
           open={dispatchModalOpen}

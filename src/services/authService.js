@@ -282,6 +282,102 @@ const AuthService = {
     return { success: true, message: "Email verified successfully!" };
   },
 
+  /**
+   * Find a user by Member ID, User ID, Email, Username, or Mobile number
+   */
+  findUserByIdentifier(identifier = "") {
+    const term = String(identifier || "").trim().toLowerCase();
+    if (!term) return null;
+
+    const cleanNum = term.replace(/\D/g, "");
+    const users = getStoredUsers();
+
+    return users.find((u) => {
+      const emailKey = String(u.email || "").toLowerCase();
+      const mobKey = String(u.mobile || u.phone || "").replace(/\D/g, "");
+      const usernameKey = String(u.username || "").toLowerCase();
+      const memberIdKey = String(u.member_id || u.id || "").toLowerCase();
+
+      return (
+        memberIdKey === term ||
+        emailKey === term ||
+        usernameKey === term ||
+        (cleanNum.length >= 6 && mobKey.endsWith(cleanNum))
+      );
+    }) || null;
+  },
+
+  /**
+   * Super Admin Quick Reset of Member Password:
+   * Generates password: First 3 letters of Member Name + 12345 (8 Characters)
+   * Hashes with SHA-256 and updates member record.
+   */
+  async adminResetMemberPassword(identifier = "") {
+    const term = String(identifier || "").trim();
+    if (!term) {
+      throw new Error("Please enter a valid Member ID, User ID, Email, or Mobile Number.");
+    }
+
+    const users = getStoredUsers();
+    const cleanNum = term.toLowerCase().replace(/\D/g, "");
+
+    const userIndex = users.findIndex((u) => {
+      const emailKey = String(u.email || "").toLowerCase();
+      const mobKey = String(u.mobile || u.phone || "").replace(/\D/g, "");
+      const usernameKey = String(u.username || "").toLowerCase();
+      const memberIdKey = String(u.member_id || u.id || "").toLowerCase();
+      const lowerTerm = term.toLowerCase();
+
+      return (
+        memberIdKey === lowerTerm ||
+        emailKey === lowerTerm ||
+        usernameKey === lowerTerm ||
+        (cleanNum.length >= 6 && mobKey.endsWith(cleanNum))
+      );
+    });
+
+    if (userIndex === -1) {
+      throw new Error(`No member found matching ID / Mobile / Email: "${term}". Please check the ID.`);
+    }
+
+    const user = users[userIndex];
+    const memberName = user.fullName || user.name || user.username || "Member";
+    
+    // Formula: First 3 letters of Name (TitleCase) + 12345 (Total 8 chars)
+    const newGeneratedPassword = PasswordPolicyService.generateMemberDefaultPassword(memberName);
+    const newHash = PasswordPolicyService.hashPassword(newGeneratedPassword);
+
+    const updatedUser = {
+      ...user,
+      passwordHash: newHash,
+      password: newGeneratedPassword, // cleartext cache for quick backward compat if needed
+      forcePasswordChange: true,
+      updated_at: new Date().toISOString(),
+      lastPasswordResetByAdmin: new Date().toISOString(),
+    };
+
+    users[userIndex] = updatedUser;
+    saveStoredUsers(users);
+
+    // If resetting the currently active session user, update session
+    const currentActive = getLocalUser();
+    if (currentActive && (currentActive.id === user.id || currentActive.member_id === user.member_id)) {
+      persistLocalUser({ ...currentActive, passwordHash: newHash, forcePasswordChange: true });
+    }
+
+    // Record in Password History
+    PasswordPolicyService.recordPasswordHistory(user.id, newHash);
+
+    return {
+      success: true,
+      message: `Password successfully reset for ${memberName}`,
+      newPassword: newGeneratedPassword,
+      user: updatedUser,
+      memberId: updatedUser.member_id || updatedUser.id,
+      memberName: memberName,
+    };
+  },
+
   async changePassword({ userId, currentPassword, newPassword }) {
     if (!userId || !currentPassword || !newPassword) {
       throw new Error("User ID, Current Password, and New Password are required.");
@@ -299,21 +395,17 @@ const AuthService = {
 
     // Verify current password
     const isCurrentValid = (user.passwordHash && user.passwordHash === currentHash) ||
+                           (user.password && user.password === currentPassword) ||
                            (user.username && currentPassword === user.username);
 
     if (!isCurrentValid) {
-      throw new Error("Current password is incorrect.");
+      throw new Error("Current password is incorrect. Please check and try again.");
     }
 
-    // Validate new password against Policy Engine v3.0
+    // Validate new password (at least 8 characters)
     const validation = PasswordPolicyService.validatePassword(newPassword);
     if (!validation.valid) {
       throw new Error(validation.errors.join(" "));
-    }
-
-    // Password History Check
-    if (PasswordPolicyService.isPasswordInHistory(user.id, newPassword) || currentPassword === newPassword) {
-      throw new Error("New password cannot be the same as your current or previous password.");
     }
 
     const newHash = PasswordPolicyService.hashPassword(newPassword);
@@ -322,6 +414,7 @@ const AuthService = {
     const updatedUser = {
       ...user,
       passwordHash: newHash,
+      password: newPassword,
       forcePasswordChange: false,
       updated_at: new Date().toISOString(),
     };

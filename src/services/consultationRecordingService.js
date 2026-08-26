@@ -11,19 +11,10 @@ export const ConsultationRecordingService = {
    * Smart AI De-duplication Algorithm
    * Removes repeated phrases, duplicate complaints, filler sentences, and compresses transcript into clean facts.
    */
-  deduplicateAndSummarize(rawTranscriptText = "", participantName = "Litigant Client", advocateName = "Adv. Vikramaditya Singh") {
+  deduplicateAndSummarize(rawTranscriptText = "", participantName = "Litigant Client", advocateName = "Senior Advocate PAWAN GUPTA") {
     const rawLines = rawTranscriptText
       ? rawTranscriptText.split(/(?<=[.?!])\s+/).filter(Boolean)
-      : [
-          "Client states that property boundary dispute arose on 12-May-2026.",
-          "Client states that property boundary dispute arose on 12-May-2026.", // Duplicate
-          "Opposite party filed false injunction suit in District Court.",
-          "Opposite party filed false injunction suit in District Court.", // Duplicate
-          "Client requests urgent stay order and boundary verification.",
-          "Advocate advised filing counter-affidavit within 7 days under Order 39 Rule 4.",
-          "Advocate advised filing counter-affidavit within 7 days.", // Repetitive
-          "Client confirmed title deeds and tax receipts are available.",
-        ];
+      : [];
 
     const uniqueSentences = [];
     const seenHashes = new Set();

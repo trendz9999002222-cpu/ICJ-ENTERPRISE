@@ -1,0 +1,193 @@
+{
+  "act_id": "ACT_BNS_2023",
+  "short_title_en": "Bharatiya Nyaya Sanhita, 2023",
+  "short_title_hi": "भारतीय न्याय संहिता, 2023",
+  "act_number": 45,
+  "enactment_year": 2023,
+  "enforcement_date": "2024-07-01",
+  "total_chapters": 4,
+  "total_sections": 9,
+  "chapters": [
+    {
+      "chapter_number": "CHAPTER I",
+      "chapter_title": "PRELIMINARY",
+      "sections": [
+        {
+          "section_number": "1",
+          "section_title": "Short title, commencement and application",
+          "section_body": "(1) This Act may be called the Bharatiya Nyaya Sanhita, 2023.\n(2) It shall come into force on the 1st day of July, 2024.\n(3) Every person shall be liable to punishment under this Sanhita and not otherwise for every act or omission contrary to the provisions thereof, of which he shall be guilty within India.",
+          "cross_references": [
+            {
+              "label": "Constitution of India, Art. 20",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "20"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "2",
+          "section_title": "Definitions",
+          "section_body": "In this Sanhita, unless the context otherwise requires,—\n(1) 'act' denotes as well a series of acts as a single act;\n(2) 'animal' denotes any living creature, other than a human being;\n(3) 'child' means any person below the age of eighteen years;\n(4) 'court' means a Judge who is empowered by law to act judicially alone;\n(28) 'public servant' denotes a person falling under any of the descriptions mentioned in this clause...",
+          "cross_references": [],
+          "defined_terms": [
+            "public servant"
+          ],
+          "order_index": 2
+        }
+      ]
+    },
+    {
+      "chapter_number": "CHAPTER IV",
+      "chapter_title": "OF GENERAL EXCEPTIONS & RIGHT OF PRIVATE DEFENCE",
+      "sections": [
+        {
+          "section_number": "14",
+          "section_title": "Act done by a person bound, or by mistake of fact believing himself bound, by law",
+          "section_body": "Nothing is an offence which is done by a person who is, or who by reason of a mistake of fact and not by reason of a mistake of law in good faith believes himself to be, bound by law to do it.\n\nIllustration:\nA, an officer of the Court of Justice, being ordered by that Court to arrest Y, and after due enquiry, believing Z to be Y, arrests Z. A has committed no offence.",
+          "cross_references": [
+            {
+              "label": "Section 218 BNSS (Sanction)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "218"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "34",
+          "section_title": "Things done in private defence",
+          "section_body": "Nothing is an offence which is done in the exercise of the right of private defence. Every person has a right, subject to the restrictions, to defend his own body and the body of any other person, against any offence affecting the human body; and the property of himself or of any other person.",
+          "cross_references": [
+            {
+              "label": "Article 21 Constitution",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "21"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        }
+      ]
+    },
+    {
+      "chapter_number": "CHAPTER VI",
+      "chapter_title": "OF OFFENCES AFFECTING THE HUMAN BODY (MURDER & ASSAULT)",
+      "sections": [
+        {
+          "section_number": "103",
+          "section_title": "Punishment for murder",
+          "section_body": "(1) Whoever commits murder shall be punished with death or imprisonment for life, and shall also be liable to fine.\n\n(2) When a group of five or more persons acting in concert commits murder on the ground of race, caste or community, sex, place of birth, language, personal belief or any other ground, each member of such group shall be punished with death or with imprisonment for life, and shall also be liable to fine.",
+          "cross_references": [
+            {
+              "label": "Section 105 (Culpable Homicide)",
+              "target_act_id": "ACT_BNS_2023",
+              "section_number": "105"
+            },
+            {
+              "label": "Section 173 BNSS (FIR)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "173"
+            },
+            {
+              "label": "Section 480 BNSS (Bail Restriction)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "480"
+            },
+            {
+              "label": "Old IPC Sec. 302",
+              "target_act_id": "ACT_IPC_1860",
+              "section_number": "302"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "106",
+          "section_title": "Causing death by negligence (Hit and Run)",
+          "section_body": "(1) Whoever causes the death of any person by doing any rash or negligent act not amounting to culpable homicide, shall be punished with imprisonment of either description for a term which may extend to five years, and shall also be liable to fine.\n\n(2) Whoever causes the death of any person by rash and negligent driving of vehicle not amounting to culpable homicide, and escapes without reporting it to a police officer or a Magistrate soon after the incident, shall be punished with imprisonment of either description of a term which may extend to ten years, and shall also be liable to fine.",
+          "cross_references": [
+            {
+              "label": "Section 134 Motor Vehicles Act",
+              "target_act_id": "ACT_MOTOR_VEHICLES_1988",
+              "section_number": "134"
+            },
+            {
+              "label": "Old IPC Sec. 304A",
+              "target_act_id": "ACT_IPC_1860",
+              "section_number": "304A"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        },
+        {
+          "section_number": "109",
+          "section_title": "Attempt to murder",
+          "section_body": "Whoever does any act with such intention or knowledge, and under such circumstances that, if he by that act caused death, he would be guilty of murder, shall be punished with imprisonment of either description for a term which may extend to ten years, and shall also be liable to fine; and if hurt is caused to any person by such act, the offender shall be liable either to imprisonment for life, or to such punishment as is hereinbefore mentioned.",
+          "cross_references": [
+            {
+              "label": "Old IPC Sec. 307",
+              "target_act_id": "ACT_IPC_1860",
+              "section_number": "307"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 3
+        }
+      ]
+    },
+    {
+      "chapter_number": "CHAPTER XVII",
+      "chapter_title": "OF OFFENCES AGAINST PROPERTY (THEFT, EXTORTION & CHEATING)",
+      "sections": [
+        {
+          "section_number": "303",
+          "section_title": "Theft",
+          "section_body": "(1) Whoever, intending to take dishonestly any movable property out of the possession of any person without that person's consent, moves that property in order to such taking, is said to commit theft.\n(2) Whoever commits theft shall be punished with imprisonment of either description for a term which may extend to three years, or with fine, or with both; and in case of second conviction, with rigorous imprisonment up to five years.\nProvided that where the value of stolen property is less than five thousand rupees, and a person is convicted for the first time, he shall be punished with community service.",
+          "cross_references": [
+            {
+              "label": "Section 23 BSA (Recovery Memo)",
+              "target_act_id": "ACT_BSA_2023",
+              "section_number": "23"
+            },
+            {
+              "label": "Old IPC Sec. 379",
+              "target_act_id": "ACT_IPC_1860",
+              "section_number": "379"
+            }
+          ],
+          "defined_terms": [
+            "order"
+          ],
+          "order_index": 1
+        },
+        {
+          "section_number": "318",
+          "section_title": "Cheating and dishonestly inducing delivery of property",
+          "section_body": "(1) Whoever, by deceiving any person, fraudulently or dishonestly induces the person so deceived to deliver any property to any person, or to consent that any person shall retain any property... commits cheating.\n\n(4) Whoever cheats and thereby dishonestly induces the person deceived to deliver any property to any person, or to make, alter or destroy the whole or any part of a valuable security, shall be punished with imprisonment of either description for a term which may extend to seven years, and shall also be liable to fine.",
+          "cross_references": [
+            {
+              "label": "Section 138 NI Act",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "138"
+            },
+            {
+              "label": "Old IPC Sec. 420",
+              "target_act_id": "ACT_IPC_1860",
+              "section_number": "420"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.647Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}

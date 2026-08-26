@@ -1,0 +1,414 @@
+          {/* STEP 4 */}
+          {step === 4 && (
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <GavelIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
+                    ⚖️ 3. विधिक प्रमाण एवं विशेषज्ञता (Professional Practice & Matter)
+                  </Typography>
+                  <Typography variant="body2" color="#94a3b8">
+                    {form.purpose === "SERVICES" ? "अधिवक्ता बार काउंसिल पंजीकरण व विशेषज्ञता" : "विधिक सहायता विषय व समस्या की श्रेणी"}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {form.purpose === "SERVICES" ? (
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Professional Category (श्रेणी)"
+                    value={form.professionalCategory}
+                    onChange={(e) => handleInputChange("professionalCategory", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  >
+                    {LEGAL_TAXONOMY_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat.id} value={cat.categoryName}>
+                        {cat.categoryName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Bar Council / Professional Reg. No (रजिस्ट्रेशन नंबर) *"
+                    value={form.professionalRegNo}
+                    onChange={(e) => handleInputChange("professionalRegNo", e.target.value)}
+                    placeholder="e.g. D/1234/2015"
+                    required
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+
+                  <Box sx={{ gridColumn: { xs: "1", sm: "1 / -1" } }}>
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label="Experience Level (विधिक अनुभव)"
+                      value={form.professionalExperience}
+                      onChange={(e) => handleInputChange("professionalExperience", e.target.value)}
+                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    >
+                      {EXPERIENCE_LEVELS.map((exp) => (
+                        <MenuItem key={exp} value={exp}>
+                          {exp}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+                </Box>
+              ) : form.purpose === "PROBLEM" ? (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Legal Grievance Category (विधिक समस्या की श्रेणी) *"
+                    value={form.problemCategory}
+                    onChange={(e) => handleInputChange("problemCategory", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  >
+                    {PROBLEM_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    size="small"
+                    label="Brief Matter Summary (समस्या का संक्षिप्त विवरण - 1 से 2 लाइन)"
+                    value={form.problemSummary}
+                    onChange={(e) => handleInputChange("problemSummary", e.target.value)}
+                    placeholder="कृपया अपनी विधिक समस्या का मुख्य विषय लिखें..."
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
+              ) : (
+                <Box>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    size="small"
+                    label="Franchise Node Background (फ्रेंचाइज़ी केंद्र स्थापना का संक्षिप्त विवरण)"
+                    value={form.franchiseBackground}
+                    onChange={(e) => handleInputChange("franchiseBackground", e.target.value)}
+                    placeholder="ज़िला विधिक केंद्र हेतु मौजूदा कार्यालय या कार्य अनुभव..."
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
+              )}
+            </Paper>
+          )}
+
+          {/* STEP 5 */}
+          {step === 5 && (
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <AccountBalanceIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
+                    📍 4. अधिकार क्षेत्र एवं पता (Jurisdiction & Address)
+                  </Typography>
+                  <Typography variant="body2" color="#94a3b8">
+                    अखिल भारतीय 28 राज्य, 8 केंद्र शासित प्रदेश व 780+ ज़िला क्षेत्राधिकार
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5, mb: 2.5 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="State / Union Territory (राज्य / यूटी) *"
+                  value={form.state}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  {PAN_INDIA_STATES.map((st) => (
+                    <MenuItem key={st} value={st}>
+                      {st}
+                    </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="District (ज़िला) *"
+                  value={form.district}
+                  onChange={(e) => handleInputChange("district", e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  {availableDistricts.map((dst) => (
+                    <MenuItem key={dst} value={dst}>
+                      {dst}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="City / Tehsil (शहर / तहसील)"
+                  value={form.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="e.g. New Delhi"
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Pincode (पिनकोड) *"
+                  value={form.pincode}
+                  onChange={(e) => handleInputChange("pincode", e.target.value)}
+                  placeholder="110001"
+                  required
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Police Station (थाना - वैकल्पिक)"
+                  value={form.policeStation}
+                  onChange={(e) => handleInputChange("policeStation", e.target.value)}
+                  placeholder="e.g. Tilak Marg"
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
+              </Box>
+            </Paper>
+          )}
+
+          {/* STEP 6 */}
+          {step === 6 && (
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2.5 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <VerifiedUserIcon sx={{ color: "#34d399", fontSize: 28 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
+                    ✅ 5. अंतिम समीक्षा एवं OTP सत्यापन (Review & Verification)
+                  </Typography>
+                  <Typography variant="body2" color="#94a3b8">
+                    कृपया अपने विवरण की समीक्षा करें (किसी भी विवरण को बदलने हेतु सीधे एडिट करें)
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5, mb: 2.5 }}>
+                <Paper sx={{ p: 2.5, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2.5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="#38bdf8" fontWeight={900}>
+                      आवेदक व भूमिका
+                    </Typography>
+                    <IconButton size="small" onClick={() => setStep(2)} sx={{ color: "#38bdf8", p: 0.5 }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                  <Typography variant="subtitle1" fontWeight={800} color="#ffffff">
+                    {form.regType === "Organisation" ? form.orgName : `${form.namePrefix} ${form.firstName} ${form.lastName}`.trim()}
+                  </Typography>
+                  <Typography variant="body2" color="#cbd5e1">
+                    भूमिका: <strong style={{ color: "#34d399" }}>{selectedPurposeObj.shortTitle}</strong> ({form.gender}, {form.birthYear})
+                  </Typography>
+                </Paper>
+
+                <Paper sx={{ p: 2.5, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2.5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="#38bdf8" fontWeight={900}>
+                      संपर्क व अधिकार क्षेत्र
+                    </Typography>
+                    <IconButton size="small" onClick={() => setStep(3)} sx={{ color: "#38bdf8", p: 0.5 }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                  <Typography variant="subtitle1" fontWeight={800} color="#ffffff">
+                    +91 {form.mobile} | {form.email}
+                  </Typography>
+                  <Typography variant="body2" color="#cbd5e1">
+                    क्षेत्र: {form.district}, {form.state} ({form.pincode})
+                  </Typography>
+                </Paper>
+              </Box>
+
+              <Box sx={{ bgcolor: "#0f172a", p: 2, borderRadius: 2.5, border: "1px solid #334155" }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.termsAccepted}
+                      onChange={(e) => handleInputChange("termsAccepted", e.target.checked)}
+                      sx={{ color: "#34d399", "&.Mui-checked": { color: "#34d399" } }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="#e2e8f0" sx={{ fontSize: "0.9rem" }}>
+                      मैं ICJ ऑनबोर्डिंग नियमों, बार काउंसिल ऑफ इंडिया रूल 36 एवं आईटी एक्ट धारा 79 इंटरमीडियरी सुरक्षा शर्तों को स्वीकार करता हूँ।
+                    </Typography>
+                  }
+                />
+              </Box>
+            </Paper>
+          )}
+        </Container>
+      </Box>
+
+      {/* 3. BOTTOM FLUID NAVIGATION DOCK */}
+      <Paper
+        elevation={0}
+        sx={{
+          height: 65,
+          minHeight: 65,
+          maxHeight: 65,
+          px: { xs: 2, md: 4 },
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          bgcolor: "#0f172a",
+          borderTop: "1.5px solid #1e293b",
+          color: "#ffffff",
+          zIndex: 10,
+        }}
+      >
+        <Box>
+          {step > 1 && (
+            <Button
+              variant="outlined"
+              size="medium"
+              startIcon={<ArrowBackIcon />}
+              onClick={handlePrev}
+              sx={{
+                color: "#94a3b8",
+                borderColor: "#334155",
+                fontWeight: 700,
+                borderRadius: 2.5,
+                px: 3,
+                textTransform: "none",
+                "&:hover": { borderColor: "#64748b", bgcolor: "#1e293b", color: "#ffffff" },
+              }}
+            >
+              ← पीछे जाएं (Back)
+            </Button>
+          )}
+        </Box>
+
+        <Box>
+          {step < 6 ? (
+            <Button
+              variant="contained"
+              size="medium"
+              endIcon={<ArrowForwardIcon />}
+              onClick={validateAndNext}
+              sx={{
+                bgcolor: "#2563eb",
+                fontWeight: 800,
+                borderRadius: 2.5,
+                px: 3.5,
+                py: 1,
+                fontSize: "0.95rem",
+                textTransform: "none",
+                "&:hover": { bgcolor: "#1d4ed8" },
+              }}
+            >
+              आगे बढ़ें (Next) →
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              size="medium"
+              color="success"
+              disabled={submitting}
+              startIcon={<CheckCircleIcon />}
+              onClick={validateAndNext}
+              sx={{
+                bgcolor: "#059669",
+                fontWeight: 900,
+                borderRadius: 2.5,
+                px: 4,
+                py: 1,
+                fontSize: "0.95rem",
+                textTransform: "none",
+                "&:hover": { bgcolor: "#047857" },
+              }}
+            >
+              {submitting ? "प्रोसेस हो रहा है..." : "रजिस्ट्रेशन सबमिट करें (Submit & Verify OTP) →"}
+            </Button>
+          )}
+        </Box>
+      </Paper>
+
+      {/* 4. OTP MODAL */}
+      <Dialog
+        open={otpModalOpen}
+        onClose={() => setOtpModalOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { bgcolor: "#0f172a", color: "#ffffff", borderRadius: 3, border: "1px solid #334155" } }}
+      >
+        <DialogTitle sx={{ bgcolor: "#1e293b", color: "#ffffff", borderBottom: "1px solid #334155" }}>
+          🔐 OTP सत्यापन (Instant Verification)
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="body2" color="#cbd5e1" sx={{ mb: 2 }}>
+            आपके ईमेल/मोबाइल <strong>{form.email}</strong> पर 6-अंक का सुरक्षा OTP भेजा गया है:
+          </Typography>
+
+          <TextField
+            fullWidth
+            size="medium"
+            label="Enter 6-Digit OTP"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                bgcolor: "#1e293b",
+                color: "#ffffff",
+                fontSize: "1.2rem",
+                letterSpacing: 4,
+                textAlign: "center",
+              },
+            }}
+          />
+          <Typography variant="caption" color="#94a3b8" sx={{ mt: 1, display: "block" }}>
+            (परीक्षण हेतु डिफ़ॉल्ट कोड: <strong>123456</strong>)
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, bgcolor: "#1e293b", borderTop: "1px solid #334155" }}>
+          <Button variant="outlined" color="inherit" onClick={() => setOtpModalOpen(false)}>रद्द करें</Button>
+          <Button variant="contained" color="success" onClick={handleVerifyOtp} sx={{ fontWeight: 800 }}>
+            सत्यापित करें (Verify)
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 5. MASTER CERTIFICATE MODAL */}
+      {certModalOpen && (
+        <MasterCertificateModal
+          open={certModalOpen}
+          onClose={() => {
+            setCertModalOpen(false);
+            navigate(form.purpose === "SERVICES" ? "/advocate-dashboard" : "/personal-dashboard");
+          }}
+          user={createdUser || form}
+        />
+      )}
+    </Box>
+  );
+}

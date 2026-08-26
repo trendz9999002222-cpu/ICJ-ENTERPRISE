@@ -32,6 +32,7 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import AuthService from "../../services/authService.js";
 import LegalGovernanceService from "../../services/legalGovernanceService.js";
 import SeedEcosystemService from "../../services/seedEcosystemService.js";
+import QuickPasswordResetWidget from "./QuickPasswordResetWidget.jsx";
 
 export default function SystemSecurityCompliance() {
   const [users, setUsers] = useState([]);
@@ -157,6 +158,11 @@ export default function SystemSecurityCompliance() {
 
       {statusMsg && <Alert severity="success" sx={{ mb: 3, bgcolor: "#064e3b", color: "#6ee7b7" }}>{statusMsg}</Alert>}
       {errorMsg && <Alert severity="error" sx={{ mb: 3, bgcolor: "#450a0a", color: "#fca5a5" }}>{errorMsg}</Alert>}
+
+      {/* DEDICATED QUICK PASSWORD RESET MODULE (NO LIST NEEDED) */}
+      <Box sx={{ mb: 3 }}>
+        <QuickPasswordResetWidget onResetComplete={loadUsers} />
+      </Box>
 
       <Grid container spacing={3}>
         {/* USER SECURITY & ROLE MANAGEMENT TABLE */}

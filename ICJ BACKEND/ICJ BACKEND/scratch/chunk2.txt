@@ -1,0 +1,263 @@
+const PURPOSE_OPTIONS = [
+  {
+    value: "PROBLEM",
+    label: "1. विधिक समस्या / केस दर्ज करें (Litigant Client)",
+    shortTitle: "1. नागरिक विधिक सहायता (Litigant Client)",
+    sublabel: "ज़मीन विवाद, क्रिमिनल बेल, चेक बाउंस, सर्विस मैटर, पारिवारिक व उपभोक्ता विवाद",
+    targetRole: "member",
+    icon: AssignmentLateIcon,
+    color: "#10b981",
+  },
+  {
+    value: "SERVICES",
+    label: "2. अधिवक्ता व विशेषज्ञ पार्टनर (Advocates & Specialists)",
+    shortTitle: "2. अधिवक्ता व विशेषज्ञ पैनल (Advocate Partner)",
+    sublabel: "बार काउंसिल पंजीकृत अधिवक्ता, सीए, सीएस, फॉरेंसिक एक्सपर्ट व लीगल कंसल्टेंट",
+    targetRole: "advocate",
+    icon: MiscellaneousServicesIcon,
+    color: "#38bdf8",
+  },
+  {
+    value: "FRANCHISE",
+    label: "3. ज़िला विधिक सहायता केंद्र (District Franchise Node)",
+    shortTitle: "3. ज़िला फ्रेंचाइज़ी पार्टनर (District Franchise)",
+    sublabel: "ज़िला स्तर पर विधिक सहायता केंद्र, ई-फाइलिंग डेस्क व कॉल सेंटर एजेंसी",
+    targetRole: "franchise",
+    icon: HandshakeIcon,
+    color: "#f59e0b",
+  },
+];
+
+const PROBLEM_CATEGORIES = [
+  "Property & Land Disputes (ज़मीन व संपत्ति विवाद)",
+  "Criminal Defense & Bail (आपराधिक व जमानत)",
+  "Cheque Bounce (Sec 138) (चेक बाउंस)",
+  "Matrimonial & Family Disputes (पारिवारिक व वैवाहिक)",
+  "Civil Suits & Property Title (सिविल दीवानी वाद)",
+  "Cyber Crime & Online Fraud (साइबर अपराध व फ्रॉड)",
+  "Consumer Court & Service Claims (उपभोक्ता विवाद)",
+  "Service & Labour Matters (नौकरी व सेवा विवाद)",
+  "High Court Writ & Appeals (रिट व अपील)",
+  "Other Legal Grievance (अन्य विधिक समस्या)",
+];
+
+export default function PublicOnboarding() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const roleParam = (searchParams.get("role") || "").toLowerCase();
+  let detectedPurpose = "";
+  if (["advocate", "services", "professional", "lawyer"].includes(roleParam)) detectedPurpose = "SERVICES";
+  else if (["problem", "litigant", "client", "citizen"].includes(roleParam)) detectedPurpose = "PROBLEM";
+  else if (["franchise", "frz", "district"].includes(roleParam)) detectedPurpose = "FRANCHISE";
+
+  const [step, setStep] = useState(1);
+  const [stepError, setStepError] = useState("");
+
+  const [form, setForm] = useState({
+    purpose: detectedPurpose || "SERVICES",
+    regType: "Individual",
+    namePrefix: "Adv.",
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    orgName: "",
+    gender: "Male",
+    birthYear: "1990",
+    mobile: "",
+    whatsapp: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    professionalCategory: LEGAL_TAXONOMY_CATEGORIES[0]?.categoryName || "Supreme Court & High Court Practice",
+    professionalSubCategory: LEGAL_TAXONOMY_CATEGORIES[0]?.subCategories[0]?.title || "Supreme Court Bar Advocate",
+    professionalRegNo: "",
+    professionalExperience: "Senior Professional (5 - 10 Years)",
+    problemCategory: PROBLEM_CATEGORIES[0],
+    problemSummary: "",
+    franchiseBackground: "",
+    state: DEFAULT_STATE,
+    district: DEFAULT_DISTRICT,
+    city: "",
+    pincode: "",
+    policeStation: "",
+    termsAccepted: false,
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [certModalOpen, setCertModalOpen] = useState(false);
+  const [otpCode, setOtpCode] = useState("123456");
+  const [submitting, setSubmitting] = useState(false);
+  const [createdUser, setCreatedUser] = useState(null);
+
+  const availableDistricts = useMemo(() => {
+    return PAN_INDIA_DISTRICTS_MAP[form.state] || [form.district || "Central Delhi"];
+  }, [form.state]);
+
+  const handleInputChange = (field, value) => {
+    setStepError("");
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleStateChange = (newState) => {
+    const districts = PAN_INDIA_DISTRICTS_MAP[newState] || [];
+    setForm((prev) => ({
+      ...prev,
+      state: newState,
+      district: districts[0] || "",
+    }));
+  };
+
+  const validateAndNext = () => {
+    setStepError("");
+
+    if (step === 1) {
+      if (!form.purpose) {
+        setStepError("कृपया अपनी भागीदारी का उद्देश्य/भूमिका चुनें।");
+        return;
+      }
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      if (form.regType === "Individual") {
+        if (!form.firstName.trim()) {
+          setStepError("कृपया अपना पहला नाम (First Name) दर्ज करें।");
+          return;
+        }
+      } else {
+        if (!form.orgName.trim()) {
+          setStepError("कृपया संस्था/फर्म का नाम (Organisation Name) दर्ज करें।");
+          return;
+        }
+      }
+      setStep(3);
+      return;
+    }
+
+    if (step === 3) {
+      const cleanMobile = form.mobile.replace(/\D/g, "");
+      if (cleanMobile.length < 10) {
+        setStepError("कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।");
+        return;
+      }
+
+      if (!form.email || !form.email.includes("@")) {
+        setStepError("कृपया वैध ईमेल पता (e.g. advocate@gmail.com) दर्ज करें।");
+        return;
+      }
+
+      if (!form.password || form.password.length < 8) {
+        setStepError("पासवर्ड कम से कम 8 अक्षर (Minimum 8 Characters) का होना चाहिए।");
+        return;
+      }
+
+      if (form.password !== form.confirmPassword) {
+        setStepError("पासवर्ड और कन्फर्म पासवर्ड एक जैसे नहीं हैं।");
+        return;
+      }
+
+      setStep(4);
+      return;
+    }
+
+    if (step === 4) {
+      if (form.purpose === "SERVICES") {
+        if (!form.professionalRegNo.trim()) {
+          setStepError("कृपया अपना बार काउंसिल या प्रोफेशनल रजिस्ट्रेशन नंबर दर्ज करें (उदा. D/1234/2015)।");
+          return;
+        }
+      } else if (form.purpose === "PROBLEM") {
+        if (!form.problemCategory) {
+          setStepError("कृपया अपनी विधिक समस्या की श्रेणी चुनें।");
+          return;
+        }
+      }
+      setStep(5);
+      return;
+    }
+
+    if (step === 5) {
+      if (!form.state || !form.district) {
+        setStepError("कृपया अपना राज्य और ज़िला चुनें।");
+        return;
+      }
+
+      const cleanPin = form.pincode.replace(/\D/g, "");
+      if (cleanPin.length !== 6) {
+        setStepError("कृपया 6 अंकों का सही पिनकोड दर्ज करें।");
+        return;
+      }
+
+      setStep(6);
+      return;
+    }
+
+    if (step === 6) {
+      if (!form.termsAccepted) {
+        setStepError("कृपया नियम एवं शर्तें स्वीकार करने हेतु चेकबॉक्स को टिक करें।");
+        return;
+      }
+      handleInitiateRegistration();
+    }
+  };
+
+  const handlePrev = () => {
+    setStepError("");
+    setStep((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleInitiateRegistration = async () => {
+    setSubmitting(true);
+    setStepError("");
+
+    const targetRole = form.purpose === "SERVICES" ? "advocate" : form.purpose === "FRANCHISE" ? "franchise" : "member";
+    const displayName = form.regType === "Organisation" ? form.orgName : `${form.namePrefix} ${form.firstName} ${form.lastName}`.trim();
+
+    try {
+      const payload = {
+        fullName: displayName,
+        name: displayName,
+        email: form.email.trim().toLowerCase(),
+        mobile: form.mobile.trim(),
+        whatsapp: form.whatsapp.trim() || form.mobile.trim(),
+        password: form.password,
+        role: targetRole,
+        user_type: targetRole,
+        gender: form.gender,
+        birthYear: form.birthYear,
+        state: form.state,
+        district: form.district,
+        city: form.city,
+        pincode: form.pincode,
+        policeStation: form.policeStation,
+        professionalRegNo: form.professionalRegNo,
+        professionalCategory: form.professionalCategory,
+        professionalExperience: form.professionalExperience,
+        problemCategory: form.problemCategory,
+        problemSummary: form.problemSummary,
+      };
+
+      const newUser = await AuthService.register(payload);
+      setCreatedUser(newUser);
+      setOtpModalOpen(true);
+    } catch (err) {
+      setStepError(err.message || "रजिस्ट्रेशन में समस्या आई।");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (otpCode !== "123456" && otpCode.length !== 6) {
+      setStepError("अमान्य OTP कोड। परीक्षण हेतु 123456 दर्ज करें।");
+      return;
+    }
+
+    setOtpModalOpen(false);
+    setCertModalOpen(true);
+  };
+
+  const selectedPurposeObj = PURPOSE_OPTIONS.find((p) => p.value === form.purpose) || PURPOSE_OPTIONS[1];

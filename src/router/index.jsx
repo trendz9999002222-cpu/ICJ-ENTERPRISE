@@ -62,6 +62,8 @@ const GovernanceCenter = lazy(() => import("../pages/GovernanceCenter"));
 const APIConfigCenter = lazy(() => import("../pages/APIConfigCenter"));
 const DeploymentCenter = lazy(() => import("../pages/DeploymentCenter"));
 const SystemHealth = lazy(() => import("../pages/SystemHealth"));
+const BareActsLibrary = lazy(() => import("../pages/BareActsLibrary"));
+const PrecedentsLibrary = lazy(() => import("../pages/PrecedentsLibrary"));
 
 const HelpdeskPortal = lazy(() => import("../pages/HelpdeskPortal"));
 const LegalCommunityFeed = lazy(() => import("../pages/LegalCommunityFeed"));
@@ -75,6 +77,7 @@ const LegalCourtWorkspaceHub = lazy(() => import("../pages/hubs/LegalCourtWorksp
 const SystemAdminControlHub = lazy(() => import("../pages/hubs/SystemAdminControlHub"));
 const HelpdeskSupportHub = lazy(() => import("../pages/hubs/HelpdeskSupportHub"));
 const DynamicLegalImmunityWatchdog = lazy(() => import("../pages/DynamicLegalImmunityWatchdog"));
+const UnifiedSystemWatchdogCockpit = lazy(() => import("../pages/UnifiedSystemWatchdogCockpit"));
 
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
 import useAuth from "../hooks/useAuth";
@@ -127,10 +130,12 @@ export default function AppRouter() {
         <Route path="/recovery" element={<Recovery />} />
         <Route path="/verify" element={<CertificateVerification />} />
         <Route path="/certificate-verify" element={<CertificateVerification />} />
+        <Route path="/verify-certificate" element={<CertificateVerification />} />
         <Route path="/track-case" element={<PublicCaseTracker />} />
         <Route path="/track" element={<Navigate to="/track-case" replace />} />
         <Route path="/case-status" element={<Navigate to="/track-case" replace />} />
         <Route path="/statutory-intermediary-terms" element={<SovereignIntermediaryTerms />} />
+        <Route path="/terms" element={<Navigate to="/statutory-intermediary-terms" replace />} />
         <Route path="/intermediary-terms" element={<Navigate to="/statutory-intermediary-terms" replace />} />
         <Route path="/legal-immunity" element={<Navigate to="/statutory-intermediary-terms" replace />} />
 
@@ -227,6 +232,13 @@ export default function AppRouter() {
         <Route path="/billing-invoicing" element={<ProtectedRoute roles={["admin", "advocate"]}><BillingInvoicing /></ProtectedRoute>} />
         <Route path="/master-finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
         <Route path="/ai-drafter" element={<ProtectedRoute><LegalDrafter /></ProtectedRoute>} />
+        <Route path="/bare-acts" element={<ProtectedRoute><BareActsLibrary /></ProtectedRoute>} />
+        <Route path="/bare-acts-reader" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/acts" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/legal-library" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/precedents" element={<ProtectedRoute><PrecedentsLibrary /></ProtectedRoute>} />
+        <Route path="/judgments" element={<Navigate to="/precedents" replace />} />
+        <Route path="/case-laws" element={<Navigate to="/precedents" replace />} />
         <Route path="/payment-management" element={<ProtectedRoute roles={["admin"]}><PaymentManagement /></ProtectedRoute>} />
         <Route path="/location-master" element={<ProtectedRoute roles={["admin"]}><LocationMasterAdmin /></ProtectedRoute>} />
         <Route path="/database-config" element={<ProtectedRoute roles={["admin"]}><DatabaseConfig /></ProtectedRoute>} />
@@ -242,6 +254,9 @@ export default function AppRouter() {
         <Route path="/dynamic-legal-watchdog" element={<ProtectedRoute roles={["admin"]}><DynamicLegalImmunityWatchdog /></ProtectedRoute>} />
         <Route path="/legal-watchdog" element={<Navigate to="/dynamic-legal-watchdog" replace />} />
         <Route path="/compliance-watchdog" element={<Navigate to="/dynamic-legal-watchdog" replace />} />
+        <Route path="/system-command-cockpit" element={<ProtectedRoute roles={["admin", "super_admin"]}><UnifiedSystemWatchdogCockpit /></ProtectedRoute>} />
+        <Route path="/watchdog-cockpit" element={<Navigate to="/system-command-cockpit" replace />} />
+        <Route path="/unified-cockpit" element={<Navigate to="/system-command-cockpit" replace />} />
 
         {/* Unknown URLs previously rendered a blank page */}
         <Route path="*" element={<Navigate to="/" replace />} />

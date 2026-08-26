@@ -53,29 +53,29 @@ const PURPOSE_OPTIONS = [
   {
     value: "PROBLEM",
     label: "1. विधिक समस्या / केस दर्ज करें (Litigant Client)",
-    shortTitle: "नागरिक विधिक सहायता (Litigant Client)",
+    shortTitle: "1. नागरिक विधिक सहायता (Litigant Client)",
     sublabel: "ज़मीन विवाद, क्रिमिनल बेल, चेक बाउंस, सर्विस मैटर, पारिवारिक व उपभोक्ता विवाद",
     targetRole: "member",
     icon: AssignmentLateIcon,
-    color: "#059669",
+    color: "#10b981",
   },
   {
     value: "SERVICES",
     label: "2. अधिवक्ता व विशेषज्ञ पार्टनर (Advocates & Specialists)",
-    shortTitle: "अधिवक्ता व विशेषज्ञ पैनल (Advocate Partner)",
+    shortTitle: "2. अधिवक्ता व विशेषज्ञ पैनल (Advocate Partner)",
     sublabel: "बार काउंसिल पंजीकृत अधिवक्ता, सीए, सीएस, फॉरेंसिक एक्सपर्ट व लीगल कंसल्टेंट",
     targetRole: "advocate",
     icon: MiscellaneousServicesIcon,
-    color: "#2563eb",
+    color: "#38bdf8",
   },
   {
     value: "FRANCHISE",
     label: "3. ज़िला विधिक सहायता केंद्र (District Franchise Node)",
-    shortTitle: "ज़िला फ्रेंचाइज़ी पार्टनर (District Franchise)",
+    shortTitle: "3. ज़िला फ्रेंचाइज़ी पार्टनर (District Franchise)",
     sublabel: "ज़िला स्तर पर विधिक सहायता केंद्र, ई-फाइलिंग डेस्क व कॉल सेंटर एजेंसी",
     targetRole: "franchise",
     icon: HandshakeIcon,
-    color: "#d97706",
+    color: "#f59e0b",
   },
 ];
 
@@ -97,16 +97,16 @@ export default function PublicOnboarding() {
   const [searchParams] = useSearchParams();
 
   const roleParam = (searchParams.get("role") || "").toLowerCase();
-  let initialPurpose = "";
-  if (["advocate", "services", "professional", "lawyer"].includes(roleParam)) initialPurpose = "SERVICES";
-  else if (["problem", "litigant", "client", "citizen"].includes(roleParam)) initialPurpose = "PROBLEM";
-  else if (["franchise", "frz", "district"].includes(roleParam)) initialPurpose = "FRANCHISE";
+  let detectedPurpose = "";
+  if (["advocate", "services", "professional", "lawyer"].includes(roleParam)) detectedPurpose = "SERVICES";
+  else if (["problem", "litigant", "client", "citizen"].includes(roleParam)) detectedPurpose = "PROBLEM";
+  else if (["franchise", "frz", "district"].includes(roleParam)) detectedPurpose = "FRANCHISE";
 
-  const [step, setStep] = useState(initialPurpose ? 2 : 1);
+  const [step, setStep] = useState(1);
   const [stepError, setStepError] = useState("");
 
   const [form, setForm] = useState({
-    purpose: initialPurpose || "SERVICES",
+    purpose: detectedPurpose || "SERVICES",
     regType: "Individual",
     namePrefix: "Adv.",
     firstName: "",
@@ -327,14 +327,14 @@ export default function PublicOnboarding() {
         color: "#ffffff",
       }}
     >
-      {/* 1. TOP 1-INCH DOCK */}
+      {/* 1. TOP DOCK */}
       <Paper
         elevation={0}
         sx={{
           height: 60,
           minHeight: 60,
           maxHeight: 60,
-          px: { xs: 2, md: 3 },
+          px: { xs: 2, md: 4 },
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -356,7 +356,7 @@ export default function PublicOnboarding() {
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1.5} alignItems="center">
           <Chip
             label={`Step ${step} of 6 : ${
               step === 1 ? "रोल चयन" :
@@ -366,7 +366,7 @@ export default function PublicOnboarding() {
               step === 5 ? "अधिकार क्षेत्र व पता" : "समीक्षा व OTP"
             }`}
             size="small"
-            sx={{ bgcolor: "#1e293b", color: "#38bdf8", fontWeight: 800, border: "1px solid #334155" }}
+            sx={{ bgcolor: "#1e293b", color: "#38bdf8", fontWeight: 800, border: "1px solid #334155", py: 1.8 }}
           />
 
           <Button
@@ -387,7 +387,7 @@ export default function PublicOnboarding() {
         sx={{ height: 4, bgcolor: "#1e293b", "& .MuiLinearProgress-bar": { bgcolor: "#38bdf8" } }}
       />
 
-      {/* 2. ACTIVE CANVAS */}
+      {/* 2. ACTIVE ZERO-SCROLL CANVAS */}
       <Box
         sx={{
           flex: 1,
@@ -396,37 +396,104 @@ export default function PublicOnboarding() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          p: { xs: 2, md: 3 },
+          p: { xs: 2, md: 4 },
           bgcolor: "#0f172a",
         }}
       >
-        <Container maxWidth="lg" sx={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <Container maxWidth="xl" sx={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           {stepError && (
             <Alert severity="error" sx={{ mb: 2, bgcolor: "#450a0a", color: "#fca5a5", border: "1px solid #7f1d1d" }}>
               {stepError}
             </Alert>
           )}
 
-          {/* STEP 1 */}
+          {/* STEP 1: 3-COLUMN CSS GRID */}
           {step === 1 && (
-            <Box>
-              <Box sx={{ textAlign: "center", mb: 3 }}>
-                <Typography variant="h5" fontWeight={900} color="#ffffff">
+            <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" }}>
+              <Box sx={{ textAlign: "center", mb: 4 }}>
+                <Typography variant="h4" fontWeight={900} color="#ffffff" sx={{ fontSize: { xs: "1.4rem", md: "2rem" }, mb: 1 }}>
                   🎯 अपनी भूमिका एवं विधिक क्षमता का चयन करें
                 </Typography>
-                <Typography variant="body2" color="#94a3b8">
+                <Typography variant="body1" color="#94a3b8" sx={{ fontSize: "1.05rem" }}>
                   Select your primary onboarding capacity on the ICJ Enterprise Legal Infrastructure
                 </Typography>
               </Box>
 
-              <Grid container spacing={2.5}>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+                  gap: 3,
+                  alignItems: "stretch",
+                }}
+              >
                 {PURPOSE_OPTIONS.map((opt) => {
                   const isSelected = form.purpose === opt.value;
                   const IconComp = opt.icon;
                   return (
-                    <Grid item xs={12} md={4} key={opt.value} sx={{ display: "flex" }}>
-                      <Card
-                        onClick={() => {
+                    <Card
+                      key={opt.value}
+                      onClick={() => {
+                        setForm((p) => ({
+                          ...p,
+                          purpose: opt.value,
+                          namePrefix: opt.value === "SERVICES" ? "Adv." : "Mr.",
+                        }));
+                      }}
+                      sx={{
+                        cursor: "pointer",
+                        p: { xs: 2.5, md: 3.5 },
+                        borderRadius: 4,
+                        bgcolor: isSelected ? "#1e293b" : "#131d31",
+                        border: isSelected ? `2.5px solid ${opt.color}` : "1.5px solid #334155",
+                        boxShadow: isSelected ? `0 12px 30px ${opt.color}33` : "0 4px 12px rgba(0,0,0,0.3)",
+                        transition: "all 0.25s ease-in-out",
+                        "&:hover": { borderColor: opt.color, transform: "translateY(-4px)" },
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Box>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2.5 }}>
+                          <Box
+                            sx={{
+                              width: 56,
+                              height: 56,
+                              borderRadius: 3,
+                              bgcolor: isSelected ? opt.color : "rgba(255,255,255,0.06)",
+                              color: isSelected ? "#ffffff" : opt.color,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <IconComp sx={{ fontSize: 32 }} />
+                          </Box>
+
+                          {isSelected && (
+                            <Chip
+                              label="चयनित (Selected) ✓"
+                              size="small"
+                              sx={{ bgcolor: opt.color, color: "#ffffff", fontWeight: 800 }}
+                            />
+                          )}
+                        </Stack>
+
+                        <Typography variant="h6" fontWeight={900} color="#ffffff" sx={{ mb: 1.5, lineHeight: 1.3 }}>
+                          {opt.shortTitle}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#cbd5e1", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                          {opt.sublabel}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        variant={isSelected ? "contained" : "outlined"}
+                        fullWidth
+                        size="medium"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setForm((p) => ({
                             ...p,
                             purpose: opt.value,
@@ -435,374 +502,315 @@ export default function PublicOnboarding() {
                           setStep(2);
                         }}
                         sx={{
-                          flex: 1,
-                          cursor: "pointer",
-                          p: 3,
-                          borderRadius: 3.5,
-                          bgcolor: isSelected ? "#1e293b" : "#0f172a",
-                          border: isSelected ? `2.5px solid ${opt.color}` : "1.5px solid #334155",
-                          boxShadow: isSelected ? `0 8px 24px ${opt.color}33` : "none",
-                          transition: "all 0.2s ease",
-                          "&:hover": { borderColor: opt.color, transform: "translateY(-3px)" },
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
+                          mt: 3,
+                          py: 1.2,
+                          fontWeight: 800,
+                          fontSize: "0.92rem",
+                          borderRadius: 2.5,
+                          borderColor: opt.color,
+                          bgcolor: isSelected ? opt.color : "transparent",
+                          color: isSelected ? "#ffffff" : opt.color,
+                          textTransform: "none",
+                          "&:hover": {
+                            bgcolor: isSelected ? opt.color : `${opt.color}22`,
+                            borderColor: opt.color,
+                          },
                         }}
                       >
-                        <Box>
-                          <Box
-                            sx={{
-                              width: 52,
-                              height: 52,
-                              borderRadius: 2.5,
-                              bgcolor: isSelected ? opt.color : "#1e293b",
-                              color: isSelected ? "#ffffff" : opt.color,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              mb: 2,
-                            }}
-                          >
-                            <IconComp sx={{ fontSize: 30 }} />
-                          </Box>
-                          <Typography variant="h6" fontWeight={800} color="#ffffff" sx={{ mb: 1 }}>
-                            {opt.shortTitle}
-                          </Typography>
-                          <Typography variant="body2" color="#94a3b8" sx={{ fontSize: "0.88rem", lineHeight: 1.5 }}>
-                            {opt.sublabel}
-                          </Typography>
-                        </Box>
-
-                        <Button
-                          variant={isSelected ? "contained" : "outlined"}
-                          fullWidth
-                          size="small"
-                          sx={{
-                            mt: 3,
-                            fontWeight: 800,
-                            borderColor: opt.color,
-                            bgcolor: isSelected ? opt.color : "transparent",
-                            color: isSelected ? "#ffffff" : opt.color,
-                            textTransform: "none",
-                          }}
-                        >
-                          {isSelected ? "चयनित (Selected) ✓" : "इसे चुनें (Select) →"}
-                        </Button>
-                      </Card>
-                    </Grid>
+                        {isSelected ? "आगे बढ़ें (Proceed to Step 2) →" : "इसे चुनें (Select) →"}
+                      </Button>
+                    </Card>
                   );
                 })}
-              </Grid>
+              </Box>
             </Box>
           )}
 
           {/* STEP 2 */}
           {step === 2 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: "#1e293b", borderRadius: 3.5, border: "1px solid #334155" }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1, borderRadius: 2 }}>
-                  <SecurityIcon sx={{ color: "#38bdf8", fontSize: 24 }} />
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <SecurityIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
                     👤 1. आवेदक की पहचान एवं नाम (Applicant Identity)
                   </Typography>
-                  <Typography variant="caption" color="#94a3b8">
-                    भूमिका: <strong>{selectedPurposeObj.shortTitle}</strong>
+                  <Typography variant="body2" color="#94a3b8">
+                    भूमिका: <strong style={{ color: "#38bdf8" }}>{selectedPurposeObj.shortTitle}</strong>
                   </Typography>
                 </Box>
               </Stack>
 
-              <Grid container spacing={2.5}>
-                <Grid item xs={12}>
-                  <RadioGroup
-                    row
-                    value={form.regType}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm((p) => ({
-                        ...p,
-                        regType: val,
-                        namePrefix: val === "Organisation" ? "Dr." : form.purpose === "SERVICES" ? "Adv." : "Mr.",
-                      }));
-                    }}
-                  >
-                    <FormControlLabel value="Individual" control={<Radio sx={{ color: "#38bdf8" }} />} label="Individual (व्यक्तिगत)" />
-                    <FormControlLabel value="Organisation" control={<Radio sx={{ color: "#38bdf8" }} />} label="Organisation / Firm (फर्म / संस्था)" />
-                  </RadioGroup>
-                </Grid>
+              <Box sx={{ mb: 3 }}>
+                <RadioGroup
+                  row
+                  value={form.regType}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setForm((p) => ({
+                      ...p,
+                      regType: val,
+                      namePrefix: val === "Organisation" ? "Dr." : form.purpose === "SERVICES" ? "Adv." : "Mr.",
+                    }));
+                  }}
+                >
+                  <FormControlLabel value="Individual" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700}>Individual (व्यक्तिगत)</Typography>} />
+                  <FormControlLabel value="Organisation" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700}>Organisation / Firm (फर्म / संस्था)</Typography>} />
+                </RadioGroup>
+              </Box>
 
-                {form.regType === "Individual" ? (
-                  <>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        label="Prefix / उपाधि"
-                        value={form.namePrefix}
-                        onChange={(e) => handleInputChange("namePrefix", e.target.value)}
-                        sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                      >
-                        <MenuItem value="Adv.">Adv. (अधिवक्ता)</MenuItem>
-                        <MenuItem value="Mr.">Mr. (श्री)</MenuItem>
-                        <MenuItem value="Ms.">Ms. (सुश्री)</MenuItem>
-                        <MenuItem value="Mrs.">Mrs. (श्रीमती)</MenuItem>
-                        <MenuItem value="Dr.">Dr. (डॉक्टर)</MenuItem>
-                        <MenuItem value="Prof.">Prof. (प्रोफेसर)</MenuItem>
-                      </TextField>
-                    </Grid>
-
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        label="First Name (पहला नाम) *"
-                        value={form.firstName}
-                        onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        required
-                        sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        label="Middle Name (मध्य नाम)"
-                        value={form.middleName}
-                        onChange={(e) => handleInputChange("middleName", e.target.value)}
-                        sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        label="Last Name (उपनाम)"
-                        value={form.lastName}
-                        onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                      />
-                    </Grid>
-                  </>
-                ) : (
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Organisation / Chamber / Firm Name (संस्था/फर्म का नाम) *"
-                      value={form.orgName}
-                      onChange={(e) => handleInputChange("orgName", e.target.value)}
-                      required
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    />
-                  </Grid>
-                )}
-
-                <Grid item xs={12} sm={6}>
+              {form.regType === "Individual" ? (
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" }, gap: 2.5, mb: 3 }}>
                   <TextField
                     select
                     fullWidth
                     size="small"
-                    label="Gender (लिंग)"
-                    value={form.gender}
-                    onChange={(e) => handleInputChange("gender", e.target.value)}
+                    label="Prefix / उपाधि"
+                    value={form.namePrefix}
+                    onChange={(e) => handleInputChange("namePrefix", e.target.value)}
                     sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
                   >
-                    <MenuItem value="Male">Male (पुरुष)</MenuItem>
-                    <MenuItem value="Female">Female (महिला)</MenuItem>
-                    <MenuItem value="Other">Other (अन्य)</MenuItem>
+                    <MenuItem value="Adv.">Adv. (अधिवक्ता)</MenuItem>
+                    <MenuItem value="Mr.">Mr. (श्री)</MenuItem>
+                    <MenuItem value="Ms.">Ms. (सुश्री)</MenuItem>
+                    <MenuItem value="Mrs.">Mrs. (श्रीमती)</MenuItem>
+                    <MenuItem value="Dr.">Dr. (डॉक्टर)</MenuItem>
+                    <MenuItem value="Prof.">Prof. (प्रोफेसर)</MenuItem>
                   </TextField>
-                </Grid>
 
-                <Grid item xs={12} sm={6}>
                   <TextField
-                    select
                     fullWidth
                     size="small"
-                    label="Year of Birth (जन्म वर्ष)"
-                    value={form.birthYear}
-                    onChange={(e) => handleInputChange("birthYear", e.target.value)}
+                    label="First Name (पहला नाम) *"
+                    value={form.firstName}
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    required
                     sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  >
-                    {Array.from({ length: 70 }, (_, i) => 2016 - i).map((yr) => (
-                      <MenuItem key={yr} value={String(yr)}>
-                        {yr}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
+                  />
+
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Middle Name (मध्य नाम)"
+                    value={form.middleName}
+                    onChange={(e) => handleInputChange("middleName", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Last Name (उपनाम)"
+                    value={form.lastName}
+                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
+              ) : (
+                <Box sx={{ mb: 3 }}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Organisation / Chamber / Firm Name (संस्था/फर्म का नाम) *"
+                    value={form.orgName}
+                    onChange={(e) => handleInputChange("orgName", e.target.value)}
+                    required
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
+              )}
+
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Gender (लिंग)"
+                  value={form.gender}
+                  onChange={(e) => handleInputChange("gender", e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  <MenuItem value="Male">Male (पुरुष)</MenuItem>
+                  <MenuItem value="Female">Female (महिला)</MenuItem>
+                  <MenuItem value="Other">Other (अन्य)</MenuItem>
+                </TextField>
+
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="Year of Birth (जन्म वर्ष)"
+                  value={form.birthYear}
+                  onChange={(e) => handleInputChange("birthYear", e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  {Array.from({ length: 70 }, (_, i) => 2016 - i).map((yr) => (
+                    <MenuItem key={yr} value={String(yr)}>
+                      {yr}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
             </Paper>
           )}
 
           {/* STEP 3 */}
           {step === 3 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: "#1e293b", borderRadius: 3.5, border: "1px solid #334155" }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1, borderRadius: 2 }}>
-                  <LockIcon sx={{ color: "#38bdf8", fontSize: 24 }} />
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <LockIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
                     📞 2. संपर्क एवं सुरक्षा क्रेडेंशियल्स (Contact & Password)
                   </Typography>
-                  <Typography variant="caption" color="#94a3b8">
+                  <Typography variant="body2" color="#94a3b8">
                     नया पासवर्ड न्यूनतम 8 अक्षर का कोई भी अल्फ़ा/न्यूमेरिक हो सकता है
                   </Typography>
                 </Box>
               </Stack>
 
-              <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Primary Mobile Number (10 डिजिट मोबाइल) *"
-                    value={form.mobile}
-                    onChange={(e) => handleInputChange("mobile", e.target.value)}
-                    placeholder="9876543210"
-                    required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start"><Typography color="#38bdf8" fontWeight={700}>+91</Typography></InputAdornment>,
-                    }}
-                  />
-                </Grid>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5, mb: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Primary Mobile Number (10 डिजिट मोबाइल) *"
+                  value={form.mobile}
+                  onChange={(e) => handleInputChange("mobile", e.target.value)}
+                  placeholder="9876543210"
+                  required
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start"><Typography color="#38bdf8" fontWeight={700}>+91</Typography></InputAdornment>,
+                  }}
+                />
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="WhatsApp Number (वैकल्पिक)"
-                    value={form.whatsapp}
-                    onChange={(e) => handleInputChange("whatsapp", e.target.value)}
-                    placeholder="9876543210"
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start"><Typography color="#34d399" fontWeight={700}>+91</Typography></InputAdornment>,
-                    }}
-                  />
-                </Grid>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="WhatsApp Number (वैकल्पिक)"
+                  value={form.whatsapp}
+                  onChange={(e) => handleInputChange("whatsapp", e.target.value)}
+                  placeholder="9876543210"
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start"><Typography color="#34d399" fontWeight={700}>+91</Typography></InputAdornment>,
+                  }}
+                />
+              </Box>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Official Email Address (ईमेल पता) *"
-                    value={form.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    placeholder="advocate@gmail.com"
-                    required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  />
-                </Grid>
+              <Box sx={{ mb: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Official Email Address (ईमेल पता) *"
+                  value={form.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="advocate@gmail.com"
+                  required
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
+              </Box>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type={showPassword ? "text" : "password"}
-                    label="Create Password (पासवर्ड बनाएं) *"
-                    value={form.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    helperText="न्यूनतम 8 अक्षर (नंबर, अक्षर या अल्फ़ान्यूमेरिक)"
-                    required
-                    sx={{
-                      "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" },
-                      "& .MuiFormHelperText-root": { color: "#38bdf8" },
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type={showPassword ? "text" : "password"}
+                  label="Create Password (पासवर्ड बनाएं) *"
+                  value={form.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  helperText="न्यूनतम 8 अक्षर (नंबर, अक्षर या अल्फ़ान्यूमेरिक)"
+                  required
+                  sx={{
+                    "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" },
+                    "& .MuiFormHelperText-root": { color: "#38bdf8" },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    type={showPassword ? "text" : "password"}
-                    label="Confirm Password (पासवर्ड दोबारा दर्ज करें) *"
-                    value={form.confirmPassword}
-                    onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-              </Grid>
+                <TextField
+                  fullWidth
+                  size="small"
+                  type={showPassword ? "text" : "password"}
+                  label="Confirm Password (पासवर्ड दोबारा दर्ज करें) *"
+                  value={form.confirmPassword}
+                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  required
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
             </Paper>
           )}
 
 
           {/* STEP 4 */}
           {step === 4 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: "#1e293b", borderRadius: 3.5, border: "1px solid #334155" }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1, borderRadius: 2 }}>
-                  <GavelIcon sx={{ color: "#38bdf8", fontSize: 24 }} />
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <GavelIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
                     ⚖️ 3. विधिक प्रमाण एवं विशेषज्ञता (Professional Practice & Matter)
                   </Typography>
-                  <Typography variant="caption" color="#94a3b8">
+                  <Typography variant="body2" color="#94a3b8">
                     {form.purpose === "SERVICES" ? "अधिवक्ता बार काउंसिल पंजीकरण व विशेषज्ञता" : "विधिक सहायता विषय व समस्या की श्रेणी"}
                   </Typography>
                 </Box>
               </Stack>
 
               {form.purpose === "SERVICES" ? (
-                <Grid container spacing={2.5}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      select
-                      fullWidth
-                      size="small"
-                      label="Professional Category (श्रेणी)"
-                      value={form.professionalCategory}
-                      onChange={(e) => handleInputChange("professionalCategory", e.target.value)}
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    >
-                      {LEGAL_TAXONOMY_CATEGORIES.map((cat) => (
-                        <MenuItem key={cat.id} value={cat.categoryName}>
-                          {cat.categoryName}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
+                <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Professional Category (श्रेणी)"
+                    value={form.professionalCategory}
+                    onChange={(e) => handleInputChange("professionalCategory", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  >
+                    {LEGAL_TAXONOMY_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat.id} value={cat.categoryName}>
+                        {cat.categoryName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
 
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Bar Council / Professional Reg. No (रजिस्ट्रेशन नंबर) *"
-                      value={form.professionalRegNo}
-                      onChange={(e) => handleInputChange("professionalRegNo", e.target.value)}
-                      placeholder="e.g. D/1234/2015"
-                      required
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    />
-                  </Grid>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Bar Council / Professional Reg. No (रजिस्ट्रेशन नंबर) *"
+                    value={form.professionalRegNo}
+                    onChange={(e) => handleInputChange("professionalRegNo", e.target.value)}
+                    placeholder="e.g. D/1234/2015"
+                    required
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
 
-                  <Grid item xs={12}>
+                  <Box sx={{ gridColumn: { xs: "1", sm: "1 / -1" } }}>
                     <TextField
                       select
                       fullWidth
@@ -818,214 +826,196 @@ export default function PublicOnboarding() {
                         </MenuItem>
                       ))}
                     </TextField>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               ) : form.purpose === "PROBLEM" ? (
-                <Grid container spacing={2.5}>
-                  <Grid item xs={12}>
-                    <TextField
-                      select
-                      fullWidth
-                      size="small"
-                      label="Legal Grievance Category (विधिक समस्या की श्रेणी) *"
-                      value={form.problemCategory}
-                      onChange={(e) => handleInputChange("problemCategory", e.target.value)}
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    >
-                      {PROBLEM_CATEGORIES.map((cat) => (
-                        <MenuItem key={cat} value={cat}>
-                          {cat}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label="Legal Grievance Category (विधिक समस्या की श्रेणी) *"
+                    value={form.problemCategory}
+                    onChange={(e) => handleInputChange("problemCategory", e.target.value)}
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  >
+                    {PROBLEM_CATEGORIES.map((cat) => (
+                      <MenuItem key={cat} value={cat}>
+                        {cat}
+                      </MenuItem>
+                    ))}
+                  </TextField>
 
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      size="small"
-                      label="Brief Matter Summary (समस्या का संक्षिप्त विवरण - 1 से 2 लाइन)"
-                      value={form.problemSummary}
-                      onChange={(e) => handleInputChange("problemSummary", e.target.value)}
-                      placeholder="कृपया अपनी विधिक समस्या का मुख्य विषय लिखें..."
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    />
-                  </Grid>
-                </Grid>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    size="small"
+                    label="Brief Matter Summary (समस्या का संक्षिप्त विवरण - 1 से 2 लाइन)"
+                    value={form.problemSummary}
+                    onChange={(e) => handleInputChange("problemSummary", e.target.value)}
+                    placeholder="कृपया अपनी विधिक समस्या का मुख्य विषय लिखें..."
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
               ) : (
-                <Grid container spacing={2.5}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      size="small"
-                      label="Franchise Node Background (फ्रेंचाइज़ी केंद्र स्थापना का संक्षिप्त विवरण)"
-                      value={form.franchiseBackground}
-                      onChange={(e) => handleInputChange("franchiseBackground", e.target.value)}
-                      placeholder="ज़िला विधिक केंद्र हेतु मौजूदा कार्यालय या कार्य अनुभव..."
-                      sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                    />
-                  </Grid>
-                </Grid>
+                <Box>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    size="small"
+                    label="Franchise Node Background (फ्रेंचाइज़ी केंद्र स्थापना का संक्षिप्त विवरण)"
+                    value={form.franchiseBackground}
+                    onChange={(e) => handleInputChange("franchiseBackground", e.target.value)}
+                    placeholder="ज़िला विधिक केंद्र हेतु मौजूदा कार्यालय या कार्य अनुभव..."
+                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  />
+                </Box>
               )}
             </Paper>
           )}
 
           {/* STEP 5 */}
           {step === 5 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: "#1e293b", borderRadius: 3.5, border: "1px solid #334155" }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2.5 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1, borderRadius: 2 }}>
-                  <AccountBalanceIcon sx={{ color: "#38bdf8", fontSize: 24 }} />
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <AccountBalanceIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
                     📍 4. अधिकार क्षेत्र एवं पता (Jurisdiction & Address)
                   </Typography>
-                  <Typography variant="caption" color="#94a3b8">
+                  <Typography variant="body2" color="#94a3b8">
                     अखिल भारतीय 28 राज्य, 8 केंद्र शासित प्रदेश व 780+ ज़िला क्षेत्राधिकार
                   </Typography>
                 </Box>
               </Stack>
 
-              <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    label="State / Union Territory (राज्य / यूटी) *"
-                    value={form.state}
-                    onChange={(e) => handleStateChange(e.target.value)}
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  >
-                    {PAN_INDIA_STATES.map((st) => (
-                      <MenuItem key={st} value={st}>
-                        {st}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5, mb: 2.5 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="State / Union Territory (राज्य / यूटी) *"
+                  value={form.state}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  {PAN_INDIA_STATES.map((st) => (
+                    <MenuItem key={st} value={st}>
+                      {st}
+                    </MenuItem>
+                  ))}
+                </TextField>
 
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    label="District (ज़िला) *"
-                    value={form.district}
-                    onChange={(e) => handleInputChange("district", e.target.value)}
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  >
-                    {availableDistricts.map((dst) => (
-                      <MenuItem key={dst} value={dst}>
-                        {dst}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label="District (ज़िला) *"
+                  value={form.district}
+                  onChange={(e) => handleInputChange("district", e.target.value)}
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                >
+                  {availableDistricts.map((dst) => (
+                    <MenuItem key={dst} value={dst}>
+                      {dst}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
 
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="City / Tehsil (शहर / तहसील)"
-                    value={form.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="e.g. New Delhi"
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  />
-                </Grid>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2.5 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="City / Tehsil (शहर / तहसील)"
+                  value={form.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="e.g. New Delhi"
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
 
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Pincode (पिनकोड) *"
-                    value={form.pincode}
-                    onChange={(e) => handleInputChange("pincode", e.target.value)}
-                    placeholder="110001"
-                    required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  />
-                </Grid>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Pincode (पिनकोड) *"
+                  value={form.pincode}
+                  onChange={(e) => handleInputChange("pincode", e.target.value)}
+                  placeholder="110001"
+                  required
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
 
-                <Grid item xs={12} sm={4}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Police Station (थाना - वैकल्पिक)"
-                    value={form.policeStation}
-                    onChange={(e) => handleInputChange("policeStation", e.target.value)}
-                    placeholder="e.g. Tilak Marg"
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
-                  />
-                </Grid>
-              </Grid>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Police Station (थाना - वैकल्पिक)"
+                  value={form.policeStation}
+                  onChange={(e) => handleInputChange("policeStation", e.target.value)}
+                  placeholder="e.g. Tilak Marg"
+                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                />
+              </Box>
             </Paper>
           )}
 
           {/* STEP 6 */}
           {step === 6 && (
-            <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: "#1e293b", borderRadius: 3.5, border: "1px solid #334155" }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1, borderRadius: 2 }}>
-                  <VerifiedUserIcon sx={{ color: "#34d399", fontSize: 24 }} />
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2.5 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                  <VerifiedUserIcon sx={{ color: "#34d399", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h6" fontWeight={800} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff">
                     ✅ 5. अंतिम समीक्षा एवं OTP सत्यापन (Review & Verification)
                   </Typography>
-                  <Typography variant="caption" color="#94a3b8">
+                  <Typography variant="body2" color="#94a3b8">
                     कृपया अपने विवरण की समीक्षा करें (किसी भी विवरण को बदलने हेतु सीधे एडिट करें)
                   </Typography>
                 </Box>
               </Stack>
 
-              <Grid container spacing={2} sx={{ mb: 2.5 }}>
-                <Grid item xs={12} sm={6}>
-                  <Paper sx={{ p: 2, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Typography variant="caption" color="#38bdf8" fontWeight={800}>
-                        आवेदक व भूमिका
-                      </Typography>
-                      <IconButton size="small" onClick={() => setStep(2)} sx={{ color: "#94a3b8", p: 0.2 }}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                    <Typography variant="subtitle2" fontWeight={800} color="#ffffff">
-                      {form.regType === "Organisation" ? form.orgName : `${form.namePrefix} ${form.firstName} ${form.lastName}`.trim()}
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 2.5, mb: 2.5 }}>
+                <Paper sx={{ p: 2.5, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2.5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="#38bdf8" fontWeight={900}>
+                      आवेदक व भूमिका
                     </Typography>
-                    <Typography variant="caption" color="#cbd5e1">
-                      भूमिका: <strong>{selectedPurposeObj.shortTitle}</strong> ({form.gender}, {form.birthYear})
-                    </Typography>
-                  </Paper>
-                </Grid>
+                    <IconButton size="small" onClick={() => setStep(2)} sx={{ color: "#38bdf8", p: 0.5 }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                  <Typography variant="subtitle1" fontWeight={800} color="#ffffff">
+                    {form.regType === "Organisation" ? form.orgName : `${form.namePrefix} ${form.firstName} ${form.lastName}`.trim()}
+                  </Typography>
+                  <Typography variant="body2" color="#cbd5e1">
+                    भूमिका: <strong style={{ color: "#34d399" }}>{selectedPurposeObj.shortTitle}</strong> ({form.gender}, {form.birthYear})
+                  </Typography>
+                </Paper>
 
-                <Grid item xs={12} sm={6}>
-                  <Paper sx={{ p: 2, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2 }}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                      <Typography variant="caption" color="#38bdf8" fontWeight={800}>
-                        संपर्क व अधिकार क्षेत्र
-                      </Typography>
-                      <IconButton size="small" onClick={() => setStep(3)} sx={{ color: "#94a3b8", p: 0.2 }}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                    <Typography variant="subtitle2" fontWeight={800} color="#ffffff">
-                      +91 {form.mobile} | {form.email}
+                <Paper sx={{ p: 2.5, bgcolor: "#0f172a", border: "1px solid #334155", borderRadius: 2.5 }}>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="#38bdf8" fontWeight={900}>
+                      संपर्क व अधिकार क्षेत्र
                     </Typography>
-                    <Typography variant="caption" color="#cbd5e1">
-                      क्षेत्र: {form.district}, {form.state} ({form.pincode})
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
+                    <IconButton size="small" onClick={() => setStep(3)} sx={{ color: "#38bdf8", p: 0.5 }}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                  <Typography variant="subtitle1" fontWeight={800} color="#ffffff">
+                    +91 {form.mobile} | {form.email}
+                  </Typography>
+                  <Typography variant="body2" color="#cbd5e1">
+                    क्षेत्र: {form.district}, {form.state} ({form.pincode})
+                  </Typography>
+                </Paper>
+              </Box>
 
-              <Box sx={{ bgcolor: "#0f172a", p: 2, borderRadius: 2, border: "1px solid #334155", mb: 2 }}>
+              <Box sx={{ bgcolor: "#0f172a", p: 2, borderRadius: 2.5, border: "1px solid #334155" }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -1035,7 +1025,7 @@ export default function PublicOnboarding() {
                     />
                   }
                   label={
-                    <Typography variant="body2" color="#e2e8f0" sx={{ fontSize: "0.85rem" }}>
+                    <Typography variant="body2" color="#e2e8f0" sx={{ fontSize: "0.9rem" }}>
                       मैं ICJ ऑनबोर्डिंग नियमों, बार काउंसिल ऑफ इंडिया रूल 36 एवं आईटी एक्ट धारा 79 इंटरमीडियरी सुरक्षा शर्तों को स्वीकार करता हूँ।
                     </Typography>
                   }
@@ -1046,14 +1036,14 @@ export default function PublicOnboarding() {
         </Container>
       </Box>
 
-      {/* 3. BOTTOM NAVIGATION DOCK */}
+      {/* 3. BOTTOM FLUID NAVIGATION DOCK */}
       <Paper
         elevation={0}
         sx={{
-          height: 60,
-          minHeight: 60,
-          maxHeight: 60,
-          px: { xs: 2, md: 3 },
+          height: 65,
+          minHeight: 65,
+          maxHeight: 65,
+          px: { xs: 2, md: 4 },
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -1074,8 +1064,8 @@ export default function PublicOnboarding() {
                 color: "#94a3b8",
                 borderColor: "#334155",
                 fontWeight: 700,
-                borderRadius: 2,
-                px: 2.5,
+                borderRadius: 2.5,
+                px: 3,
                 textTransform: "none",
                 "&:hover": { borderColor: "#64748b", bgcolor: "#1e293b", color: "#ffffff" },
               }}
@@ -1095,8 +1085,10 @@ export default function PublicOnboarding() {
               sx={{
                 bgcolor: "#2563eb",
                 fontWeight: 800,
-                borderRadius: 2,
-                px: 3,
+                borderRadius: 2.5,
+                px: 3.5,
+                py: 1,
+                fontSize: "0.95rem",
                 textTransform: "none",
                 "&:hover": { bgcolor: "#1d4ed8" },
               }}
@@ -1114,8 +1106,10 @@ export default function PublicOnboarding() {
               sx={{
                 bgcolor: "#059669",
                 fontWeight: 900,
-                borderRadius: 2,
-                px: 3.5,
+                borderRadius: 2.5,
+                px: 4,
+                py: 1,
+                fontSize: "0.95rem",
                 textTransform: "none",
                 "&:hover": { bgcolor: "#047857" },
               }}

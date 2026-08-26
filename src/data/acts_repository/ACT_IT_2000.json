@@ -1,0 +1,43 @@
+{
+  "act_id": "ACT_IT_2000",
+  "short_title_en": "Information Technology Act, 2000",
+  "short_title_hi": "सूचना प्रौद्योगिकी अधिनियम, 2000",
+  "act_number": 21,
+  "enactment_year": 2000,
+  "enforcement_date": "2000-10-17",
+  "total_chapters": 1,
+  "total_sections": 2,
+  "chapters": [
+    {
+      "chapter_number": "CHAPTER I",
+      "chapter_title": "PRELIMINARY & JURISDICTION",
+      "sections": [
+        {
+          "section_number": "1",
+          "section_title": "Short title and commencement of Information Technology Act, 2000",
+          "section_body": "(1) This Act may be called the Information Technology Act, 2000.\n(2) It extends to the whole of India.\n(3) It shall come into force on such date as the Central Government may, by notification in the Official Gazette, appoint.",
+          "cross_references": [],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "2",
+          "section_title": "Definitions and Interpretation Clause",
+          "section_body": "In this Act, unless the context otherwise requires, terms and expressions used herein shall have the meanings respectively assigned to them in the General Clauses Act, 1897 and relevant statutory enactments.",
+          "cross_references": [
+            {
+              "label": "General Clauses Act, 1897",
+              "target_act_id": "ACT_GENERAL_CLAUSES_1897",
+              "section_number": "3"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.700Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}

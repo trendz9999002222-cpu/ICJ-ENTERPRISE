@@ -1,0 +1,79 @@
+{
+  "act_id": "ACT_CPC_1908",
+  "short_title_en": "Code of Civil Procedure, 1908",
+  "short_title_hi": "सिविल प्रक्रिया संहिता, 1908",
+  "act_number": 5,
+  "enactment_year": 1908,
+  "enforcement_date": "1909-01-01",
+  "total_chapters": 1,
+  "total_sections": 4,
+  "chapters": [
+    {
+      "chapter_number": "PART I",
+      "chapter_title": "SUITS IN GENERAL & JURISDICTION",
+      "sections": [
+        {
+          "section_number": "9",
+          "section_title": "Courts to try all civil suits unless barred",
+          "section_body": "The Courts shall (subject to the provisions herein contained) have jurisdiction to try all suits of a civil nature excepting suits of which their cognizance is either expressly or impliedly barred.",
+          "cross_references": [
+            {
+              "label": "Section 11 (Res Judicata)",
+              "target_act_id": "ACT_CPC_1908",
+              "section_number": "11"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "11",
+          "section_title": "Res Judicata",
+          "section_body": "No Court shall try any suit or issue in which the matter directly and substantially in issue has been directly and substantially in issue in a former suit between the same parties, or between parties under whom they or any of them claim, litigating under the same title, in a Court competent to try such subsequent suit or the suit in which such issue has been subsequently raised, and has been heard and finally decided by such Court.",
+          "cross_references": [
+            {
+              "label": "Order 2 Rule 2 CPC",
+              "target_act_id": "ACT_CPC_1908",
+              "section_number": "Order 2"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        },
+        {
+          "section_number": "148A",
+          "section_title": "Right to lodge a caveat",
+          "section_body": "(1) Where an application is expected to be made, or has been made, in a suit or proceeding instituted, or about to be instituted, in a Court, any person claiming a right to appear before the Court on the hearing of such application may lodge a caveat in respect thereof.\n(5) Where a caveat has been lodged under sub-section (1), such caveat shall not remain in force after the expiry of ninety days from the date on which it was lodged, unless the application referred to in sub-section (1) has been made before the expiry of the said period.",
+          "cross_references": [
+            {
+              "label": "Order 39 CPC (Injunction)",
+              "target_act_id": "ACT_CPC_1908",
+              "section_number": "Order 39"
+            }
+          ],
+          "defined_terms": [
+            "caveat"
+          ],
+          "order_index": 3
+        },
+        {
+          "section_number": "151",
+          "section_title": "Saving of inherent powers of Court",
+          "section_body": "Nothing in this Code shall be deemed to limit or otherwise affect the inherent power of the Court to make such orders as may be necessary for the ends of justice or to prevent abuse of the process of the Court.",
+          "cross_references": [
+            {
+              "label": "Section 528 BNSS (Inherent Criminal)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "528"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 4
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.670Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}

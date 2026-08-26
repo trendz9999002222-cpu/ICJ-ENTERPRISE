@@ -1,0 +1,41 @@
+{
+  "case_id": "HC_AHC_2023_9210",
+  "hc_code": "AHC",
+  "court_name": "High Court of Judicature at Allahabad",
+  "bench_location": "Prayagraj (Allahabad)",
+  "case_number": "CRIMINAL MISC. BAIL APPLICATION No. 18230 of 2023",
+  "neutral_citation": "2023:AHC:9210",
+  "parallel_citation": "2023 AHC 9210",
+  "title": "Mohd. Aslam v. State of U.P.",
+  "cause_title": "Mohd. Aslam Versus State of Uttar Pradesh",
+  "party_petitioner": "Mohd. Aslam",
+  "party_respondent": "State of U.P.",
+  "coram": [
+    "Justice Siddharth"
+  ],
+  "judgment_date": "2023-05-12",
+  "year": 2023,
+  "legal_domain": "Criminal Law & Procedure",
+  "disposal_nature": "Anticipatory Bail Granted",
+  "linked_sections": [
+    {
+      "act_id": "ACT_BNSS_2023",
+      "section_number": "482"
+    },
+    {
+      "act_id": "ACT_CRPC_1973",
+      "section_number": "438"
+    },
+    {
+      "act_id": "ACT_CONSTITUTION_1950",
+      "section_number": "21"
+    }
+  ],
+  "ratio_decidendi_en": "Held that an anticipatory bail application under Section 438 CrPC / 482 BNSS is maintainable directly before the High Court without first approaching the Court of Session if exceptional or special circumstances are shown.",
+  "ratio_decidendi_hi": "विशेष या असाधारण परिस्थितियों में सत्र न्यायालय (Sessions Court) जाए बिना सीधे इलाहाबाद उच्च न्यायालय में अग्रिम जमानत याचिका (438 CrPC / 482 BNSS) पोषणीय (Maintainable) है।",
+  "headnotes": [
+    "Direct Anticipatory Bail - High Court jurisdiction without exhausting Sessions Court.",
+    "Section 438 CrPC / 482 BNSS - Concurrent jurisdiction of High Court and Sessions Court."
+  ],
+  "practice_takeaway": "Frequently relied upon in Uttar Pradesh when filing urgent anticipatory bail directly in Allahabad / Lucknow bench."
+}

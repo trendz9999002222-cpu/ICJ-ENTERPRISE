@@ -1,0 +1,94 @@
+{
+  "act_id": "ACT_CONSTITUTION_1950",
+  "short_title_en": "Constitution of India, 1950",
+  "short_title_hi": "भारत का संविधान, 1950",
+  "act_number": 0,
+  "enactment_year": 1950,
+  "enforcement_date": "1950-01-26",
+  "total_chapters": 1,
+  "total_sections": 4,
+  "chapters": [
+    {
+      "chapter_number": "PART III",
+      "chapter_title": "FUNDAMENTAL RIGHTS",
+      "sections": [
+        {
+          "section_number": "14",
+          "section_title": "Equality before law",
+          "section_body": "The State shall not deny to any person equality before the law or the equal protection of the laws within the territory of India.",
+          "cross_references": [
+            {
+              "label": "Article 21 (Life & Liberty)",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "21"
+            },
+            {
+              "label": "Article 226 (High Court Writs)",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "226"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "21",
+          "section_title": "Protection of life and personal liberty",
+          "section_body": "No person shall be deprived of his life or personal liberty except according to procedure established by law.",
+          "cross_references": [
+            {
+              "label": "Article 32 (Supreme Court Remedies)",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "32"
+            },
+            {
+              "label": "Section 482 BNSS (Anticipatory Bail)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "482"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        },
+        {
+          "section_number": "32",
+          "section_title": "Remedies for enforcement of rights conferred by this Part (Supreme Court Writs)",
+          "section_body": "(1) The right to move the Supreme Court by appropriate proceedings for the enforcement of the rights conferred by this Part is guaranteed.\n(2) The Supreme Court shall have power to issue directions or orders or writs, including writs in the nature of habeas corpus, mandamus, prohibition, quo warranto and certiorari, whichever may be appropriate...",
+          "cross_references": [
+            {
+              "label": "Article 226 (High Court Powers)",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "226"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 3
+        },
+        {
+          "section_number": "226",
+          "section_title": "Power of High Courts to issue certain writs",
+          "section_body": "(1) Notwithstanding anything in Article 32, every High Court shall have power, throughout the territories in relation to which it exercises jurisdiction, to issue to any person or authority, including in appropriate cases, any Government, directions, orders or writs, including writs in the nature of habeas corpus, mandamus, prohibition, quo warranto and certiorari, or any of them, for the enforcement of any of the rights conferred by Part III and for any other purpose.",
+          "cross_references": [
+            {
+              "label": "Article 32 (Supreme Court Writs)",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "32"
+            },
+            {
+              "label": "Section 528 BNSS (Inherent Quashing)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "528"
+            }
+          ],
+          "defined_terms": [
+            "Part III"
+          ],
+          "order_index": 4
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.668Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}
