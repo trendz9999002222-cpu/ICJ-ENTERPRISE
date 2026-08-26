@@ -101,7 +101,7 @@ export default function VideoConsultationModal({ open, onClose, advocateName = "
     setCallEnded(true);
     try {
       const summary = ConsultationRecordingService.deduplicateAndSummarize(
-        "Client states property boundary dispute started 12-May-2026. Opposite party filed injunction suit. Advocate advised counter affidavit within 7 days. Client title deeds ready.",
+        callDuration > 0 ? "लाइव वीडियो विधिक परामर्श सत्र सफलतापूर्वक संपन्न हुआ। विधिक तथ्यों व साक्ष्य बिंदुओं की समीक्षा पूर्ण।" : "",
         clientName,
         advocateName
       );

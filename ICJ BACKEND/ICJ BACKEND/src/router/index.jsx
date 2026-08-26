@@ -62,6 +62,8 @@ const GovernanceCenter = lazy(() => import("../pages/GovernanceCenter"));
 const APIConfigCenter = lazy(() => import("../pages/APIConfigCenter"));
 const DeploymentCenter = lazy(() => import("../pages/DeploymentCenter"));
 const SystemHealth = lazy(() => import("../pages/SystemHealth"));
+const BareActsLibrary = lazy(() => import("../pages/BareActsLibrary"));
+const PrecedentsLibrary = lazy(() => import("../pages/PrecedentsLibrary"));
 
 const HelpdeskPortal = lazy(() => import("../pages/HelpdeskPortal"));
 const LegalCommunityFeed = lazy(() => import("../pages/LegalCommunityFeed"));
@@ -227,6 +229,13 @@ export default function AppRouter() {
         <Route path="/billing-invoicing" element={<ProtectedRoute roles={["admin", "advocate"]}><BillingInvoicing /></ProtectedRoute>} />
         <Route path="/master-finance" element={<ProtectedRoute roles={["admin"]}><Wallet /></ProtectedRoute>} />
         <Route path="/ai-drafter" element={<ProtectedRoute><LegalDrafter /></ProtectedRoute>} />
+        <Route path="/bare-acts" element={<ProtectedRoute><BareActsLibrary /></ProtectedRoute>} />
+        <Route path="/bare-acts-reader" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/acts" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/legal-library" element={<Navigate to="/bare-acts" replace />} />
+        <Route path="/precedents" element={<ProtectedRoute><PrecedentsLibrary /></ProtectedRoute>} />
+        <Route path="/judgments" element={<Navigate to="/precedents" replace />} />
+        <Route path="/case-laws" element={<Navigate to="/precedents" replace />} />
         <Route path="/payment-management" element={<ProtectedRoute roles={["admin"]}><PaymentManagement /></ProtectedRoute>} />
         <Route path="/location-master" element={<ProtectedRoute roles={["admin"]}><LocationMasterAdmin /></ProtectedRoute>} />
         <Route path="/database-config" element={<ProtectedRoute roles={["admin"]}><DatabaseConfig /></ProtectedRoute>} />

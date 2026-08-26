@@ -45,14 +45,14 @@ export default function SandboxAndResetCenter() {
     try {
       // 1. Inject sample advocate
       const sampleAdvocate = {
-        id: "ADV-DEMO-001",
-        member_id: "26ADV08AA0001",
-        name: "Adv. Rajeshwar Dayal Sharma",
-        fullName: "Adv. Rajeshwar Dayal Sharma",
-        email: "rajeshwar.sharma@advocate.icj.org",
-        phone: "+91 98765 43210",
-        enrollment_number: "UP/2026/1170",
-        jurisdiction: "District & Sessions Court, High Court",
+        id: "26ICJ08AA0002",
+        member_id: "26ICJ08AA0002",
+        name: "Senior Advocate PAWAN GUPTA",
+        fullName: "Senior Advocate PAWAN GUPTA",
+        email: "advocate.pawan@icj.org",
+        phone: "+91 9999002222",
+        enrollment_number: "D/1042/1998",
+        jurisdiction: "Supreme Court of India, Allahabad High Court & Delhi High Court",
         specialization: ["Civil Disputes", "Property & Land Title", "Constitutional Writs"],
         status: "ACTIVE",
         user_type: "advocate",
@@ -61,28 +61,28 @@ export default function SandboxAndResetCenter() {
 
       // 2. Inject sample client
       const sampleClient = {
-        id: "MEM-DEMO-001",
-        member_id: "26MEM08AA0001",
-        name: "Smt. Sunita Verma",
-        fullName: "Smt. Sunita Verma",
-        email: "sunita.verma@client.icj.org",
-        phone: "+91 91234 56789",
+        id: "26CLT08AA0004",
+        member_id: "26CLT08AA0004",
+        name: "Ramvir Jatav",
+        fullName: "Ramvir Jatav",
+        email: "ramvir.jatav@example.com",
+        phone: "+91 8700974739",
         status: "ACTIVE",
-        user_type: "member",
-        role: "member",
+        user_type: "client",
+        role: "client",
       };
 
       // 3. Inject sample case
       const sampleCase = {
         id: "ICJ/2026/CS/101",
         caseNumber: "ICJ/2026/CS/101",
-        title: "Land Boundary & Title Injunction Suit",
-        clientName: "Smt. Sunita Verma",
-        member_id: "26MEM08AA0001",
-        advocateName: "Adv. Rajeshwar Dayal Sharma",
-        advocate_id: "ADV-DEMO-001",
-        courtName: "District & Sessions Court, Lucknow",
-        court: "District & Sessions Court, Lucknow",
+        title: "Land Boundary & Agricultural Title Dispute",
+        clientName: "Ramvir Jatav",
+        member_id: "26CLT08AA0004",
+        advocateName: "Senior Advocate PAWAN GUPTA",
+        advocate_id: "26ICJ08AA0002",
+        courtName: "Hon'ble High Court of Judicature",
+        court: "Hon'ble High Court of Judicature",
         category: "CIVIL_PROPERTY",
         status: "Counsel Assigned",
         trustApprovalStatus: "Trust Approved",
@@ -212,13 +212,13 @@ export default function SandboxAndResetCenter() {
 
               <Paper sx={{ p: 2, bgcolor: "#0f172a", borderRadius: 2, mb: 3, border: "1px solid #334155" }}>
                 <Typography variant="caption" color="#cbd5e1" display="block">
-                  • <b>Advocate:</b> Adv. Rajeshwar Dayal Sharma (UP/2026/1170)
+                  • <b>Advocate:</b> Senior Advocate PAWAN GUPTA (26ICJ08AA0002)
                 </Typography>
                 <Typography variant="caption" color="#cbd5e1" display="block">
-                  • <b>Client:</b> Smt. Sunita Verma (Gorakhpur)
+                  • <b>Client:</b> Ramvir Jatav (26CLT08AA0004)
                 </Typography>
                 <Typography variant="caption" color="#cbd5e1" display="block">
-                  • <b>Case:</b> Land Title Injunction Suit (ICJ/2026/CS/101)
+                  • <b>Case:</b> Land Title & Boundary Dispute (ICJ/2026/CS/101)
                 </Typography>
               </Paper>
 

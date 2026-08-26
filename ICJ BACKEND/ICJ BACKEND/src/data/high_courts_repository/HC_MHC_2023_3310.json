@@ -1,0 +1,41 @@
+{
+  "case_id": "HC_MHC_2023_3310",
+  "hc_code": "MHC",
+  "court_name": "High Court of Judicature at Madras",
+  "bench_location": "Chennai",
+  "case_number": "C.R.P. (MD) No. 1290 of 2023",
+  "neutral_citation": "2023:MHC:3310",
+  "parallel_citation": "2023 MHC 3310",
+  "title": "K. Ramasamy v. S. Venkatachalam & Ors.",
+  "cause_title": "K. Ramasamy Versus S. Venkatachalam and Others",
+  "party_petitioner": "K. Ramasamy",
+  "party_respondent": "S. Venkatachalam & Ors.",
+  "coram": [
+    "Justice P.T. Asha"
+  ],
+  "judgment_date": "2023-06-20",
+  "year": 2023,
+  "legal_domain": "Civil Law & Procedure",
+  "disposal_nature": "Revision Allowed",
+  "linked_sections": [
+    {
+      "act_id": "ACT_CPC_1908",
+      "section_number": "115"
+    },
+    {
+      "act_id": "ACT_CPC_1908",
+      "section_number": "Order 39"
+    },
+    {
+      "act_id": "ACT_TPA_1882",
+      "section_number": "54"
+    }
+  ],
+  "ratio_decidendi_en": "Adjudicated Civil Revision under Section 115 CPC regarding temporary injunction in suit for declaration of title. Held that injunction cannot be granted against a true owner in possession without establishing prima facie legal title.",
+  "ratio_decidendi_hi": "सिविल प्रक्रिया संहिता धारा 115 व ऑर्डर 39: वैध कानूनी मालिकाना हक स्थापित किए बिना वास्तविक कब्जेदार स्वामी के खिलाफ निषेधाज्ञा (Stay) नहीं दी जा सकती।",
+  "headnotes": [
+    "Order 39 Rules 1 & 2 CPC - Injunction against true title holder impermissible.",
+    "Section 115 CPC - High Court revisional jurisdiction over trial court interim orders."
+  ],
+  "practice_takeaway": "Key precedent in property suits and civil revisions against interlocutory injunction orders."
+}

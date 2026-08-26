@@ -43,7 +43,7 @@ function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant
   const [participants, setParticipants] = useState([
     { id: "P1", name: clientName || "Sh. Litigant", role: "Litigant / Client", avatarColor: "#3b82f6", activeSpeaker: true },
     { id: "P2", name: advocateName || "Empaneled Lead Counsel", role: "Empaneled Lead Counsel", avatarColor: "#10b981", activeSpeaker: false },
-    { id: "P3", name: "Adv. Sunita Verma", role: "Senior Co-Counsel", avatarColor: "#8b5cf6", activeSpeaker: false },
+    { id: "P3", name: "Advocate Ananya Sharma", role: "Co-Counsel & Commercial Specialist", avatarColor: "#8b5cf6", activeSpeaker: false },
     { id: "P4", name: "District Branch Director", role: "District Franchisee Director", avatarColor: "#f59e0b", activeSpeaker: false },
     { id: "P5", name: "ICJ Trust Observer", role: "Super Admin Compliance", avatarColor: "#ef4444", activeSpeaker: false },
   ]);
@@ -109,10 +109,10 @@ function MultiPartyConferenceRoom({ caseId = "CASE-LIVE", clientName = "Litigant
   // Generate Word (.docx) File with Voice Corrections & Case Vault Storage
   const handleGenerateWordDocument = () => {
     let metadata = {
-      litigantAddress: "Lucknow Central District",
-      courtForum: "District & Sessions Court",
-      ipcSections: ["IPC Section 420", "CPC Order 39 Injunction"],
-      agreedRelief: "Bail & Stay Order Application",
+      litigantAddress: "",
+      courtForum: "Hon'ble Court of Competent Jurisdiction",
+      ipcSections: [],
+      agreedRelief: "",
     };
 
     // Apply Spoken Voice Corrections if spoken

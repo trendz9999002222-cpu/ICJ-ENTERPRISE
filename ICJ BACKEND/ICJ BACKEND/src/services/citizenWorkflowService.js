@@ -54,9 +54,9 @@ export const CitizenWorkflowService = {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         assigned_advocate: {
-          advocate_id: "26ICJ08AA0003",
-          advocate_name: "Adv. Vikramaditya Singh",
-          advocate_role: "ICJ Central Senior Panel Lead (In-House Default)",
+          advocate_id: "26ICJ08AA0002",
+          advocate_name: "Senior Advocate PAWAN GUPTA",
+          advocate_role: "Lead Empaneled Advocate & Appellate Counsel",
           allotted_by: "SYSTEM_DEFAULT",
           allotted_at: new Date().toISOString(),
           status: "IN_HOUSE_DEFAULT",
@@ -305,7 +305,7 @@ export const CitizenWorkflowService = {
       request_id: reqId,
       requested_at: new Date().toISOString(),
       previous_advocate_id: item.assigned_advocate?.advocate_id || "26ICJ08AA0003",
-      previous_advocate_name: item.assigned_advocate?.advocate_name || "Adv. Vikramaditya Singh",
+      previous_advocate_name: item.assigned_advocate?.advocate_name || "Senior Advocate PAWAN GUPTA",
       reason,
       notes,
       status: "PENDING_ADMIN_APPROVAL",
@@ -392,10 +392,10 @@ Status: ${item.status}
 --------------------------------------------------------------------------------
 1. CURRENT ASSIGNED LEGAL COUNSEL:
 --------------------------------------------------------------------------------
-Name: ${item.assigned_advocate?.advocate_name || "Adv. Vikramaditya Singh"}
-Role: ${item.assigned_advocate?.advocate_role || "ICJ Senior Legal Counsel"}
-ID: ${item.assigned_advocate?.advocate_id || "26ICJ08AA0003"}
-Status: ${item.assigned_advocate?.status || "In-House Default"}
+Name: ${item.assigned_advocate?.advocate_name || "Senior Advocate PAWAN GUPTA"}
+Role: ${item.assigned_advocate?.advocate_role || "Lead Empaneled Advocate & Appellate Counsel"}
+ID: ${item.assigned_advocate?.advocate_id || "26ICJ08AA0002"}
+Status: ${item.assigned_advocate?.status || "Empaneled Counsel Active"}
 
 --------------------------------------------------------------------------------
 2. STAGE 1 — LEGAL SITUATION & VOICE INTAKE:

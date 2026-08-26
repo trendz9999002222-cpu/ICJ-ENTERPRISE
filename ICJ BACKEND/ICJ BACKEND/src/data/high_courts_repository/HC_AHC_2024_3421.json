@@ -1,0 +1,45 @@
+{
+  "case_id": "HC_AHC_2024_3421",
+  "hc_code": "AHC",
+  "court_name": "High Court of Judicature at Allahabad",
+  "bench_location": "Lucknow Bench",
+  "case_number": "APPLICATION U/S 482 No. 3421 of 2024",
+  "neutral_citation": "2024:AHC:3421-DB",
+  "parallel_citation": "2024 AHC 3421",
+  "title": "Surya Prakash Shukla v. State of U.P. & Anr.",
+  "cause_title": "Surya Prakash Shukla Versus State of U.P. and Another",
+  "party_petitioner": "Surya Prakash Shukla",
+  "party_respondent": "State of U.P. & Anr.",
+  "coram": [
+    "Justice Shamim Ahmed"
+  ],
+  "judgment_date": "2024-03-05",
+  "year": 2024,
+  "legal_domain": "Banking, Negotiable Instruments & Finance",
+  "disposal_nature": "Quashed (Allowed)",
+  "linked_sections": [
+    {
+      "act_id": "ACT_NI_1881",
+      "section_number": "138"
+    },
+    {
+      "act_id": "ACT_NI_1881",
+      "section_number": "141"
+    },
+    {
+      "act_id": "ACT_BNSS_2023",
+      "section_number": "528"
+    },
+    {
+      "act_id": "ACT_CRPC_1973",
+      "section_number": "482"
+    }
+  ],
+  "ratio_decidendi_en": "Held that independent non-executive directors cannot be vicariously prosecuted under Section 141 of NI Act for cheque bounce unless specific role in day-to-day conduct of company business is averred in the complaint.",
+  "ratio_decidendi_hi": "कंपनी के चेक बाउंस मामले में धारा 141 के तहत गैर-कार्यकारी निदेशकों (Non-Executive Directors) के खिलाफ केवल सामान्य आरोप लगाकर मुकदमा नहीं चलाया जा सकता।",
+  "headnotes": [
+    "Section 138 / 141 NI Act - Vicarious liability of Directors.",
+    "Quashing - Non-executive directors immune without specific day-to-day management averments."
+  ],
+  "practice_takeaway": "Master precedent in quashing 138 proceedings initiated against sleeping directors, independent directors, or nominee directors."
+}

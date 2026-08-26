@@ -1,0 +1,103 @@
+{
+  "act_id": "ACT_NI_1881",
+  "short_title_en": "Negotiable Instruments Act, 1881",
+  "short_title_hi": "परक्राम्य लिखत अधिनियम, 1881",
+  "act_number": 26,
+  "enactment_year": 1881,
+  "enforcement_date": "1882-03-01",
+  "total_chapters": 1,
+  "total_sections": 3,
+  "chapters": [
+    {
+      "chapter_number": "CHAPTER XVII",
+      "chapter_title": "OF PENALTIES IN CASE OF DISHONOUR OF CERTAIN CHEQUES",
+      "sections": [
+        {
+          "section_number": "138",
+          "section_title": "Dishonour of cheque for insufficiency, etc., of funds in the account",
+          "section_body": "Where any cheque drawn by a person on an account maintained by him with a banker for payment of any amount of money to another person from out of that account for the discharge, in whole or in part, of any debt or other liability, is returned by the bank unpaid, either because of the amount of money standing to the credit of that account is insufficient or that it exceeds the amount arranged to be paid from that account by an agreement made with that bank, such person shall be deemed to have committed an offence and shall be punished with imprisonment for a term which may be extended to two years, or with fine which may extend to twice the amount of the cheque, or with both:\n\nProvided that nothing contained in this section shall apply unless—\n(a) the cheque has been presented to the bank within a period of three months from the date on which it is drawn or within the period of its validity;\n(b) the payee or holder in due course makes a demand for the payment of the said amount by giving a notice in writing, within thirty days of the receipt of information from the bank regarding the return of the cheque;\n(c) the drawer of such cheque fails to make the payment to the payee within fifteen days of the receipt of the said notice.",
+          "cross_references": [
+            {
+              "label": "Section 139 (Presumption in favour of holder)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "139"
+            },
+            {
+              "label": "Section 142 (Cognizance of offences)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "142"
+            },
+            {
+              "label": "Section 143A (Power to direct interim compensation)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "143A"
+            },
+            {
+              "label": "Section 148 (Power of Appellate Court)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "148"
+            },
+            {
+              "label": "Section 318 BNS (Cheating)",
+              "target_act_id": "ACT_BNS_2023",
+              "section_number": "318"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 1
+        },
+        {
+          "section_number": "139",
+          "section_title": "Presumption in favour of holder",
+          "section_body": "It shall be presumed, unless the contrary is proved, that the holder of a cheque received the cheque of the nature referred to in section 138 for the discharge, in whole or in part, of any debt or other liability.",
+          "cross_references": [
+            {
+              "label": "Section 118 (Presumptions as to negotiable instruments)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "118"
+            },
+            {
+              "label": "Section 119 BSA (Presumption)",
+              "target_act_id": "ACT_BSA_2023",
+              "section_number": "119"
+            },
+            {
+              "label": "Section 138",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "138"
+            }
+          ],
+          "defined_terms": [
+            "section 138"
+          ],
+          "order_index": 2
+        },
+        {
+          "section_number": "143A",
+          "section_title": "Power to direct interim compensation",
+          "section_body": "(1) Notwithstanding anything contained in the Code of Criminal Procedure, 1973, the Court trying an offence under section 138 may order the drawer of the cheque to pay interim compensation to the complainant—\n(a) in a summary trial or a summons case, where he pleads not guilty to the accusation;\n(b) in any other case, upon framing of charge.\n(2) The interim compensation shall not exceed twenty per cent of the amount of the cheque.",
+          "cross_references": [
+            {
+              "label": "Section 148 NI Act (Appellate Deposit)",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "148"
+            },
+            {
+              "label": "Section 138",
+              "target_act_id": "ACT_NI_1881",
+              "section_number": "138"
+            }
+          ],
+          "defined_terms": [
+            "section 138",
+            "order"
+          ],
+          "order_index": 3
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.682Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}

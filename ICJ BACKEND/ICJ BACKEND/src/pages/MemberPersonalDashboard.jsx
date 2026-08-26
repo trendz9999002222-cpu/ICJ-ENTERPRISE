@@ -46,11 +46,19 @@ export default function MemberPersonalDashboard() {
   const memberLevel = (user?.member_level || user?.memberLevel || "PRO").toUpperCase();
   const memberType = (user?.member_type || user?.memberType || "Individual").toUpperCase();
 
-  const memberAge = user?.age || (user?.dob ? new Date().getFullYear() - new Date(user.dob).getFullYear() : (user?.birthYear ? new Date().getFullYear() - Number(user.birthYear) : 38));
-  const memberGender = user?.gender || "Male";
-  const memberDob = user?.dob || (user?.birthYear ? `15-May-${user.birthYear}` : "15-May-1988");
-  const memberMobile = user?.mobile || "+91 9876543210";
-  const memberWhatsapp = user?.whatsapp || user?.mobile || "+91 9876543210";
+  const currentYear = new Date().getFullYear();
+  const calculatedAge = user?.age
+    ? Number(user.age)
+    : user?.birthYear
+    ? currentYear - Number(user.birthYear)
+    : user?.dob
+    ? currentYear - new Date(user.dob).getFullYear()
+    : null;
+
+  const memberAgeDisplay = calculatedAge ? `${calculatedAge} वर्ष (Years)` : "दर्ज नहीं (Not Specified)";
+  const memberGender = user?.gender || "दर्ज नहीं";
+  const memberMobile = user?.mobile || "दर्ज नहीं (Not Provided)";
+  const memberWhatsapp = user?.whatsapp || user?.mobile || "दर्ज नहीं";
 
   const [extraTokens, setExtraTokens] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
@@ -197,10 +205,10 @@ export default function MemberPersonalDashboard() {
 
                   <Grid item xs={12} sm={6}>
                     <Typography color="text.secondary" variant="caption" display="block">
-                      Date of Birth
+                      आयु / जन्म वर्ष (Age / Birth Year)
                     </Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {memberDob}
+                      {memberAgeDisplay} {user?.birthYear ? `(जन्म: ${user.birthYear})` : ""}
                     </Typography>
                   </Grid>
 

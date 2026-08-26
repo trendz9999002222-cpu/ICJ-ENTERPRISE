@@ -271,10 +271,10 @@ export default function GuidedCaseIntakeWizard({ onCompleteCaseIntake, activeAdv
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} sm={7}>
                 <Typography variant="subtitle1" fontWeight="bold" color="#0f172a">
-                  {t("stage4CounselLabel", "👨‍⚖️ Assigned Advocate:")} {activeAdvocate ? activeAdvocate.name : "Adv. Vikramaditya Singh"}
+                  {t("stage4CounselLabel", "👨‍⚖️ Assigned Advocate:")} {activeAdvocate ? activeAdvocate.name : "Senior Advocate PAWAN GUPTA"}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" display="block">
-                  {t("stage4RoleLabel", "Role:")} {activeAdvocate ? activeAdvocate.specialization : "ICJ Central Senior Legal Panel Lead"}
+                  {t("stage4RoleLabel", "Role:")} {activeAdvocate ? activeAdvocate.specialization : "Lead Empaneled Advocate & Appellate Counsel (Bar Council of Delhi)"}
                 </Typography>
               </Grid>
               <Grid item xs={12} sm={5} textAlign="right">

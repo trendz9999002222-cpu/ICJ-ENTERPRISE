@@ -1,0 +1,45 @@
+{
+  "case_id": "HC_DHC_2023_4890",
+  "hc_code": "DHC",
+  "court_name": "High Court of Delhi",
+  "bench_location": "New Delhi",
+  "case_number": "BAIL APPLN. 2890/2023",
+  "neutral_citation": "2023:DHC:4890",
+  "parallel_citation": "2023 DHC 4890",
+  "title": "Vikas Aggarwal v. Directorate of Enforcement (ED)",
+  "cause_title": "Vikas Aggarwal Versus Directorate of Enforcement",
+  "party_petitioner": "Vikas Aggarwal",
+  "party_respondent": "Directorate of Enforcement",
+  "coram": [
+    "Justice Dinesh Kumar Sharma"
+  ],
+  "judgment_date": "2023-07-25",
+  "year": 2023,
+  "legal_domain": "Special Criminal Statutes (POCSO, NDPS, PMLA)",
+  "disposal_nature": "Bail Granted",
+  "linked_sections": [
+    {
+      "act_id": "ACT_PMLA_2002",
+      "section_number": "45"
+    },
+    {
+      "act_id": "ACT_BNSS_2023",
+      "section_number": "483"
+    },
+    {
+      "act_id": "ACT_CRPC_1973",
+      "section_number": "439"
+    },
+    {
+      "act_id": "ACT_CONSTITUTION_1950",
+      "section_number": "21"
+    }
+  ],
+  "ratio_decidendi_en": "Adjudicated Section 45 PMLA twin conditions. Held that prolonged pre-trial incarceration without completion of trial violates Article 21, and the rigours of Section 45 PMLA must yield to the fundamental right to speedy trial.",
+  "ratio_decidendi_hi": "PMLA की धारा 45 की कठोर शर्तों के बावजूद, यदि मुकदमा लंबा खिंचता है तो अनुच्छेद 21 के तहत त्वरित न्याय का अधिकार सर्वोपरि है और अभियुक्त को नियमित जमानत मिल सकती है।",
+  "headnotes": [
+    "PMLA Bail - Twin conditions under Section 45 vs Article 21 Right to Speedy Trial.",
+    "Incarceration - Indefinite custody without trial violates liberty."
+  ],
+  "practice_takeaway": "Leading authority in ED / PMLA bail applications citing prolonged custody and volume of documents."
+}

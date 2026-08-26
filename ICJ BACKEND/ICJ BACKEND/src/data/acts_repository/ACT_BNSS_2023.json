@@ -1,0 +1,163 @@
+{
+  "act_id": "ACT_BNSS_2023",
+  "short_title_en": "Bharatiya Nagarik Suraksha Sanhita, 2023",
+  "short_title_hi": "भारतीय नागरिक सुरक्षा संहिता, 2023",
+  "act_number": 46,
+  "enactment_year": 2023,
+  "enforcement_date": "2024-07-01",
+  "total_chapters": 2,
+  "total_sections": 6,
+  "chapters": [
+    {
+      "chapter_number": "CHAPTER XII",
+      "chapter_title": "INFORMATION TO THE POLICE AND THEIR POWERS TO INVESTIGATE",
+      "sections": [
+        {
+          "section_number": "173",
+          "section_title": "Information in cognizable cases (Registration of FIR & Zero FIR)",
+          "section_body": "(1) Every information relating to the commission of a cognizable offence, irrespective of the area where the offence is committed, may be given orally or by electronic communication to an officer in charge of a police station (Zero FIR).\n\nProvided that if information is given electronically, it shall be taken on record on being signed within three days by the person giving it.\n\n(3) Without prejudice to sub-section (1), on receipt of information relating to commission of a cognizable offence punishable with imprisonment for three years or more but less than seven years, the officer in charge of a police station may, with prior permission of Deputy Superintendent of Police, conduct preliminary enquiry within fourteen days.",
+          "cross_references": [
+            {
+              "label": "Section 176 BNSS (Forensics)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "176"
+            },
+            {
+              "label": "Section 193 BNSS (Chargesheet)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "193"
+            },
+            {
+              "label": "Old CrPC Sec. 154",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "154"
+            }
+          ],
+          "defined_terms": [
+            "cognizable offence",
+            "Zero FIR"
+          ],
+          "order_index": 1
+        },
+        {
+          "section_number": "187",
+          "section_title": "Procedure when investigation cannot be completed in twenty-four hours (Remand & Statutory Default Bail)",
+          "section_body": "(2) The Magistrate may authorize the detention of the accused person, otherwise than in custody of the police, beyond the period of fifteen days; but the total period of police custody of fifteen days may be taken in whole or in parts during the initial period of forty days or sixty days of detention.\n\n(3) The Magistrate shall release the accused on bail on expiry of:\n(a) ninety days, where investigation relates to an offence punishable with death, imprisonment for life or imprisonment for not less than ten years;\n(b) sixty days, where investigation relates to any other offence, if the accused is prepared to and does furnish bail.",
+          "cross_references": [
+            {
+              "label": "Article 21 Constitution",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "21"
+            },
+            {
+              "label": "Section 480 BNSS (Bail)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "480"
+            },
+            {
+              "label": "Old CrPC Sec. 167(2)",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "167"
+            }
+          ],
+          "defined_terms": [],
+          "order_index": 2
+        }
+      ]
+    },
+    {
+      "chapter_number": "CHAPTER XXXV",
+      "chapter_title": "PROVISIONS AS TO BAIL AND BONDS",
+      "sections": [
+        {
+          "section_number": "478",
+          "section_title": "In what cases bail to be taken (Bailable Offences)",
+          "section_body": "When any person other than a person accused of a non-bailable offence is arrested or detained without warrant by an officer in charge of a police station, or appears or is brought before a Court, and is prepared at any time while in the custody of such officer or at any stage of the proceeding before such Court to give bail, such person shall be released on bail.",
+          "cross_references": [
+            {
+              "label": "Old CrPC Sec. 436",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "436"
+            }
+          ],
+          "defined_terms": [
+            "non-bailable offence"
+          ],
+          "order_index": 1
+        },
+        {
+          "section_number": "480",
+          "section_title": "When bail may be taken in case of non-bailable offence (Magistrate Bail)",
+          "section_body": "(1) When any person accused of, or suspected of, the commission of any non-bailable offence is arrested or detained without warrant, he may be released on bail, but he shall not be so released if there appear reasonable grounds for believing that he has been guilty of an offence punishable with death or imprisonment for life:\n\nProvided that the Court may direct that any person under the age of sixteen years or any woman or any sick or infirm person be released on bail.",
+          "cross_references": [
+            {
+              "label": "Section 482 BNSS (Anticipatory Bail)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "482"
+            },
+            {
+              "label": "Old CrPC Sec. 437",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "437"
+            }
+          ],
+          "defined_terms": [
+            "non-bailable offence"
+          ],
+          "order_index": 2
+        },
+        {
+          "section_number": "482",
+          "section_title": "Direction for grant of bail to person apprehending arrest (Anticipatory Bail)",
+          "section_body": "(1) Where any person has reason to believe that he may be arrested on accusation of having committed a non-bailable offence, he may apply to the High Court or the Court of Session for a direction under this section that in the event of such arrest he shall be released on bail; and that Court may, after taking into consideration:\n(i) the nature and gravity of accusation;\n(ii) the antecedents of applicant including criminal history;\n(iii) the possibility of fleeing from justice; either reject or grant interim bail.",
+          "cross_references": [
+            {
+              "label": "Article 21 Constitution",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "21"
+            },
+            {
+              "label": "Section 483 BNSS (Regular Bail)",
+              "target_act_id": "ACT_BNSS_2023",
+              "section_number": "483"
+            },
+            {
+              "label": "Old CrPC Sec. 438",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "438"
+            }
+          ],
+          "defined_terms": [
+            "non-bailable offence",
+            "consideration"
+          ],
+          "order_index": 3
+        },
+        {
+          "section_number": "528",
+          "section_title": "Saving of inherent powers of High Court (Quashing)",
+          "section_body": "Nothing in this Sanhita shall be deemed to limit or affect the inherent powers of the High Court to make such orders as may be necessary to give effect to any order under this Sanhita, or to prevent abuse of the process of any Court or otherwise to secure the ends of justice.",
+          "cross_references": [
+            {
+              "label": "Article 226 Constitution",
+              "target_act_id": "ACT_CONSTITUTION_1950",
+              "section_number": "226"
+            },
+            {
+              "label": "Old CrPC Sec. 482",
+              "target_act_id": "ACT_CRPC_1973",
+              "section_number": "482"
+            }
+          ],
+          "defined_terms": [
+            "order"
+          ],
+          "order_index": 4
+        }
+      ]
+    }
+  ],
+  "ingested_at": "2026-08-25T17:02:37.652Z",
+  "source": "India Code (indiacode.nic.in) / Legislative Dept MoL&J",
+  "is_offline_ready": true
+}

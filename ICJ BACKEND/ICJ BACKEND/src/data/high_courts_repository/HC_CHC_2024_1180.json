@@ -1,0 +1,41 @@
+{
+  "case_id": "HC_CHC_2024_1180",
+  "hc_code": "CHC",
+  "court_name": "High Court of Judicature at Calcutta",
+  "bench_location": "Kolkata (Appellate Side)",
+  "case_number": "W.P.A. 1180 of 2024",
+  "neutral_citation": "2024:CHC-AS:1180",
+  "parallel_citation": "2024 CHC 1180",
+  "title": "Siddhartha Ghosh v. State of West Bengal & Ors.",
+  "cause_title": "Siddhartha Ghosh Versus State of West Bengal and Others",
+  "party_petitioner": "Siddhartha Ghosh",
+  "party_respondent": "State of West Bengal & Ors.",
+  "coram": [
+    "Justice Jay Sengupta"
+  ],
+  "judgment_date": "2024-01-29",
+  "year": 2024,
+  "legal_domain": "Constitutional & Administrative Law",
+  "disposal_nature": "Writ Allowed",
+  "linked_sections": [
+    {
+      "act_id": "ACT_CONSTITUTION_1950",
+      "section_number": "226"
+    },
+    {
+      "act_id": "ACT_BNSS_2023",
+      "section_number": "173"
+    },
+    {
+      "act_id": "ACT_CRPC_1973",
+      "section_number": "154"
+    }
+  ],
+  "ratio_decidendi_en": "High Court exercised Article 226 writ jurisdiction to order independent police investigation and security protection where state police failed to register FIR in political assault case.",
+  "ratio_decidendi_hi": "संविधान के अनुच्छेद 226 के तहत रिट याचिका: पुलिस द्वारा FIR दर्ज न करने और निष्पक्ष जांच न करने पर उच्च न्यायालय ने स्वतंत्र जांच और पुलिस सुरक्षा का आदेश दिया।",
+  "headnotes": [
+    "Article 226 Writs - Directing police registration of FIR in serious cognizable cases.",
+    "Police Protection - Duty of state to protect witness and victim."
+  ],
+  "practice_takeaway": "Cited in Calcutta High Court Writ Mandamus petitions for police inaction and non-registration of FIR."
+}
