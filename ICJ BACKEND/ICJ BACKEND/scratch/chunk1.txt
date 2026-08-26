@@ -47,3 +47,77 @@ import PasswordPolicyService from "../services/passwordPolicyService";
 import MasterCertificateModal from "../components/common/MasterCertificateModal.jsx";
 import { PAN_INDIA_STATES, PAN_INDIA_DISTRICTS_MAP, DEFAULT_STATE, DEFAULT_DISTRICT } from "../data/panIndiaMaster.js";
 import { LEGAL_TAXONOMY_CATEGORIES, EXPERIENCE_LEVELS } from "../data/legalTaxonomyMaster.js";
+
+// UNIFIED HIGH-CONTRAST DARK THEME INPUT STYLING
+const inputFieldSx = {
+  "& .MuiInputLabel-root": {
+    color: "#94a3b8",
+    fontWeight: 700,
+    fontSize: "0.92rem",
+    "&.Mui-focused": { color: "#38bdf8" },
+  },
+  "& .MuiOutlinedInput-root": {
+    bgcolor: "#0b1329",
+    color: "#ffffff",
+    borderRadius: "10px",
+    fontWeight: 600,
+    fontSize: "0.95rem",
+    "& fieldset": {
+      borderColor: "#334155",
+      borderWidth: "1.5px",
+    },
+    "&:hover fieldset": {
+      borderColor: "#60a5fa",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#38bdf8",
+      borderWidth: "2px",
+      boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)",
+    },
+    "& .MuiInputBase-input": {
+      color: "#ffffff !important",
+      "&::placeholder": {
+        color: "#64748b",
+        opacity: 1,
+      },
+      "&:-webkit-autofill": {
+        WebkitBoxShadow: "0 0 0 1000px #0b1329 inset !important",
+        WebkitTextFillColor: "#ffffff !important",
+      },
+    },
+    "& .MuiSelect-icon": {
+      color: "#38bdf8",
+    },
+  },
+  "& .MuiFormHelperText-root": {
+    color: "#38bdf8",
+    fontWeight: 600,
+  },
+};
+
+const selectMenuProps = {
+  PaperProps: {
+    sx: {
+      bgcolor: "#1e293b",
+      color: "#ffffff",
+      border: "1.5px solid #334155",
+      borderRadius: "12px",
+      boxShadow: "0 12px 32px rgba(0, 0, 0, 0.5)",
+      "& .MuiMenuItem-root": {
+        color: "#e2e8f0",
+        fontWeight: 600,
+        fontSize: "0.92rem",
+        py: 1.2,
+        "&:hover": {
+          bgcolor: "rgba(56, 189, 248, 0.15)",
+          color: "#38bdf8",
+        },
+        "&.Mui-selected": {
+          bgcolor: "rgba(56, 189, 248, 0.25) !important",
+          color: "#38bdf8",
+          fontWeight: 800,
+        },
+      },
+    },
+  },
+};

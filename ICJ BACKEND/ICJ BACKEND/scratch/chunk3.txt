@@ -212,7 +212,7 @@
 
           {/* STEP 2 */}
           {step === 2 && (
-            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1.5px solid #334155" }}>
               <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
                 <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
                   <SecurityIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
@@ -240,8 +240,8 @@
                     }));
                   }}
                 >
-                  <FormControlLabel value="Individual" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700}>Individual (व्यक्तिगत)</Typography>} />
-                  <FormControlLabel value="Organisation" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700}>Organisation / Firm (फर्म / संस्था)</Typography>} />
+                  <FormControlLabel value="Individual" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700} color="#ffffff">Individual (व्यक्तिगत)</Typography>} />
+                  <FormControlLabel value="Organisation" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700} color="#ffffff">Organisation / Firm (फर्म / संस्था)</Typography>} />
                 </RadioGroup>
               </Box>
 
@@ -254,7 +254,8 @@
                     label="Prefix / उपाधि"
                     value={form.namePrefix}
                     onChange={(e) => handleInputChange("namePrefix", e.target.value)}
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    SelectProps={{ MenuProps: selectMenuProps }}
+                    sx={inputFieldSx}
                   >
                     <MenuItem value="Adv.">Adv. (अधिवक्ता)</MenuItem>
                     <MenuItem value="Mr.">Mr. (श्री)</MenuItem>
@@ -271,7 +272,7 @@
                     value={form.firstName}
                     onChange={(e) => handleInputChange("firstName", e.target.value)}
                     required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    sx={inputFieldSx}
                   />
 
                   <TextField
@@ -280,7 +281,7 @@
                     label="Middle Name (मध्य नाम)"
                     value={form.middleName}
                     onChange={(e) => handleInputChange("middleName", e.target.value)}
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    sx={inputFieldSx}
                   />
 
                   <TextField
@@ -289,7 +290,7 @@
                     label="Last Name (उपनाम)"
                     value={form.lastName}
                     onChange={(e) => handleInputChange("lastName", e.target.value)}
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    sx={inputFieldSx}
                   />
                 </Box>
               ) : (
@@ -301,7 +302,7 @@
                     value={form.orgName}
                     onChange={(e) => handleInputChange("orgName", e.target.value)}
                     required
-                    sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                    sx={inputFieldSx}
                   />
                 </Box>
               )}
@@ -314,7 +315,8 @@
                   label="Gender (लिंग)"
                   value={form.gender}
                   onChange={(e) => handleInputChange("gender", e.target.value)}
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  SelectProps={{ MenuProps: selectMenuProps }}
+                  sx={inputFieldSx}
                 >
                   <MenuItem value="Male">Male (पुरुष)</MenuItem>
                   <MenuItem value="Female">Female (महिला)</MenuItem>
@@ -328,7 +330,8 @@
                   label="Year of Birth (जन्म वर्ष)"
                   value={form.birthYear}
                   onChange={(e) => handleInputChange("birthYear", e.target.value)}
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  SelectProps={{ MenuProps: selectMenuProps }}
+                  sx={inputFieldSx}
                 >
                   {Array.from({ length: 70 }, (_, i) => 2016 - i).map((yr) => (
                     <MenuItem key={yr} value={String(yr)}>
@@ -342,7 +345,7 @@
 
           {/* STEP 3 */}
           {step === 3 && (
-            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1px solid #334155" }}>
+            <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1.5px solid #334155" }}>
               <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
                 <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
                   <LockIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
@@ -366,9 +369,9 @@
                   onChange={(e) => handleInputChange("mobile", e.target.value)}
                   placeholder="9876543210"
                   required
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  sx={inputFieldSx}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><Typography color="#38bdf8" fontWeight={700}>+91</Typography></InputAdornment>,
+                    startAdornment: <InputAdornment position="start"><Typography color="#38bdf8" fontWeight={800}>+91</Typography></InputAdornment>,
                   }}
                 />
 
@@ -379,9 +382,9 @@
                   value={form.whatsapp}
                   onChange={(e) => handleInputChange("whatsapp", e.target.value)}
                   placeholder="9876543210"
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  sx={inputFieldSx}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><Typography color="#34d399" fontWeight={700}>+91</Typography></InputAdornment>,
+                    startAdornment: <InputAdornment position="start"><Typography color="#34d399" fontWeight={800}>+91</Typography></InputAdornment>,
                   }}
                 />
               </Box>
@@ -395,7 +398,7 @@
                   onChange={(e) => handleInputChange("email", e.target.value)}
                   placeholder="advocate@gmail.com"
                   required
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  sx={inputFieldSx}
                 />
               </Box>
 
@@ -409,14 +412,11 @@
                   onChange={(e) => handleInputChange("password", e.target.value)}
                   helperText="न्यूनतम 8 अक्षर (नंबर, अक्षर या अल्फ़ान्यूमेरिक)"
                   required
-                  sx={{
-                    "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" },
-                    "& .MuiFormHelperText-root": { color: "#38bdf8" },
-                  }}
+                  sx={inputFieldSx}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
+                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#38bdf8" }}>
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
@@ -432,11 +432,11 @@
                   value={form.confirmPassword}
                   onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                   required
-                  sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#0f172a", color: "#ffffff" } }}
+                  sx={inputFieldSx}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#94a3b8" }}>
+                        <IconButton onClick={() => setShowPassword((v) => !v)} edge="end" sx={{ color: "#38bdf8" }}>
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>

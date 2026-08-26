@@ -138,7 +138,7 @@ export default function PublicOnboarding() {
     }
 
     if (step === 3) {
-      const cleanMobile = form.mobile.replace(/\D/g, "");
+      const cleanMobile = form.mobile.replace(/\\D/g, "");
       if (cleanMobile.length < 10) {
         setStepError("कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।");
         return;
@@ -185,7 +185,7 @@ export default function PublicOnboarding() {
         return;
       }
 
-      const cleanPin = form.pincode.replace(/\D/g, "");
+      const cleanPin = form.pincode.replace(/\\D/g, "");
       if (cleanPin.length !== 6) {
         setStepError("कृपया 6 अंकों का सही पिनकोड दर्ज करें।");
         return;
