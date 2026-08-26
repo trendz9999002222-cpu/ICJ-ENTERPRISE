@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Paper, Typography, Stack, Button, Chip } from "@mui/material";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import HelpOutlineIcon from "@mui/icons-material/Help";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import LanguageService from "../../services/languageService";
 
