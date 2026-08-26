@@ -424,7 +424,7 @@ export default function PublicOnboarding() {
             <Typography variant="subtitle2" fontWeight={900} sx={{ color: "#ffffff", lineHeight: 1.1 }}>
               ICJ ENTERPRISE ONBOARDING
             </Typography>
-            <Typography variant="caption" sx={{ color: "#94a3b8", display: { xs: "none", sm: "block" } }}>
+            <Typography variant="caption" sx={{ color: "#cbd5e1", fontWeight: 600, display: { xs: "none", sm: "block" } }}>
               अखिल भारतीय विधिक सदस्यता एवं डिजिटल न्याय मंच
             </Typography>
           </Box>
@@ -440,7 +440,7 @@ export default function PublicOnboarding() {
               step === 5 ? "अधिकार क्षेत्र व पता" : "समीक्षा व OTP"
             }`}
             size="small"
-            sx={{ bgcolor: "#1e293b", color: "#38bdf8", fontWeight: 800, border: "1px solid #334155", py: 1.8 }}
+            sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", color: "#38bdf8", fontWeight: 800, border: "1px solid #38bdf8", py: 1.8 }}
           />
 
           <Button
@@ -448,7 +448,7 @@ export default function PublicOnboarding() {
             to="/"
             size="small"
             variant="text"
-            sx={{ color: "#94a3b8", minWidth: 0, p: 0.5, "&:hover": { color: "#ffffff" } }}
+            sx={{ color: "#cbd5e1", minWidth: 0, p: 0.5, "&:hover": { color: "#ffffff", bgcolor: "rgba(255,255,255,0.1)" } }}
           >
             <CloseIcon fontSize="small" />
           </Button>
@@ -476,7 +476,7 @@ export default function PublicOnboarding() {
       >
         <Container maxWidth="xl" sx={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           {stepError && (
-            <Alert severity="error" sx={{ mb: 2, bgcolor: "#450a0a", color: "#fca5a5", border: "1px solid #7f1d1d" }}>
+            <Alert severity="error" sx={{ mb: 2, bgcolor: "#450a0a", color: "#fca5a5", border: "1.5px solid #ef4444", fontWeight: 700 }}>
               {stepError}
             </Alert>
           )}
@@ -488,7 +488,7 @@ export default function PublicOnboarding() {
                 <Typography variant="h4" fontWeight={900} color="#ffffff" sx={{ fontSize: { xs: "1.4rem", md: "2rem" }, mb: 1 }}>
                   🎯 अपनी भूमिका एवं विधिक क्षमता का चयन करें
                 </Typography>
-                <Typography variant="body1" color="#94a3b8" sx={{ fontSize: "1.05rem" }}>
+                <Typography variant="body1" sx={{ color: "#cbd5e1", fontSize: "1.05rem", fontWeight: 600 }}>
                   Select your primary onboarding capacity on the ICJ Enterprise Legal Infrastructure
                 </Typography>
               </Box>
@@ -535,7 +535,7 @@ export default function PublicOnboarding() {
                               width: 56,
                               height: 56,
                               borderRadius: 3,
-                              bgcolor: isSelected ? opt.color : "rgba(255,255,255,0.06)",
+                              bgcolor: isSelected ? opt.color : "rgba(255,255,255,0.08)",
                               color: isSelected ? "#ffffff" : opt.color,
                               display: "flex",
                               alignItems: "center",
@@ -557,7 +557,7 @@ export default function PublicOnboarding() {
                         <Typography variant="h6" fontWeight={900} color="#ffffff" sx={{ mb: 1.5, lineHeight: 1.3 }}>
                           {opt.shortTitle}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: "#cbd5e1", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                        <Typography variant="body2" sx={{ color: "#e2e8f0", fontSize: "0.95rem", lineHeight: 1.6, fontWeight: 500 }}>
                           {opt.sublabel}
                         </Typography>
                       </Box>
@@ -604,36 +604,88 @@ export default function PublicOnboarding() {
           {step === 2 && (
             <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1.5px solid #334155" }}>
               <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5, border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                   <SecurityIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
-                  <Typography variant="h5" fontWeight={900} color="#ffffff">
+                  <Typography variant="h5" fontWeight={900} color="#ffffff" sx={{ letterSpacing: 0.5 }}>
                     👤 1. आवेदक की पहचान एवं नाम (Applicant Identity)
                   </Typography>
-                  <Typography variant="body2" color="#94a3b8">
-                    भूमिका: <strong style={{ color: "#38bdf8" }}>{selectedPurposeObj.shortTitle}</strong>
-                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                    <Typography variant="body2" color="#cbd5e1" fontWeight={600}>
+                      चयनित भूमिका:
+                    </Typography>
+                    <Chip
+                      label={selectedPurposeObj.shortTitle}
+                      size="small"
+                      sx={{
+                        bgcolor: "rgba(56, 189, 248, 0.15)",
+                        color: "#38bdf8",
+                        fontWeight: 800,
+                        border: "1px solid #38bdf8",
+                        fontSize: "0.82rem",
+                      }}
+                    />
+                  </Stack>
                 </Box>
               </Stack>
 
-              <Box sx={{ mb: 3 }}>
-                <RadioGroup
-                  row
-                  value={form.regType}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setForm((p) => ({
-                      ...p,
-                      regType: val,
-                      namePrefix: val === "Organisation" ? "Dr." : form.purpose === "SERVICES" ? "Adv." : "Mr.",
-                    }));
+              {/* HIGH-CONTRAST DUAL-PILL REGISTRATION TYPE SELECTOR */}
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3 }}>
+                <Paper
+                  onClick={() => setForm((p) => ({ ...p, regType: "Individual", namePrefix: p.purpose === "SERVICES" ? "Adv." : "Mr." }))}
+                  sx={{
+                    flex: 1,
+                    cursor: "pointer",
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 3,
+                    bgcolor: form.regType === "Individual" ? "rgba(56, 189, 248, 0.15)" : "#0b1329",
+                    border: form.regType === "Individual" ? "2px solid #38bdf8" : "1.5px solid #334155",
+                    boxShadow: form.regType === "Individual" ? "0 0 16px rgba(56, 189, 248, 0.25)" : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    transition: "all 0.2s ease",
+                    "&:hover": { borderColor: "#38bdf8" },
                   }}
                 >
-                  <FormControlLabel value="Individual" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700} color="#ffffff">Individual (व्यक्तिगत)</Typography>} />
-                  <FormControlLabel value="Organisation" control={<Radio sx={{ color: "#38bdf8", "&.Mui-checked": { color: "#38bdf8" } }} />} label={<Typography fontWeight={700} color="#ffffff">Organisation / Firm (फर्म / संस्था)</Typography>} />
-                </RadioGroup>
-              </Box>
+                  <Radio
+                    checked={form.regType === "Individual"}
+                    sx={{ color: "#38bdf8", p: 0, "&.Mui-checked": { color: "#38bdf8" } }}
+                  />
+                  <Typography variant="subtitle1" fontWeight={800} sx={{ color: form.regType === "Individual" ? "#ffffff" : "#e2e8f0" }}>
+                    👤 Individual (व्यक्तिगत)
+                  </Typography>
+                </Paper>
+
+                <Paper
+                  onClick={() => setForm((p) => ({ ...p, regType: "Organisation", namePrefix: "Dr." }))}
+                  sx={{
+                    flex: 1,
+                    cursor: "pointer",
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 3,
+                    bgcolor: form.regType === "Organisation" ? "rgba(56, 189, 248, 0.15)" : "#0b1329",
+                    border: form.regType === "Organisation" ? "2px solid #38bdf8" : "1.5px solid #334155",
+                    boxShadow: form.regType === "Organisation" ? "0 0 16px rgba(56, 189, 248, 0.25)" : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    transition: "all 0.2s ease",
+                    "&:hover": { borderColor: "#38bdf8" },
+                  }}
+                >
+                  <Radio
+                    checked={form.regType === "Organisation"}
+                    sx={{ color: "#38bdf8", p: 0, "&.Mui-checked": { color: "#38bdf8" } }}
+                  />
+                  <Typography variant="subtitle1" fontWeight={800} sx={{ color: form.regType === "Organisation" ? "#ffffff" : "#e2e8f0" }}>
+                    🏢 Organisation / Firm (फर्म / संस्था)
+                  </Typography>
+                </Paper>
+              </Stack>
 
               {form.regType === "Individual" ? (
                 <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(4, 1fr)" }, gap: 2.5, mb: 3 }}>
@@ -737,14 +789,14 @@ export default function PublicOnboarding() {
           {step === 3 && (
             <Paper sx={{ maxWidth: 1000, mx: "auto", width: "100%", p: { xs: 3, md: 4 }, bgcolor: "#1e293b", borderRadius: 4, border: "1.5px solid #334155" }}>
               <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
-                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5 }}>
+                <Box sx={{ bgcolor: "rgba(56, 189, 248, 0.15)", p: 1.2, borderRadius: 2.5, border: "1px solid rgba(56, 189, 248, 0.3)" }}>
                   <LockIcon sx={{ color: "#38bdf8", fontSize: 28 }} />
                 </Box>
                 <Box>
                   <Typography variant="h5" fontWeight={900} color="#ffffff">
                     📞 2. संपर्क एवं सुरक्षा क्रेडेंशियल्स (Contact & Password)
                   </Typography>
-                  <Typography variant="body2" color="#94a3b8">
+                  <Typography variant="body2" sx={{ color: "#cbd5e1", fontWeight: 600 }}>
                     नया पासवर्ड न्यूनतम 8 अक्षर का कोई भी अल्फ़ा/न्यूमेरिक हो सकता है
                   </Typography>
                 </Box>
