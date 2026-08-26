@@ -24,6 +24,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 import ZeroScrollPageShell from "../components/common/ZeroScrollPageShell.jsx";
 import ProgressiveProfileEditor from "../components/profile/ProgressiveProfileEditor.jsx";
+import DynamicEmpanelmentSetup from "../components/profile/DynamicEmpanelmentSetup.jsx";
 import useAuth from "../hooks/useAuth.js";
 
 const PROFILE_VIEWS = [
@@ -229,68 +230,12 @@ export default function MemberPersonalDashboard() {
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 2: CREDENTIALS, SECURITY & DIGITAL WALLET                            */}
+      {/* VIEW 2: DYNAMIC CATEGORY EMPANELMENT SETUP (SYMMETRICAL 50-50 BOXES)      */}
       {/* ========================================================================= */}
       {currentView === 2 && (
-        <Grid container spacing={3} sx={{ height: "100%", alignItems: "stretch" }}>
-          {/* Box 1: Credentials */}
-          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
-            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3.5, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <Box>
-                <Typography variant="h6" fontWeight={900} color="#0f172a" mb={1}>
-                  📜 विधिक प्रमाणपत्र एवं बार एनरोलमेंट
-                </Typography>
-                <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-                  सत्यापित व्यावसायिक विवरण एवं सदस्यता स्तर
-                </Typography>
-
-                <Stack spacing={1.5}>
-                  <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
-                    <Typography variant="caption" color="#64748b">पंजीकरण संख्या / बार काउंसिल:</Typography>
-                    <Typography variant="body2" fontWeight={800}>{user?.barOrRegNumber || "D/1042/1998"}</Typography>
-                  </Box>
-
-                  <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
-                    <Typography variant="caption" color="#64748b">सदस्यता टियर:</Typography>
-                    <Typography variant="body2" fontWeight={800} color="#2563eb">ICJ {memberLevel} TIER (2026)</Typography>
-                  </Box>
-                </Stack>
-              </Box>
-
-              <Chip icon={<SecurityIcon />} label="256-बिट बैंक-ग्रेड सुरक्षा सक्रिय" color="success" sx={{ fontWeight: 700 }} />
-            </Card>
-          </Grid>
-
-          {/* Box 2: Wallet */}
-          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
-            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3.5, display: "flex", flexDirection: "column", justifyContent: "space-between", bgcolor: "#f0fdf4", borderColor: "#bbf7d0" }}>
-              <Box>
-                <Typography variant="h6" fontWeight={900} color="#166534" mb={1}>
-                  💳 डिजिटल मास्टर वॉलेट एवं टोकन
-                </Typography>
-                <Typography variant="caption" color="#15803d" display="block" mb={2}>
-                  विधिक परामर्श शुल्क व ट्रस्ट एस्क्रो बैलेंस
-                </Typography>
-
-                <Typography variant="h4" fontWeight={900} color="#14532d" my={2}>
-                  ₹0.00
-                </Typography>
-                <Typography variant="caption" color="#166534">
-                  ✓ कोई लंबित देयता नहीं (No Pending Escrow Dues)
-                </Typography>
-              </Box>
-
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => navigate("/wallet")}
-                sx={{ mt: 2, bgcolor: "#16a34a", "&:hover": { bgcolor: "#15803d" }, fontWeight: 800, borderRadius: 2 }}
-              >
-                वॉलेट प्रबंधन खोलें →
-              </Button>
-            </Card>
-          </Grid>
-        </Grid>
+        <Box sx={{ width: "100%", height: "100%", overflow: "hidden" }}>
+          <DynamicEmpanelmentSetup currentUser={user} />
+        </Box>
       )}
     </ZeroScrollPageShell>
   );
