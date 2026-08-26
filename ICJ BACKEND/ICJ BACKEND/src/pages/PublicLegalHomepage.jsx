@@ -710,9 +710,10 @@ export default function PublicLegalHomepage() {
                 त्वरित संपर्क व सहायता
               </Typography>
               <Typography variant="body2" sx={{ lineHeight: 2 }}>
+                🌐 www.icj.co.in<br />
                 📞 +91 7053002222<br />
                 📞 +91 9999002222<br />
-                📧 legal@icj.org / support@icj.org<br />
+                📧 consortiumofjurists@gmail.com<br />
                 ⏰ 24x7 इमरजेंसी विधिक डेस्क
               </Typography>
             </Grid>

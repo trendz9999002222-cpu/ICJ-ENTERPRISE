@@ -330,7 +330,7 @@ export default function LegalCommunityFeed() {
             </Alert>
             <Typography variant="body2" color="text.secondary">
               पुनः सक्रिय (Unblock) करने के लिए आपको सुपर एडमिन या लीगल गवर्नेंस डेस्क से संपर्क करना होगा।<br />
-              <b>हेल्पडेस्क ईमेल:</b> support@icjenterprise.org
+              <b>हेल्पडेस्क ईमेल:</b> consortiumofjurists@gmail.com
             </Typography>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
