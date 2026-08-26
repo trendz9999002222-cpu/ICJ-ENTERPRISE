@@ -927,11 +927,13 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <MenuItem value="Mrs.">Mrs.</MenuItem>
                           <MenuItem value="Ms.">Ms.</MenuItem>
                           <MenuItem value="Dr.">Dr.</MenuItem>
-                          <MenuItem value="Adv.">Adv.</MenuItem>
-                          <MenuItem value="Prof.">Prof.</MenuItem>
-                          <MenuItem value="CA">CA</MenuItem>
-                          <MenuItem value="CS">CS</MenuItem>
-                          <MenuItem value="CMA">CMA</MenuItem>
+                          {form.purpose === "SERVICES" && [
+                            <MenuItem key="Adv." value="Adv.">Adv.</MenuItem>,
+                            <MenuItem key="Prof." value="Prof.">Prof.</MenuItem>,
+                            <MenuItem key="CA" value="CA">CA</MenuItem>,
+                            <MenuItem key="CS" value="CS">CS</MenuItem>,
+                            <MenuItem key="CMA" value="CMA">CMA</MenuItem>,
+                          ]}
                         </TextField>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
@@ -1577,23 +1579,6 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   </Stack>
                 </Paper>
               )}
-
-              {/* ICJ Enterprise Tech & Security Showcase Banner */}
-              <Paper variant="outlined" sx={{ p: 2.5, bgcolor: "#0f172a", color: "#fff", borderRadius: 2, border: "1px solid #334155" }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight={800} sx={{ color: "#f59e0b", display: "flex", alignItems: "center", gap: 0.8 }}>
-                      <SecurityIcon fontSize="small" /> Powered by ICJ Next-Gen Enterprise Legal-Tech Architecture
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                      Zero-Trust DRM Security | End-to-End Encryption | Instant Dynamic Role-Based Routing
-                    </Typography>
-                  </Box>
-                  <Button size="small" variant="contained" color="warning" onClick={() => setTechShowcaseOpen(true)} sx={{ fontWeight: 800 }}>
-                    EXPLORE TECH ARCHITECTURE 🛡️
-                  </Button>
-                </Stack>
-              </Paper>
 
               {/* Consent */}
               <FormControlLabel
