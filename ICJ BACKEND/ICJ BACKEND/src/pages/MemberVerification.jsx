@@ -503,19 +503,19 @@ export default function MemberVerification() {
           <DialogContent sx={{ p: 3, bgcolor: "#f8fafc" }}>
             <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">PERMANENT MEMBER ID</Typography>
                   <Typography variant="subtitle1" fontWeight={900} color="primary.main" sx={{ fontFamily: "monospace" }}>
                     {getMemberId(selectedMember)}
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">APPLICANT TYPE / ROLE</Typography>
                   <Typography variant="subtitle2" fontWeight={800} color="secondary.main">
                     {isAdvocate(selectedMember) ? "⚖️ Empaneled Advocate & Legal Counsel" : isFranchise(selectedMember) ? "🏢 Authorized District Franchise Partner" : "👤 Litigant Citizen / Client"}
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">CURRENT VERIFICATION STATUS</Typography>
                   <Typography variant="subtitle2" fontWeight={800} color="warning.main">
                     {selectedMember.verification_status || "Pending Admin Verification"}
@@ -532,19 +532,19 @@ export default function MemberVerification() {
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="caption" color="text.secondary">BAR REGISTRATION NUMBER</Typography>
                     <Typography variant="body2" fontWeight={800}>{selectedMember.professionalRegNo || "Verified Council Member"}</Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="caption" color="text.secondary">PROFESSIONAL CATEGORY</Typography>
                     <Typography variant="body2" fontWeight={700}>{selectedMember.professionalCategory || "Legal Profession"}</Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="caption" color="text.secondary">PRACTICE COURTS</Typography>
                     <Typography variant="body2" fontWeight={700}>{selectedMember.practiceCourts || "Supreme Court of India & High Courts"}</Typography>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Typography variant="caption" color="text.secondary">SPECIALIZATIONS</Typography>
                     <Typography variant="body2" fontWeight={700}>{selectedMember.specializations || "Civil, Criminal, Constitutional"}</Typography>
                   </Grid>
@@ -559,27 +559,27 @@ export default function MemberVerification() {
               </Typography>
               <Divider sx={{ mb: 2 }} />
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">STATE / UT</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.practiceState || selectedMember.franchiseState || selectedMember.problemState || selectedMember.state || "Delhi"}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">DISTRICT</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.practiceDistrict || selectedMember.franchiseDistrict || selectedMember.problemDistrict || selectedMember.district || "New Delhi"}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">TEHSIL / CITY</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.practiceCity || selectedMember.franchiseCity || selectedMember.problemCity || selectedMember.city || "—"}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">POLICE STATION (THANA)</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.practicePoliceStation || selectedMember.franchisePoliceStation || selectedMember.problemPoliceStation || "—"}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">PINCODE</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.practicePincode || selectedMember.franchisePincode || selectedMember.problemPincode || selectedMember.pincode || "—"}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Typography variant="caption" color="text.secondary">PRIMARY CONTACT</Typography>
                   <Typography variant="body2" fontWeight={700}>{selectedMember.mobile} | {selectedMember.email}</Typography>
                 </Grid>

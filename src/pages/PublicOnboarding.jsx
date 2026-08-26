@@ -47,6 +47,7 @@ import PlatformLegalTermsModal from "../components/common/PlatformLegalTermsModa
 
 import VoiceInputAdornment from "../components/common/VoiceInputAdornment.jsx";
 import VoiceCommentaryStudio from "../components/common/VoiceCommentaryStudio.jsx";
+import SmartLocationSelector from "../components/common/SmartLocationSelector.jsx";
 import FieldGovernanceService from "../services/fieldGovernanceService.js";
 import MemberService, { generateMemberId } from "../services/memberService";
 import AuthService, { persistLocalUser } from "../services/authService";
@@ -913,7 +914,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 {form.regType === "Individual" ? (
                   <Stack spacing={2.5}>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={2}>
+                      <Grid size={{ xs: 12, sm: 2 }}>
                         <TextField
                           select fullWidth
                           label="Title"
@@ -933,15 +934,15 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <MenuItem value="CMA">CMA</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <TextField fullWidth required label="First Name *" name="firstName"
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <TextField fullWidth required label="First Name" name="firstName"
                           value={form.firstName} onChange={handleChange} placeholder="First Name..."
                           InputProps={{
                             endAdornment: <VoiceInputAdornment onTranscript={(txt) => setForm((p) => ({ ...p, firstName: (p.firstName + " " + txt).trim() }))} value={form.firstName} />,
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3}>
+                      <Grid size={{ xs: 12, sm: 3 }}>
                         <TextField fullWidth label="Middle Name" name="middleName"
                           value={form.middleName} onChange={handleChange} placeholder="Middle Name (optional)"
                           InputProps={{
@@ -949,8 +950,8 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           }}
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3}>
-                        <TextField fullWidth required label="Last Name *" name="lastName"
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        <TextField fullWidth required label="Last Name" name="lastName"
                           value={form.lastName} onChange={handleChange} placeholder="Last Name..."
                           InputProps={{
                             endAdornment: <VoiceInputAdornment onTranscript={(txt) => setForm((p) => ({ ...p, lastName: (p.lastName + " " + txt).trim() }))} value={form.lastName} />,
@@ -960,7 +961,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     </Grid>
 
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                           select fullWidth
                           label="Gender"
@@ -973,10 +974,10 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <MenuItem value="Other">Other</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
                           select fullWidth required
-                          label="Birth Year *"
+                          label="Birth Year"
                           name="birthYear"
                           value={form.birthYear}
                           onChange={handleChange}
@@ -1004,7 +1005,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 ) : (
                   <Stack spacing={2.5}>
                     <TextField fullWidth required
-                      label="Registered Corporate / Entity / Firm Name *" name="orgName"
+                      label="Registered Corporate / Entity / Firm Name" name="orgName"
                       value={form.orgName} onChange={handleChange}
                       placeholder="Official registered company, partnership or LLP name..."
                       helperText="Full legal name as registered with MCA / Registrar of Firms"
@@ -1014,7 +1015,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       Authorized Signatory / Representative Name *
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={2}>
+                      <Grid size={{ xs: 12, sm: 2 }}>
                         <TextField
                           select fullWidth
                           label="Title"
@@ -1030,23 +1031,23 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                           <MenuItem value="Prof.">Prof.</MenuItem>
                         </TextField>
                       </Grid>
-                      <Grid item xs={12} sm={4}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
                         <TextField fullWidth required
-                          label="Representative First Name *" name="repFirstName"
+                          label="Representative First Name" name="repFirstName"
                           value={form.repFirstName} onChange={handleChange}
                           placeholder="First Name..."
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3}>
+                      <Grid size={{ xs: 12, sm: 3 }}>
                         <TextField fullWidth
                           label="Middle Name" name="repMiddleName"
                           value={form.repMiddleName} onChange={handleChange}
                           placeholder="Middle Name..."
                         />
                       </Grid>
-                      <Grid item xs={12} sm={3}>
+                      <Grid size={{ xs: 12, sm: 3 }}>
                         <TextField fullWidth required
-                          label="Last Name *" name="repLastName"
+                          label="Representative Last Name" name="repLastName"
                           value={form.repLastName} onChange={handleChange}
                           placeholder="Last Name..."
                         />
@@ -1064,10 +1065,10 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 </Typography>
                 <Grid container spacing={2.5}>
                   {/* Primary Mobile (Strict 10 Digits) */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth required
-                      label="Primary Mobile Number (10 Digits) *"
+                      label="Primary Mobile Number (10 Digits)"
                       name="mobile"
                       value={form.mobile}
                       onChange={(e) => {
@@ -1098,7 +1099,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   </Grid>
 
                   {/* WhatsApp (Strict 10 Digits) */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       label="WhatsApp Number (10 Digits - Optional)"
@@ -1125,11 +1126,11 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   </Grid>
 
                   {/* Email (Standard RFC Format) */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth required
                       type="email"
-                      label="Corporate / Personal Email Address *"
+                      label="Corporate / Personal Email Address"
                       name="email"
                       value={form.email}
                       onChange={(e) => {
@@ -1149,11 +1150,11 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   </Grid>
 
                   {/* Password */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth required
                       type={showPassword ? "text" : "password"}
-                      label="Secret Password *"
+                      label="Secret Password"
                       name="password"
                       value={form.password}
                       onChange={handleChange}
@@ -1179,11 +1180,11 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   </Grid>
 
                   {/* Confirm Password */}
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth required
                       type={showPassword ? "text" : "password"}
-                      label="Confirm Secret Password *"
+                      label="Confirm Secret Password"
                       name="confirmPassword"
                       value={form.confirmPassword}
                       onChange={handleChange}
@@ -1244,7 +1245,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       const isSelected = selectedCategoryId === cat.id;
                       const IconComp = CATEGORY_ICON_MAP[cat.icon] || GavelIcon;
                       return (
-                        <Grid item xs={12} sm={6} md={4} key={cat.id}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cat.id}>
                           <Paper
                             elevation={isSelected ? 3 : 0}
                             onClick={() => handleCategoryChange(cat)}
@@ -1298,7 +1299,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       {activeTaxonomyCategory.subCategories.map((subCat) => {
                         const isSubSelected = form.professionalSubCategory === subCat.title;
                         return (
-                          <Grid item xs={12} key={subCat.id}>
+                          <Grid size={12} key={subCat.id}>
                             <Paper
                               elevation={0}
                               onClick={() => handleSubCategorySelect(subCat)}
@@ -1335,7 +1336,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
 
                   {/* Dynamic Registration Number & Practice Jurisdictions */}
                   <Grid container spacing={2.5} sx={{ mb: 3 }}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         fullWidth
                         label={activeTaxonomyCategory.regFieldLabel}
@@ -1347,7 +1348,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       />
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
                       <TextField
                         select fullWidth
                         label="Years of Professional Experience *"
@@ -1363,92 +1364,32 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       </TextField>
                     </Grid>
 
-                    {/* ROW: Primary Practice State, District, Tehsil in one line (sm={4} each) */}
-                    <Grid item xs={12} sm={4}>
-                      <Autocomplete
-                        disableClearable
-                        options={PAN_INDIA_STATES}
-                        value={form.practiceState}
-                        onChange={(_, newValue) => {
-                          setForm(p => ({
-                            ...p,
-                            practiceState: newValue,
-                            practiceDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
-                          }));
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            label="Practice State / UT *"
-                            name="practiceState"
-                          />
-                        )}
-                      />
+                    {/* ROW: Primary Practice Location (Smart Auto-Location Engine) */}
+                    <Grid size={12}>
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, borderColor: "#cbd5e1" }}>
+                        <SmartLocationSelector
+                          state={form.practiceState}
+                          district={form.practiceDistrict}
+                          tehsil={form.practiceCity}
+                          policeStation={form.practicePoliceStation}
+                          pincode={form.practicePincode}
+                          onChange={({ state, district, tehsil, policeStation, pincode }) => {
+                            setForm(p => ({
+                              ...p,
+                              ...(state ? { practiceState: state } : {}),
+                              ...(district ? { practiceDistrict: district } : {}),
+                              ...(tehsil !== undefined ? { practiceCity: tehsil } : {}),
+                              ...(policeStation !== undefined ? { practicePoliceStation: policeStation } : {}),
+                              ...(pincode !== undefined ? { practicePincode: pincode } : {}),
+                            }));
+                          }}
+                          title="📍 Primary Practice Jurisdiction & Chamber Location"
+                          themeColor="#1565c0"
+                        />
+                      </Paper>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
-                      <Autocomplete
-                        disableClearable
-                        options={PAN_INDIA_DISTRICTS_MAP[form.practiceState] || []}
-                        value={form.practiceDistrict}
-                        onChange={(_, newValue) => {
-                          setForm(p => ({
-                            ...p,
-                            practiceDistrict: newValue,
-                          }));
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            label="Practice District *"
-                            name="practiceDistrict"
-                          />
-                        )}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        fullWidth
-                        label="Practice Tehsil / City"
-                        name="practiceCity"
-                        value={form.practiceCity || ""}
-                        onChange={handleChange}
-                        placeholder="Tehsil or City name..."
-                      />
-                    </Grid>
-
-                    {/* LOCATION ROW 2: Jurisdictional Police Station (Thana) & Pincode (6 Digits) (sm={6} each) */}
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Jurisdictional Police Station (Thana)"
-                        name="practicePoliceStation"
-                        value={form.practicePoliceStation || ""}
-                        onChange={handleChange}
-                        placeholder="Jurisdictional police station / Thana..."
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Chamber / Office Pincode (6 Digits)"
-                        name="practicePincode"
-                        value={form.practicePincode || ""}
-                        onChange={(e) => {
-                          const val = sanitizeStrictPincode(e.target.value);
-                          setForm(p => ({ ...p, practicePincode: val }));
-                        }}
-                        placeholder="e.g. 110001"
-                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
-                        helperText="6-digit postal pincode"
-                      />
-                    </Grid>
-
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <TextField
                         fullWidth
                         label="Practice Courts, Tribunals & Jurisdictions"
@@ -1459,7 +1400,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                       />
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <TextField
                         fullWidth
                         label="Key Areas of Expertise & Specializations"
@@ -1481,7 +1422,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     {SERVICE_OFFERINGS.map((cat) => {
                       const isSelected = (form.solutionServices || []).includes(cat);
                       return (
-                        <Grid item xs={12} sm={6} key={cat}>
+                        <Grid size={{ xs: 12, sm: 6 }} key={cat}>
                           <Paper
                             elevation={0}
                             onClick={() => handleToggleService(cat)}
@@ -1515,111 +1456,125 @@ Thank you for joining the ICJ Enterprise Ecosystem.
               {/* ─ 3. IF OPTION 3: FRANCHISE PARTNER ─ */}
               {form.purpose === "FRANCHISE" && (
                 <Paper variant="outlined" sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 2.5, bgcolor: "#f5fff5", borderColor: "#86efac" }}>
-                  <Typography variant="h6" fontWeight={800} color="#15803d" sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+                  <Typography variant="h6" fontWeight={800} color="#15803d" sx={{ mb: 2.5, display: "flex", alignItems: "center", gap: 1 }}>
                     <HandshakeIcon /> 3. District Franchise Node & Infrastructure Particulars
                   </Typography>
 
-                  <Grid container spacing={2}>
-                    {/* ROW 1: Target State, District, Tehsil — All 3 in one line (sm={4} each) */}
-                    <Grid item xs={12} sm={4}>
-                      <Autocomplete
-                        disableClearable
-                        options={PAN_INDIA_STATES}
-                        value={form.franchiseState}
-                        onChange={(_, newValue) => {
+                  <Stack spacing={3}>
+                    {/* 3.1 Smart Auto-Location Component */}
+                    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, bgcolor: "#ffffff", borderRadius: 2, borderColor: "#bbf7d0" }}>
+                      <SmartLocationSelector
+                        state={form.franchiseState}
+                        district={form.franchiseDistrict}
+                        tehsil={form.franchiseCity}
+                        policeStation={form.franchisePoliceStation}
+                        pincode={form.franchisePincode}
+                        onChange={({ state, district, tehsil, policeStation, pincode }) => {
                           setForm(p => ({
                             ...p,
-                            franchiseState: newValue,
-                            franchiseDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
+                            ...(state ? { franchiseState: state } : {}),
+                            ...(district ? { franchiseDistrict: district } : {}),
+                            ...(tehsil !== undefined ? { franchiseCity: tehsil } : {}),
+                            ...(policeStation !== undefined ? { franchisePoliceStation: policeStation } : {}),
+                            ...(pincode !== undefined ? { franchisePincode: pincode } : {}),
                           }));
                         }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            required
-                            label="Target State / UT *"
-                            name="franchiseState"
-                          />
-                        )}
+                        title="📍 District Center Geographic Location & Jurisdiction"
+                        themeColor="#15803d"
                       />
-                    </Grid>
+                    </Paper>
 
-                    <Grid item xs={12} sm={4}>
-                      <Autocomplete
-                        disableClearable
-                        options={PAN_INDIA_DISTRICTS_MAP[form.franchiseState] || []}
-                        value={form.franchiseDistrict}
-                        onChange={(_, newValue) => {
-                          setForm(p => ({
-                            ...p,
-                            franchiseDistrict: newValue,
-                          }));
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            fullWidth
-                            required
-                            label="Target District *"
-                            name="franchiseDistrict"
-                          />
-                        )}
-                      />
-                    </Grid>
+                    {/* 3.2 Facility & Hardware Infrastructure Checklist (One-Click Tags) */}
+                    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, bgcolor: "#ffffff", borderRadius: 2, borderColor: "#bbf7d0" }}>
+                      <Typography variant="subtitle2" fontWeight={800} color="#15803d" sx={{ mb: 0.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
+                        🏢 Technology & Office Infrastructure Checklist (Click to add to specifications)
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
+                        Select the facilities available at your proposed center to automatically include them in your application:
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        {[
+                          "🏢 250+ Sq Ft Commercial Office Space",
+                          "🚀 High-Speed Fiber Broadband Internet",
+                          "💻 2+ Dedicated Desktop PCs / Workstations",
+                          "🖨️ Heavy-Duty Laser Printer & Document Scanner",
+                          "📹 HD Biometric Scanner & Web Camera (KYC Ready)",
+                          "🛋️ Client Waiting Lounge & Reception Desk",
+                          "⚡ 24x7 Inverter / Power Backup UPS",
+                          "⚖️ Private Advocate Consultation Chamber",
+                          "📚 Legal Code & Law Library Bookshelf",
+                          "🛡️ CCTV Surveillance & Fire Extinguisher",
+                        ].map((tag) => {
+                          const isAdded = (form.franchiseBackground || "").includes(tag);
+                          return (
+                            <Chip
+                              key={tag}
+                              label={tag}
+                              clickable
+                              color={isAdded ? "success" : "default"}
+                              variant={isAdded ? "filled" : "outlined"}
+                              onClick={() => {
+                                setForm(p => {
+                                  const current = p.franchiseBackground || "";
+                                  if (current.includes(tag)) {
+                                    return { ...p, franchiseBackground: current.replace(tag, "").replace(/\n\n+/g, "\n").trim() };
+                                  } else {
+                                    return { ...p, franchiseBackground: current ? `${current}\n• ${tag}` : `• ${tag}` };
+                                  }
+                                });
+                              }}
+                              sx={{ fontWeight: 700, fontSize: "0.82rem", py: 0.5 }}
+                            />
+                          );
+                        })}
+                      </Stack>
+                    </Paper>
 
-                    <Grid item xs={12} sm={4}>
-                      <TextField
-                        fullWidth required
-                        label="Tehsil / Center Location *"
-                        name="franchiseCity"
-                        value={form.franchiseCity}
-                        onChange={handleChange}
-                        placeholder="Tehsil or Center name..."
-                      />
-                    </Grid>
+                    {/* 3.3 Expansive, User-Friendly Center Specifications & Narrative Studio */}
+                    <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, bgcolor: "#ffffff", borderRadius: 2, borderColor: "#bbf7d0" }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+                        <Typography variant="subtitle2" fontWeight={800} color="#15803d" sx={{ textTransform: "uppercase", letterSpacing: 0.8 }}>
+                          🎙️ Commercial Premises, Staff & Operational Readiness Details *
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                          {form.franchiseBackground?.length || 0} characters / {form.franchiseBackground?.trim() ? form.franchiseBackground.trim().split(/\s+/).length : 0} words
+                        </Typography>
+                      </Stack>
 
-                    {/* ROW 2: Police Station (Thana) and Pincode (6 Digits) (sm={6} each) */}
-                    <Grid item xs={12} sm={6}>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
+                        आप बोलकर (माइक बटन दबाकर) या लिखकर अपने सेंटर के स्थान, अनुभव, स्टाफ और इंफ्रास्ट्रक्चर का पूरा विवरण यहाँ दर्ज कर सकते हैं।
+                      </Typography>
+
                       <TextField
                         fullWidth
-                        label="Nearest Police Station (Thana)"
-                        name="franchisePoliceStation"
-                        value={form.franchisePoliceStation || ""}
-                        onChange={handleChange}
-                        placeholder="Jurisdictional police station / Thana..."
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth required
-                        label="Pincode (6 Digits) *"
-                        name="franchisePincode"
-                        value={form.franchisePincode}
-                        onChange={(e) => {
-                          const val = sanitizeStrictPincode(e.target.value);
-                          setForm(p => ({ ...p, franchisePincode: val }));
-                        }}
-                        placeholder="e.g. 110001"
-                        inputProps={{ maxLength: 6, inputMode: "numeric" }}
-                        helperText="6-digit postal pincode"
-                      />
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth required
-                        label="Commercial Infrastructure, Office Premises & Background Details *"
+                        required
+                        multiline
+                        minRows={6}
+                        maxRows={14}
                         name="franchiseBackground"
                         value={form.franchiseBackground}
                         onChange={handleChange}
-                        placeholder="Detail your commercial office space, IT infrastructure, legal/business experience, and operational readiness..."
-                        multiline
-                        rows={4}
+                        placeholder="उदा. हमारा केंद्र मुख्य बाज़ार/तहसील के पास स्थित है जिसमें 300 वर्ग फुट का कमर्शियल स्पेस, 3 कंप्यूटर, हाई-स्पीड इंटरनेट, लेजर प्रिंटर, 2 स्टाफ और क्लाइंट वेटिंग रूम उपलब्ध है..."
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end" sx={{ alignSelf: "flex-start", mt: 1 }}>
+                              <VoiceInputAdornment
+                                onTranscript={(txt) => setForm((p) => ({ ...p, franchiseBackground: (p.franchiseBackground + " " + txt).trim() }))}
+                                value={form.franchiseBackground}
+                              />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          bgcolor: "#fcfdfc",
+                          "& .MuiOutlinedInput-root": {
+                            fontSize: "0.98rem",
+                            lineHeight: 1.6,
+                          }
+                        }}
                       />
-                    </Grid>
-                  </Grid>
+                    </Paper>
+                  </Stack>
                 </Paper>
               )}
 
@@ -1685,7 +1640,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   "&:hover": { bgcolor: selectedPurposeObj?.color || "#020617" },
                 }}
               >
-                SUBMIT REGISTRATION & VERIFY OTP ➔
+                SUBMIT REGISTRATION & VERIFY OTP
               </Button>
 
             </Stack>
@@ -1723,7 +1678,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                   {PROBLEM_CATEGORIES.map((cat) => {
                     const isSelected = (form.problemCategories || []).includes(cat);
                     return (
-                      <Grid item xs={12} sm={6} md={4} key={cat}>
+                      <Grid size={{ xs: 12, sm: 6, md: 4 }} key={cat}>
                         <Paper
                           elevation={0}
                           onClick={() => handleToggleCategory(cat)}
@@ -1770,98 +1725,27 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                 />
               </Box>
 
-              {/* 3. 📍 Dispute Jurisdiction & Location Details (Pan-India Master) */}
+              {/* 3. 📍 Dispute Jurisdiction & Location Details (Smart Auto-Location) */}
               <Box sx={{ pt: 2, borderTop: "1px dashed #cbd5e1" }}>
-                <Typography variant="subtitle1" fontWeight={800} color="text.primary" sx={{ mb: 1.5, textTransform: "uppercase", letterSpacing: 0.8 }}>
-                  3. Dispute Jurisdiction & Location Details (Pan-India)
-                </Typography>
-
-                <Grid container spacing={2}>
-                  {/* ROW 1: State, District, Tehsil — All 3 in one single line (sm={4} each) */}
-                  <Grid item xs={12} sm={4}>
-                    <Autocomplete
-                      disableClearable
-                      options={PAN_INDIA_STATES}
-                      value={form.problemState}
-                      onChange={(_, newValue) => {
-                        setForm(p => ({
-                          ...p,
-                          problemState: newValue,
-                          problemDistrict: PAN_INDIA_DISTRICTS_MAP[newValue]?.[0] || "",
-                        }));
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          label="State / Union Territory *"
-                          name="problemState"
-                        />
-                      )}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={4}>
-                    <Autocomplete
-                      disableClearable
-                      options={PAN_INDIA_DISTRICTS_MAP[form.problemState] || []}
-                      value={form.problemDistrict}
-                      onChange={(_, newValue) => {
-                        setForm(p => ({
-                          ...p,
-                          problemDistrict: newValue,
-                        }));
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          label="District *"
-                          name="problemDistrict"
-                        />
-                      )}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      fullWidth
-                      label="Tehsil / City"
-                      name="problemCity"
-                      value={form.problemCity}
-                      onChange={handleChange}
-                      placeholder="Tehsil or City name..."
-                    />
-                  </Grid>
-
-                  {/* ROW 2: Police Station (Thana) & Pincode (6 Digits) (sm={6} each) */}
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Police Station (Thana)"
-                      name="problemPoliceStation"
-                      value={form.problemPoliceStation}
-                      onChange={handleChange}
-                      placeholder="Jurisdictional police station / Thana..."
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      fullWidth
-                      label="Pincode (6 Digits)"
-                      name="problemPincode"
-                      value={form.problemPincode}
-                      onChange={(e) => {
-                        const val = sanitizeStrictPincode(e.target.value);
-                        setForm(p => ({ ...p, problemPincode: val }));
-                      }}
-                      placeholder="e.g. 110001"
-                      inputProps={{ maxLength: 6, inputMode: "numeric" }}
-                      helperText="6-digit postal pincode"
-                    />
-                  </Grid>
-                </Grid>
+                <SmartLocationSelector
+                  state={form.problemState}
+                  district={form.problemDistrict}
+                  tehsil={form.problemCity}
+                  policeStation={form.problemPoliceStation}
+                  pincode={form.problemPincode}
+                  onChange={({ state, district, tehsil, policeStation, pincode }) => {
+                    setForm(p => ({
+                      ...p,
+                      ...(state ? { problemState: state } : {}),
+                      ...(district ? { problemDistrict: district } : {}),
+                      ...(tehsil !== undefined ? { problemCity: tehsil } : {}),
+                      ...(policeStation !== undefined ? { problemPoliceStation: policeStation } : {}),
+                      ...(pincode !== undefined ? { problemPincode: pincode } : {}),
+                    }));
+                  }}
+                  title="3. 📍 Dispute Jurisdiction & Location Details (Pan-India Auto-Resolver)"
+                  themeColor="#b91c1c"
+                />
               </Box>
 
               {/* Action Buttons */}
@@ -1881,7 +1765,7 @@ Thank you for joining the ICJ Enterprise Ecosystem.
                     borderRadius: 2,
                   }}
                 >
-                  SUBMIT CASE DOCKET & OPEN CLIENT PORTAL ➔
+                  SUBMIT CASE DOCKET & OPEN CLIENT PORTAL
                 </Button>
 
                 <Button
@@ -1920,31 +1804,31 @@ Thank you for joining the ICJ Enterprise Ecosystem.
 
             <Paper variant="outlined" sx={{ p: 3, mb: 4, textAlign: "left", bgcolor: "#f8fafc", borderRadius: 2 }}>
               <Grid container spacing={2.5}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">PERMANENT SERIAL ID</Typography>
                   <Typography variant="h6" fontWeight={900} color="primary.main" sx={{ fontFamily: "monospace" }}>
                     {createdMember.member_id || createdMember.memberId}
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">APPLICANT NAME</Typography>
                   <Typography variant="subtitle1" fontWeight={800}>{createdMember.name}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">REGISTERED EMAIL</Typography>
                   <Typography variant="body2" fontWeight={700}>{createdMember.email}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">PRIMARY MOBILE</Typography>
                   <Typography variant="body2" fontWeight={700}>{createdMember.mobile}</Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">ASSIGNED ROLE & PORTAL</Typography>
                   <Typography variant="body2" fontWeight={800} color="secondary.main">
                     {createdMember.role === "advocate" ? "ICJ Professional Chambers" : createdMember.role === "franchise" ? "District Franchise Desk" : "Litigant Client Portal"}
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Typography variant="caption" color="text.secondary">VERIFICATION STATUS</Typography>
                   <Typography variant="body2" fontWeight={800} color="warning.main">
                     ⏳ {createdMember.verification_status || "Pending Admin Verification"}
