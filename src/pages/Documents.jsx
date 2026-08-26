@@ -48,6 +48,7 @@ import ActivityService from "../services/activityService";
 import UniversalActionToolbar from "../components/common/UniversalActionToolbar.jsx";
 import Section79ImmunityBanner from "../components/common/Section79ImmunityBanner.jsx";
 import MainLayout from "../layouts/MainLayout.jsx";
+import useAuth from "../hooks/useAuth";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
