@@ -1,1211 +1,283 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Box,
-  Paper,
   Typography,
   Grid,
+  Card,
+  CardContent,
+  Chip,
+  Button,
+  Stack,
+  Divider,
   Table,
   TableHead,
   TableBody,
   TableRow,
   TableCell,
-  Chip,
-  Button,
-  Stack,
-  Divider,
-  TextField,
-  InputAdornment,
-  MenuItem,
-  Tabs,
-  Tab,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Paper,
 } from "@mui/material";
 
 // Icons
 import GavelIcon from "@mui/icons-material/Gavel";
-import PersonIcon from "@mui/icons-material/Person";
-import SearchIcon from "@mui/icons-material/Search";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import ChatIcon from "@mui/icons-material/Chat";
-import VideoCallIcon from "@mui/icons-material/VideoCall";
-import BadgeIcon from "@mui/icons-material/Badge";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import SendIcon from "@mui/icons-material/Send";
-import MicIcon from "@mui/icons-material/Mic";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import PauseIcon from "@mui/icons-material/Pause";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
-import LegalEcosystemService from "../services/legalEcosystemService.js";
-import ActivityService from "../services/activityService.js";
-import CaseMemoryVaultService from "../services/caseMemoryVaultService.js";
-import LargeFileChunkWorkerService from "../services/largeFileChunkWorkerService.js";
-import AiLegalConsultationService from "../services/aiLegalConsultationService.js";
-import LanguageService, { useLanguage } from "../services/languageService.js";
-import MainLayout from "../layouts/MainLayout.jsx";
-import GlobalLanguageJurisdictionBar from "../components/common/GlobalLanguageJurisdictionBar.jsx";
-import AdvocateClientLocationRadar from "../components/common/AdvocateClientLocationRadar.jsx";
-import UniversalLegalCaseIngestionConsole from "../components/common/UniversalLegalCaseIngestionConsole.jsx";
-import OfflineStatuteNavigatorConsole from "../components/common/OfflineStatuteNavigatorConsole.jsx";
-import AllIndiaStatuteAndJudgmentsExplorerConsole from "../components/common/AllIndiaStatuteAndJudgmentsExplorerConsole.jsx";
-import RepealedActConcordanceNavigator from "../components/common/RepealedActConcordanceNavigator.jsx";
-import SemanticHyperlinkedBareActViewer from "../components/common/SemanticHyperlinkedBareActViewer.jsx";
+import ZeroScrollPageShell from "../components/common/ZeroScrollPageShell.jsx";
+import FullCanvasVoiceStudio from "../components/common/FullCanvasVoiceStudio.jsx";
 import useAuth from "../hooks/useAuth.js";
-import MatterCommunicationService from "../services/matterCommunicationService.js";
-import MatterTimelineService from "../services/matterTimelineService.js";
-import MatterUpdateConfirmation from "../components/common/MatterUpdateConfirmation.jsx";
-import StageAwareLegalWorkflowService from "../services/stageAwareLegalWorkflowService.js";
-import ZeroCorrectionPleadingComposer from "../services/zeroCorrectionPleadingComposer.js";
-import AICitationResearchService from "../services/aiCitationResearchService.js";
-import AdvocateVoiceIntakePanel from "../components/advocate/AdvocateVoiceIntakePanel.jsx";
-import { useActiveConsultation } from "../hooks/useActiveConsultation.js";
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2.5 }}>{children}</Box>}
-    </div>
-  );
-}
-
-const ADVOCATE_TABS = {
-  ACTIVE_CASES: "ACTIVE_CASES",
-  CLIENT_VOICE_INTAKE: "CLIENT_VOICE_INTAKE",
-  ADVOCATE_PROFILE: "ADVOCATE_PROFILE",
-  APPOINTMENTS: "APPOINTMENTS",
-  COMMUNICATION: "COMMUNICATION",
-  TASKS: "TASKS",
-  CLIENT_LIST: "CLIENT_LIST",
-  ACTIVE_CLIENTS: "ACTIVE_CLIENTS",
-  EMPANELED_ADVOCATES: "EMPANELED_ADVOCATES",
-};
+const ADVOCATE_VIEWS = [
+  { id: 0, title: "📋 आज की कॉज़-लिस्ट व प्राथमिकता केस", subtitle: "Court Cause-List, Daily Hearings & Urgent Actions" },
+  { id: 1, title: "📂 सक्रिय केस फाइलें व मुवक्किल", subtitle: "Active Case Registry & Client Information" },
+  { id: 2, title: "✍️ विधिक ड्राफ्टिंग व वॉइस अनुसंधान", subtitle: "Continuous Legal Drafting & Research Canvas" },
+  { id: 3, title: "⚖️ वकालतनामा, ई-फाइलिंग व फीस स्टेटस", subtitle: "Vakalatnama Compliance, E-Filing & Escrow" },
+];
 
 export default function AdvocateDashboard() {
-  const { lang, t } = useLanguage();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState(ADVOCATE_TABS.CLIENT_VOICE_INTAKE);
-  const [cases, setCases] = useState([]);
-  const [advocates, setAdvocates] = useState([]);
-  const [aiConsultations, setAiConsultations] = useState([]);
-  const [search, setSearch] = useState("");
-  const [alertMsg, setAlertMsg] = useState("");
-  const [geminiApiKey, setGeminiApiKey] = useState(() => localStorage.getItem("icj_gemini_api_key") || "");
-  const [openaiApiKey, setOpenaiApiKey] = useState(() => localStorage.getItem("icj_openai_api_key") || "");
-  const [anthropicApiKey, setAnthropicApiKey] = useState(() => localStorage.getItem("icj_anthropic_api_key") || "");
-  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem("icj_ai_provider") || "gemini");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
-  const [customPleadingText, setCustomPleadingText] = useState("");
-  const [citationModalOpen, setCitationModalOpen] = useState(false);
+  const [currentView, setCurrentView] = useState(0);
+  const [draftContent, setDraftContent] = useState("");
 
-  // ✅ GOLDEN RULE: useActiveConsultation hook — component-scope, never undefined, never crashes
-  const { activeConsultation, setActiveConsultation } = useActiveConsultation(aiConsultations);
+  const advocateName = user?.fullName || user?.name || "Senior Advocate PAWAN GUPTA";
+  const advocateId = user?.memberId || user?.id || "26ICJ08AA0002";
 
-  // Appointments state
-  const [appointments, setAppointments] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("icj_advocate_appointments") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  // Messages state
-  const [messages, setMessages] = useState(() => {
-    try {
-      const local = JSON.parse(localStorage.getItem("icj_client_messages") || "[]");
-      return Array.isArray(local) ? local : [];
-    } catch {
-      return [];
-    }
-  });
-  const [newMessageText, setNewMessageText] = useState("");
-  const [activeAdvocateCaseId, setActiveAdvocateCaseId] = useState("");
-
-  // Professional Profile Self-Edit State
-  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    fullName: user?.fullName || user?.name || "Empaneled Professional",
-    professionalCategory: user?.professionalCategory || user?.profession || "Advocate / Legal Counsel",
-    professionalRegNo: user?.professionalRegNo || user?.barNumber || user?.barId || "",
-    specialization: user?.specialization || user?.specializations || "Civil, Criminal, Constitutional Writs & Corporate Law",
-    experience: user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)",
-    practiceCourts: user?.practiceCourts || "Supreme Court, High Court & District Courts",
-    address: user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex",
-  });
-
-  const handleSaveProfile = () => {
-    try {
-      const updatedUser = {
-        ...user,
-        ...profileForm,
-        profession: profileForm.professionalCategory,
-        specializations: profileForm.specialization,
-      };
-      localStorage.setItem("icj_user", JSON.stringify(updatedUser));
-      
-      const allMembers = JSON.parse(localStorage.getItem("icj_members") || "[]");
-      const updatedMembers = allMembers.map((m) =>
-        m.id === user?.id || m.member_id === user?.member_id ? { ...m, ...updatedUser } : m
-      );
-      localStorage.setItem("icj_members", JSON.stringify(updatedMembers));
-
-      setAlertMsg("✅ Professional Profile & Specializations updated successfully!");
-      setEditProfileModalOpen(false);
-      setTimeout(() => setAlertMsg(""), 3500);
-    } catch {
-      setAlertMsg("⚠️ Failed to update profile.");
-    }
-  };
-
-  // Accept or dismiss an AI-proposed matter update attached to a client message.
-  // MatterUpdateConfirmation called these two handlers, but neither existed —
-  // clicking Confirm or Reject threw a ReferenceError and killed the tab.
-  const setExtractionStatus = (messageId, key, status, value) => {
-    setMessages((prev) => {
-      const next = prev.map((msg) => (
-        String(msg.id) !== String(messageId) ? msg : {
-          ...msg,
-          aiExtractions: (msg.aiExtractions || []).map((ext) => (
-            ext.key !== key ? ext : { ...ext, status, ...(value === undefined ? {} : { value }) }
-          )),
-        }
-      ));
-      try {
-        localStorage.setItem("icj_client_messages", JSON.stringify(next));
-      } catch {
-        // Storage full or unavailable — keep the in-memory update.
-      }
-      return next;
-    });
-  };
-
-  const handleConfirmExtraction = (messageId, key, value) =>
-    setExtractionStatus(messageId, key, "CONFIRMED", value);
-
-  const handleRejectExtraction = (messageId, key) =>
-    setExtractionStatus(messageId, key, "REJECTED");
-
-  // Tasks state
-  const [tasks, setTasks] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("icj_advocate_tasks") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadRepo() {
-      const allCases = LegalEcosystemService.getCases();
-      const allAdvocates = LegalEcosystemService.getAdvocates();
-      const allConsultations = AiLegalConsultationService.getConsultationsForAdvocate ? AiLegalConsultationService.getConsultationsForAdvocate(user?.id || user?.member_id || "") : [];
-      if (isMounted) {
-        const casesList = Array.isArray(allCases) ? allCases : [];
-        setCases(casesList);
-        setAdvocates(Array.isArray(allAdvocates) ? allAdvocates : []);
-        setAiConsultations(Array.isArray(allConsultations) ? allConsultations : []);
-        if (casesList.length > 0) {
-          setActiveAdvocateCaseId(casesList[0].id || casesList[0].caseNumber || "");
-        }
-      }
-    }
-    loadRepo();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Clients derived from Cases data provenance
-  const clients = useMemo(() => {
-    const map = new Map();
-    cases.forEach((c, idx) => {
-      if (c.clientName && !map.has(c.clientName)) {
-        map.set(c.clientName, {
-          id: `CL-REC-${idx + 101}`,
-          name: c.clientName,
-          type: c.courtName?.includes("High Court") ? "NGO / Trust" : "Corporate",
-          status: "Active",
-          mobile: c.clientPhone || c.phone || "N/A",
-          email: c.clientEmail || `${c.clientName.toLowerCase().replace(/[^a-z0-9]/g, "")}@client.icj.org`,
-          region: c.courtName || "High Court Jurisdiction",
-        });
-      }
-    });
-    return Array.from(map.values());
-  }, [cases]);
-
-  // Multi-field search engine
-  const filteredCases = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return cases;
-    return cases.filter((c) =>
-      [c.id, c.caseNumber, c.title, c.clientName, c.advocateName, c.courtName, c.status]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term))
-    );
-  }, [cases, search]);
-
-  const handleSendMessage = () => {
-    if (!newMessageText.trim()) return;
-    const senderName = user?.fullName || user?.name || "Empaneled Advocate";
-    const nextMsg = {
-      id: `msg-${Date.now()}`,
-      sender: `${senderName} (Empaneled Counsel)`,
-      recipient: "Client Portal",
-      text: newMessageText,
-      timestamp: new Date().toLocaleTimeString("en-IN"),
-    };
-    setMessages((prev) => [...prev, nextMsg]);
-    ActivityService.create({ title: `Communication Note Sent: "${newMessageText.substring(0, 30)}..."`, type: "legal" });
-    setNewMessageText("");
-    setAlertMsg("Internal Message & Notification dispatched across Email/SMS/WhatsApp queues!");
-    setTimeout(() => setAlertMsg(""), 3500);
-  };
-
-  const handleApproveAppointment = (id) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "Approved", link: `https://meet.icj.org/room-${id}` } : a))
-    );
-    ActivityService.create({ title: `Appointment Approved for ID ${id}`, type: "legal" });
-    setAlertMsg("Appointment Approved and Video Meeting Link generated!");
-    setTimeout(() => setAlertMsg(""), 3500);
-  };
-
-  // Real-time Dashboard Cards derived from System Repositories
-  const stats = useMemo(() => {
-    const totalClients = clients.length;
-    const activeClients = clients.filter((c) => c.status === "Active").length;
-    const totalAdvocates = advocates.length;
-    const activeCasesCount = cases.length;
-    const appointmentsCount = appointments.length;
-    const pendingTasksCount = tasks.filter((t) => t.status !== "Completed").length;
-
-    return { totalClients, activeClients, totalAdvocates, activeCasesCount, appointmentsCount, pendingTasksCount };
-  }, [clients, advocates, cases, appointments, tasks]);
-
-  const cards = [
-    { title: "Total Clients", value: stats.totalClients, color: "#1976d2", icon: <PersonIcon />, targetTab: ADVOCATE_TABS.CLIENT_LIST },
-    { title: "Active Clients", value: stats.activeClients, color: "#2e7d32", icon: <CheckCircleIcon />, targetTab: ADVOCATE_TABS.ACTIVE_CLIENTS },
-    { title: "Empaneled Advocates", value: stats.totalAdvocates, color: "#9c27b0", icon: <BadgeIcon />, targetTab: ADVOCATE_TABS.EMPANELED_ADVOCATES },
-    { title: "Active Cases", value: stats.activeCasesCount, color: "#ed6c02", icon: <GavelIcon />, targetTab: ADVOCATE_TABS.ACTIVE_CASES },
-    { title: "Appointments", value: stats.appointmentsCount, color: "#0288d1", icon: <CalendarMonthIcon />, targetTab: ADVOCATE_TABS.APPOINTMENTS },
-    { title: "Pending Tasks", value: stats.pendingTasksCount, color: "#d32f2f", icon: <AssignmentIcon />, targetTab: ADVOCATE_TABS.TASKS },
+  const todayHearings = [
+    { time: "10:30 AM", court: "Court No. 4, District & Sessions Court, Delhi", caseId: "CASE-2026-0001", client: "Ramvir Jatav", matter: "Bail Application / Arguments" },
+    { time: "02:15 PM", court: "Court No. 12, High Court of Delhi", caseId: "CASE-2026-0042", client: "Suresh Sharma", matter: "Civil Revision Petition (Stay)" },
   ];
 
-  const activeClientsList = useMemo(() => clients.filter((c) => c.status === "Active"), [clients]);
-  const pendingTasksList = useMemo(() => tasks.filter((t) => t.status !== "Completed"), [tasks]);
+  const currentViewInfo = ADVOCATE_VIEWS[currentView];
 
   return (
-    <>
-      <Box sx={{ p: 3 }}>
-        {/* SHARED GLOBAL LEGAL JURISDICTION & DECOUPLED LANGUAGE BAR WITH PERMANENT ENGLISH FALLBACK */}
-        <GlobalLanguageJurisdictionBar
-          onJurisdictionChange={(j) => {
-            setAlertMsg(`🟢 Active Legal Jurisdiction Changed to: ${j.flag} ${j.name}`);
-            setTimeout(() => setAlertMsg(""), 3000);
-          }}
-        />
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <GavelIcon color="primary" sx={{ fontSize: 40 }} />
-            <Box>
-              <Typography variant="h4" fontWeight="bold">
-                {t("advocateTitle", "Enterprise Professional Command Centre")}
-              </Typography>
-              <Typography color="text.secondary">
-                {t("advocateSubtitle", "Legal Counsel Management, Client Appointments, Communication Queues & Case Calendar")}
-              </Typography>
-            </Box>
-          </Stack>
-
-          <TextField
-            size="small"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search Professional, Client, Case, Mobile, Email, Enrollment..."
-            sx={{ width: 380 }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon color="primary" /></InputAdornment>,
-            }}
+    <ZeroScrollPageShell
+      title={currentViewInfo.title}
+      subtitle={currentViewInfo.subtitle}
+      headerRightContent={
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Chip
+            icon={<GavelIcon sx={{ color: "#38bdf8 !important", fontSize: 16 }} />}
+            label={`${advocateName} (${advocateId})`}
+            sx={{ bgcolor: "#1e293b", color: "#f8fafc", fontWeight: 800, borderColor: "#334155" }}
+            variant="outlined"
+          />
+          <Chip
+            icon={<VerifiedIcon sx={{ color: "#10b981 !important", fontSize: 16 }} />}
+            label="पैनल स्थिति: अधिकृत सीनियर काउंसल"
+            sx={{ bgcolor: "#064e3b", color: "#86efac", fontWeight: 800 }}
           />
         </Stack>
-
-        {/* 📍 CLIENT-ADVOCATE MUTUAL LIVE COURT RENDEZVOUS RADAR */}
-        <AdvocateClientLocationRadar role="advocate" />
-
-        {/* 🏛️ 2,000+ ACTS OFFLINE SOVEREIGN KNOWLEDGE MATRIX & JUDICIAL BRAIN [CODE G7] */}
-        <OfflineStatuteNavigatorConsole />
-
-        {/* 📜 1836-2026 BARE ACTS & LANDMARK SUPREME COURT CITATIONS REPOSITORY [CODE G8] */}
-        <AllIndiaStatuteAndJudgmentsExplorerConsole />
-
-        {/* 🔄 REPEALED ACTS & OLD-VS-NEW CONCORDANCE NAVIGATOR [CODE G10] */}
-        <RepealedActConcordanceNavigator />
-
-        {/* 🌐 WESTLAW-GRADE SEMANTIC LEGAL HYPERGRAPH VIEWER [CODE G9] */}
-        <SemanticHyperlinkedBareActViewer />
-
-        {/* 📂 UNIVERSAL MULTI-MODAL LEGAL CASE INGESTION & CHRONO-GIST CONSOLE [CODE G6] */}
-        <UniversalLegalCaseIngestionConsole />
-
-        {alertMsg ? <Alert severity="success" sx={{ mb: 3 }}>{alertMsg}</Alert> : null}
-
-        {/* Real-time Dashboard Cards */}
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {cards.map((item) => (
-            <Grid item xs={12} sm={6} md={2} key={item.title}>
-              <Paper
-                variant="outlined"
-                onClick={() => setActiveTab(item.targetTab)}
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  borderLeft: `4px solid ${item.color}`,
-                  cursor: "pointer",
-                  transition: "0.2s",
-                  bgcolor: activeTab === item.targetTab ? "action.selected" : "background.paper",
-                  "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
-                }}
-              >
-                <Box sx={{ color: item.color }}>{item.icon}</Box>
-                <Box>
-                  <Typography color="text.secondary" variant="caption" fontWeight="bold" display="block">
-                    {item.title}
-                  </Typography>
-                  <Typography variant="h5" fontWeight="bold">
-                    {item.value}
-                  </Typography>
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Tabs for Navigation */}
-        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
-          <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
-            <Tab icon={<GavelIcon />} iconPosition="start" label="Active Cases" value={ADVOCATE_TABS.ACTIVE_CASES} />
-            <Tab icon={<MicIcon />} iconPosition="start" label="🎙️ Client Voice Intake & AI Pleading Desk" value={ADVOCATE_TABS.CLIENT_VOICE_INTAKE} />
-            <Tab icon={<PersonIcon />} iconPosition="start" label="Advocate Profile" value={ADVOCATE_TABS.ADVOCATE_PROFILE} />
-            <Tab icon={<CalendarMonthIcon />} iconPosition="start" label="Appointments & Video Links" value={ADVOCATE_TABS.APPOINTMENTS} />
-            <Tab icon={<ChatIcon />} iconPosition="start" label="Communication Engine" value={ADVOCATE_TABS.COMMUNICATION} />
-            <Tab icon={<AssignmentIcon />} iconPosition="start" label="Pending Tasks" value={ADVOCATE_TABS.TASKS} />
-            <Tab icon={<PersonIcon />} iconPosition="start" label="Total Client Directory" value={ADVOCATE_TABS.CLIENT_LIST} />
-            <Tab icon={<CheckCircleIcon />} iconPosition="start" label="Active Clients List" value={ADVOCATE_TABS.ACTIVE_CLIENTS} />
-            <Tab icon={<BadgeIcon />} iconPosition="start" label="Empaneled Advocate Roster" value={ADVOCATE_TABS.EMPANELED_ADVOCATES} />
-            <Tab icon={<SettingsSuggestIcon sx={{ color: "#2563eb" }} />} iconPosition="start" label="🔌 My API Store" value={ADVOCATE_TABS.API_STORE} />
-          </Tabs>
-        </Box>
-
-        {/* TAB: ACTIVE CASES */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.ACTIVE_CASES}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Assigned Legal Case Registry ({filteredCases.length})
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>S.No.</strong></TableCell>
-                  <TableCell><strong>Case Number</strong></TableCell>
-                  <TableCell><strong>Title</strong></TableCell>
-                  <TableCell><strong>Client Name</strong></TableCell>
-                  <TableCell><strong>Court</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                  <TableCell><strong>Next Hearing</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredCases.map((c, idx) => (
-                  <TableRow key={c.id} hover>
-                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                    <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.caseNumber}</TableCell>
-                    <TableCell>{c.title}</TableCell>
-                    <TableCell>{c.clientName}</TableCell>
-                    <TableCell>{c.courtName}</TableCell>
-                    <TableCell>
-                      <Chip label={c.status} size="small" color={c.status === "In Hearing" ? "success" : "warning"} />
-                    </TableCell>
-                    <TableCell>{c.nextHearing}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Paper>
-        </TabPanel>
-
-        {/* TAB: CLIENT VOICE INTAKE & AI PLEADING DESK */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.CLIENT_VOICE_INTAKE}>
-          <Paper sx={{ p: 3, borderRadius: 3, bgcolor: "#fff" }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1} mb={2}>
+      }
+      canGoBack={currentView > 0}
+      canGoNext={currentView < 3}
+      onBack={() => setCurrentView((v) => Math.max(0, v - 1))}
+      onNext={() => setCurrentView((v) => Math.min(3, v + 1))}
+      backLabel="← पिछले कार्यक्षेत्र पर जाएं"
+      nextLabel="अगले कार्यक्षेत्र पर जाएं →"
+    >
+      {/* ========================================================================= */}
+      {/* VIEW 0: TODAY'S CAUSE-LIST (2 STRICTLY EQUAL SYMMETRICAL BOXES)           */}
+      {/* ========================================================================= */}
+      {currentView === 0 && (
+        <Grid container spacing={3} sx={{ height: "100%", alignItems: "stretch" }}>
+          {/* BOX 1: CAUSE LIST */}
+          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <Box>
-                <Typography variant="h6" fontWeight="bold" color="#1e3a8a" sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  🎙️ Client Spoken Voice Notes &amp; AI Pleading Console
+                <Typography variant="h6" fontWeight={900} color="#0f172a" mb={0.5}>
+                  🏛️ आज की न्यायिक हियरिंग कॉज़-लिस्ट
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  क्लाइंट द्वारा रिकॉर्ड की गई सभी वास्तविक ऑडियो फ़ाइलें सुनें, लाइव टाइप हुआ टेक्स्ट देखें और 1-क्लिक में विधिक ड्राफ्ट अप्रूव करें।
+                <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+                  सुप्रीम कोर्ट, दिल्ली हाई कोर्ट व ज़िला अदालत हियरिंग ट्रैकर
                 </Typography>
+
+                <Stack spacing={1.5}>
+                  {todayHearings.map((h, i) => (
+                    <Box key={i} sx={{ p: 2, bgcolor: "#eff6ff", borderRadius: 2.5, border: "1px solid #bfdbfe" }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={0.5}>
+                        <Chip label={h.time} size="small" sx={{ bgcolor: "#1e40af", color: "#ffffff", fontWeight: 800 }} />
+                        <Typography variant="caption" fontWeight={700} color="#1e40af">{h.caseId}</Typography>
+                      </Stack>
+                      <Typography variant="body2" fontWeight={800} color="#0f172a">{h.matter}</Typography>
+                      <Typography variant="caption" color="#475569" display="block">{h.court}</Typography>
+                      <Typography variant="caption" fontWeight={700} color="#2563eb">मुवक्किल: {h.client}</Typography>
+                    </Box>
+                  ))}
+                </Stack>
               </Box>
+
               <Button
                 variant="outlined"
-                color="primary"
-                startIcon={<MicIcon />}
-                onClick={() => {
-                  const consultations = JSON.parse(localStorage.getItem("icj_ai_legal_consultations") || "[]");
-                  setAiConsultations(consultations);
-                  setAlertMsg("🟢 Synced Real-Time Client Voice Notes & Consultations Repository!");
-                  setTimeout(() => setAlertMsg(""), 3500);
-                }}
-                sx={{ fontWeight: "bold" }}
+                fullWidth
+                onClick={() => setCurrentView(1)}
+                sx={{ mt: 2, fontWeight: 800, borderRadius: 2, textTransform: "none" }}
               >
-                🔄 Sync Live Client Audio Session
+                📂 सभी सक्रिय केस फाइलें देखें →
               </Button>
-            </Stack>
-            <Divider sx={{ mb: 3 }} />
+            </Card>
+          </Grid>
 
-            {/* ✅ GOLDEN RULE: No IIFE — extracted to AdvocateVoiceIntakePanel component.
-                All variables are passed as props. Zero scope leakage. Never crashes. */}
-            <AdvocateVoiceIntakePanel
-              messages={messages}
-              activeConsultation={activeConsultation}
-              customPleadingText={customPleadingText}
-              user={user}
-              setCustomPleadingText={setCustomPleadingText}
-              setAiConsultations={setAiConsultations}
-              setAlertMsg={setAlertMsg}
-              setCitationModalOpen={setCitationModalOpen}
-            />
-          </Paper>
-        </TabPanel>
-
-        {/* TAB: ADVOCATE / PROFESSIONAL PROFILE */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.ADVOCATE_PROFILE}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1.5} sx={{ mb: 2 }}>
+          {/* BOX 2: URGENT ACTIONS (STRICTLY EQUAL HEIGHT & SHAPE) */}
+          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3, display: "flex", flexDirection: "column", justifyContent: "space-between", bgcolor: "#f8fafc" }}>
               <Box>
-                <Typography variant="h6" fontWeight="bold">
-                  ⚖️ Empaneled Professional Credentials & Practice Roster
+                <Typography variant="h6" fontWeight={900} color="#0f172a" mb={0.5}>
+                  ⚡ तत्काल विधिक ड्राफ्टिंग व एक्शन
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Official credential, enrollment, and specialization record for Advocates, CAs, CSs, Arbitrators & Legal Partners
+                <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+                  आज तैयार किए जाने वाले नोटिस, पिटीशन व वकालतनामा
                 </Typography>
+
+                <Stack spacing={1.5}>
+                  <Box sx={{ p: 2, bgcolor: "#f0fdf4", borderRadius: 2, border: "1px solid #bbf7d0" }}>
+                    <Typography variant="body2" fontWeight={800} color="#166534">
+                      ✓ BNSS धारा 482 / 483 जमानत अर्जी ड्राफ्टिंग
+                    </Typography>
+                    <Typography variant="caption" color="#15803d">
+                      केस: Ramvir Jatav • कोर्ट: जिला अदालत, दिल्ली
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ p: 2, bgcolor: "#fff7ed", borderRadius: 2, border: "1px solid #fed7aa" }}>
+                    <Typography variant="body2" fontWeight={800} color="#9a3412">
+                      ⚠️ संपत्ति विवाद विधिक नोटिस (Section 80 CPC)
+                    </Typography>
+                    <Typography variant="caption" color="#c2410c">
+                      केस: Suresh Sharma • अंतिम तिथि: 28-अगस्त-2026
+                    </Typography>
+                  </Box>
+                </Stack>
               </Box>
+
               <Button
                 variant="contained"
-                color="primary"
-                onClick={() => {
-                  setProfileForm({
-                    fullName: user?.fullName || user?.name || "",
-                    professionalCategory: user?.professionalCategory || user?.profession || "Advocate / Legal Counsel",
-                    professionalRegNo: user?.professionalRegNo || user?.barNumber || user?.barId || "",
-                    specialization: user?.specialization || user?.specializations || "Civil, Criminal, Constitutional Writs & Corporate Law",
-                    experience: user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)",
-                    practiceCourts: user?.practiceCourts || "Supreme Court, High Court & District Courts",
-                    address: user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex",
-                  });
-                  setEditProfileModalOpen(true);
-                }}
-                sx={{ fontWeight: "bold" }}
+                fullWidth
+                onClick={() => setCurrentView(2)}
+                sx={{ mt: 2, bgcolor: "#1e40af", "&:hover": { bgcolor: "#1e3a8a" }, fontWeight: 800, borderRadius: 2, textTransform: "none" }}
               >
-                ✏️ Edit Profile & Specializations
+                ✍️ फुल-कैनवस विधिक ड्राफ्टर खोलें →
               </Button>
-            </Stack>
-            <Divider sx={{ mb: 3 }} />
+            </Card>
+          </Grid>
+        </Grid>
+      )}
 
-            <Grid container spacing={2.5}>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Professional Name" value={user?.fullName || user?.name || "Empaneled Professional"} disabled />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Professional Category / Designation" value={user?.professionalCategory || user?.profession || "Advocate / Legal Counsel"} disabled />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Council Enrollment / Reg No." value={user?.professionalRegNo || user?.barNumber || user?.barId || user?.member_id || "ICJ/ENR/VERIFIED"} disabled />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Practice Specializations" value={user?.specialization || user?.specializations || "Civil, Criminal, Corporate & Constitutional Law"} disabled />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Professional Standing / Experience" value={user?.experience || user?.professionalExperience || "Senior Standing (5+ Years)"} disabled />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Verification & Empanelment Status" value={user?.verification_status === "Verified" || user?.verified ? "🟢 Empaneled & Verified Counsel" : "🟢 Active Empaneled Professional"} disabled />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Practice Courts / Jurisdictions" value={user?.practiceCourts || "Supreme Court of India, High Court, NCLT & District Courts"} disabled />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Chamber & Office Address" value={user?.address || user?.city ? `${user?.city || ""}, ${user?.state || ""}` : "Advocate & Corporate Chambers Complex"} disabled />
-              </Grid>
-            </Grid>
-          </Paper>
-        </TabPanel>
-
-        {/* ✏️ EDIT PROFESSIONAL PROFILE MODAL */}
-        <Dialog open={editProfileModalOpen} onClose={() => setEditProfileModalOpen(false)} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: "bold" }}>
-            ✏️ Edit Professional Profile & Specializations
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Full Name"
-                  value={profileForm.fullName}
-                  onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Professional Category / Designation (e.g. Advocate, CA, CS, CMA)"
-                  value={profileForm.professionalCategory}
-                  onChange={(e) => setProfileForm({ ...profileForm, professionalCategory: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Council Enrollment / Membership No."
-                  value={profileForm.professionalRegNo}
-                  onChange={(e) => setProfileForm({ ...profileForm, professionalRegNo: e.target.value })}
-                  placeholder="e.g. UP/2026/1170, ICAI-092831, FCS-8812"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  size="small"
-                  label="Key Specializations / आपकी विशेषताएँ"
-                  value={profileForm.specialization}
-                  onChange={(e) => setProfileForm({ ...profileForm, specialization: e.target.value })}
-                  placeholder="e.g. Corporate Tax, GST, NCLT, Criminal Trials, High Court Writs, Arbitration"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Years of Experience / Standing"
-                  value={profileForm.experience}
-                  onChange={(e) => setProfileForm({ ...profileForm, experience: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Practice Courts / Jurisdictions"
-                  value={profileForm.practiceCourts}
-                  onChange={(e) => setProfileForm({ ...profileForm, practiceCourts: e.target.value })}
-                  placeholder="e.g. Supreme Court, High Court, NCLT, District Courts"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Chamber / Office Address"
-                  value={profileForm.address}
-                  onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setEditProfileModalOpen(false)}>Cancel</Button>
-            <Button variant="contained" color="primary" onClick={handleSaveProfile}>
-              Save Profile Changes
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* TAB: APPOINTMENTS */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.APPOINTMENTS}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Client Appointment Management & Video Links ({appointments.length})
+      {/* ========================================================================= */}
+      {/* VIEW 1: ACTIVE CASE FILES (100vh SYMMETRICAL TABLE)                        */}
+      {/* ========================================================================= */}
+      {currentView === 1 && (
+        <Card variant="outlined" sx={{ height: "100%", borderRadius: 3.5, p: 3, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <Box>
+            <Typography variant="h6" fontWeight={900} color="#0f172a" mb={0.5}>
+              📂 सक्रिय केस फाइलें एवं मुवक्किल सूची
             </Typography>
-            <Divider sx={{ mb: 2 }} />
+            <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+              सभी न्यायालयी फोरम के लंबित एवं सक्रिय प्रकरण
+            </Typography>
+
             <Table size="small">
               <TableHead>
-                <TableRow>
-                  <TableCell><strong>S.No.</strong></TableCell>
-                  <TableCell><strong>Client Name</strong></TableCell>
-                  <TableCell><strong>Date & Time</strong></TableCell>
-                  <TableCell><strong>Meeting Mode</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                  <TableCell><strong>Video Link / Action</strong></TableCell>
+                <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                  <TableCell sx={{ fontWeight: "bold" }}>केस ID / CNR</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>मुवक्किल (Client)</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>विषय / श्रेणी</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>न्यायालय (Court)</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>स्थिति</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {appointments.map((a, idx) => (
-                  <TableRow key={a.id}>
-                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                    <TableCell><Typography fontWeight="bold">{a.clientName}</Typography></TableCell>
-                    <TableCell>{a.date} at {a.time}</TableCell>
-                    <TableCell><Chip label={a.mode} variant="outlined" color="primary" size="small" /></TableCell>
-                    <TableCell><Chip label={a.status} color={a.status === "Approved" ? "success" : "warning"} size="small" /></TableCell>
-                    <TableCell>
-                      {a.status === "Approved" ? (
-                        <Button size="small" variant="contained" color="success" startIcon={<VideoCallIcon />} href={a.link} target="_blank">
-                          Join Video Call
-                        </Button>
-                      ) : (
-                        <Button size="small" variant="contained" color="primary" onClick={() => handleApproveAppointment(a.id)}>
-                          Approve Appointment
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Paper>
-        </TabPanel>
-
-                {/* TAB: COMMUNICATION ENGINE */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.COMMUNICATION}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Internal Communication Engine & Case Message Queues
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            
-            {cases.length > 0 && (
-              <TextField
-                select
-                size="small"
-                label="Select Case context for Messaging"
-                value={activeAdvocateCaseId}
-                onChange={(e) => setActiveAdvocateCaseId(e.target.value)}
-                sx={{ mb: 3, width: 350, bgcolor: "#fff" }}
-              >
-                {cases.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.caseNumber} — {c.title}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
-
-            {!activeAdvocateCaseId ? (
-              <Alert severity="info">Please select a case context to load messaging queues.</Alert>
-            ) : (
-              <>
-                <Stack spacing={2.5} sx={{ mb: 3, maxHeight: "400px", overflowY: "auto", p: 1 }}>
-                  {messages.map((m) => {
-                    const isVoice = m.type === "VOICE";
-                    const isClient = m.senderRole === "client" || String(m.sender).includes("Client");
-                    return (
-                      <Paper 
-                        key={m.id} 
-                        variant="outlined" 
-                        sx={{ 
-                          p: 2, 
-                          bgcolor: isClient ? "#faf5ff" : "#f8fafc", 
-                          borderColor: isClient ? "#e9d5ff" : "#cbd5e1",
-                          borderRadius: 2.5,
-                          width: "85%",
-                          alignSelf: isClient ? "flex-start" : "flex-end"
-                        }}
-                      >
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography variant="caption" color="primary" fontWeight="bold">
-                            {m.senderName || m.sender} ({m.senderRole || "client"})
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {m.timestamp ? new Date(m.timestamp).toLocaleTimeString("en-IN", {hour: '2-digit', minute:'2-digit'}) : ""}
-                          </Typography>
-                        </Stack>
-                        <Typography variant="body2" sx={{ mt: 1, whiteSpace: "pre-line" }}>
-                          {isVoice ? `🎙️ [Client Voice Intake Transcript]: ${m.text}` : m.text}
-                        </Typography>
-                        {m.audioUrl && (
-                          <Box sx={{ mt: 1.5 }}>
-                            <audio controls src={m.audioUrl} style={{ width: "100%", height: 36 }} />
-                          </Box>
-                        )}
-
-                        {/* Propose AI updates */}
-                        {m.aiExtractions && m.aiExtractions.map((ext, idx) => (
-                          <Box sx={{ mt: 2, maxWidth: "500px" }} key={idx}>
-                            <MatterUpdateConfirmation
-                              extraction={ext}
-                              onConfirm={(key, val) => handleConfirmExtraction(m.id, key, val)}
-                              onReject={(key) => handleRejectExtraction(m.id, key)}
-                            />
-                          </Box>
-                        ))}
-                      </Paper>
-                    );
-                  })}
-                </Stack>
-
-                <Box sx={{ p: 2, border: "1px solid #e2e8f0", borderRadius: 3, bg: "#f8fafc" }}>
-                  <Stack direction="row" spacing={2}>
-                    <TextField 
-                      fullWidth 
-                      multiline 
-                      rows={2} 
-                      placeholder="Type internal note or reply to client..." 
-                      value={newMessageText} 
-                      onChange={(e) => setNewMessageText(e.target.value)} 
-                    />
-                    <Button 
-                      variant="contained" 
-                      startIcon={<SendIcon />} 
-                      onClick={handleSendMessage}
-                      sx={{ height: "55px", fontWeight: "bold" }}
-                    >
-                      Dispatch
-                    </Button>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1.5 }}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      size="small"
-                      startIcon={<MicIcon />}
-                      onClick={() => {
-                        alert("🎙️ Advocate Speech Recognition activated. Speak into microphone to dictate note.");
-                        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-                        if (SpeechRec) {
-                          const rec = new SpeechRec();
-                          rec.lang = "hi-IN";
-                          rec.onresult = (e) => {
-                            const val = e.results[0][0].transcript;
-                            setNewMessageText(prev => prev ? prev + " " + val : val);
-                          };
-                          rec.start();
-                        } else {
-                          alert("Speech Recognition not supported in this browser.");
-                        }
-                      }}
-                      sx={{ textTransform: "none", fontSize: "0.75rem" }}
-                    >
-                      🎤 Speak to Type Note (हिंदी/English)
-                    </Button>
-                  </Stack>
-                </Box>
-              </>
-            )}
-          </Paper>
-        </TabPanel>
-
-        {/* TAB: TASKS */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.TASKS}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Pending Task List & Hearing Deadlines ({tasks.length})
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            {cases.length > 0 && (
-              <TextField
-                select
-                size="small"
-                label="Case context for tasks"
-                value={activeAdvocateCaseId}
-                onChange={(e) => setActiveAdvocateCaseId(e.target.value)}
-                sx={{ mb: 3, width: 350, bgcolor: "#fff" }}
-              >
-                {cases.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.caseNumber} — {c.title}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
-
-            {!activeAdvocateCaseId ? (
-              <Alert severity="info">Please select a case context to load tasks.</Alert>
-            ) : tasks.length === 0 ? (
-              <Typography color="text.secondary">No tasks found for this case.</Typography>
-            ) : (
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>S.No.</strong></TableCell>
-                    <TableCell><strong>Task Description</strong></TableCell>
-                    <TableCell><strong>Responsible</strong></TableCell>
-                    <TableCell><strong>Due Date</strong></TableCell>
-                    <TableCell><strong>Status</strong></TableCell>
-                    <TableCell align="right"><strong>Action</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {tasks.map((t, idx) => (
-                    <TableRow key={t.id} hover>
-                      <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                      <TableCell><Typography fontWeight="bold">{t.title}</Typography></TableCell>
-                      <TableCell>{t.responsible?.toUpperCase()}</TableCell>
-                      <TableCell>{t.dueDate}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={t.status} 
-                          color={t.status === "COMPLETED" ? "success" : t.status === "REJECTED" ? "error" : "warning"} 
-                          size="small" 
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Button
-                          size="small"
-                          variant="contained"
-                          color="success"
-                          onClick={() => {
-                            MatterTimelineService.updateActionStatus(activeAdvocateCaseId, t.id, "COMPLETED");
-                            setTasks(MatterTimelineService.getActions(activeAdvocateCaseId));
-                          }}
-                          disabled={t.status === "COMPLETED"}
-                          sx={{ mr: 1, textTransform: "none", fontSize: "0.7rem", py: 0.2 }}
-                        >
-                          Complete
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          onClick={() => {
-                            MatterTimelineService.updateActionStatus(activeAdvocateCaseId, t.id, "REJECTED");
-                            setTasks(MatterTimelineService.getActions(activeAdvocateCaseId));
-                          }}
-                          disabled={t.status === "REJECTED"}
-                          sx={{ textTransform: "none", fontSize: "0.7rem", py: 0.2 }}
-                        >
-                          Reject
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Paper>
-        </TabPanel>
-
-{/* TAB: CLIENT LIST */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.CLIENT_LIST}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Master Client Registry ({clients.length})
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            {clients.length === 0 ? (
-              <Typography color="text.secondary">No registered clients found in case repository.</Typography>
-            ) : (
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>S.No.</strong></TableCell>
-                    <TableCell><strong>Client ID</strong></TableCell>
-                    <TableCell><strong>Client Name</strong></TableCell>
-                    <TableCell><strong>Type</strong></TableCell>
-                    <TableCell><strong>Region / Court</strong></TableCell>
-                    <TableCell><strong>Mobile / Email</strong></TableCell>
-                    <TableCell><strong>Status</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {clients.map((c, idx) => (
-                    <TableRow key={c.id} hover>
-                      <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                      <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.id}</TableCell>
-                      <TableCell><Typography fontWeight="bold">{c.name}</Typography></TableCell>
-                      <TableCell>{c.type}</TableCell>
-                      <TableCell>{c.region}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2">{c.mobile}</Typography>
-                        <Typography variant="caption" color="text.secondary">{c.email}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip label={c.status} size="small" color={c.status === "Active" ? "success" : "warning"} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Paper>
-        </TabPanel>
-
-        {/* TAB: ACTIVE CLIENTS */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.ACTIVE_CLIENTS}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Active Client Roster ({activeClientsList.length})
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            {activeClientsList.length === 0 ? (
-              <Typography color="text.secondary">No active clients found.</Typography>
-            ) : (
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>S.No.</strong></TableCell>
-                    <TableCell><strong>Client ID</strong></TableCell>
-                    <TableCell><strong>Client Name</strong></TableCell>
-                    <TableCell><strong>Type</strong></TableCell>
-                    <TableCell><strong>Region</strong></TableCell>
-                    <TableCell><strong>Contact</strong></TableCell>
-                    <TableCell><strong>Status</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {activeClientsList.map((c, idx) => (
-                    <TableRow key={c.id} hover>
-                      <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                      <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{c.id}</TableCell>
-                      <TableCell><Typography fontWeight="bold">{c.name}</Typography></TableCell>
-                      <TableCell>{c.type}</TableCell>
-                      <TableCell>{c.region}</TableCell>
-                      <TableCell>{c.email}</TableCell>
-                      <TableCell><Chip label="Active" size="small" color="success" /></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </Paper>
-        </TabPanel>
-
-        {/* TAB: EMPANELED ADVOCATES */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.EMPANELED_ADVOCATES}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Empaneled Advocate Roster ({advocates.length})
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>S.No.</strong></TableCell>
-                  <TableCell><strong>Enrollment / Bar ID</strong></TableCell>
-                  <TableCell><strong>Advocate Name</strong></TableCell>
-                  <TableCell><strong>Specialization</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
+                <TableRow hover>
+                  <TableCell sx={{ fontWeight: 700, color: "#1e40af" }}>CASE-2026-0001</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Ramvir Jatav</TableCell>
+                  <TableCell>जमानत अर्जी (Bail)</TableCell>
+                  <TableCell>District & Sessions Court, Delhi</TableCell>
+                  <TableCell><Chip label="सक्रिय हियरिंग" color="success" size="small" sx={{ fontWeight: 700 }} /></TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {advocates.map((a, idx) => (
-                  <TableRow key={a.id || idx} hover>
-                    <TableCell><Typography variant="body2" color="text.secondary">{idx + 1}</Typography></TableCell>
-                    <TableCell sx={{ fontFamily: "monospace", fontWeight: "bold" }}>{a.barId || a.id}</TableCell>
-                    <TableCell><Typography fontWeight="bold">{a.name}</Typography></TableCell>
-                    <TableCell>{a.specialization || "General Practice"}</TableCell>
-                    <TableCell><Chip label={a.status || "Active"} size="small" color="success" /></TableCell>
-                  </TableRow>
-                ))}
+                <TableRow hover>
+                  <TableCell sx={{ fontWeight: 700, color: "#1e40af" }}>CASE-2026-0042</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Suresh Sharma</TableCell>
+                  <TableCell>सिविल स्टे व टाइटल डीड</TableCell>
+                  <TableCell>High Court of Delhi</TableCell>
+                  <TableCell><Chip label="ड्राफ्टिंग स्टेज" color="primary" size="small" sx={{ fontWeight: 700 }} /></TableCell>
+                </TableRow>
               </TableBody>
             </Table>
-          </Paper>
-        </TabPanel>
+          </Box>
+        </Card>
+      )}
 
-        {/* TAB: MY API STORE */}
-        <TabPanel value={activeTab} index={ADVOCATE_TABS.API_STORE}>
-          <Paper sx={{ p: 4, borderRadius: 3, border: "2px solid #2563eb", background: "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)" }}>
-            <Stack direction="row" alignItems="center" spacing={1.5} mb={2}>
-              <SettingsSuggestIcon sx={{ color: "#2563eb", fontSize: 36 }} />
+      {/* ========================================================================= */}
+      {/* VIEW 2: FULL CANVAS LEGAL DRAFTER STUDIO (90% CLEAN WORKSPACE)             */}
+      {/* ========================================================================= */}
+      {currentView === 2 && (
+        <Box sx={{ width: "100%", height: "100%", overflow: "hidden" }}>
+          <FullCanvasVoiceStudio
+            title="✍️ अधिवक्ता विधिक ड्राफ्टिंग स्टूडियो (Advocate Legal Drafting Studio)"
+            subtitle="असीमित कंटीन्यूअस वॉइस टाइपिंग • सुप्रीम कोर्ट / हाई कोर्ट विधिक फॉर्मेट्स"
+            initialText={draftContent}
+            onTextChange={setDraftContent}
+          />
+        </Box>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW 3: VAKALATNAMA, E-FILING & ESCROW FEES                                */}
+      {/* ========================================================================= */}
+      {currentView === 3 && (
+        <Grid container spacing={3} sx={{ height: "100%", alignItems: "stretch" }}>
+          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <Box>
-                <Typography variant="h5" fontWeight="bold" color="#1e3a8a">
-                  माई API स्टोर (My API Store)
+                <Typography variant="h6" fontWeight={900} color="#0f172a" mb={1}>
+                  📜 वकालतनामा एवं ई-फाइलिंग अनुपालन
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  अपने खुद के ChatGPT (OpenAI), Google Gemini या Anthropic Claude API चाबियों को इंटीग्रेट करें।
+                <Typography variant="caption" color="text.secondary" display="block" mb={2}>
+                  डिजिटल हस्ताक्षर व eCourts पोर्टल सिंक स्थिति
+                </Typography>
+
+                <Stack spacing={1.5}>
+                  <Box sx={{ p: 2, bgcolor: "#f0fdf4", borderRadius: 2, border: "1px solid #bbf7d0" }}>
+                    <Typography variant="body2" fontWeight={800} color="#166534">
+                      ✓ ई-वकालतनामा डिजिटल हस्ताक्षरित
+                    </Typography>
+                    <Typography variant="caption" color="#15803d">
+                      बार काउंसिल सत्यापन पूर्ण • 256-बिट सुरक्षित
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              <Chip icon={<CheckCircleIcon />} label="eCourts 4-Character CNR कम्प्लायंट" color="success" sx={{ fontWeight: 700 }} />
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={6} sx={{ display: "flex" }}>
+            <Card variant="outlined" sx={{ flex: 1, borderRadius: 3.5, p: 3, display: "flex", flexDirection: "column", justifyContent: "space-between", bgcolor: "#eff6ff", borderColor: "#bfdbfe" }}>
+              <Box>
+                <Typography variant="h6" fontWeight={900} color="#1e40af" mb={1}>
+                  💳 एस्क्रो फीस एवं संवितरण स्थिति
+                </Typography>
+                <Typography variant="caption" color="#1e3a8a" display="block" mb={2}>
+                  ट्रस्ट एस्क्रो गेटवे द्वारा सुरक्षित अधिवक्ता फीस
+                </Typography>
+
+                <Typography variant="h4" fontWeight={900} color="#1e40af" my={2}>
+                  ₹0.00
+                </Typography>
+                <Typography variant="caption" color="#1e3a8a">
+                  ✓ कोई लंबित देयता नहीं (All Escrow Disbursed Cleanly)
                 </Typography>
               </Box>
-            </Stack>
 
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <strong>0-सेकंड ऑटो-इंटीग्रेशन:</strong> यहाँ कॉन्फ़िगर की गई API चाबियाँ आपके ब्राउज़र में सुरक्षित रूप से सेव हो जाएंगी। जब भी आप पूरे पोर्टल पर कोई भी AI फीचर इस्तेमाल करेंगे, तो आपके चुने हुए प्रोवाइडर और चाबी का उपयोग किया जाएगा।
-            </Alert>
-
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
-                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
-                  <Typography variant="subtitle1" fontWeight="bold" color="primary" gutterBottom>
-                    1. चुनें पसंदीदा AI मॉडल
-                  </Typography>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    value={aiProvider}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setAiProvider(val);
-                      localStorage.setItem("icj_ai_provider", val);
-                    }}
-                    sx={{ mt: 1.5 }}
-                  >
-                    <MenuItem value="gemini">Google Gemini (Default)</MenuItem>
-                    <MenuItem value="openai">OpenAI ChatGPT (GPT-4o-mini)</MenuItem>
-                    <MenuItem value="anthropic">Anthropic Claude (Claude 3.5 Sonnet)</MenuItem>
-                  </TextField>
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12} md={8}>
-                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, bgcolor: "#fff" }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                    2. अपनी API चाबी दर्ज करें
-                  </Typography>
-                  
-                  <Box sx={{ mt: 2 }}>
-                    {aiProvider === "gemini" && (
-                      <Box>
-                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Google Gemini API Key:</Typography>
-                        <Stack direction="row" spacing={1}>
-                          <TextField
-                            size="small"
-                            type="password"
-                            fullWidth
-                            placeholder="AIzaSy..."
-                            value={geminiApiKey}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setGeminiApiKey(val);
-                              localStorage.setItem("icj_gemini_api_key", val);
-                            }}
-                          />
-                          {geminiApiKey && (
-                            <Button variant="outlined" color="error" size="small" onClick={() => { setGeminiApiKey(""); localStorage.removeItem("icj_gemini_api_key"); }}>Clear</Button>
-                          )}
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                          गूगल एआई स्टूडियो (Google AI Studio) से फ्री या पे-एस-यू-गो (Pay-as-you-go) की लाएं।
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {aiProvider === "openai" && (
-                      <Box>
-                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>OpenAI ChatGPT API Key:</Typography>
-                        <Stack direction="row" spacing={1}>
-                          <TextField
-                            size="small"
-                            type="password"
-                            fullWidth
-                            placeholder="sk-proj-..."
-                            value={openaiApiKey}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setOpenaiApiKey(val);
-                              localStorage.setItem("icj_openai_api_key", val);
-                            }}
-                          />
-                          {openaiApiKey && (
-                            <Button variant="outlined" color="error" size="small" onClick={() => { setOpenaiApiKey(""); localStorage.removeItem("icj_openai_api_key"); }}>Clear</Button>
-                          )}
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                          ओपनएआई प्लेटफार्म (platform.openai.com) से क्रेडिट लोड की हुई sk-proj चाबी लाएं।
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {aiProvider === "anthropic" && (
-                      <Box>
-                        <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Anthropic Claude API Key:</Typography>
-                        <Stack direction="row" spacing={1}>
-                          <TextField
-                            size="small"
-                            type="password"
-                            fullWidth
-                            placeholder="sk-ant-..."
-                            value={anthropicApiKey}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setAnthropicApiKey(val);
-                              localStorage.setItem("icj_anthropic_api_key", val);
-                            }}
-                          />
-                          {anthropicApiKey && (
-                            <Button variant="outlined" color="error" size="small" onClick={() => { setAnthropicApiKey(""); localStorage.removeItem("icj_anthropic_api_key"); }}>Clear</Button>
-                          )}
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                          एंथ्रोपिक कंसोल (console.anthropic.com) से sk-ant चाबी लाएं।
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Paper>
-
-        {/* DYNAMIC AI JUDICIAL CITATIONS & PRECEDENTS SELECTOR MODAL */}
-        <Dialog open={citationModalOpen} onClose={() => setCitationModalOpen(false)} maxWidth="md" fullWidth>
-          <DialogTitle sx={{ fontWeight: "bold", color: "#1e3a8a" }}>
-            📚 Dynamic Supreme Court &amp; High Court Landmark Precedents
-          </DialogTitle>
-          <DialogContent dividers>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Filtered Precedents &amp; Ratio Decidendi for: <strong>{activeConsultation?.caseCategory || "Property & Injunction Dispute"}</strong>
-            </Typography>
-
-            <Stack spacing={2}>
-              {AICitationResearchService.getPrecedentsForCategory(activeConsultation?.caseCategory || "").citations.map((cit) => (
-                <Paper key={cit.id} variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "#f8fafc" }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight="bold" color="#0f172a">
-                        {cit.caseName} — <span style={{ color: "#2563eb" }}>{cit.citationRef}</span>
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        {cit.court} • Applicable: {cit.applicableSections.join(", ")}
-                      </Typography>
-                    </Box>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="primary"
-                      onClick={() => {
-                        const formatted = AICitationResearchService.formatCitationForDraft(cit);
-                        setCustomPleadingText((prev) => (prev || activeConsultation?.problemText || "") + formatted);
-                        setCitationModalOpen(false);
-                        setAlertMsg(`⚡ Citation "${cit.caseName}" inserted into draft!`);
-                        setTimeout(() => setAlertMsg(""), 3500);
-                      }}
-                      sx={{ fontSize: "0.72rem", textTransform: "none", fontWeight: "bold" }}
-                    >
-                      + 1-Click Insert Citation
-                    </Button>
-                  </Stack>
-                  <Alert severity="info" sx={{ py: 0.5, fontSize: "0.8rem", color: "#1e293b", bgcolor: "#eff6ff" }}>
-                    <strong>Ratio Decidendi:</strong> {cit.legalRatio}
-                  </Alert>
-                </Paper>
-              ))}
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setCitationModalOpen(false)} sx={{ fontWeight: "bold" }}>
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-        </TabPanel>
-      </Box>
-    </>
+              <Button variant="contained" fullWidth sx={{ bgcolor: "#1e40af", fontWeight: 800, borderRadius: 2 }}>
+                फीस व बैंक खाता विवरण प्रबंधित करें →
+              </Button>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+    </ZeroScrollPageShell>
   );
 }
