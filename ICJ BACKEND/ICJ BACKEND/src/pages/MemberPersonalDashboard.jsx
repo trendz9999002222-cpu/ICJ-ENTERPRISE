@@ -25,12 +25,14 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ZeroScrollPageShell from "../components/common/ZeroScrollPageShell.jsx";
 import ProgressiveProfileEditor from "../components/profile/ProgressiveProfileEditor.jsx";
 import DynamicEmpanelmentSetup from "../components/profile/DynamicEmpanelmentSetup.jsx";
+import MultiJurisdictionPracticeMatrix from "../components/profile/MultiJurisdictionPracticeMatrix.jsx";
 import useAuth from "../hooks/useAuth.js";
 
 const PROFILE_VIEWS = [
   { id: 0, title: "🪪 26-सीरीज़ आधिकारिक पहचान पत्र", subtitle: "26-Series Dual-Telemetry Member Identity & Live Status" },
   { id: 1, title: "📍 राजस्व प्रशासनिक पता व जीपीएस", subtitle: "State ➔ District ➔ Tehsil ➔ Village Revenue Hierarchy" },
-  { id: 2, title: "💼 व्यावसायिक साख व सदस्यता सुरक्षा", subtitle: "Credentials, Bar Enrollment & Digital Wallet" },
+  { id: 2, title: "🎯 बहु-क्षेत्रीय प्रैक्टिस व केस मैट्रिक्स", subtitle: "Affiliated Bars, Operating Districts, Courts & Case Taxonomy" },
+  { id: 3, title: "💼 व्यावसायिक साख व क्रेडेंशियल्स", subtitle: "Category-Specific Credentials, Bar Enrollment & Empanelment" },
 ];
 
 export default function MemberPersonalDashboard() {
@@ -82,9 +84,9 @@ export default function MemberPersonalDashboard() {
         </Stack>
       }
       canGoBack={currentView > 0}
-      canGoNext={currentView < 2}
+      canGoNext={currentView < 3}
       onBack={() => setCurrentView((v) => Math.max(0, v - 1))}
-      onNext={() => setCurrentView((v) => Math.min(2, v + 1))}
+      onNext={() => setCurrentView((v) => Math.min(3, v + 1))}
       backLabel="← पिछले कार्यक्षेत्र पर जाएं"
       nextLabel="अगले कार्यक्षेत्र पर जाएं →"
     >
@@ -213,7 +215,7 @@ export default function MemberPersonalDashboard() {
                 onClick={() => setCurrentView(2)}
                 sx={{ mt: 2, fontWeight: 800, borderRadius: 2, textTransform: "none" }}
               >
-                💼 व्यावसायिक साख व वॉलेट देखें →
+                🎯 बहु-क्षेत्रीय प्रैक्टिस व केस मैट्रिक्स देखें →
               </Button>
             </Card>
           </Grid>
@@ -230,9 +232,18 @@ export default function MemberPersonalDashboard() {
       )}
 
       {/* ========================================================================= */}
-      {/* VIEW 2: DYNAMIC CATEGORY EMPANELMENT SETUP (SYMMETRICAL 50-50 BOXES)      */}
+      {/* VIEW 2: MULTI-JURISDICTION PRACTICE & CASE MATRIX (AUTO-SELECT + FREE-TYPE) */}
       {/* ========================================================================= */}
       {currentView === 2 && (
+        <Box sx={{ width: "100%", height: "100%", overflow: "hidden" }}>
+          <MultiJurisdictionPracticeMatrix currentUser={user} />
+        </Box>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW 3: DYNAMIC CATEGORY EMPANELMENT SETUP (SYMMETRICAL 50-50 BOXES)      */}
+      {/* ========================================================================= */}
+      {currentView === 3 && (
         <Box sx={{ width: "100%", height: "100%", overflow: "hidden" }}>
           <DynamicEmpanelmentSetup currentUser={user} />
         </Box>
