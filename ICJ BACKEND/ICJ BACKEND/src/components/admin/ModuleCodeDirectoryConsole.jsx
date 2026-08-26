@@ -111,6 +111,7 @@ export const MASTER_MODULE_GROUPS = [
       { code: "F7", keyword: "LEGAL_IMMUNITY_WATCHDOG", name: "डायनेमिक लीगल इम्युनिटी वॉचडॉग", file: "DynamicLegalImmunityWatchdog.jsx", route: "/dynamic-legal-watchdog" },
       { code: "F8", keyword: "TIME_MACHINE_ROLLBACK", name: "8-दिवसीय टाइम मशीन व 1-क्लिक रोलबैक", file: "SystemTimeMachineRollbackConsole.jsx", route: "/dynamic-legal-watchdog#time-machine" },
       { code: "F9", keyword: "PREDICTIVE_EARLY_WARNING", name: "भविष्यसूचक पूर्व-चेतावनी व तैयारी केंद्र", file: "PredictiveEarlyWarningConsole.jsx", route: "/dynamic-legal-watchdog#predictive-early-warning" },
+      { code: "F10", keyword: "UNIFIED_WATCHDOG_COCKPIT", name: "सुप्रीम यूनिफाइड कमान्ड, वॉचडॉग व सेफ डेलिगेशन कॉकपिट", file: "UnifiedSystemWatchdogCockpit.jsx", route: "/system-command-cockpit" },
     ],
   },
   {
