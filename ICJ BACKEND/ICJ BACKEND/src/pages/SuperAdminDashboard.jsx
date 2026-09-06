@@ -158,8 +158,8 @@ export default function SuperAdminDashboard() {
   }, [stats]);
 
   const totalUsers = stats?.totalMembers ?? usersList.length;
-  const superAdmins = usersList.filter(u => (u.user_type === "super_admin" || u.username === "ICJSuperAdmin1234")).length || 1;
-  const admins = usersList.filter(u => (u.role === "admin" || u.user_type === "admin") && u.username !== "ICJSuperAdmin1234").length || 0;
+  const superAdmins = usersList.filter(u => (u.user_type === "super_admin" || u.username === "ICJSuperAdmin123456" || u.username === "ICJSuperAdmin1234")).length || 1;
+  const admins = usersList.filter(u => (u.role === "admin" || u.user_type === "admin") && u.username !== "ICJSuperAdmin123456" && u.username !== "ICJSuperAdmin1234").length || 0;
   const members = usersList.filter(u => u.role === "member" || !u.role || u.user_type === "member").length || totalUsers;
 
 
@@ -339,7 +339,7 @@ export default function SuperAdminDashboard() {
                   👤 Active Workspace: {user?.fullName || "Pawan Kumar"} (Super Admin)
                 </Typography>
                 <Typography variant="caption" sx={{ opacity: 0.9, fontSize: "0.68rem" }}>
-                  Role Governance Active | User: <strong>{user?.username || "ICJSuperAdmin1234"}</strong> | Logged in & Active
+                  Role Governance Active | User: <strong>{user?.username || "ICJSuperAdmin123456"}</strong> | Logged in & Active
                 </Typography>
               </Box>
             </Stack>

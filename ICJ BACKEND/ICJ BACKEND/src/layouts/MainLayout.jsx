@@ -9,6 +9,7 @@ import SessionAutoLockModal from "../components/common/SessionAutoLockModal";
 import SecureWatermarkOverlay from "../components/common/SecureWatermarkOverlay";
 import UnifiedLegalPermissionGate from "../components/common/UnifiedLegalPermissionGate";
 import GlobalErrorBoundary from "../components/common/GlobalErrorBoundary";
+import AdminPageIdBadge from "../components/common/AdminPageIdBadge";
 import useAuth from "../hooks/useAuth";
 
 const InsideMainLayout = createContext(false);
@@ -87,6 +88,9 @@ function MainLayoutChrome({ children }) {
             boxSizing: "border-box",
           }}
         >
+          {/* 🏷️ PERMANENT VISIBLE PAGE ID IDENTIFIER BADGE */}
+          <AdminPageIdBadge />
+
           <GlobalErrorBoundary componentName="MainLayoutPage">
             <InsideMainLayout.Provider value={true}>
               {children}

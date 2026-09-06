@@ -6,7 +6,7 @@
 
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 
-const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v51_PURE_7_AUTHENTIC_USERS";
+const VIRGIN_PURGE_KEY = "icj_virgin_state_2026_v52_SUPERADMIN_123456";
 
 const KEYS_TO_SANITIZE = [
   "icj_members",
@@ -61,17 +61,35 @@ export const AppBootSanitizer = {
       if (currentVer !== VIRGIN_PURGE_KEY) {
         console.warn(`[AppBootSanitizer V50] Executing Full Virgin Purge (Previous: ${currentVer}) -> ${VIRGIN_PURGE_KEY}`);
 
-        // 1. Clear target residual keys
+        // 1. Preserve any organically registered real members before purge
+        const existingMembersRaw = localStorage.getItem("icj_members") || localStorage.getItem("icj_enterprise_users");
+        let preservedMembers = [];
+        if (existingMembersRaw) {
+          try {
+            const list = JSON.parse(existingMembersRaw);
+            if (Array.isArray(list)) {
+              preservedMembers = list.filter((m) => {
+                const id = String(m?.member_id || m?.id || "");
+                return !DUMMY_MEMBER_IDS.includes(id) && !ENTERPRISE_SEED_USERS.some((s) => s.id === id || s.email === m?.email);
+              });
+            }
+          } catch {}
+        }
+
+        // 2. Clear target residual keys (preserving essential app config)
         KEYS_TO_SANITIZE.forEach((key) => {
-          localStorage.removeItem(key);
+          if (key !== "icj_members" && key !== "icj_enterprise_users") {
+            localStorage.removeItem(key);
+          }
         });
 
-        // 2. Write pristine seed user (1 Super Admin only)
-        localStorage.setItem("icj_enterprise_users", JSON.stringify(ENTERPRISE_SEED_USERS));
-        localStorage.setItem("icj_members", JSON.stringify(ENTERPRISE_SEED_USERS));
+        // 3. Write merged pristine seed users + preserved organic members
+        const mergedList = [...ENTERPRISE_SEED_USERS, ...preservedMembers];
+        localStorage.setItem("icj_enterprise_users", JSON.stringify(mergedList));
+        localStorage.setItem("icj_members", JSON.stringify(mergedList));
         localStorage.setItem("icj_purge_version", VIRGIN_PURGE_KEY);
 
-        console.info("[AppBootSanitizer V50] Pure Virgin State Initialized Successfully. 1 Super Admin active.");
+        console.info(`[AppBootSanitizer V50] State Initialized Successfully. Total active users: ${mergedList.length}`);
       } else {
         // 3. Secondary defensive sanitizer: check & remove any dummy member IDs if found in storage
         const rawMembers = localStorage.getItem("icj_members");

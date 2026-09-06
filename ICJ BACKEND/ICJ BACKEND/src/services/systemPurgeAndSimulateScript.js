@@ -28,7 +28,7 @@ export const SystemPurgeAndSimulateScript = {
 
     try {
       // 🔐 DIMENSION 1: ROLE SECURITY & ZERO-TRUST BOUNDARY TEST
-      const isSuper = RoleService.isSuperAdmin({ role: "super_admin", username: "icjsuperadmin1234" });
+      const isSuper = RoleService.isSuperAdmin({ role: "super_admin", username: "icjsuperadmin123456" });
       const isClientSuper = RoleService.isSuperAdmin({ role: "member", username: "Client_01" });
       auditResults.dimensions.DIMENSION_1_ROLE_SECURITY = {
         name: "🔐 Role Security & Zero-Trust Boundary Test",
@@ -78,7 +78,7 @@ export const SystemPurgeAndSimulateScript = {
 
       // Log Telemetry Audit
       UserAuditTelemetryService.logAccess({
-        userId: "ICJSuperAdmin1234",
+        userId: "ICJSuperAdmin123456",
         userName: "Super Admin",
         role: "super_admin",
         action: "5_DIMENSION_BIGTECH_AUDIT",

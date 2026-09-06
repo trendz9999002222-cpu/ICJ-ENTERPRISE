@@ -43,6 +43,7 @@ import NotificationRoutingService from "../services/notificationRoutingService.j
 import NotificationDispatcherModal from "./admin/NotificationDispatcherModal.jsx";
 import GlobalCommandPalette from "./common/GlobalCommandPalette.jsx";
 import ChangePasswordModal from "./common/ChangePasswordModal.jsx";
+import { getPageByRoute } from "../core/adminPageRegistry";
 
 const MODULE_NAMES = {
   "/advocate-dashboard": "📌 ADVOCATE DESK & CHAMBERS",
@@ -101,8 +102,11 @@ function Topbar({ onOpenMobileNav = () => {} }) {
   };
 
   const activePath = location?.pathname || "";
-  const activeModuleName = MODULE_NAMES[activePath] || 
-    Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k)) ? MODULE_NAMES[Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k))] : "📌 ICJ ENTERPRISE PLATFORM";
+  const registeredPage = getPageByRoute(activePath);
+  const activeModuleName = registeredPage
+    ? `${registeredPage.id} · ${registeredPage.name}`
+    : MODULE_NAMES[activePath] || 
+      (Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k)) ? MODULE_NAMES[Object.keys(MODULE_NAMES).find(k => activePath.startsWith(k))] : "📌 ICJ ENTERPRISE PLATFORM");
 
   const userInitial = String(user?.fullName || user?.name || user?.username || user?.email || "U")
     .trim()
@@ -274,7 +278,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
             </IconButton>
           </Tooltip>
 
-          {/* ACTIVE MODULE BADGE (DESKTOP) */}
+          {/* ACTIVE MODULE BADGE WITH VISIBLE PAGE ID */}
           <Chip
             label={activeModuleName}
             size="small"
@@ -285,7 +289,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
               bgcolor: "#0f172a",
               color: "#38bdf8",
               border: "1px solid #0284c7",
-              display: { xs: "none", xl: "inline-flex" },
+              display: { xs: "none", md: "inline-flex" },
             }}
           />
 
@@ -446,7 +450,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
 
             <Chip
               label={
-                userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin123456" || user?.username === "ICJSuperAdmin1234"
                   ? "ADMIN"
                   : userRole === "advocate"
                   ? "ADVOCATE"
@@ -460,7 +464,7 @@ function Topbar({ onOpenMobileNav = () => {} }) {
                 fontSize: "0.55rem",
                 height: 18,
                 bgcolor:
-                  userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin1234"
+                  userRole === "super_admin" || user?.user_type === "super_admin" || user?.username === "ICJSuperAdmin123456" || user?.username === "ICJSuperAdmin1234"
                     ? "#7c3aed"
                     : userRole === "advocate"
                     ? "#b91c1c"

@@ -764,4 +764,6 @@ export const getRoleOrderedModules = (roleKey = "member") => {
   });
 };
 
+export { ADMIN_PAGE_REGISTRY, getPageById as getAdminPageById, getPageByRoute as getAdminPageByRoute, getAllAdminPages, resolveAdminPage } from "./adminPageRegistry";
+
 export default Modules;

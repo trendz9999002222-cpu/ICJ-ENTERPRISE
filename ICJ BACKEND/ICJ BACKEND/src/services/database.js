@@ -311,11 +311,6 @@ const DUMMY_MEMBER_KEYS = new Set([
   "26icj08aa0005",
   "26icj08aa0006",
   "26icj08aa0007",
-  "icjadmin1234@icj.org",
-  "vikramaditya@icj.org",
-  "ananya@icj.org",
-  "ramesh.gupta@gmail.com",
-  "sunita.devi@gmail.com",
 ]);
 
 const isDummyMember = (u) => {

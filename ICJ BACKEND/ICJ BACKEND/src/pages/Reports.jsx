@@ -417,7 +417,7 @@ export default function Reports() {
                 <TableCell sx={{ fontFamily: "monospace" }}>LOG-9811</TableCell>
                 <TableCell>Super Admin Login & Force Password Verification</TableCell>
                 <TableCell><Chip label="Security Log" color="secondary" size="small" /></TableCell>
-                <TableCell>ICJSuperAdmin1234 (admin)</TableCell>
+                <TableCell>ICJSuperAdmin123456 (admin)</TableCell>
                 <TableCell>{new Date().toLocaleString("en-IN")}</TableCell>
               </TableRow>
             </TableBody>

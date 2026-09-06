@@ -3,7 +3,7 @@
  * Master Single Super Admin Ecosystem Registry & Auto-Hydration Engine.
  *
  * Active Role:
- * - 1 Super Admin (ICJSuperAdmin1234)
+ * - 1 Super Admin (ICJSuperAdmin123456)
  */
 
 import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
@@ -11,7 +11,7 @@ import { ENTERPRISE_SEED_USERS } from "../data/seedUsers.js";
 export const MASTER_SEED_MEMBERS = ENTERPRISE_SEED_USERS;
 export const MASTER_26_SEED_MEMBERS = ENTERPRISE_SEED_USERS;
 
-export const DEFAULT_SEED_PASSWORD = "ICJSuperAdmin1234";
+export const DEFAULT_SEED_PASSWORD = "ICJSuperAdmin123456";
 
 export const SeedEcosystemService = {
   /**
