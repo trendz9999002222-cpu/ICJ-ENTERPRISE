@@ -13,7 +13,7 @@ import { RADIUS, actionButtonSx } from "@/theme/designTokens";
 
 export default function QuickUtilitiesBar() {
   return (
-    <Container maxWidth="xl" sx={{ mb: { xs: 4, md: 6 } }} className="mt-300">
+    <Container maxWidth="xl" sx={{ mb: { xs: 4, md: 6 } }}>
       <InteractiveSurface variant="dark" enableTilt={false} sx={{ backdropFilter: "blur(12px)" }}>
         <Box sx={{ p: { xs: 2, sm: 2.5, md: 3, lg: 3.5 } }}>
           <Stack

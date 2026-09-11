@@ -114,6 +114,7 @@ export default function NavbarMenu() {
         onClick={() => setOpen(true)}
         sx={{
           display: { xs: "inline-flex", lg: "none" },
+          flexShrink: 0,
           color: "#fff",
           border: "1px solid rgba(255,255,255,0.16)",
           borderRadius: 2,
@@ -130,12 +131,14 @@ export default function NavbarMenu() {
         open={open}
         onClose={() => setOpen(false)}
         sx={{ zIndex: 1300 }}
-        PaperProps={{
-          sx: {
-            width: { xs: "min(100%, 360px)", sm: 360 },
-            bgcolor: "#0f172a",
-            color: "#e2e8f0",
-            backgroundImage: "none",
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: "min(100%, 360px)", sm: 360 },
+              bgcolor: "#0f172a",
+              color: "#e2e8f0",
+              backgroundImage: "none",
+            },
           },
         }}
       >
@@ -211,7 +214,9 @@ export default function NavbarMenu() {
                 ) : null}
                 <ListItemText
                   primary={item.label}
-                  primaryTypographyProps={{ fontWeight: 800, fontSize: "0.95rem" }}
+                  slotProps={{
+                    primary: { sx: { fontWeight: 800, fontSize: "0.95rem" } },
+                  }}
                 />
               </ListItemButton>
             );

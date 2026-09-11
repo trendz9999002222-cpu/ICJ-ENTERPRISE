@@ -16,11 +16,12 @@ export default function NavbarBrand() {
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: { xs: 1, sm: 1.5, md: 2 },
+        gap: { xs: 1, sm: 1.25, md: 1.5 },
         textDecoration: "none",
         color: "inherit",
-        flexShrink: 0,
         minWidth: 0,
+        flex: 1,
+        overflow: "hidden",
       }}
     >
       <Box
@@ -40,12 +41,24 @@ export default function NavbarBrand() {
           variant="h6"
           sx={{
             fontWeight: 900,
-            fontSize: { xs: "0.82rem", sm: "0.92rem", md: "1.05rem", lg: "1.2rem" },
+            fontSize: { xs: "1.05rem", sm: "1.1rem" },
+            color: "#fff",
+            lineHeight: 1.2,
+            letterSpacing: "0.04em",
+            display: { xs: "block", lg: "none" },
+          }}
+        >
+          ICJ
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 900,
+            fontSize: { lg: "1.05rem", xl: "1.2rem" },
             color: "#fff",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            display: { xs: "none", lg: "block" },
           }}
         >
           {brand.title}
