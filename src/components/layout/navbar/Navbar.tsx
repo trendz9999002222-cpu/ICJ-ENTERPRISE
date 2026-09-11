@@ -1,6 +1,6 @@
 "use client";
 
-import { AppBar, Container, Toolbar } from "@mui/material";
+import { AppBar, Box, Container, Toolbar } from "@mui/material";
 
 import NavbarBrand from "@/components/layout/navbar/NavbarBrand";
 import NavbarMenu from "@/components/layout/navbar/NavbarMenu";
@@ -49,11 +49,14 @@ export default function Navbar() {
             overflow: "visible",
             justifyContent: "space-between",
             alignItems: "center",
-            gap: 1.5,
+            gap: 1,
+            minWidth: 0,
           }}
         >
           <NavbarBrand />
-          <NavbarMenu />
+          <Box sx={{ flexShrink: 0 }}>
+            <NavbarMenu />
+          </Box>
         </Toolbar>
       </Container>
     </AppBar>
