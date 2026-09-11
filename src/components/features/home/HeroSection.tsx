@@ -19,7 +19,7 @@ export default function HeroSection() {
       }}
     >
       <Image
-        src="/images/icj_Hero.png"
+        src="/images/icj_HeroV1.0.png"
         alt="Supreme Court of India — ICJ Enterprise Legal Platform"
         fill
         priority

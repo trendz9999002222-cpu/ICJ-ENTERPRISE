@@ -46,9 +46,10 @@ export default function Navbar() {
               lg: NAVBAR_HEIGHT.lg,
             },
             py: 0,
-            overflow: "hidden",
+            overflow: "visible",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 1.5,
           }}
         >
           <NavbarBrand />
