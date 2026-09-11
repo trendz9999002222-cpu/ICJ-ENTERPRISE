@@ -1,19 +1,31 @@
 "use client";
 
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { Box, Button, Container, Stack } from "@mui/material";
+import { useSearchParams } from "next/navigation";
 
+import DynamicForm from "@/components/forms/DynamicForm";
+import ReviewStep from "@/components/forms/ReviewStep";
+import SubmissionSuccess from "@/components/forms/SubmissionSuccess";
 import {
-  type AdvocateIdentityFormData,
-  INITIAL_ADVOCATE_IDENTITY_DATA,
+  ONBOARDING_ROLES,
   ONBOARDING_STEPS,
   type OnboardingRole,
 } from "@/constants/onboarding";
-import { RADIUS, actionButtonSx } from "@/theme/designTokens";
+import { validateStep } from "@/schemas/roleForms";
+import { actionButtonSx } from "@/theme/designTokens";
+import {
+  type AddressContactData,
+  type AdvocateSpecificData,
+  type DocumentUploadItem,
+  type FranchiseSpecificData,
+  INITIAL_ONBOARDING_FORM_STATE,
+  type LitigantSpecificData,
+  type OnboardingFormState,
+  type PersonalInfoData,
+} from "@/types/onboarding-form";
 
-import AdvocateIdentityStep from "./AdvocateIdentityStep";
 import OnboardingStepBar from "./OnboardingStepBar";
 import RoleSelectionStep from "./RoleSelectionStep";
 
@@ -22,35 +34,192 @@ export default function OnboardingWizard() {
   const urlStep = Number(searchParams.get("step"));
   const urlRole = searchParams.get("role") as OnboardingRole | null;
 
+  const initialRole: OnboardingRole =
+    urlRole === "citizen" || urlRole === "advocate" || urlRole === "franchise"
+      ? urlRole
+      : "advocate";
+
   const [step, setStep] = useState(urlStep && urlStep >= 1 && urlStep <= 6 ? urlStep : 1);
-  const [selectedRole, setSelectedRole] = useState<OnboardingRole>(
-    urlRole === "citizen" || urlRole === "advocate" || urlRole === "franchise" ? urlRole : "advocate"
-  );
-  const [advocateData, setAdvocateData] = useState<AdvocateIdentityFormData>(INITIAL_ADVOCATE_IDENTITY_DATA);
+  const [selectedRole, setSelectedRole] = useState<OnboardingRole>(initialRole);
+  const [formState, setFormState] = useState<OnboardingFormState>({
+    ...INITIAL_ONBOARDING_FORM_STATE,
+    role: initialRole,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [referenceId, setReferenceId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentStep = ONBOARDING_STEPS[step - 1];
+  const roleConfig = ONBOARDING_ROLES.find((r) => r.id === selectedRole) || ONBOARDING_ROLES[0];
+
+  const handleRoleSelect = (role: OnboardingRole) => {
+    setSelectedRole(role);
+    setFormState((prev) => ({
+      ...prev,
+      role,
+    }));
+  };
 
   const handleNext = () => {
-    if (step < ONBOARDING_STEPS.length) setStep((s) => s + 1);
+    if (step === 1) {
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    // Central validation before continuing
+    const stepErrors = validateStep(step, formState);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    setErrors({});
+    if (step < ONBOARDING_STEPS.length) {
+      setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleBack = () => {
-    if (step > 1) setStep((s) => s - 1);
+    setErrors({});
+    if (step > 1) {
+      setStep((s) => s - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
-  const updateAdvocateData = (updates: Partial<AdvocateIdentityFormData>) => {
-    setAdvocateData((prev) => ({ ...prev, ...updates }));
+  const handleJumpToStep = (targetStep: number) => {
+    setErrors({});
+    if (targetStep >= 1 && targetStep <= 6) {
+      setStep(targetStep);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleUpdatePersonal = (updates: Partial<PersonalInfoData>) => {
+    setFormState((prev) => ({
+      ...prev,
+      personal: { ...prev.personal, ...updates },
+    }));
+  };
+
+  const handleUpdateAddress = (field: keyof AddressContactData, value: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      address: { ...prev.address, [field]: value },
+    }));
+  };
+
+  const handleUpdateRoleSpecific = (
+    updates: Partial<LitigantSpecificData | AdvocateSpecificData | FranchiseSpecificData>
+  ) => {
+    setFormState((prev) => {
+      if (prev.role === "citizen") {
+        return {
+          ...prev,
+          litigant: { ...prev.litigant, ...(updates as Partial<LitigantSpecificData>) },
+        };
+      }
+      if (prev.role === "advocate") {
+        return {
+          ...prev,
+          advocate: { ...prev.advocate, ...(updates as Partial<AdvocateSpecificData>) },
+        };
+      }
+      return {
+        ...prev,
+        franchise: { ...prev.franchise, ...(updates as Partial<FranchiseSpecificData>) },
+      };
+    });
+  };
+
+  const handleUpdateDocument = (docKey: string, fileItem: DocumentUploadItem | null) => {
+    setFormState((prev) => ({
+      ...prev,
+      documents: {
+        ...prev.documents,
+        [docKey]: fileItem,
+      },
+    }));
+  };
+
+  const handleToggleDeclaration = (agreed: boolean) => {
+    setFormState((prev) => ({ ...prev, declarationAgreed: agreed }));
+    if (errors.declarationAgreed && agreed) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.declarationAgreed;
+        return next;
+      });
+    }
+  };
+
+  const handleFinalSubmit = () => {
+    const stepErrors = validateStep(6, formState);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    // Simulate API submission
+    setTimeout(() => {
+      const generatedRef = `ICJ-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      setReferenceId(generatedRef);
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 750);
+  };
+
+  const handleResetForm = () => {
+    setFormState({
+      ...INITIAL_ONBOARDING_FORM_STATE,
+      role: selectedRole,
+    });
+    setErrors({});
+    setIsSubmitted(false);
+    setReferenceId("");
+    setStep(1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleClearError = (name: string) => {
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
   };
 
   return (
     <Box sx={{ flex: 1, bgcolor: "#f8fafc", color: "#0f172a", pb: { xs: 4, md: 6 } }}>
-      <OnboardingStepBar step={currentStep} totalSteps={ONBOARDING_STEPS.length} />
+      {!isSubmitted && (
+        <OnboardingStepBar step={currentStep} totalSteps={ONBOARDING_STEPS.length} />
+      )}
 
-      {step === 1 && (
+      {/* Success View */}
+      {isSubmitted && (
+        <SubmissionSuccess
+          role={selectedRole}
+          applicantName={formState.personal.fullName || "Applicant"}
+          referenceId={referenceId}
+          onReset={handleResetForm}
+        />
+      )}
+
+      {/* Step 1: Role Selection (Untouched UI) */}
+      {!isSubmitted && step === 1 && (
         <>
           <RoleSelectionStep
             selectedRole={selectedRole}
-            onSelectRole={setSelectedRole}
+            onSelectRole={handleRoleSelect}
             onProceed={handleNext}
           />
           <Container maxWidth="xl" sx={{ pb: { xs: 4, md: 6 } }}>
@@ -60,7 +229,11 @@ export default function OnboardingWizard() {
                 size="large"
                 endIcon={<ArrowForwardIcon />}
                 onClick={handleNext}
-                sx={{ ...actionButtonSx("#2563eb"), px: 4, py: 1.25 }}
+                sx={{
+                  ...actionButtonSx(roleConfig.color),
+                  px: 4,
+                  py: 1.25,
+                }}
               >
                 आगे बढ़ें (Next)
               </Button>
@@ -69,42 +242,35 @@ export default function OnboardingWizard() {
         </>
       )}
 
-      {step === 2 && selectedRole === "advocate" && (
-        <AdvocateIdentityStep
-          data={advocateData}
-          onChange={updateAdvocateData}
+      {/* Steps 2 through 5: Dynamic Form Engine */}
+      {!isSubmitted && step >= 2 && step <= 5 && (
+        <DynamicForm
+          step={step}
+          role={selectedRole}
+          formState={formState}
+          errors={errors}
+          onUpdatePersonal={handleUpdatePersonal}
+          onUpdateAddress={handleUpdateAddress}
+          onUpdateRoleSpecific={handleUpdateRoleSpecific}
+          onUpdateDocument={handleUpdateDocument}
+          onClearError={handleClearError}
           onBack={handleBack}
           onProceed={handleNext}
         />
       )}
 
-      {((step === 2 && selectedRole !== "advocate") || step > 2) && (
-        <Container maxWidth="md" sx={{ py: { xs: 5, md: 6 } }}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 4, md: 5 },
-              borderRadius: RADIUS.lg,
-              bgcolor: "#fff",
-              border: "1px solid #e2e8f0",
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
-              Step {step}: {currentStep.titleHi}
-            </Typography>
-            <Typography sx={{ color: "#64748b", mb: 3 }}>
-              {currentStep.titleEn} — Django API integration coming soon.
-            </Typography>
-            <Button
-              variant="outlined"
-              onClick={handleBack}
-              sx={{ color: "#475569", borderColor: "#cbd5e1", fontWeight: 700, textTransform: "none" }}
-            >
-              Back
-            </Button>
-          </Paper>
-        </Container>
+      {/* Step 6: Review & Final Submission */}
+      {!isSubmitted && step === 6 && (
+        <ReviewStep
+          role={selectedRole}
+          formState={formState}
+          errors={errors}
+          onToggleDeclaration={handleToggleDeclaration}
+          onJumpToStep={handleJumpToStep}
+          onBack={handleBack}
+          onSubmit={handleFinalSubmit}
+          isSubmitting={isSubmitting}
+        />
       )}
     </Box>
   );

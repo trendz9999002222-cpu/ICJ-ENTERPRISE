@@ -1,0 +1,164 @@
+{
+  "steps": [
+    { "id": 1, "titleHi": "रोल चयन", "titleEn": "Role Selection" },
+    { "id": 2, "titleHi": "व्यक्तिगत जानकारी", "titleEn": "Basic Information" },
+    { "id": 3, "titleHi": "संपर्क व पता विवरण", "titleEn": "Contact & Address" },
+    { "id": 4, "titleHi": "विशिष्ट विधिक विवरण", "titleEn": "Role Information" },
+    { "id": 5, "titleHi": "दस्तावेज़ एवं सत्यापन", "titleEn": "Documents & Verification" },
+    { "id": 6, "titleHi": "समीक्षा एवं सबमिट", "titleEn": "Review & Submit" }
+  ],
+  "roles": [
+    {
+      "id": "citizen",
+      "stepLabel": "1",
+      "titleHi": "नागरिक विधिक सहायता",
+      "titleEn": "Litigant Client",
+      "descriptionHi": "ज़मीन विवाद, क्रिमिनल बेल, चेक बाउंस, सर्विस मैटर, पारिवारिक व उपभोक्ता विवाद",
+      "color": "#059669",
+      "border": "#10b981",
+      "bg": "#d1fae5",
+      "chipBg": "#064e3b",
+      "chipColor": "#6ee7b7",
+      "icon": "citizen"
+    },
+    {
+      "id": "advocate",
+      "stepLabel": "2",
+      "titleHi": "अधिवक्ता व विशेषज्ञ पैनल",
+      "titleEn": "Advocate Partner",
+      "descriptionHi": "बार काउंसिल पंजीकृत अधिवक्ता, सीए, सीएस, फोरेंसिक एक्सपर्ट व लीगल कंसल्टेंट",
+      "color": "#1d4ed8",
+      "border": "#3b82f6",
+      "bg": "#dbeafe",
+      "chipBg": "#1e3a8a",
+      "chipColor": "#93c5fd",
+      "icon": "advocate"
+    },
+    {
+      "id": "franchise",
+      "stepLabel": "3",
+      "titleHi": "ज़िला फ्रेंचाइज़ी पार्टनर",
+      "titleEn": "District Franchise",
+      "descriptionHi": "ज़िला स्तर पर विधिक सहायता केंद्र, ई-फाइलिंग डेस्क व कॉल सेंटर एजेंसी",
+      "color": "#b45309",
+      "border": "#f59e0b",
+      "bg": "#fef3c7",
+      "chipBg": "#78350f",
+      "chipColor": "#fde68a",
+      "icon": "franchise"
+    }
+  ],
+  "prefixOptions": [
+    "Adv. (अधिवक्ता)",
+    "Sr. Adv. (वरिष्ठ अधिवक्ता)",
+    "Dr. (डॉक्टर)",
+    "Mr. (श्री)",
+    "Mrs. (श्रीमती)",
+    "Ms. (सुश्री)"
+  ],
+  "genderOptions": [
+    "Male (पुरुष)",
+    "Female (महिला)",
+    "Other (अन्य)"
+  ],
+  "entityTypeOptions": [
+    "Law Firm (लॉ फर्म)",
+    "LLP (सीमित देयता भागीदारी)",
+    "Sole Proprietorship (एकल स्वामित्व)",
+    "Partnership Firm (साझेदारी फर्म)",
+    "Legal Chamber / Associates (लीगल चैंबर)",
+    "Private Limited (प्रा. लि.)"
+  ],
+  "professionalCategories": [
+    "Core Legal & Court Practitioners",
+    "Corporate & Commercial Legal Advisors",
+    "Tax, GST & Financial Advocates",
+    "Civil, Property & Revenue Specialists",
+    "Criminal Defense & Trial Counsel",
+    "Family, Matrimonial & Mediation Experts",
+    "Constitutional & Appellate Advocates",
+    "Cyber Law, IPR & Tech Specialists"
+  ],
+  "experienceLevels": [
+    "Junior Professional (0 - 2 Years)",
+    "Practicing Associate (2 - 5 Years)",
+    "Senior Professional (5 - 10 Years)",
+    "Distinguished Counsel (10 - 20 Years)",
+    "Veteran / Senior Advocate (20+ Years)"
+  ],
+  "states": [
+    "Delhi",
+    "Uttar Pradesh",
+    "Maharashtra",
+    "Bihar",
+    "Rajasthan",
+    "Madhya Pradesh",
+    "Haryana",
+    "Punjab",
+    "Gujarat",
+    "West Bengal",
+    "Karnataka",
+    "Tamil Nadu",
+    "Telangana",
+    "Andhra Pradesh",
+    "Kerala",
+    "Odisha",
+    "Jharkhand",
+    "Chhattisgarh",
+    "Uttarakhand",
+    "Himachal Pradesh",
+    "Jammu & Kashmir",
+    "Assam",
+    "Chandigarh",
+    "Goa"
+  ],
+  "stateDistrictsMap": {
+    "Delhi": [
+      "New Delhi",
+      "Central Delhi",
+      "South Delhi",
+      "North Delhi",
+      "East Delhi",
+      "West Delhi",
+      "South West Delhi",
+      "North West Delhi",
+      "Shahdara"
+    ],
+    "Uttar Pradesh": [
+      "Lucknow",
+      "Noida / Gautam Buddha Nagar",
+      "Ghaziabad",
+      "Kanpur Nagar",
+      "Varanasi",
+      "Prayagraj",
+      "Agra",
+      "Meerut",
+      "Gorakhpur",
+      "Bareilly",
+      "Aligarh"
+    ],
+    "Maharashtra": [
+      "Mumbai",
+      "Mumbai Suburban",
+      "Pune",
+      "Nagpur",
+      "Thane",
+      "Nashik",
+      "Aurangabad / Chhatrapati Sambhajinagar"
+    ],
+    "Bihar": [
+      "Patna",
+      "Gaya",
+      "Muzaffarpur",
+      "Bhagalpur",
+      "Araria",
+      "Purnia",
+      "Darbhanga",
+      "Begusarai"
+    ],
+    "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bikaner", "Ajmer"],
+    "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur", "Gwalior", "Ujjain"],
+    "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Karnal", "Hisar", "Panchkula"],
+    "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali"]
+  }
+}

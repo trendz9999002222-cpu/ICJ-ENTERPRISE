@@ -1,3 +1,5 @@
+import footerData from "@/data/footer.json";
+
 export type FooterContactItem = {
   id: string;
   label: string;
@@ -11,27 +13,10 @@ export type FooterLegalLink = {
   href: string;
 };
 
-export const FOOTER_BRAND = {
-  title: "INTERNATIONAL CONSORTIUM OF JURISTS (ICJ)",
-  description:
-    "अखिल भारतीय विधिक सहायता, डिजिटल कोर्ट चैंबर, ई-वकालतनामा एवं कानूनी संरक्षण हेतु अधिकृत मंच। Bar Council of India (BCI) Rule 36 एवं Information Technology Act 2000 (Section 79) के तहत पूर्णतः अनुपालित।",
-  compliance: "DPDP Act 2023 Compliant | ISO 27001 Certified Security Standard",
-};
+export const FOOTER_BRAND = footerData.brand;
 
-export const FOOTER_CONTACT: FooterContactItem[] = [
-  { id: "website", label: "www.icj.co.in", href: "https://www.icj.co.in", icon: "web" },
-  { id: "phone-1", label: "+91 7053002222", href: "tel:+917053002222", icon: "phone" },
-  { id: "phone-2", label: "+91 9999002222", href: "tel:+919999002222", icon: "phone" },
-  { id: "email", label: "consortiumofjurists@gmail.com", href: "mailto:consortiumofjurists@gmail.com", icon: "email" },
-  { id: "desk", label: "24x7 इमरजेंसी विधिक डेस्क", href: "/support", icon: "clock" },
-];
+export const FOOTER_CONTACT: FooterContactItem[] = footerData.contact as FooterContactItem[];
 
-export const FOOTER_LEGAL_LINKS: FooterLegalLink[] = [
-  { id: "terms", label: "Intermediary Terms of Service (IT Act Sec 79)", href: "/terms" },
-  { id: "verify", label: "Certificate & Advocate Verification Desk", href: "/verify-certificate" },
-  { id: "track", label: "Pan-India CNR Case Tracking Engine", href: "/track-case" },
-  { id: "login", label: "Official Advocate & Member Dashboard Login", href: "/login" },
-];
+export const FOOTER_LEGAL_LINKS: FooterLegalLink[] = footerData.legalLinks as FooterLegalLink[];
 
-export const FOOTER_COPYRIGHT =
-  "© 2024 International Consortium of Jurists (ICJ). All Rights Reserved. Regd. Sovereign Legal Intermediary & Technology Protection Platform";
+export const FOOTER_COPYRIGHT = footerData.copyright;
