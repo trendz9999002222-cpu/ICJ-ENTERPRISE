@@ -4,41 +4,26 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Chip, Container, Stack, Typography } from "@mui/material";
 import Image from "next/image";
 
-import { PAGE_TOP_OFFSET } from "@/constants/layout";
 import { RADIUS } from "@/theme/designTokens";
 
 export default function HeroSection() {
-  const heroPadTop = {
-    xs: PAGE_TOP_OFFSET.xs + 16,
-    sm: PAGE_TOP_OFFSET.sm + 20,
-    md: PAGE_TOP_OFFSET.md + 24,
-    lg: PAGE_TOP_OFFSET.lg + 28,
-  };
-
   return (
     <Box
       component="section"
       className="icj-animate-fade-up"
       sx={{
         position: "relative",
-        marginTop: {
-          xs: `-${PAGE_TOP_OFFSET.xs}px`,
-          sm: `-${PAGE_TOP_OFFSET.sm}px`,
-          md: `-${PAGE_TOP_OFFSET.md}px`,
-          lg: `-${PAGE_TOP_OFFSET.lg}px`,
-        },
-        minHeight: { xs: 340, sm: 400, md: 480, lg: 540, xl: 580 },
-        pb: { xs: 4, sm: 5, md: 6 },
+        minHeight: { xs: 340, sm: 400, md: 460, lg: 500, xl: 540 },
         borderBottom: "1px solid rgba(203,213,225,0.6)",
         overflow: "hidden",
       }}
     >
       <Image
-        src="/images/icj-hero.jpg"
+        src="/images/icj_Hero.png"
         alt="Supreme Court of India — ICJ Enterprise Legal Platform"
         fill
         priority
-        quality={92}
+        quality={95}
         sizes="100vw"
         style={{
           objectFit: "cover",
@@ -63,14 +48,9 @@ export default function HeroSection() {
         sx={{
           position: "relative",
           zIndex: 1,
-          pt: {
-            xs: `${heroPadTop.xs}px`,
-            sm: `${heroPadTop.sm}px`,
-            md: `${heroPadTop.md}px`,
-            lg: `${heroPadTop.lg}px`,
-          },
-          pb: { xs: 3, md: 4 },
-          minHeight: { xs: 340, sm: 400, md: 480, lg: 540, xl: 580 },
+          pt: { xs: 3, sm: 4, md: 5, lg: 6 },
+          pb: { xs: 3, sm: 4, md: 5, lg: 6 },
+          minHeight: { xs: 340, sm: 400, md: 460, lg: 500, xl: 540 },
           display: "flex",
           alignItems: "center",
         }}

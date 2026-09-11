@@ -8,6 +8,7 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 88px; /* lg navbar */
   font-size: 16px;
+  scrollbar-gutter: stable;
 }
 
 /* md: 900px → 80px navbar */

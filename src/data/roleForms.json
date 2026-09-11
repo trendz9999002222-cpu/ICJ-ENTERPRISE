@@ -1,0 +1,566 @@
+{
+  "step2Personal": {
+    "stepNumber": 2,
+    "titleHi": "व्यक्तिगत पहचान एवं बुनियादी जानकारी",
+    "titleEn": "Basic Personal Information",
+    "descriptionHi": "कृपया आवेदक का सही नाम व पहचान विवरण दर्ज करें जो आधिकारिक दस्तावेज़ों से मेल खाता हो।",
+    "descriptionEn": "Please provide official legal identity details matching government identification documents.",
+    "badgeLabel": "Identity Details",
+    "fields": [
+      {
+        "name": "fullName",
+        "label": "Full Name (पूरा नाम) *",
+        "placeholder": "e.g. Ramesh Kumar Verma",
+        "type": "text",
+        "required": true,
+        "gridSize": { "xs": 12, "md": 6 }
+      },
+      {
+        "name": "guardianName",
+        "label": "Father's / Mother's / Guardian Name (अभिभावक का नाम)",
+        "placeholder": "e.g. Shri Satish Kumar Verma",
+        "type": "text",
+        "gridSize": { "xs": 12, "md": 6 }
+      },
+      {
+        "name": "gender",
+        "label": "Gender (लिंग) *",
+        "type": "select",
+        "required": true,
+        "gridSize": { "xs": 12, "sm": 6, "md": 6 },
+        "options": [
+          { "value": "Male (पुरुष)", "label": "Male (पुरुष)" },
+          { "value": "Female (महिला)", "label": "Female (महिला)" },
+          { "value": "Other (अन्य)", "label": "Other (अन्य)" }
+        ]
+      },
+      {
+        "name": "dateOfBirth",
+        "label": "Date of Birth (जन्म तिथि) *",
+        "type": "date",
+        "required": true,
+        "gridSize": { "xs": 12, "sm": 6, "md": 6 }
+      },
+      {
+        "name": "mobile",
+        "label": "Primary Mobile Number (मोबाइल नंबर) *",
+        "placeholder": "9876543210",
+        "type": "phone",
+        "required": true,
+        "gridSize": { "xs": 12, "md": 6 }
+      },
+      {
+        "name": "email",
+        "label": "Email Address (ईमेल पता)",
+        "placeholder": "e.g. name@example.com",
+        "type": "email",
+        "gridSize": { "xs": 12, "md": 6 }
+      }
+    ]
+  },
+  "step3ContactExtra": [
+    {
+      "name": "alternateMobile",
+      "label": "Alternate Mobile Number (वैकल्पिक मोबाइल)",
+      "placeholder": "9876543210",
+      "type": "phone",
+      "gridSize": { "xs": 12, "sm": 6 }
+    },
+    {
+      "name": "preferredContact",
+      "label": "Preferred Contact Method (संपर्क का पसंदीदा माध्यम) *",
+      "type": "select",
+      "required": true,
+      "gridSize": { "xs": 12, "sm": 6 },
+      "options": [
+        { "value": "Mobile Call (फ़ोन कॉल)", "label": "Direct Phone Call (फ़ोन कॉल)" },
+        { "value": "WhatsApp (व्हाट्सएप)", "label": "WhatsApp Notification (व्हाट्सएप)" },
+        { "value": "Email (ईमेल)", "label": "Email (ईमेल)" }
+      ]
+    }
+  ],
+  "litigant": {
+    "step4": {
+      "stepNumber": 4,
+      "titleHi": "विवाद व विधिक मामले का विवरण",
+      "titleEn": "Legal Matter & Case Details",
+      "descriptionHi": "अपने मामले से संबंधित सही जानकारी दें ताकि उपयुक्त पैनल अधिवक्ता नियुक्त किया जा सके।",
+      "descriptionEn": "Provide details of your legal dispute so our panel experts can evaluate your matter effectively.",
+      "badgeLabel": "Dispute Details",
+      "fields": [
+        {
+          "name": "matterType",
+          "label": "Case / Matter Category (मामले की श्रेणी) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "जमीन विवाद (Land / Property Dispute)", "label": "जमीन विवाद (Land / Property Dispute)" },
+            { "value": "क्रिमिनल बेल (Criminal / Bail Matter)", "label": "क्रिमिनल बेल (Criminal / Bail Matter)" },
+            { "value": "चेक बाउंस (Cheque Bounce / 138 NI Act)", "label": "चेक बाउंस (Cheque Bounce / 138 NI Act)" },
+            { "value": "सर्विस मैटर (Service / Employment Matter)", "label": "सर्विस मैटर (Service / Employment Matter)" },
+            { "value": "पारिवारिक विवाद (Family & Matrimonial Dispute)", "label": "पारिवारिक विवाद (Family & Matrimonial Dispute)" },
+            { "value": "उपभोक्ता विवाद (Consumer Dispute)", "label": "उपभोक्ता विवाद (Consumer Dispute)" },
+            { "value": "अन्य विधिक मामला (Other Legal Matter)", "label": "अन्य विधिक मामला (Other Legal Matter)" }
+          ]
+        },
+        {
+          "name": "currentStatus",
+          "label": "Current Case Status (वर्तमान स्थिति) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Pre-litigation / Notice Stage (प्रारंभिक सूचना चरण)", "label": "Pre-litigation / Notice Stage (नोटिस मिला है / भेजना है)" },
+            { "value": "Fresh Matter / Not yet filed (नया मामला / अभी दायर नहीं हुआ)", "label": "Fresh Matter / Not yet filed (नया मामला / अभी दायर नहीं हुआ)" },
+            { "value": "Pending in District Court (ज़िला न्यायालय में विचाराधीन)", "label": "Pending in District Court (ज़िला न्यायालय में विचाराधीन)" },
+            { "value": "Pending in High Court (उच्च न्यायालय में विचाराधीन)", "label": "Pending in High Court (उच्च न्यायालय में विचाराधीन)" },
+            { "value": "Police Complaint / FIR (पुलिस शिकायत / प्राथमिकी)", "label": "Police Complaint / FIR (पुलिस शिकायत / प्राथमिकी)" },
+            { "value": "Mediation / Lok Adalat (मध्यस्थता / लोक अदालत)", "label": "Mediation / Lok Adalat (मध्यस्थता / लोक अदालत)" }
+          ]
+        },
+        {
+          "name": "disputeNature",
+          "label": "Subject / Nature of Dispute (विवाद का विषय) *",
+          "placeholder": "e.g. पैतृक भूमि पर अवैध कब्ज़ा / अवैधानिक नोटिस",
+          "type": "text",
+          "required": true,
+          "gridSize": { "xs": 12 }
+        },
+        {
+          "name": "description",
+          "label": "Brief Description of Matter (मामले का संक्षिप्त विवरण) *",
+          "placeholder": "कृपया अपने मामले की मुख्य बातें व विवाद का कारण संक्षेप में लिखें...",
+          "type": "textarea",
+          "required": true,
+          "gridSize": { "xs": 12 },
+          "helperText": "न्यूनतम 10 अक्षर। आवश्यक विवरण स्पष्ट रूप से दर्ज करें।"
+        },
+        {
+          "name": "preferredAssistance",
+          "label": "Preferred Legal Assistance (अपेक्षित विधिक सहायता) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Legal Consultation & Advisory (परामर्श)", "label": "Legal Consultation & Advisory (परामर्श)" },
+            { "value": "Court Representation / Filing (कोर्ट में पैरवी)", "label": "Court Representation / Filing (कोर्ट में पैरवी)" },
+            { "value": "Notice Drafting & Reply (विधिक नोटिस प्रेषण / उत्तर)", "label": "Notice Drafting & Reply (विधिक नोटिस प्रेषण / उत्तर)" },
+            { "value": "Bail / Anticipatory Bail (ज़मानत सहायता)", "label": "Bail / Anticipatory Bail (ज़मानत सहायता)" },
+            { "value": "Document Verification / Due Diligence (दस्तावेज़ सत्यापन)", "label": "Document Verification / Due Diligence (दस्तावेज़ सत्यापन)" }
+          ]
+        },
+        {
+          "name": "urgency",
+          "label": "Urgency / Priority (प्राथमिकता स्तर) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Normal (सामान्य)", "label": "Normal (सामान्य - 3 से 5 कार्यदिवस)" },
+            { "value": "High (उच्च)", "label": "High (उच्च - 24 से 48 घंटे)" },
+            { "value": "Urgent / Emergency (अत्यावश्यक / आपातकालीन)", "label": "Urgent / Emergency (अत्यावश्यक - तुरंत सहायता)" }
+          ]
+        },
+        {
+          "name": "courtJurisdiction",
+          "label": "Concerned Court / Police Station (संबंधित कोर्ट या थाना यदि कोई हो)",
+          "placeholder": "e.g. District Court Patiala House / Thana Kotwali",
+          "type": "text",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "existingCaseNumber",
+          "label": "Existing Case / FIR Number (यदि पहले से कोई केस नंबर दर्ज हो)",
+          "placeholder": "e.g. CS/123/2024 or FIR No. 45/2024",
+          "type": "text",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "hasAdvocate",
+          "label": "Have you already engaged an advocate? (क्या पहले से कोई वकील नियुक्त है?)",
+          "type": "select",
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "no", "label": "नहीं (No, I need a new legal expert)" },
+            { "value": "yes", "label": "हाँ (Yes, seeking second opinion / replacement)" }
+          ]
+        }
+      ]
+    },
+    "step5": {
+      "stepNumber": 5,
+      "titleHi": "पहचान व मामले के दस्तावेज़ अपलोड करें",
+      "titleEn": "Verification & Matter Documents",
+      "descriptionHi": "कृपया पहचान पत्र व विवाद से संबंधित उपलब्ध दस्तावेज़ (पीडीएफ या फ़ोटो) संलग्न करें।",
+      "descriptionEn": "Upload your Aadhaar/ID proof and dispute supporting documents to fast-track verification.",
+      "badgeLabel": "Document Verification",
+      "fields": [
+        {
+          "name": "aadhaarDoc",
+          "label": "Aadhaar Card / Government Identity Proof (आधार / पहचान पत्र) *",
+          "type": "file",
+          "required": true,
+          "gridSize": { "xs": 12 },
+          "helperText": "आधार कार्ड, वोटर कार्ड या पासपोर्ट की स्पष्ट प्रति अपलोड करें (PDF/JPG/PNG, Max 5MB)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "disputeDocs",
+          "label": "Dispute Papers / Notice / FIR Copy (विवाद पत्र / नोटिस / प्राथमिकी प्रति - यदि उपलब्ध हो)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "नोटिस, सम्मन, एफआईआर या ज़मीन के कागज़ात की प्रति (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "previousOrderDoc",
+          "label": "Previous Court Order / Relevant Document (पूर्व का अदालती आदेश / अन्य कागज़ात)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "यदि पूर्व में कोई आदेश जारी हुआ हो तो संलग्न करें (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        }
+      ]
+    }
+  },
+  "advocate": {
+    "step4": {
+      "stepNumber": 4,
+      "titleHi": "विधिक विशेषज्ञता एवं व्यावसायिक योग्यता",
+      "titleEn": "Professional Practice & Registration",
+      "descriptionHi": "बार काउंसिल अथवा संबंधित वैधानिक संस्था के साथ अपना वैध पंजीकरण व विशेषज्ञता दर्ज करें।",
+      "descriptionEn": "Provide your statutory professional enrolment and areas of practice for legal empanelment.",
+      "badgeLabel": "Practice & Credentials",
+      "fields": [
+        {
+          "name": "professionalType",
+          "label": "Professional Category (पेशेवर श्रेणी) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Advocate (अधिवक्ता)", "label": "Advocate (अधिवक्ता - Bar Council Registered)" },
+            { "value": "Chartered Accountant (सीए)", "label": "Chartered Accountant (सीए - ICAI Member)" },
+            { "value": "Company Secretary (सीएस)", "label": "Company Secretary (सीएस - ICSI Member)" },
+            { "value": "Forensic Expert (फॉरेंसिक विशेषज्ञ)", "label": "Forensic Expert (फॉरेंसिक व डिजिटल एक्सपर्ट)" },
+            { "value": "Legal Consultant (विधिक सलाहकार)", "label": "Legal Consultant (विधिक परामर्शदाता)" },
+            { "value": "Other Legal Expert (अन्य विशेषज्ञ)", "label": "Other Legal Expert (अन्य विशेषज्ञ)" }
+          ]
+        },
+        {
+          "name": "regNumber",
+          "label": "Enrolment / Registration Number (पंजीकरण / सनद संख्या) *",
+          "placeholder": "e.g. D/1234/2015 or UP/5678/2018",
+          "type": "text",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "stateBarCouncil",
+          "label": "State Bar Council / Governing Body (राज्य बार काउंसिल) *",
+          "type": "select",
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Bar Council of Delhi", "label": "Bar Council of Delhi" },
+            { "value": "Bar Council of Uttar Pradesh", "label": "Bar Council of Uttar Pradesh" },
+            { "value": "Bar Council of Maharashtra & Goa", "label": "Bar Council of Maharashtra & Goa" },
+            { "value": "Bar Council of Bihar", "label": "Bar Council of Bihar" },
+            { "value": "Bar Council of Rajasthan", "label": "Bar Council of Rajasthan" },
+            { "value": "Bar Council of Madhya Pradesh", "label": "Bar Council of Madhya Pradesh" },
+            { "value": "Bar Council of Punjab & Haryana", "label": "Bar Council of Punjab & Haryana" },
+            { "value": "ICAI / ICSI / Statutory Authority", "label": "ICAI / ICSI / Statutory Authority" },
+            { "value": "Other State Bar Council", "label": "Other State Bar Council" }
+          ],
+          "dependsOn": {
+            "field": "professionalType",
+            "value": "Advocate (अधिवक्ता)"
+          }
+        },
+        {
+          "name": "yearsOfExperience",
+          "label": "Years of Practice / Experience (कार्य अनुभव) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "0 - 2 Years (Junior Associate)", "label": "0 - 2 Years (Junior Associate)" },
+            { "value": "2 - 5 Years (Practicing Advocate)", "label": "2 - 5 Years (Practicing Advocate)" },
+            { "value": "5 - 10 Years (Senior Professional)", "label": "5 - 10 Years (Senior Professional)" },
+            { "value": "10 - 20 Years (Distinguished Counsel)", "label": "10 - 20 Years (Distinguished Counsel)" },
+            { "value": "20+ Years (Veteran / Senior Advocate)", "label": "20+ Years (Veteran / Senior Advocate)" }
+          ]
+        },
+        {
+          "name": "practiceArea",
+          "label": "Primary Area of Practice / Domain (मुख्य अभ्यास क्षेत्र) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Civil, Property & Revenue", "label": "Civil, Property & Revenue (दीवानी व ज़मीन विवाद)" },
+            { "value": "Criminal Defense & Trial Counsel", "label": "Criminal Defense & Trial Counsel (आपराधिक व ज़मानत)" },
+            { "value": "Corporate, Tax, GST & Commercial", "label": "Corporate, Tax, GST & Commercial (कॉर्पोरेट व कर)" },
+            { "value": "Family, Matrimonial & Mediation", "label": "Family, Matrimonial & Mediation (पारिवारिक विवाद)" },
+            { "value": "Constitutional & High Court / Supreme Court", "label": "Constitutional & Appellate (उच्च व उच्चतम न्यायालय)" },
+            { "value": "Cyber Law & Digital Forensics", "label": "Cyber Law & Digital Forensics (साइबर कानून)" },
+            { "value": "Labour & Service Law", "label": "Labour & Service Law (श्रम व सेवा मामले)" }
+          ]
+        },
+        {
+          "name": "courtJurisdiction",
+          "label": "Primary Court / Jurisdiction (मुख्य न्यायालय / क्षेत्राधिकार)",
+          "placeholder": "e.g. High Court of Delhi, District Courts Saket",
+          "type": "text",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "availability",
+          "label": "Availability for Consultation (उपलब्धता) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Full-time (पूर्णकालिक)", "label": "Full-time (पूर्णकालिक - त्वरित उत्तर)" },
+            { "value": "Part-time / Evenings (अंशकालिक)", "label": "Part-time / Evenings (शाम के समय)" },
+            { "value": "Weekends Only (सप्ताहांत)", "label": "Weekends Only (शनिवार / रविवार)" },
+            { "value": "Appointment Basis (पूर्वनिर्धारित समय पर)", "label": "Appointment Basis (पूर्वनिर्धारित समय पर)" }
+          ]
+        },
+        {
+          "name": "officeAddress",
+          "label": "Chamber / Office Address (चेम्बर / कार्यालय का पता - यदि अलग हो)",
+          "placeholder": "e.g. Chamber No. 412, Lawyers Chambers Block, Tis Hazari",
+          "type": "text",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "profileBio",
+          "label": "Professional Profile / Bio (संक्षिप्त परिचय व उपलब्धियां)",
+          "placeholder": "अपनी वकालत, विशिष्ट केसों व विशेषज्ञता के बारे में संक्षेप में लिखें...",
+          "type": "textarea",
+          "gridSize": { "xs": 12 }
+        }
+      ]
+    },
+    "step5": {
+      "stepNumber": 5,
+      "titleHi": "सनद व व्यावसायिक प्रमाण पत्र अपलोड करें",
+      "titleEn": "Bar Enrolment & Professional Verification",
+      "descriptionHi": "सत्यापन एवं पैनल सूची में नाम शामिल करने हेतु बार काउंसिल प्रमाण पत्र अथवा पहचान पत्र संलग्न करें।",
+      "descriptionEn": "Upload your Bar Council identity or certificate of practice for credential authentication.",
+      "badgeLabel": "Credential Verification",
+      "fields": [
+        {
+          "name": "barCertDoc",
+          "label": "Bar Council ID Card / Certificate of Practice (बार काउंसिल पहचान पत्र / सनद) *",
+          "type": "file",
+          "required": true,
+          "gridSize": { "xs": 12 },
+          "helperText": "बार काउंसिल द्वारा जारी प्रमाण पत्र या पहचान पत्र की दोनों तरफ की स्पष्ट प्रति (PDF/JPG/PNG, Max 5MB)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "idProofDoc",
+          "label": "Government Identity Proof (आधार / पैन कार्ड / पासपोर्ट)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "व्यक्तिगत पहचान पत्र की प्रति (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "experienceCertDoc",
+          "label": "Additional Qualifications / Empanelment Letter (अन्य डिग्री / अनुभव प्रमाण पत्र)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "एलएलएम डिग्री, मध्यस्थता प्रमाण पत्र या अन्य विशेषज्ञता पत्र (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        }
+      ]
+    }
+  },
+  "franchise": {
+    "step4": {
+      "stepNumber": 4,
+      "titleHi": "ज़िला फ्रेंचाइज़ी एवं विधिक केंद्र की जानकारी",
+      "titleEn": "Franchise Center & Infrastructure Details",
+      "descriptionHi": "ज़िला स्तर पर विधिक सेवा केंद्र, ई-फाइलिंग डेस्क एवं कॉल सेंटर संचालन का विवरण दर्ज करें।",
+      "descriptionEn": "Provide your local legal infrastructure, operating capacity, and center setup details.",
+      "badgeLabel": "Franchise Operations",
+      "fields": [
+        {
+          "name": "orgName",
+          "label": "Organization / Business / Center Name (संस्था / केंद्र का नाम) *",
+          "placeholder": "e.g. Nyay Setu Legal Services & E-Filing Center",
+          "type": "text",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "authorizedPerson",
+          "label": "Authorized Representative / Director Name (अधिकृत प्रतिनिधि का नाम) *",
+          "placeholder": "e.g. Adv. Amit Saxena / Director",
+          "type": "text",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "businessType",
+          "label": "Entity / Business Type (व्यावसायिक संरचना) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Sole Proprietorship (एकल स्वामित्व)", "label": "Sole Proprietorship (एकल स्वामित्व)" },
+            { "value": "Partnership Firm (साझेदारी फर्म)", "label": "Partnership Firm (साझेदारी फर्म)" },
+            { "value": "LLP (सीमित देयता भागीदारी)", "label": "LLP (सीमित देयता भागीदारी)" },
+            { "value": "Private Limited (प्रा. लि.)", "label": "Private Limited (प्रा. लि.)" },
+            { "value": "Society / Trust / NGO (सोसायटी / ट्रस्ट)", "label": "Society / Trust / NGO (सोसायटी / ट्रस्ट)" },
+            { "value": "Individual Legal Center (व्यक्तिगत विधिक केंद्र)", "label": "Individual Legal Center (व्यक्तिगत विधिक केंद्र)" }
+          ]
+        },
+        {
+          "name": "operatingDistrict",
+          "label": "Operating District (संचालन ज़िला) *",
+          "placeholder": "e.g. Varanasi / Patna / Jaipur",
+          "type": "text",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "yearsOfExperience",
+          "label": "Years in Legal / Citizen Services (कार्य अनुभव) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "New Venture (नया केंद्र)", "label": "New Venture (नया केंद्र)" },
+            { "value": "1 - 3 Years", "label": "1 - 3 Years (अनुभवी)" },
+            { "value": "3 - 5 Years", "label": "3 - 5 Years (मध्यम)" },
+            { "value": "5+ Years", "label": "5+ Years (सुस्थापित)" }
+          ]
+        },
+        {
+          "name": "teamSize",
+          "label": "Current / Planned Team Size (कर्मचारियों की संख्या) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "1 - 2 Members", "label": "1 - 2 Members (लघु टीम)" },
+            { "value": "2 - 5 Members", "label": "2 - 5 Members (मानक टीम)" },
+            { "value": "5 - 10 Members", "label": "5 - 10 Members (विस्तृत टीम)" },
+            { "value": "10+ Members", "label": "10+ Members (बड़ी एजेंसी)" }
+          ]
+        },
+        {
+          "name": "hasEfilingDesk",
+          "label": "E-Filing Desk Availability (ई-फाइलिंग डेस्क) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 4 },
+          "options": [
+            { "value": "yes", "label": "उपलब्ध है (Ready & Available)" },
+            { "value": "planned", "label": "प्रस्तावित / 15 दिन में (Planned)" },
+            { "value": "no", "label": "उपलब्ध नहीं है (Not available)" }
+          ]
+        },
+        {
+          "name": "hasCallCenter",
+          "label": "Support / Call Center Facility (कॉल सेंटर / हेल्पडेस्क) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 4 },
+          "options": [
+            { "value": "yes", "label": "उपलब्ध है (Available)" },
+            { "value": "planned", "label": "प्रस्तावित (Planned)" },
+            { "value": "no", "label": "उपलब्ध नहीं है (Not available)" }
+          ]
+        },
+        {
+          "name": "hasLegalAidCenter",
+          "label": "Legal Aid / Walk-in Help Desk (सहायता केंद्र) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 4 },
+          "options": [
+            { "value": "yes", "label": "उपलब्ध है (Dedicated Space)" },
+            { "value": "planned", "label": "प्रस्तावित (Planned)" },
+            { "value": "no", "label": "उपलब्ध नहीं है (Not available)" }
+          ]
+        },
+        {
+          "name": "expectedServiceArea",
+          "label": "Expected Service Coverage Area (अपेक्षित सेवा क्षेत्र) *",
+          "type": "select",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "options": [
+            { "value": "Entire District (संपूर्ण ज़िला)", "label": "Entire District (संपूर्ण ज़िला)" },
+            { "value": "District Headquarters & Sadar (ज़िला मुख्यालय व सदर)", "label": "District Headquarters & Sadar (ज़िला मुख्यालय व सदर)" },
+            { "value": "Sub-Divisions & Tehsils (तहसील स्तर)", "label": "Sub-Divisions & Tehsils (तहसील स्तर)" },
+            { "value": "Multi-District Cluster (बहु-ज़िला क्लस्टर)", "label": "Multi-District Cluster (बहु-ज़िला क्लस्टर)" }
+          ]
+        },
+        {
+          "name": "officeAddress",
+          "label": "Center / Physical Office Address (केंद्र का भौतिक पता)",
+          "placeholder": "e.g. Ground Floor, Court Road, Near Collectorate",
+          "type": "text",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "operationalDetails",
+          "label": "Operations & Infrastructure Summary (संचालन व संसाधनों का विवरण)",
+          "placeholder": "कंप्यूटर, स्कैनर, इंटरनेट एवं विधिक सहायकों की उपलब्धता का विवरण दें...",
+          "type": "textarea",
+          "gridSize": { "xs": 12 }
+        }
+      ]
+    },
+    "step5": {
+      "stepNumber": 5,
+      "titleHi": "संस्था व व्यावसायिक दस्तावेज़ अपलोड करें",
+      "titleEn": "Organization & Premises Verification",
+      "descriptionHi": "फ्रेंचाइज़ी अनुमोदन हेतु व्यावसायिक पंजीकरण प्रमाण पत्र व कार्यालय दस्तावेज़ संलग्न करें।",
+      "descriptionEn": "Upload statutory business registration and office premise credentials for franchise empanelment.",
+      "badgeLabel": "Franchise Verification",
+      "fields": [
+        {
+          "name": "businessProofDoc",
+          "label": "Business Registration / GST / Incorporation / Firm Deed (संस्था पंजीकरण / जीएसटी) *",
+          "type": "file",
+          "required": true,
+          "gridSize": { "xs": 12 },
+          "helperText": "जीएसटी प्रमाण पत्र, उद्यम आधार, पार्टनरशिप डीड या कंपनी प्रमाण पत्र (PDF/JPG/PNG, Max 5MB)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "authLetterDoc",
+          "label": "Authorized Representative ID Proof (अधिकृत प्रतिनिधि का पहचान पत्र)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "अधिकृत प्रतिनिधि का आधार या पैन कार्ड (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "officePhotosDoc",
+          "label": "Office Premise / Center Board Photo (कार्यालय परिसर / बोर्ड की फ़ोटो)",
+          "type": "file",
+          "gridSize": { "xs": 12 },
+          "helperText": "केंद्र के बाहर अथवा डेस्क की फ़ोटो (वैकल्पिक)",
+          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
+          "maxSizeMb": 5
+        }
+      ]
+    }
+  }
+}
