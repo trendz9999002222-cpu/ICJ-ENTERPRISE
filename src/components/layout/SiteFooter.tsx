@@ -12,6 +12,8 @@ export default function SiteFooter() {
     <Box
       component="footer"
       sx={{
+        position: "relative",
+        zIndex: 2,
         bgcolor: "#0f172a",
         color: "#94a3b8",
         borderTop: "2px solid #1e293b",
