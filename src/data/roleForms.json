@@ -228,157 +228,240 @@
     }
   },
   "advocate": {
-    "step4": {
-      "stepNumber": 4,
-      "titleHi": "विधिक विशेषज्ञता एवं व्यावसायिक योग्यता",
-      "titleEn": "Professional Practice & Registration",
-      "descriptionHi": "बार काउंसिल अथवा संबंधित वैधानिक संस्था के साथ अपना वैध पंजीकरण व विशेषज्ञता दर्ज करें।",
-      "descriptionEn": "Provide your statutory professional enrolment and areas of practice for legal empanelment.",
-      "badgeLabel": "Practice & Credentials",
+    "step2": {
+      "stepNumber": 2,
+      "titleHi": "व्यक्तिगत एवं संपर्क विवरण",
+      "titleEn": "Personal & Contact Information",
+      "descriptionHi": "",
+      "descriptionEn": "",
+      "badgeLabel": "Section 1",
       "fields": [
         {
-          "name": "professionalType",
-          "label": "Professional Category (पेशेवर श्रेणी) *",
-          "type": "select",
-          "required": true,
-          "gridSize": { "xs": 12, "md": 6 },
-          "options": [
-            { "value": "Advocate (अधिवक्ता)", "label": "Advocate (अधिवक्ता - Bar Council Registered)" },
-            { "value": "Chartered Accountant (सीए)", "label": "Chartered Accountant (सीए - ICAI Member)" },
-            { "value": "Company Secretary (सीएस)", "label": "Company Secretary (सीएस - ICSI Member)" },
-            { "value": "Forensic Expert (फॉरेंसिक विशेषज्ञ)", "label": "Forensic Expert (फॉरेंसिक व डिजिटल एक्सपर्ट)" },
-            { "value": "Legal Consultant (विधिक सलाहकार)", "label": "Legal Consultant (विधिक परामर्शदाता)" },
-            { "value": "Other Legal Expert (अन्य विशेषज्ञ)", "label": "Other Legal Expert (अन्य विशेषज्ञ)" }
-          ]
-        },
-        {
-          "name": "regNumber",
-          "label": "Enrolment / Registration Number (पंजीकरण / सनद संख्या) *",
-          "placeholder": "e.g. D/1234/2015 or UP/5678/2018",
+          "name": "fullName",
+          "label": "Full Legal Name (as per ID)",
+          "placeholder": "e.g. Johnathan Edward Doe",
           "type": "text",
           "required": true,
+          "bindTo": "personal",
           "gridSize": { "xs": 12, "md": 6 }
         },
         {
-          "name": "stateBarCouncil",
-          "label": "State Bar Council / Governing Body (राज्य बार काउंसिल) *",
-          "type": "select",
-          "gridSize": { "xs": 12, "md": 6 },
-          "options": [
-            { "value": "Bar Council of Delhi", "label": "Bar Council of Delhi" },
-            { "value": "Bar Council of Uttar Pradesh", "label": "Bar Council of Uttar Pradesh" },
-            { "value": "Bar Council of Maharashtra & Goa", "label": "Bar Council of Maharashtra & Goa" },
-            { "value": "Bar Council of Bihar", "label": "Bar Council of Bihar" },
-            { "value": "Bar Council of Rajasthan", "label": "Bar Council of Rajasthan" },
-            { "value": "Bar Council of Madhya Pradesh", "label": "Bar Council of Madhya Pradesh" },
-            { "value": "Bar Council of Punjab & Haryana", "label": "Bar Council of Punjab & Haryana" },
-            { "value": "ICAI / ICSI / Statutory Authority", "label": "ICAI / ICSI / Statutory Authority" },
-            { "value": "Other State Bar Council", "label": "Other State Bar Council" }
-          ],
-          "dependsOn": {
-            "field": "professionalType",
-            "value": "Advocate (अधिवक्ता)"
-          }
+          "name": "email",
+          "label": "Email Address",
+          "placeholder": "e.g. j.doe@example.com",
+          "type": "email",
+          "required": true,
+          "bindTo": "personal",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "mobile",
+          "label": "Phone Number / WhatsApp",
+          "placeholder": "9876543210 or country code + number",
+          "type": "phone",
+          "required": true,
+          "bindTo": "personal",
+          "phoneMaxDigits": 15,
+          "phoneShowIndiaPrefix": false,
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "linkedInPortfolio",
+          "label": "LinkedIn Profile / Portfolio",
+          "placeholder": "linkedin.com/in/john-doe-esq",
+          "type": "text",
+          "bindTo": "personal",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "addressLine",
+          "label": "Current Residential Address",
+          "placeholder": "Street Address, City, State/Province, Postal Code, Country",
+          "type": "textarea",
+          "required": true,
+          "bindTo": "address",
+          "gridSize": { "xs": 12 }
+        }
+      ]
+    },
+    "step3": {
+      "stepNumber": 3,
+      "titleHi": "शिक्षा एवं बार पंजीकरण",
+      "titleEn": "Education & Bar Admission",
+      "descriptionHi": "",
+      "descriptionEn": "",
+      "badgeLabel": "Section 2",
+      "fields": [
+        {
+          "name": "lawSchool",
+          "label": "Law School Attended",
+          "placeholder": "Harvard Law School",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "graduationYear",
+          "label": "Graduation Year",
+          "placeholder": "2018",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "degreeEarned",
+          "label": "Degree Earned",
+          "placeholder": "J.D. / LL.M. / LL.B.",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "barAdmissionRegion",
+          "label": "Bar Admission State(s) / Country",
+          "placeholder": "New York / United States",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "barNumber",
+          "label": "Bar Number / Reg ID",
+          "placeholder": "NY-BAR-4920192",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "barAdmissionDate",
+          "label": "Date of Admission",
+          "placeholder": "DD / MM / YYYY",
+          "type": "date",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        }
+      ]
+    },
+    "step4": {
+      "stepNumber": 4,
+      "titleHi": "व्यावसायिक अनुभव एवं विशेषज्ञता",
+      "titleEn": "Professional Experience & Specialization",
+      "descriptionHi": "",
+      "descriptionEn": "",
+      "badgeLabel": "Section 3",
+      "fields": [
+        {
+          "name": "currentEmployer",
+          "label": "Current / Most Recent Employer",
+          "placeholder": "Sterling & Partners LLP",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
+        },
+        {
+          "name": "currentJobTitle",
+          "label": "Current Job Title",
+          "placeholder": "Senior Legal Associate",
+          "type": "text",
+          "required": true,
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12, "md": 6 }
         },
         {
           "name": "yearsOfExperience",
-          "label": "Years of Practice / Experience (कार्य अनुभव) *",
+          "label": "Years of Practice Experience (Select One)",
           "type": "select",
           "required": true,
-          "gridSize": { "xs": 12, "md": 6 },
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12 },
           "options": [
-            { "value": "0 - 2 Years (Junior Associate)", "label": "0 - 2 Years (Junior Associate)" },
-            { "value": "2 - 5 Years (Practicing Advocate)", "label": "2 - 5 Years (Practicing Advocate)" },
-            { "value": "5 - 10 Years (Senior Professional)", "label": "5 - 10 Years (Senior Professional)" },
-            { "value": "10 - 20 Years (Distinguished Counsel)", "label": "10 - 20 Years (Distinguished Counsel)" },
-            { "value": "20+ Years (Veteran / Senior Advocate)", "label": "20+ Years (Veteran / Senior Advocate)" }
+            { "value": "0-2 Years (Junior)", "label": "0-2 Years (Junior)" },
+            { "value": "3-5 Years (Mid-level)", "label": "3-5 Years (Mid-level)" },
+            { "value": "6-10 Years (Senior)", "label": "6-10 Years (Senior)" },
+            { "value": "10+ Years (Partner/Principal)", "label": "10+ Years (Partner/Principal)" }
           ]
         },
         {
-          "name": "practiceArea",
-          "label": "Primary Area of Practice / Domain (मुख्य अभ्यास क्षेत्र) *",
-          "type": "select",
+          "name": "practiceAreas",
+          "label": "Primary Areas of Practice (Select all that apply)",
+          "type": "checkbox-group",
           "required": true,
-          "gridSize": { "xs": 12, "md": 6 },
+          "bindTo": "advocate",
+          "gridSize": { "xs": 12 },
           "options": [
-            { "value": "Civil, Property & Revenue", "label": "Civil, Property & Revenue (दीवानी व ज़मीन विवाद)" },
-            { "value": "Criminal Defense & Trial Counsel", "label": "Criminal Defense & Trial Counsel (आपराधिक व ज़मानत)" },
-            { "value": "Corporate, Tax, GST & Commercial", "label": "Corporate, Tax, GST & Commercial (कॉर्पोरेट व कर)" },
-            { "value": "Family, Matrimonial & Mediation", "label": "Family, Matrimonial & Mediation (पारिवारिक विवाद)" },
-            { "value": "Constitutional & High Court / Supreme Court", "label": "Constitutional & Appellate (उच्च व उच्चतम न्यायालय)" },
-            { "value": "Cyber Law & Digital Forensics", "label": "Cyber Law & Digital Forensics (साइबर कानून)" },
-            { "value": "Labour & Service Law", "label": "Labour & Service Law (श्रम व सेवा मामले)" }
+            { "value": "Corporate & M&A", "label": "Corporate & M&A" },
+            { "value": "Commercial Litigation", "label": "Commercial Litigation" },
+            { "value": "Intellectual Property", "label": "Intellectual Property" },
+            { "value": "Employment & Labor", "label": "Employment & Labor" },
+            { "value": "Banking & Finance", "label": "Banking & Finance" },
+            { "value": "Real Estate & Construction", "label": "Real Estate & Construction" },
+            { "value": "Tax Law", "label": "Tax Law" },
+            { "value": "Other Practice Area", "label": "Other Practice Area" }
           ]
-        },
-        {
-          "name": "courtJurisdiction",
-          "label": "Primary Court / Jurisdiction (मुख्य न्यायालय / क्षेत्राधिकार)",
-          "placeholder": "e.g. High Court of Delhi, District Courts Saket",
-          "type": "text",
-          "gridSize": { "xs": 12, "md": 6 }
-        },
-        {
-          "name": "availability",
-          "label": "Availability for Consultation (उपलब्धता) *",
-          "type": "select",
-          "required": true,
-          "gridSize": { "xs": 12, "md": 6 },
-          "options": [
-            { "value": "Full-time (पूर्णकालिक)", "label": "Full-time (पूर्णकालिक - त्वरित उत्तर)" },
-            { "value": "Part-time / Evenings (अंशकालिक)", "label": "Part-time / Evenings (शाम के समय)" },
-            { "value": "Weekends Only (सप्ताहांत)", "label": "Weekends Only (शनिवार / रविवार)" },
-            { "value": "Appointment Basis (पूर्वनिर्धारित समय पर)", "label": "Appointment Basis (पूर्वनिर्धारित समय पर)" }
-          ]
-        },
-        {
-          "name": "officeAddress",
-          "label": "Chamber / Office Address (चेम्बर / कार्यालय का पता - यदि अलग हो)",
-          "placeholder": "e.g. Chamber No. 412, Lawyers Chambers Block, Tis Hazari",
-          "type": "text",
-          "gridSize": { "xs": 12, "md": 6 }
         },
         {
           "name": "profileBio",
-          "label": "Professional Profile / Bio (संक्षिप्त परिचय व उपलब्धियां)",
-          "placeholder": "अपनी वकालत, विशिष्ट केसों व विशेषज्ञता के बारे में संक्षेप में लिखें...",
+          "label": "Brief Summary of Relevant Practice Experience & Key Achievements",
+          "placeholder": "Provide a brief overview of key trial experience, transactional advisory work, or major cases handled...",
           "type": "textarea",
+          "required": true,
+          "bindTo": "advocate",
           "gridSize": { "xs": 12 }
         }
       ]
     },
     "step5": {
       "stepNumber": 5,
-      "titleHi": "सनद व व्यावसायिक प्रमाण पत्र अपलोड करें",
-      "titleEn": "Bar Enrolment & Professional Verification",
-      "descriptionHi": "सत्यापन एवं पैनल सूची में नाम शामिल करने हेतु बार काउंसिल प्रमाण पत्र अथवा पहचान पत्र संलग्न करें।",
-      "descriptionEn": "Upload your Bar Council identity or certificate of practice for credential authentication.",
-      "badgeLabel": "Credential Verification",
+      "titleHi": "KYC दस्तावेज़ सत्यापन",
+      "titleEn": "Required KYC Document Verification",
+      "descriptionHi": "",
+      "descriptionEn": "",
+      "badgeLabel": "Section 4",
       "fields": [
         {
-          "name": "barCertDoc",
-          "label": "Bar Council ID Card / Certificate of Practice (बार काउंसिल पहचान पत्र / सनद) *",
+          "name": "resumeDoc",
+          "label": "Detailed Resume / Curriculum Vitae",
           "type": "file",
           "required": true,
-          "gridSize": { "xs": 12 },
-          "helperText": "बार काउंसिल द्वारा जारी प्रमाण पत्र या पहचान पत्र की दोनों तरफ की स्पष्ट प्रति (PDF/JPG/PNG, Max 5MB)",
+          "gridSize": { "xs": 12, "md": 6 },
+          "helperText": "Attach PDF / DOCX file (Max 5MB)",
+          "acceptTypes": ".pdf,.doc,.docx",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "coverLetterDoc",
+          "label": "Cover Letter / Statement of Interest",
+          "type": "file",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "helperText": "Attach PDF / DOCX file (Max 5MB)",
+          "acceptTypes": ".pdf,.doc,.docx",
+          "maxSizeMb": 5
+        },
+        {
+          "name": "barLicenseDoc",
+          "label": "Official Bar License Certificate / ID Card",
+          "type": "file",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "helperText": "Attach image or scan PDF (Max 5MB)",
           "acceptTypes": ".pdf,.jpg,.jpeg,.png",
           "maxSizeMb": 5
         },
         {
-          "name": "idProofDoc",
-          "label": "Government Identity Proof (आधार / पैन कार्ड / पासपोर्ट)",
+          "name": "govtPhotoIdDoc",
+          "label": "Government Issued Photo ID (Passport/Driver's)",
           "type": "file",
-          "gridSize": { "xs": 12 },
-          "helperText": "व्यक्तिगत पहचान पत्र की प्रति (वैकल्पिक)",
-          "acceptTypes": ".pdf,.jpg,.jpeg,.png",
-          "maxSizeMb": 5
-        },
-        {
-          "name": "experienceCertDoc",
-          "label": "Additional Qualifications / Empanelment Letter (अन्य डिग्री / अनुभव प्रमाण पत्र)",
-          "type": "file",
-          "gridSize": { "xs": 12 },
-          "helperText": "एलएलएम डिग्री, मध्यस्थता प्रमाण पत्र या अन्य विशेषज्ञता पत्र (वैकल्पिक)",
+          "required": true,
+          "gridSize": { "xs": 12, "md": 6 },
+          "helperText": "Attach image or scan PDF (Max 5MB)",
           "acceptTypes": ".pdf,.jpg,.jpeg,.png",
           "maxSizeMb": 5
         }

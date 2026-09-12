@@ -32,7 +32,8 @@ export default function EmailInput({
       name={name}
       label={label}
       value={value || ""}
-      onChange={(e) => onChange(e.target.value.toLowerCase().trim())}
+      onChange={(e) => onChange(e.target.value)}
+      onBlur={(e) => onChange(e.target.value.trim().toLowerCase())}
       placeholder={placeholder}
       required={required}
       error={Boolean(error)}

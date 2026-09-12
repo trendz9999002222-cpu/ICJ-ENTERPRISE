@@ -9,6 +9,8 @@ import EmailInput from "./EmailInput";
 import DateInput from "./DateInput";
 import Textarea from "./Textarea";
 import FileUpload from "./FileUpload";
+import CheckboxGroupInput from "./CheckboxGroupInput";
+import FormSectionTitle from "./FormSectionTitle";
 
 interface Props {
   config: FormFieldConfig;
@@ -30,6 +32,8 @@ export default function FormField({ config, value, onChange, error, disabled }: 
     helperText,
     acceptTypes,
     maxSizeMb,
+    phoneMaxDigits,
+    phoneShowIndiaPrefix,
   } = config;
 
   let inputComponent: React.ReactNode = null;
@@ -76,6 +80,8 @@ export default function FormField({ config, value, onChange, error, disabled }: 
           required={required}
           error={error}
           disabled={disabled}
+          maxDigits={phoneMaxDigits}
+          showIndiaPrefix={phoneShowIndiaPrefix}
         />
       );
       break;
@@ -121,6 +127,28 @@ export default function FormField({ config, value, onChange, error, disabled }: 
           error={error}
           disabled={disabled}
           rows={3}
+        />
+      );
+      break;
+
+    case "section":
+      return (
+        <Grid size={{ xs: 12 }}>
+          <FormSectionTitle title={label} />
+        </Grid>
+      );
+
+    case "checkbox-group":
+      inputComponent = (
+        <CheckboxGroupInput
+          name={name}
+          label={label}
+          value={Array.isArray(value) ? value : []}
+          options={options || []}
+          onChange={onChange}
+          required={required}
+          error={error}
+          disabled={disabled}
         />
       );
       break;

@@ -13,7 +13,10 @@ import {
   ONBOARDING_STEPS,
   type OnboardingRole,
 } from "@/constants/onboarding";
+import { ApiError } from "@/lib/api/client";
+import { scrollToFirstFieldError } from "@/lib/form/scrollToFieldError";
 import { validateStep } from "@/schemas/roleForms";
+import { onboardingService } from "@/services/onboarding.service";
 import { actionButtonSx } from "@/theme/designTokens";
 import {
   type AddressContactData,
@@ -72,7 +75,7 @@ export default function OnboardingWizard() {
     const stepErrors = validateStep(step, formState);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      scrollToFirstFieldError(stepErrors);
       return;
     }
 
@@ -157,17 +160,43 @@ export default function OnboardingWizard() {
     }
   };
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     const stepErrors = validateStep(6, formState);
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
+      scrollToFirstFieldError(stepErrors);
       return;
     }
 
     setIsSubmitting(true);
     setErrors({});
 
-    // Simulate API submission
+    if (formState.role === "advocate") {
+      try {
+        const response = await onboardingService.submitAdvocateApplication(formState);
+        setReferenceId(response.data.reference_id);
+        setIsSubmitted(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        let message =
+          "Submission failed. Please check your documents and try again, or contact support.";
+        if (err instanceof ApiError) {
+          const body =
+            err.body && typeof err.body === "object"
+              ? (err.body as { message?: string; errors?: Record<string, unknown> })
+              : null;
+          message = body?.message || message;
+        } else if (err instanceof Error) {
+          message = err.message;
+        }
+        setErrors({ submit: message });
+        scrollToFirstFieldError({ submit: message });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     setTimeout(() => {
       const generatedRef = `ICJ-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
       setReferenceId(generatedRef);

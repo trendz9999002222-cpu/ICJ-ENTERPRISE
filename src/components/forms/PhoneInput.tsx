@@ -13,6 +13,9 @@ interface Props {
   required?: boolean;
   error?: string;
   disabled?: boolean;
+  /** Default: 10 (India). Use 15 for international KYC numbers. */
+  maxDigits?: number;
+  showIndiaPrefix?: boolean;
 }
 
 export default function PhoneInput({
@@ -24,10 +27,11 @@ export default function PhoneInput({
   required,
   error,
   disabled,
+  maxDigits = 10,
+  showIndiaPrefix = true,
 }: Props) {
   const handleChange = (inputVal: string) => {
-    // Only allow numbers and max 10 digits
-    const cleaned = inputVal.replace(/\D/g, "").slice(0, 10);
+    const cleaned = inputVal.replace(/\D/g, "").slice(0, maxDigits);
     onChange(cleaned);
   };
 
@@ -47,12 +51,18 @@ export default function PhoneInput({
       type="tel"
       slotProps={{
         input: {
-          startAdornment: (
-            <InputAdornment position="start" sx={{ color: "#64748b", fontWeight: 700 }}>
-              <PhoneIphoneIcon sx={{ fontSize: 18, mr: 0.5, color: "#64748b" }} />
-              +91
-            </InputAdornment>
-          ),
+          startAdornment: showIndiaPrefix
+            ? (
+                <InputAdornment position="start" sx={{ color: "#64748b", fontWeight: 700 }}>
+                  <PhoneIphoneIcon sx={{ fontSize: 18, mr: 0.5, color: "#64748b" }} />
+                  +91
+                </InputAdornment>
+              )
+            : (
+                <InputAdornment position="start">
+                  <PhoneIphoneIcon sx={{ fontSize: 18, color: "#64748b" }} />
+                </InputAdornment>
+              ),
         },
       }}
       sx={{

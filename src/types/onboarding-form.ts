@@ -9,7 +9,11 @@ export type FieldType =
   | "date"
   | "radio"
   | "file"
-  | "address-cascade";
+  | "address-cascade"
+  | "section"
+  | "checkbox-group";
+
+export type FormFieldBindTarget = "personal" | "address" | "advocate";
 
 export interface FieldOption {
   value: string;
@@ -27,6 +31,8 @@ export interface FormFieldConfig {
   options?: FieldOption[];
   helperText?: string;
   disabled?: boolean;
+  /** Which slice of form state this field maps to (default inferred by step/role). */
+  bindTo?: FormFieldBindTarget;
   /** Conditional visibility: only show if formState[section][dependsOn.field] matches value */
   dependsOn?: {
     field: string;
@@ -35,6 +41,8 @@ export interface FormFieldConfig {
   docKey?: string;
   acceptTypes?: string;
   maxSizeMb?: number;
+  phoneMaxDigits?: number;
+  phoneShowIndiaPrefix?: boolean;
 }
 
 export interface StepMetaConfig {
@@ -54,6 +62,7 @@ export interface PersonalInfoData {
   gender: string;
   mobile: string;
   email: string;
+  linkedInPortfolio: string;
 }
 
 export interface AddressContactData {
@@ -79,10 +88,21 @@ export interface LitigantSpecificData {
 }
 
 export interface AdvocateSpecificData {
-  professionalType: string; // Advocate, CA, CS, Forensic Expert, Legal Consultant, Other
+  lawSchool: string;
+  graduationYear: string;
+  degreeEarned: string;
+  barAdmissionRegion: string;
+  barNumber: string;
+  barAdmissionDate: string;
+  currentEmployer: string;
+  currentJobTitle: string;
+  yearsOfExperience: string;
+  practiceAreas: string[];
+  profileBio: string;
+  /** @deprecated retained for review compatibility */
+  professionalType: string;
   regNumber: string;
   stateBarCouncil: string;
-  yearsOfExperience: string;
   practiceArea: string;
   courtJurisdiction: string;
   officeAddress: string;
@@ -90,7 +110,6 @@ export interface AdvocateSpecificData {
   professionalContact: string;
   languagesKnown: string[];
   availability: string;
-  profileBio: string;
 }
 
 export interface FranchiseSpecificData {
@@ -115,6 +134,8 @@ export interface DocumentUploadItem {
   fileType: string;
   uploadedAt: string;
   fileBase64?: string;
+  /** Present in browser after user selects a file (used for API upload). */
+  file?: File;
 }
 
 export interface DocumentUploadsData {
@@ -141,6 +162,7 @@ export const INITIAL_ONBOARDING_FORM_STATE: OnboardingFormState = {
     gender: "Male (पुरुष)",
     mobile: "",
     email: "",
+    linkedInPortfolio: "",
   },
   address: {
     addressLine: "",
@@ -163,18 +185,27 @@ export const INITIAL_ONBOARDING_FORM_STATE: OnboardingFormState = {
     hasAdvocate: "no",
   },
   advocate: {
+    lawSchool: "",
+    graduationYear: "",
+    degreeEarned: "J.D. / LL.M. / LL.B.",
+    barAdmissionRegion: "",
+    barNumber: "",
+    barAdmissionDate: "",
+    currentEmployer: "",
+    currentJobTitle: "",
+    yearsOfExperience: "3-5 Years (Mid-level)",
+    practiceAreas: [],
+    profileBio: "",
     professionalType: "Advocate (अधिवक्ता)",
     regNumber: "",
     stateBarCouncil: "Bar Council of Delhi",
-    yearsOfExperience: "5 - 10 Years",
-    practiceArea: "Civil, Property & Revenue",
-    courtJurisdiction: "District & Sessions Court",
+    practiceArea: "",
+    courtJurisdiction: "",
     officeAddress: "",
     professionalEmail: "",
     professionalContact: "",
     languagesKnown: ["Hindi", "English"],
     availability: "Full-time (पूर्णकालिक)",
-    profileBio: "",
   },
   franchise: {
     orgName: "",

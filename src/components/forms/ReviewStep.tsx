@@ -80,9 +80,9 @@ export default function ReviewStep({
           role={role}
         />
 
-        {errors.declarationAgreed && (
+        {(errors.declarationAgreed || errors.submit) && (
           <Alert severity="error" sx={{ mb: 3, borderRadius: RADIUS.sm, fontWeight: 700 }}>
-            {errors.declarationAgreed}
+            {errors.submit || errors.declarationAgreed}
           </Alert>
         )}
 
@@ -309,27 +309,29 @@ export default function ReviewStep({
                 {role === "advocate" && (
                   <>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>पेशेवर श्रेणी (Category)</Typography>
+                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>Law School</Typography>
                       <Typography sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.95rem" }}>
-                        {formState.advocate.professionalType}
+                        {formState.advocate.lawSchool || "—"}
                       </Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>पंजीकरण संख्या (Reg Number)</Typography>
+                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>Bar Number</Typography>
                       <Typography sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.95rem" }}>
-                        {formState.advocate.regNumber}
+                        {formState.advocate.barNumber || "—"}
                       </Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>कार्य अनुभव (Experience)</Typography>
+                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>Experience</Typography>
                       <Typography sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.95rem" }}>
                         {formState.advocate.yearsOfExperience}
                       </Typography>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>अभ्यास क्षेत्र (Practice Area)</Typography>
+                      <Typography sx={{ color: "#64748b", fontSize: "0.78rem", fontWeight: 600 }}>Practice Areas</Typography>
                       <Typography sx={{ fontWeight: 700, color: "#1e293b", fontSize: "0.95rem" }}>
-                        {formState.advocate.practiceArea}
+                        {formState.advocate.practiceAreas?.length
+                          ? formState.advocate.practiceAreas.join(", ")
+                          : "—"}
                       </Typography>
                     </Grid>
                   </>
