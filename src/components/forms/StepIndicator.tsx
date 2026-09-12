@@ -15,6 +15,8 @@ interface Props {
   descriptionHi?: string;
   descriptionEn?: string;
   role: OnboardingRole;
+  /** Advocate KYC: one title line, no duplicate descriptions or bilingual headings. */
+  compact?: boolean;
 }
 
 const ROLE_ICONS = {
@@ -30,9 +32,41 @@ export default function StepIndicator({
   descriptionHi,
   descriptionEn,
   role,
+  compact = false,
 }: Props) {
   const currentRoleConfig = ONBOARDING_ROLES.find((r) => r.id === role) || ONBOARDING_ROLES[0];
   const Icon = ROLE_ICONS[role] || BalanceIcon;
+
+  if (compact) {
+    return (
+      <Box sx={{ mb: 2.5 }}>
+        <Chip
+          label={`Step ${stepNumber}`}
+          size="small"
+          sx={{
+            bgcolor: currentRoleConfig.bg,
+            color: currentRoleConfig.chipBg,
+            fontWeight: 800,
+            fontSize: "0.78rem",
+            borderRadius: RADIUS.sm,
+            border: `1px solid ${currentRoleConfig.border}`,
+          }}
+        />
+        <Typography
+          sx={{
+            fontWeight: 900,
+            color: "#0f172a",
+            fontSize: { xs: "1.1rem", sm: "1.25rem" },
+            mt: 1.25,
+            letterSpacing: "0.02em",
+            textTransform: "uppercase",
+          }}
+        >
+          {titleEn}
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ mb: 4 }}>

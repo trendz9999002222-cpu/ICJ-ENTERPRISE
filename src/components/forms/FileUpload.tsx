@@ -54,6 +54,7 @@ export default function FileUpload({
         month: "short",
         year: "numeric",
       }),
+      file,
     };
 
     onChange(item);

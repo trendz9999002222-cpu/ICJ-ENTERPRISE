@@ -15,7 +15,7 @@ export const authService = {
   },
 
   me: (token: string) =>
-    apiClient<User>(API_ENDPOINTS.auth.me, {
+    apiClient<{ success: boolean; data: User }>(API_ENDPOINTS.auth.me, {
       headers: { Authorization: `Bearer ${token}` },
     }),
 };

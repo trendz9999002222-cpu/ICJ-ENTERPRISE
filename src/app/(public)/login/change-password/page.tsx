@@ -59,7 +59,7 @@ export default function ChangePasswordPage() {
     <Box sx={{ display: "flex", justifyContent: "center", py: 6, px: 2 }}>
       <Paper sx={{ p: 4, maxWidth: 480, width: "100%" }}>
         <Stack spacing={2} component="form" onSubmit={handleSubmit}>
-          <Typography variant="h5" fontWeight={900}>
+          <Typography variant="h5" sx={{ fontWeight: 900 }}>
             Set a new password
           </Typography>
           <Typography variant="body2" color="text.secondary">

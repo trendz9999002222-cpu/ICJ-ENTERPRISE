@@ -16,6 +16,10 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
 };
 
+type FormDataRequestOptions = Omit<RequestInit, "body"> & {
+  formData: FormData;
+};
+
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
@@ -77,4 +81,55 @@ export async function apiClient<T>(
   }
 
   return data as T;
+}
+
+export async function apiClientFormData<T>(
+  path: string,
+  options: FormDataRequestOptions,
+): Promise<T> {
+  const { formData, headers, ...rest } = options;
+  const url = `${env.apiUrl}${path}`;
+
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      ...rest,
+      headers: {
+        Accept: "application/json",
+        ...headers,
+      },
+      body: formData,
+    });
+  } catch (error) {
+    logger.error("Network request failed", {
+      url,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new ApiError("Unable to connect to the server.", 0, {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  let data: unknown = null;
+
+  if (contentType.includes("application/json")) {
+    data = await response.json().catch(() => null);
+  } else {
+    data = await response.text().catch(() => null);
+  }
+
+  if (!response.ok) {
+    logger.error("API request failed", { url, status: response.status, data });
+    throw new ApiError("API request failed", response.status, data);
+  }
+
+  return data as T;
+}
+
+export function readAccessTokenFromCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)icj_access_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
