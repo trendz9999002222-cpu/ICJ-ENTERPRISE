@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import DeliveryChannelSelector from "@/components/features/auth/DeliveryChannelSelector";
+import { ApiError } from "@/lib/api/client";
 import { authService } from "@/services/auth.service";
 import type { DeliveryChannel } from "@/types/auth";
 
@@ -38,13 +39,56 @@ export default function LoginForm() {
 
     try {
       const tokens = await authService.login(identifier, password, deliveryChannel);
+      if (!tokens.access || !tokens.refresh) {
+        throw new Error("Missing tokens");
+      }
       document.cookie = `icj_access_token=${tokens.access}; path=/; max-age=1800; SameSite=Lax`;
       document.cookie = `icj_refresh_token=${tokens.refresh}; path=/; max-age=604800; SameSite=Lax`;
       localStorage.setItem("icj_delivery_channel", deliveryChannel);
-      router.push("/dashboard");
-    } catch {
-      setError("लॉगिन असफल। Mobile/Email और Password जाँचें या backend connection देखें।");
-    } finally {
+      if (tokens.requires_password_change) {
+        localStorage.setItem("icj_password_change_required", "1");
+        router.push("/login/change-password");
+      } else {
+        localStorage.removeItem("icj_password_change_required");
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const body =
+          err.body && typeof err.body === "object"
+            ? (err.body as {
+                message?: string;
+                detail?: string;
+                errors?: Record<string, string[]>;
+              })
+            : null;
+    
+        const detail =
+          body?.errors?.credentials?.[0] ||
+          body?.message ||
+          body?.detail ||
+          (err.status === 401
+            ? "Invalid email or password."
+            : err.status === 403
+              ? "You are not authorized to sign in."
+              : err.status === 404
+                ? "Login service was not found."
+                : err.status === 422
+                  ? "Please check the entered details."
+                  : err.status === 0
+                    ? "Backend server is not reachable."
+                    : "Login failed. Please try again.");
+    
+        setError(detail);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(
+          "लॉगिन असफल। Mobile/Email और Password जाँचें या backend connection देखें।",
+        );
+      }
+    }
+    finally {
       setLoading(false);
     }
   };
