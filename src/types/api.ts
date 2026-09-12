@@ -16,4 +16,8 @@ export type User = {
 export type AuthTokens = {
   access: string;
   refresh: string;
+  success?: boolean;
+  message?: string;
+  requires_password_change?: boolean;
+  user?: User;
 };

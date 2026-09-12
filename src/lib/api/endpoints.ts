@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     refresh: "/auth/refresh/",
     register: "/auth/register/",
     me: "/auth/me/",
+    changePassword: "/auth/change-password/",
   },
   members: "/members/",
 } as const;
