@@ -1,64 +1,58 @@
 "use client";
 
-import { AppBar, Box, Container, Toolbar } from "@mui/material";
+import { AppBar, Box } from "@mui/material";
 
-import NavbarBrand from "@/components/layout/navbar/NavbarBrand";
-import NavbarMenu from "@/components/layout/navbar/NavbarMenu";
-import { NAVBAR_HEIGHT } from "@/constants/layout";
+import InstitutionalBrandHeader from "./InstitutionalBrandHeader";
+import MainNavBar from "./MainNavBar";
+import MobileNavbar from "./MobileNavbar";
+import TopUtilityBar from "./TopUtilityBar";
 
 export default function Navbar() {
   return (
-    <AppBar
-      position="fixed"
-      elevation={0}
-      sx={{
-        bgcolor: "rgba(15,23,42,0.94)",
-        backdropFilter: "blur(14px)",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 4px 24px rgba(15,23,42,0.22)",
-        top: 0,
-        left: 0,
-        right: 0,
-        width: "100%",
-        zIndex: 1200,
-      }}
-    >
-      <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
-        <Toolbar
-          disableGutters
+    <Box component="header" sx={{ width: "100%", zIndex: 1100, position: "relative" }}>
+      {/* =================================================================== */}
+      {/* DESKTOP MULTI-TIER INSTITUTIONAL HEADER (GST COUNCIL STYLE)         */}
+      {/* =================================================================== */}
+      <Box sx={{ display: { xs: "none", lg: "block" } }}>
+        {/* Tier 1: Top Utility Bar (Helpline, Email, Access, Language Dropdown) */}
+        <TopUtilityBar />
+
+        {/* Tier 2: Main Institutional Branding Banner (Round Seal Logo + Bilingual Title) */}
+        <InstitutionalBrandHeader />
+
+        {/* Tier 3: Sticky Deep Navy Navigation Bar (Menu Dropdowns + Integrated Search) */}
+        <AppBar
+          position="sticky"
+          elevation={0}
           sx={{
-            height: {
-              xs: NAVBAR_HEIGHT.xs,
-              sm: NAVBAR_HEIGHT.sm,
-              md: NAVBAR_HEIGHT.md,
-              lg: NAVBAR_HEIGHT.lg,
-            },
-            minHeight: {
-              xs: NAVBAR_HEIGHT.xs,
-              sm: NAVBAR_HEIGHT.sm,
-              md: NAVBAR_HEIGHT.md,
-              lg: NAVBAR_HEIGHT.lg,
-            },
-            maxHeight: {
-              xs: NAVBAR_HEIGHT.xs,
-              sm: NAVBAR_HEIGHT.sm,
-              md: NAVBAR_HEIGHT.md,
-              lg: NAVBAR_HEIGHT.lg,
-            },
-            py: 0,
-            overflow: "visible",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 1,
-            minWidth: 0,
+            bgcolor: "#0f2942",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1050,
           }}
         >
-          <NavbarBrand />
-          <Box sx={{ flexShrink: 0 }}>
-            <NavbarMenu />
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+          <MainNavBar />
+        </AppBar>
+      </Box>
+
+      {/* =================================================================== */}
+      {/* MOBILE / TABLET RESPONSIVE HEADER                                  */}
+      {/* =================================================================== */}
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{
+          bgcolor: "#ffffff",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1050,
+          display: { xs: "block", lg: "none" },
+        }}
+      >
+        <MobileNavbar />
+      </AppBar>
+    </Box>
   );
 }

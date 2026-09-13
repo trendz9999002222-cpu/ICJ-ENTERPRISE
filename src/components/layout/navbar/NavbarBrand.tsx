@@ -1,77 +1,61 @@
 "use client";
 
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Typography } from "@mui/material";
 import Link from "next/link";
 
-import { NAVBAR_CONFIG } from "@/config/navbar";
-
 export default function NavbarBrand() {
-  const { brand } = NAVBAR_CONFIG;
-
   return (
     <Box
       component={Link}
-      href={brand.homeHref}
+      href="/"
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: { xs: 1, sm: 1.25, md: 1.5 },
+        gap: { xs: 1, sm: 1.25 },
         textDecoration: "none",
         color: "inherit",
-        minWidth: 0,
-        flex: 1,
-        overflow: "hidden",
+        flexShrink: 0,
       }}
     >
       <Box
         sx={{
-          bgcolor: "rgba(56,189,248,0.15)",
-          p: { xs: 0.9, sm: 1, md: 1.2 },
-          borderRadius: 2.5,
-          border: "1px solid rgba(56,189,248,0.3)",
-          display: "flex",
-          flexShrink: 0,
+          width: { xs: 36, sm: 40 },
+          height: { xs: 36, sm: 40 },
+          borderRadius: 2,
+          bgcolor: "#2563eb",
+          display: "grid",
+          placeItems: "center",
+          boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
         }}
       >
-        <AccountBalanceIcon sx={{ color: "#38bdf8", fontSize: { xs: 22, sm: 26, md: 28, lg: 32 } }} />
+        <GavelIcon sx={{ color: "#ffffff", fontSize: { xs: 20, sm: 22 } }} />
       </Box>
-      <Box sx={{ minWidth: 0 }}>
+
+      <Box>
         <Typography
-          variant="h6"
           sx={{
-            fontWeight: 900,
-            fontSize: { xs: "1.05rem", sm: "1.1rem" },
-            color: "#fff",
-            lineHeight: 1.2,
+            fontWeight: 800,
+            fontSize: { xs: "0.95rem", sm: "1.1rem" },
+            color: "#0f172a",
+            letterSpacing: "-0.01em",
+            lineHeight: 1.15,
+          }}
+        >
+          ICJ ENTERPRISE
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: "0.68rem",
+            fontWeight: 600,
+            color: "#64748b",
             letterSpacing: "0.04em",
-            display: { xs: "block", lg: "none" },
+            textTransform: "uppercase",
+            display: { xs: "none", sm: "block" },
           }}
         >
-          ICJ
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 900,
-            fontSize: { lg: "1.05rem", xl: "1.2rem" },
-            color: "#fff",
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-            display: { xs: "none", lg: "block" },
-          }}
-        >
-          {brand.title}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: "#94a3b8",
-            display: { xs: "none", lg: "block" },
-            fontSize: "0.7rem",
-          }}
-        >
-          {brand.subtitle}
+          International Consortium of Jurists
         </Typography>
       </Box>
     </Box>

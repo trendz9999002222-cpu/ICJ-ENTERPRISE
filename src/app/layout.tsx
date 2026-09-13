@@ -14,12 +14,18 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: env.appName,
+  icons: {
+    icon: "/images/icj-logo.png",
+  },
   description: "International Consortium of Jurists — Enterprise Legal Platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
+
+
+
+    <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
       <body>
         <ThemeRegistry>{children}</ThemeRegistry>
       </body>
