@@ -236,19 +236,19 @@ export default function HomePage() {
                 sx={{
                   position: "relative",
                   width: "100%",
-                  maxWidth: 560,
+                  maxWidth: 520,
                   borderRadius: "12px 12px 0 0",
                   overflow: "hidden",
-                  boxShadow: "0 -8px 40px rgba(0,0,0,0.3)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.22)",
+                  border: "1px solid rgba(255,255,255,0.15)",
                   borderBottom: "none",
                 }}
               >
                 <Image
                   src="/images/hero-judicial.jpg"
                   alt="Supreme Court of India — ICJ Partner Institution"
-                  width={620}
-                  height={415}
+                  width={520}
+                  height={350}
                   priority
                   style={{ width: "100%", height: "auto", display: "block" }}
                 />
@@ -308,7 +308,7 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 2. TRUST & INSTITUTIONAL PILLARS                                    */}
       {/* =================================================================== */}
-      <Box sx={{ bgcolor: "#f8fafc", py: 5, borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ bgcolor: "#f8fafc", py: { xs: 5, md: 6 }, borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Grid container spacing={3}>
             {[
@@ -338,14 +338,14 @@ export default function HomePage() {
                   elevation={0}
                   sx={{
                     p: 3,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     border: "1px solid #e2e8f0",
                     bgcolor: "#ffffff",
                     height: "100%",
                   }}
                 >
                   <Box sx={{ mb: 1.5 }}>{pillar.icon}</Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.75 }}>
+                  <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.75 }}>
                     {pillar.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#64748b", lineHeight: 1.5 }}>
@@ -361,7 +361,7 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 3. JUSTICE SERVICES SECTION                                         */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 6, md: 9 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Stack
             direction={{ xs: "column", md: "row" }}
@@ -372,9 +372,9 @@ export default function HomePage() {
               <Chip
                 label="Public Services Catalog"
                 size="small"
-                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, mb: 1 }}
+                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem", mb: 1 }}
               />
-              <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+              <Typography component="h2" variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
                 Justice & Legal Guidance Services
               </Typography>
               <Typography variant="body1" sx={{ color: "#64748b", mt: 0.5 }}>
@@ -405,15 +405,15 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 4. SEEK ASSISTANCE INTAKE WORKFLOW                                  */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 6, md: 9 }, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Box sx={{ textAlign: "center", maxWidth: 700, mx: "auto", mb: 6 }}>
             <Chip
               label="Citizen Intake Protocol"
               size="small"
-              sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, mb: 1 }}
+              sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem", mb: 1 }}
             />
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+            <Typography component="h2" variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
               How to Seek Legal Assistance
             </Typography>
             <Typography variant="body1" sx={{ color: "#64748b", mt: 0.75 }}>
@@ -449,7 +449,7 @@ export default function HomePage() {
                   elevation={0}
                   sx={{
                     p: 3,
-                    borderRadius: 3,
+                    borderRadius: 2,
                     border: "1px solid #e2e8f0",
                     bgcolor: "#ffffff",
                     height: "100%",
@@ -467,7 +467,7 @@ export default function HomePage() {
                   >
                     {st.step}
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.75 }}>
+                  <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a", mb: 0.75 }}>
                     {st.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#64748b", lineHeight: 1.5 }}>
@@ -502,7 +502,7 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 5. FIND A PROFESSIONAL HIGHLIGHTS                                   */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 6, md: 9 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Stack
             direction={{ xs: "column", md: "row" }}
@@ -513,9 +513,9 @@ export default function HomePage() {
               <Chip
                 label="Empaneled Practitioners"
                 size="small"
-                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, mb: 1 }}
+                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem", mb: 1 }}
               />
-              <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+              <Typography component="h2" variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
                 Find a Verified Professional
               </Typography>
               <Typography variant="body1" sx={{ color: "#64748b", mt: 0.5 }}>
@@ -546,16 +546,16 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 6. NYAYA DAAN MUDRA & SUPPORT JUSTICE                               */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 6, md: 9 }, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Grid container spacing={4} sx={{ alignItems: "center" }}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Chip
                 label="Social Assistance Innovation"
                 size="small"
-                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, mb: 1.5 }}
+                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem", mb: 1.5 }}
               />
-              <Typography variant="h4" sx={{ fontWeight: 900, color: "#0f172a", mb: 2, letterSpacing: "-0.02em" }}>
+              <Typography component="h2" variant="h4" sx={{ fontWeight: 900, color: "#0f172a", mb: 2, letterSpacing: "-0.02em" }}>
                 Nyaya Daan Mudra (NDM)
               </Typography>
               <Typography variant="body1" sx={{ color: "#475569", lineHeight: 1.65, mb: 3 }}>
@@ -583,7 +583,7 @@ export default function HomePage() {
                   component={Link}
                   href="/nyaya-daan-mudra"
                   variant="contained"
-                  sx={{ bgcolor: "#2563eb", fontWeight: 700, textTransform: "none", px: 3, py: 1 }}
+                  sx={{ bgcolor: "#2563eb", fontWeight: 700, textTransform: "none", px: 3, py: 1, borderRadius: 2 }}
                 >
                   Learn About NDM
                 </Button>
@@ -591,7 +591,7 @@ export default function HomePage() {
                   component={Link}
                   href="/donate"
                   variant="outlined"
-                  sx={{ borderColor: "#cbd5e1", color: "#0f172a", fontWeight: 600, textTransform: "none", px: 3, py: 1 }}
+                  sx={{ borderColor: "#cbd5e1", color: "#0f172a", fontWeight: 600, textTransform: "none", px: 3, py: 1, borderRadius: 2 }}
                 >
                   Sponsor a Beneficiary
                 </Button>
@@ -603,19 +603,19 @@ export default function HomePage() {
                 elevation={0}
                 sx={{
                   p: { xs: 3, sm: 4 },
-                  borderRadius: 3.5,
+                  borderRadius: 2,
                   border: "1px solid #bfdbfe",
                   bgcolor: "#ffffff",
                   boxShadow: "0 8px 24px rgba(37,99,235,0.06)",
                 }}
               >
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
+                <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
                   Social Impact Focus Areas
                 </Typography>
                 <Stack spacing={2.5}>
                   {mockSocialImpactPrograms.map((prog) => (
                     <Box key={prog.id} sx={{ p: 2, borderRadius: 2, bgcolor: "#f8fafc", border: "1px solid #e2e8f0" }}>
-                      <Typography sx={{ fontWeight: 700, color: "#2563eb", fontSize: "0.925rem", mb: 0.5 }}>
+                      <Typography component="h4" sx={{ fontWeight: 700, color: "#2563eb", fontSize: "0.925rem", mb: 0.5 }}>
                         {prog.title}
                       </Typography>
                       <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.825rem", lineHeight: 1.5 }}>
@@ -633,7 +633,7 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 7. RESEARCH & ICJ ACADEMY                                           */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 6, md: 9 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+      <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Stack
             direction={{ xs: "column", md: "row" }}
@@ -644,9 +644,9 @@ export default function HomePage() {
               <Chip
                 label="Legal Scholarship & Academy"
                 size="small"
-                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, mb: 1 }}
+                sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem", mb: 1 }}
               />
-              <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+              <Typography component="h2" variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
                 Research & Continuing Legal Education
               </Typography>
               <Typography variant="body1" sx={{ color: "#64748b", mt: 0.5 }}>
@@ -683,7 +683,7 @@ export default function HomePage() {
             elevation={0}
             sx={{
               p: { xs: 3, sm: 5 },
-              borderRadius: 3.5,
+              borderRadius: 2,
               border: "1px solid #e2e8f0",
               bgcolor: "#ffffff",
               textAlign: "center",
@@ -704,7 +704,7 @@ export default function HomePage() {
               <VerifiedIcon sx={{ fontSize: 28, color: "#2563eb" }} />
             </Box>
 
-            <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
+            <Typography component="h2" variant="h5" sx={{ fontWeight: 800, color: "#0f172a", mb: 1 }}>
               Verify Digital Certificate or Empanelment
             </Typography>
             <Typography variant="body2" sx={{ color: "#64748b", maxWidth: 520, mx: "auto", mb: 3 }}>
@@ -747,13 +747,13 @@ export default function HomePage() {
       {/* =================================================================== */}
       {/* 9. FINAL INSTITUTIONAL CALL TO ACTION                               */}
       {/* =================================================================== */}
-      <Box sx={{ py: { xs: 7, md: 10 }, bgcolor: "#ffffff" }}>
+      <Box sx={{ py: { xs: 7, md: 9 }, bgcolor: "#ffffff" }}>
         <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           <Paper
             elevation={0}
             sx={{
               p: { xs: 4, sm: 6 },
-              borderRadius: 4,
+              borderRadius: 2,
               bgcolor: "#0f172a",
               color: "#ffffff",
               textAlign: "center",
@@ -762,6 +762,7 @@ export default function HomePage() {
             }}
           >
             <Typography
+              component="h2"
               variant="h3"
               sx={{
                 fontWeight: 900,

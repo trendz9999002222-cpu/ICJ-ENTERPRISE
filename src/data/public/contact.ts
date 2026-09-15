@@ -32,22 +32,27 @@ export const CONTACT_DATA: ContactData = {
     {
       iconKey: "phone",
       label: "Main Helpline",
-      value: "+91-11-4001-7000",
+      value: "+91-9999002222",
     },
     {
       iconKey: "email",
       label: "General Inquiries",
-      value: "info@icj-india.org",
+      value: "consortiumofjurists@gmail.com",
+    },
+    {
+      iconKey: "phone",
+      label: "Connect Us",
+      value: "+91-9717166436",
     },
     {
       iconKey: "location",
       label: "Address",
-      value: "4th Floor, Legal Chambers Tower, Parliament Street, New Delhi – 110001",
+      value: "Shankar vihar Vikas Marg Delhi 110092",
     },
     {
       iconKey: "time",
       label: "Office Hours",
-      value: "Mon – Sat: 9:00 AM – 6:00 PM",
+      value: "Mon – Sat: 11:00 AM – 6:00 PM",
     },
   ],
   formTitle: "Send Us a Message",

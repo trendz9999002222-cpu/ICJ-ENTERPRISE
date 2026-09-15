@@ -13,7 +13,7 @@ export default function ResearchCard({ paper }: { paper: ResearchPaper }) {
       elevation={0}
       sx={{
         p: 3,
-        borderRadius: 3,
+        borderRadius: 2,
         border: "1px solid #e2e8f0",
         bgcolor: "#ffffff",
         display: "flex",
@@ -37,7 +37,7 @@ export default function ResearchCard({ paper }: { paper: ResearchPaper }) {
               bgcolor: "#eff6ff",
               color: "#1d4ed8",
               fontWeight: 700,
-              fontSize: "0.7rem",
+              fontSize: "0.75rem",
             }}
           />
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
@@ -49,6 +49,7 @@ export default function ResearchCard({ paper }: { paper: ResearchPaper }) {
         </Stack>
 
         <Typography
+          component="h3"
           variant="h6"
           sx={{
             fontWeight: 700,
@@ -88,8 +89,8 @@ export default function ResearchCard({ paper }: { paper: ResearchPaper }) {
                 bgcolor: "#f8fafc",
                 border: "1px solid #e2e8f0",
                 color: "#64748b",
-                fontSize: "0.68rem",
-                height: 20,
+                fontSize: "0.75rem",
+                height: 22,
               }}
             />
           ))}

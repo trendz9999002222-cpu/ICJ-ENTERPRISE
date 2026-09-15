@@ -67,24 +67,24 @@ const PRIMARY_DROPDOWNS: {
   activePaths?: string[];
   sections: DropSection[];
 }[] = [
-  ...NAV_MODULES.map((mod) => ({
-    key: mod.key,
-    label: mod.navLabel,
-    activePaths: mod.activePaths,
-    sections: [{ heading: mod.title, items: mod.items }],
-  })),
-  {
-    key: "verify",
-    label: "Verify",
-    activePaths: ["/verify-certificate", "/verify-donation", "/grievance"],
-    sections: [
-      {
-        heading: "Verification & Compliance",
-        items: NAV_VERIFICATION_LINKS,
-      },
-    ],
-  },
-];
+    ...NAV_MODULES.map((mod) => ({
+      key: mod.key,
+      label: mod.navLabel,
+      activePaths: mod.activePaths,
+      sections: [{ heading: mod.title, items: mod.items }],
+    })),
+    {
+      key: "verify",
+      label: "Verify",
+      activePaths: ["/verify-certificate", "/verify-donation", "/grievance"],
+      sections: [
+        {
+          heading: "Verification & Compliance",
+          items: NAV_VERIFICATION_LINKS,
+        },
+      ],
+    },
+  ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
@@ -235,20 +235,20 @@ export default function MainNavBar() {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    bgcolor: "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.22)",
-                    borderRadius: searchOpen ? "6px 6px 0 0" : 1,
+                    bgcolor: "rgba(255,255,255,0.12)",
+                    border: "1px solid rgba(255,255,255,0.3)",
+                    borderRadius: searchOpen ? "6px 6px 0 0" : 1.5,
                     overflow: "visible",
-                    height: 34,
-                    width: { lg: 200, xl: 260 },
+                    height: 36,
+                    width: { lg: 240, xl: 300 },
                     transition: "all 0.2s",
                     "&:focus-within": {
-                      bgcolor: "rgba(255,255,255,0.14)",
-                      borderColor: "rgba(255,255,255,0.45)",
+                      bgcolor: "rgba(255,255,255,0.18)",
+                      borderColor: "rgba(255,255,255,0.6)",
                     },
                   }}
                 >
-                  <SearchIcon sx={{ fontSize: 16, color: "rgba(255,255,255,0.6)", ml: 1.25, flexShrink: 0 }} />
+                  <SearchIcon sx={{ fontSize: 18, color: "rgba(255,255,255,0.75)", ml: 1.25, flexShrink: 0 }} />
                   <InputBase
                     placeholder="Search portal..."
                     value={searchTerm}
@@ -257,9 +257,9 @@ export default function MainNavBar() {
                     sx={{
                       px: 1,
                       flex: 1,
-                      fontSize: "0.8rem",
+                      fontSize: "0.8125rem",
                       color: "#ffffff",
-                      "& input": { py: 0, "&::placeholder": { color: "rgba(255,255,255,0.5)", opacity: 1 } },
+                      "& input": { py: 0, "&::placeholder": { color: "rgba(255,255,255,0.65)", opacity: 1 } },
                     }}
                   />
                   {searchTerm && (
@@ -515,12 +515,12 @@ export default function MainNavBar() {
                             label={item.badge}
                             size="small"
                             sx={{
-                              height: 18,
-                              fontSize: "0.6rem",
+                              height: 20,
+                              fontSize: "0.7rem",
                               fontWeight: 800,
                               bgcolor: "#b45309",
                               color: "#ffffff",
-                              borderRadius: 0.75,
+                              borderRadius: 1,
                               flexShrink: 0,
                               "& .MuiChip-label": { px: 0.75 },
                             }}
