@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
+import { publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
 import { professionalService } from "@/services/public";
 import type { PublicProfessional } from "@/types/public";
 
@@ -90,13 +91,7 @@ export default function ProfessionalProfilePage() {
     );
   }
 
-  const initials = professional.fullName
-    .replace(/^Adv\.\s*|^CA\s*|^CS\s*|^Dr\.\s*|^Prof\.\s*/i, "")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = publicProfessionalInitials(professional.fullName);
 
   return (
     <Box sx={{ width: "100%", bgcolor: "#f8fafc", pb: 8 }}>

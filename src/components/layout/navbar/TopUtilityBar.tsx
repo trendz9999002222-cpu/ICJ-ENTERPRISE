@@ -89,13 +89,15 @@ export default function TopUtilityBar() {
               }}
             >
               <HeadsetIcon sx={{ fontSize: 14, color: "#059669" }} />
-              <span>Toll Free: 011-40501642 </span>
+              <span>Helpline Number: 011-40501642 </span>
             </Box>
 
             {/* Email Support (Desktop) */}
             <Box
               component="a"
-              href="mailto:consortiumofjurists@gmail.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=consortiumofjurists@gmail.com"
+              target="_blank"
+              rel="noopener noreferrer"
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
@@ -103,7 +105,9 @@ export default function TopUtilityBar() {
                 color: "#475569",
                 textDecoration: "none",
                 fontSize: "0.8125rem",
-                "&:hover": { color: "#2563eb" },
+                "&:hover": {
+                  color: "#2563eb",
+                },
               }}
             >
               <EmailIcon sx={{ fontSize: 14, color: "#64748b" }} />
