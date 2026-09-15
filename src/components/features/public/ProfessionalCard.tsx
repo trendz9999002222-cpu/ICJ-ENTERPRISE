@@ -6,16 +6,11 @@ import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
 import { Avatar, Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 
+import { publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
 import type { PublicProfessional } from "@/types/public";
 
 export default function ProfessionalCard({ professional }: { professional: PublicProfessional }) {
-  const initials = professional.fullName
-    .replace(/^Adv\.\s*|^CA\s*|^CS\s*|^Dr\.\s*|^Prof\.\s*/i, "")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = publicProfessionalInitials(professional.fullName);
 
   return (
     <Paper

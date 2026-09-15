@@ -1,6 +1,7 @@
 import { mockServices } from "@/data/public/services";
 import { mockProfessionals } from "@/data/public/professionals";
 import { mockAcademyCourses, mockResearchPapers, mockTrainingEvents } from "@/data/public/research";
+import { maskPublicProfessional } from "@/lib/privacy/maskPublicIdentity";
 import { paginateArray } from "@/services/public/paginate";
 import type {
   AcademyCourse,
@@ -95,12 +96,17 @@ export const professionalService = {
       );
     }
 
-    return paginateArray(filtered, params.page ?? 1, params.pageSize ?? 8);
+    const page = paginateArray(filtered, params.page ?? 1, params.pageSize ?? 8);
+    return {
+      ...page,
+      results: page.results.map(maskPublicProfessional),
+    };
   },
 
   getProfessionalById: async (id: string): Promise<PublicProfessional | null> => {
     await new Promise((r) => setTimeout(r, 60));
-    return mockProfessionals.find((p) => p.id === id) ?? null;
+    const found = mockProfessionals.find((p) => p.id === id) ?? null;
+    return found ? maskPublicProfessional(found) : null;
   },
 };
 

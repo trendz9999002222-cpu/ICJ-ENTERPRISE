@@ -10,6 +10,7 @@ import {
 } from "@/data/public/knowledge";
 import { mockServices } from "@/data/public/services";
 import { mockProfessionals } from "@/data/public/professionals";
+import { maskPublicFullName } from "@/lib/privacy/maskPublicIdentity";
 import { mockResearchPapers } from "@/data/public/research";
 import { paginateArray } from "@/services/public/paginate";
 import type {
@@ -185,7 +186,7 @@ export const searchService = {
           results.push({
             id: `p-${p.id}`,
             type: "Professional",
-            title: `${p.fullName} (${p.profession})`,
+            title: `${maskPublicFullName(p.fullName)} (${p.profession})`,
             snippet: `${p.specialisations.join(", ")} · ${p.city}, ${p.state} · ${p.experienceYears} yrs exp.`,
             url: `/professionals/${p.id}`,
             metadataTag: p.profession,
