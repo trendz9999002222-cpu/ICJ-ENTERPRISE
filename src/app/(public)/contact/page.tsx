@@ -160,7 +160,7 @@ export default function ContactPage() {
                     sx={{ bgcolor: "#eff6ff", color: "#1e3a8a", border: "1px solid #bfdbfe", fontSize: "0.82rem" }}
                   >
                     For urgent matters (court deadlines, emergencies) call{" "}
-                    <strong>+91-11-4001-7000</strong> or visit the{" "}
+                    <strong>+91-9717166436</strong> or visit the{" "}
                     <Link href="/assistance" style={{ color: "#1d4ed8", fontWeight: 700 }}>
                       Citizen Assistance Portal
                     </Link>

@@ -51,7 +51,7 @@ export default function SiteFooter() {
                 <Typography sx={{ fontWeight: 900, color: "#ffffff", fontSize: "0.95rem", lineHeight: 1.2 }}>
                   INTERNATIONAL CONSORTIUM OF JURISTS
                 </Typography>
-                <Typography sx={{ fontSize: "0.68rem", color: "#fbbf24", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <Typography sx={{ fontSize: "0.75rem", color: "#fbbf24", fontWeight: 700, letterSpacing: "0.04em" }}>
                   Justice • Integrity • Humanity
                 </Typography>
               </Box>
@@ -69,7 +69,7 @@ export default function SiteFooter() {
  
           {/* Col 2: Justice Services */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
+            <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
               Justice Services
             </Typography>
             <Stack spacing={1}>
@@ -100,7 +100,7 @@ export default function SiteFooter() {
  
           {/* Col 3: Professionals */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
+            <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
               Professionals
             </Typography>
             <Stack spacing={1}>
@@ -131,7 +131,7 @@ export default function SiteFooter() {
  
           {/* Col 4: Research & Academy */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
+            <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
               Research & Academy
             </Typography>
             <Stack spacing={1}>
@@ -161,7 +161,7 @@ export default function SiteFooter() {
  
           {/* Col 5: Social Impact */}
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
+            <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
               Social Impact
             </Typography>
             <Stack spacing={1}>
@@ -191,7 +191,7 @@ export default function SiteFooter() {
  
           {/* Col 6: Governance & Audit */}
           <Grid size={{ xs: 12, sm: 4, md: 1.5 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
+            <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
               Verification & Help
             </Typography>
             <Stack spacing={1}>

@@ -22,7 +22,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
       elevation={0}
       sx={{
         p: 3,
-        borderRadius: 3,
+        borderRadius: 2,
         border: "1px solid #e2e8f0",
         bgcolor: "#ffffff",
         display: "flex",
@@ -56,6 +56,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
               <Typography
+                component="h3"
                 variant="subtitle1"
                 sx={{
                   fontWeight: 700,
@@ -113,8 +114,8 @@ export default function ProfessionalCard({ professional }: { professional: Publi
                   bgcolor: "#f1f5f9",
                   color: "#334155",
                   fontWeight: 600,
-                  fontSize: "0.725rem",
-                  height: 22,
+                  fontSize: "0.75rem",
+                  height: 24,
                 }}
               />
             ))}
@@ -126,8 +127,8 @@ export default function ProfessionalCard({ professional }: { professional: Publi
                   bgcolor: "#f1f5f9",
                   color: "#64748b",
                   fontWeight: 600,
-                  fontSize: "0.725rem",
-                  height: 22,
+                  fontSize: "0.75rem",
+                  height: 24,
                 }}
               />
             )}
@@ -148,9 +149,9 @@ export default function ProfessionalCard({ professional }: { professional: Publi
             color: "#334155",
             textTransform: "none",
             fontWeight: 600,
-            fontSize: "0.775rem",
+            fontSize: "0.8125rem",
             py: 0.75,
-            borderRadius: 1.5,
+            borderRadius: 2,
             "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
           }}
         >
@@ -168,9 +169,9 @@ export default function ProfessionalCard({ professional }: { professional: Publi
             color: "#ffffff",
             textTransform: "none",
             fontWeight: 700,
-            fontSize: "0.775rem",
+            fontSize: "0.8125rem",
             py: 0.75,
-            borderRadius: 1.5,
+            borderRadius: 2,
             "&:hover": { bgcolor: "#1d4ed8" },
           }}
         >

@@ -53,7 +53,7 @@ export default function TopUtilityBar() {
             {/* Direct Helpline */}
             <Box
               component="a"
-              href="tel:+911140017000"
+              href="tel:+919999002222"
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -61,53 +61,53 @@ export default function TopUtilityBar() {
                 color: "#0f172a",
                 fontWeight: 700,
                 textDecoration: "none",
-                fontSize: { xs: "0.72rem", sm: "0.78rem" },
+                fontSize: { xs: "0.75rem", sm: "0.8125rem" },
                 "&:hover": { color: "#2563eb" },
               }}
             >
               <PhoneInTalkIcon sx={{ fontSize: 14, color: "#2563eb" }} />
               <span>
-                <Box component="span" sx={{ display: { xs: "none", md: "inline" }, color: "#64748b", fontWeight: 500 }}>
+                <Box component="span" sx={{ display: { xs: "none", md: "inline" }, color: "#475569", fontWeight: 500 }}>
                   24x7 Legal Helpline:{" "}
                 </Box>
-                +91-11-4001-7000
+                +91-9999002222
               </span>
             </Box>
 
             {/* Toll Free (Desktop) */}
             <Box
               component="a"
-              href="tel:1800120425"
+              href="tel:9999002222"
               sx={{
                 display: { xs: "none", lg: "flex" },
                 alignItems: "center",
                 gap: 0.6,
                 color: "#475569",
                 textDecoration: "none",
-                fontSize: "0.78rem",
+                fontSize: "0.8125rem",
                 "&:hover": { color: "#2563eb" },
               }}
             >
               <HeadsetIcon sx={{ fontSize: 14, color: "#059669" }} />
-              <span>Toll Free: 1800-120-ICJ</span>
+              <span>Toll Free: 011-40501642 </span>
             </Box>
 
             {/* Email Support (Desktop) */}
             <Box
               component="a"
-              href="mailto:contact@icj-jurists.org"
+              href="mailto:consortiumofjurists@gmail.com"
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
                 gap: 0.6,
                 color: "#475569",
                 textDecoration: "none",
-                fontSize: "0.78rem",
+                fontSize: "0.8125rem",
                 "&:hover": { color: "#2563eb" },
               }}
             >
               <EmailIcon sx={{ fontSize: 14, color: "#64748b" }} />
-              <span>contact@icj-jurists.org</span>
+              <span>consortiumofjurists@gmail.com</span>
             </Box>
 
             {/* Office Timings (Large Desktop) */}
@@ -121,7 +121,7 @@ export default function TopUtilityBar() {
               }}
             >
               <AccessTimeIcon sx={{ fontSize: 13 }} />
-              <span>Mon–Sat: 9:00 AM – 6:00 PM IST</span>
+              <span>Mon–Sat: 11:00 AM – 6:00 PM IST</span>
             </Box>
           </Stack>
 
@@ -138,14 +138,14 @@ export default function TopUtilityBar() {
             >
               <Link
                 href="/grievance"
-                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 500 }}
+                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
               >
                 Citizen Helpdesk
               </Link>
               <Divider orientation="vertical" flexItem sx={{ height: 12, my: "auto" }} />
               <Link
                 href="/terms#rti"
-                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 500 }}
+                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
               >
                 RTI & Transparency
               </Link>

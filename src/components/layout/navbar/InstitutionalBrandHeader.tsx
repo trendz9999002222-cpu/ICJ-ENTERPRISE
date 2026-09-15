@@ -74,7 +74,7 @@ export default function InstitutionalBrandHeader() {
               </Typography>
 
               <Typography
-                variant="h1"
+                component="span"
                 sx={{
                   fontSize: { xs: "1.05rem", sm: "1.35rem", md: "1.65rem", lg: "1.8rem" },
                   fontWeight: 900,
@@ -82,7 +82,7 @@ export default function InstitutionalBrandHeader() {
                   letterSpacing: "-0.02em",
                   lineHeight: 1.15,
                   my: 0.2,
-                  textTransform: "uppercase",
+                  display: "block",
                 }}
               >
                 International Consortium of Jurists
@@ -91,14 +91,13 @@ export default function InstitutionalBrandHeader() {
               <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
                 <Typography
                   sx={{
-                    fontSize: { xs: "0.68rem", sm: "0.75rem", md: "0.8rem" },
-                    fontWeight: 800,
+                    fontSize: { xs: "0.75rem", sm: "0.8125rem" },
+                    fontWeight: 700,
                     color: "#b45309",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
                   }}
                 >
-                  JUSTICE • INTEGRITY • HUMANITY
+                  Justice • Integrity • Humanity
                 </Typography>
 
                 <Box
@@ -113,7 +112,7 @@ export default function InstitutionalBrandHeader() {
 
                 <Typography
                   sx={{
-                    fontSize: "0.72rem",
+                    fontSize: "0.75rem",
                     fontWeight: 600,
                     color: "#64748b",
                     display: { xs: "none", md: "inline" },
@@ -146,10 +145,10 @@ export default function InstitutionalBrandHeader() {
             >
               <SecurityOutlinedIcon sx={{ color: "#059669", fontSize: 26 }} />
               <Box>
-                <Typography sx={{ fontSize: "0.72rem", fontWeight: 800, color: "#0f172a" }}>
+                <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: "#0f172a" }}>
                   Empaneled Jurists Registry
                 </Typography>
-                <Typography sx={{ fontSize: "0.65rem", color: "#64748b" }}>
+                <Typography sx={{ fontSize: "0.75rem", color: "#64748b" }}>
                   ISO 9001:2015 Audited Legal Aid
                 </Typography>
               </Box>
@@ -174,11 +173,34 @@ export default function InstitutionalBrandHeader() {
                 "&:hover": { borderColor: "#1e3a5f", bgcolor: "#f0f4f8", color: "#1e3a5f" },
               }}
             >
-              Member Login
+              Login
             </Button>
 
             {/* Seek Legal Assistance — primary CTA */}
             <Button
+              component={Link}
+              href="/join"
+              variant="contained"
+              startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                bgcolor: "#0f2942",
+                color: "#ffffff",
+                fontWeight: 800,
+                fontSize: "0.875rem",
+                textTransform: "none",
+                px: 2.5,
+                py: 1,
+                borderRadius: 2,
+                boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
+                whiteSpace: "nowrap",
+                borderBottom: "3px solid #b45309",
+                "&:hover": { bgcolor: "#1e3a5f" },
+              }}
+            >
+              Register as Professional
+            </Button>
+
+            {/* <Button
               component={Link}
               href="/assistance"
               variant="contained"
@@ -199,7 +221,7 @@ export default function InstitutionalBrandHeader() {
               }}
             >
               Seek Legal Assistance
-            </Button>
+            </Button> */}
           </Stack>
         </Stack>
       </Container>
