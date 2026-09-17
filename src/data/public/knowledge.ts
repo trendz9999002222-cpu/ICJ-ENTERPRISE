@@ -1,3 +1,4 @@
+import { maskStaticDataset } from "@/lib/privacy/maskStaticDataset";
 import type {
   ChapterInfo,
   DonationVerification,
@@ -9,7 +10,7 @@ import type {
   VolunteerProgram,
 } from "@/types/public";
 
-export const mockKnowledgeItems: KnowledgeItem[] = [
+const mockKnowledgeItemsRaw: KnowledgeItem[] = [
   {
     id: "know-1",
     title: "Guide to Filing Consumer Complaints Online via e-Daakhil Portal",
@@ -51,6 +52,8 @@ export const mockKnowledgeItems: KnowledgeItem[] = [
     readingTime: "10 min read",
   },
 ];
+
+export const mockKnowledgeItems = maskStaticDataset(mockKnowledgeItemsRaw);
 
 export const mockMembershipTiers: MembershipTierInfo[] = [
   {
@@ -195,7 +198,7 @@ export const mockSocialImpactPrograms: SocialImpactProgram[] = [
   },
 ];
 
-export const mockChapters: ChapterInfo[] = [
+const mockChaptersRaw: ChapterInfo[] = [
   {
     id: "chap-1",
     name: "ICJ National Chapter — Northern Region",
@@ -263,7 +266,7 @@ export const mockMediaItems: MediaItem[] = [
   },
 ];
 
-export const mockCertificates: Record<string, CertificateVerification> = {
+const mockCertificatesRaw: Record<string, CertificateVerification> = {
   "ICJ-CERT-2026-001": {
     certificateNumber: "ICJ-CERT-2026-001",
     recipientName: "Adv. Rajesh V. Sharma",
@@ -286,7 +289,7 @@ export const mockCertificates: Record<string, CertificateVerification> = {
   },
 };
 
-export const mockDonationReceipts: Record<string, DonationVerification> = {
+const mockDonationReceiptsRaw: Record<string, DonationVerification> = {
   "ICJ-DON-84920": {
     receiptNumber: "ICJ-DON-84920",
     donorInitials: "R. K. S.",
@@ -304,3 +307,7 @@ export const mockDonationReceipts: Record<string, DonationVerification> = {
     taxExemptionEligible: true,
   },
 };
+
+export const mockChapters = maskStaticDataset(mockChaptersRaw);
+export const mockCertificates = maskStaticDataset(mockCertificatesRaw);
+export const mockDonationReceipts = maskStaticDataset(mockDonationReceiptsRaw);

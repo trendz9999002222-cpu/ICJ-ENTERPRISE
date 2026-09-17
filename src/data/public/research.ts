@@ -1,6 +1,7 @@
+import { maskStaticDataset } from "@/lib/privacy/maskStaticDataset";
 import type { AcademyCourse, ResearchPaper, TrainingEvent } from "@/types/public";
 
-export const mockResearchPapers: ResearchPaper[] = [
+const mockResearchPapersRaw: ResearchPaper[] = [
   {
     id: "res-1",
     title: "Access to Justice in the Digital Era: A Socio-Legal Analysis of E-Courts and ODR Mechanisms",
@@ -51,7 +52,9 @@ export const mockResearchPapers: ResearchPaper[] = [
   },
 ];
 
-export const mockAcademyCourses: AcademyCourse[] = [
+export const mockResearchPapers = maskStaticDataset(mockResearchPapersRaw);
+
+const mockAcademyCoursesRaw: AcademyCourse[] = [
   {
     id: "acad-1",
     title: "Certificate in Institutional Mediation & Commercial Negotiation",
@@ -98,7 +101,9 @@ export const mockAcademyCourses: AcademyCourse[] = [
   },
 ];
 
-export const mockTrainingEvents: TrainingEvent[] = [
+export const mockAcademyCourses = maskStaticDataset(mockAcademyCoursesRaw);
+
+const mockTrainingEventsRaw: TrainingEvent[] = [
   {
     id: "event-1",
     title: "National Symposium on Alternative Dispute Resolution & Judicial Ease",
@@ -126,3 +131,5 @@ export const mockTrainingEvents: TrainingEvent[] = [
     registrationOpen: true,
   },
 ];
+
+export const mockTrainingEvents = maskStaticDataset(mockTrainingEventsRaw);

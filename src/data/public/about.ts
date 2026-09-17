@@ -1,3 +1,5 @@
+import { maskStaticDataset } from "@/lib/privacy/maskStaticDataset";
+
 export type LeadershipMember = {
   name: string;
   role: string;
@@ -5,7 +7,7 @@ export type LeadershipMember = {
   bio: string;
 };
 
-export const aboutData = {
+const aboutDataRaw = {
   hero: {
     title: "International Consortium of Jurists",
     tagline: "Justice • Knowledge • Service • Integrity",
@@ -87,3 +89,5 @@ export const aboutData = {
     },
   ],
 };
+
+export const aboutData = maskStaticDataset(aboutDataRaw);
