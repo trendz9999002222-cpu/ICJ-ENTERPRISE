@@ -1,9 +1,13 @@
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import DescriptionIcon from "@mui/icons-material/Description";
+import ElderlyIcon from "@mui/icons-material/Elderly";
+import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import GavelIcon from "@mui/icons-material/Gavel";
 import GroupsIcon from "@mui/icons-material/Groups";
 import HandshakeIcon from "@mui/icons-material/Handshake";
+import HeadsetIcon from "@mui/icons-material/Headset";
 import HomeWorkIcon from "@mui/icons-material/HomeWork";
 import LaptopMacIcon from "@mui/icons-material/LaptopMac";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
@@ -12,6 +16,11 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import PersonIcon from "@mui/icons-material/Person";
 import SchoolIcon from "@mui/icons-material/School";
 import SearchIcon from "@mui/icons-material/Search";
+import SettingsIcon from "@mui/icons-material/Settings";
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import StorageIcon from "@mui/icons-material/Storage";
+import TranslateIcon from "@mui/icons-material/Translate";
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import WorkIcon from "@mui/icons-material/Work";
 import type { SvgIconComponent } from "@mui/icons-material";
 
@@ -33,6 +42,15 @@ export const ICON_MAP: Record<IconKey, SvgIconComponent> = {
   work: WorkIcon,
   school: SchoolIcon,
   more: MoreHorizIcon,
+  translate: TranslateIcon,
+  folder: FolderCopyIcon,
+  assignment: AssignmentIcon,
+  volunteer: VolunteerActivismIcon,
+  elderly: ElderlyIcon,
+  shield: ShieldOutlinedIcon,
+  storage: StorageIcon,
+  settings: SettingsIcon,
+  headset: HeadsetIcon,
 };
 
 export function resolveIcon(key?: IconKey): SvgIconComponent {

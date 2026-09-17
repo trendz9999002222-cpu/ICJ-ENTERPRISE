@@ -6,11 +6,15 @@ import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
 import { Avatar, Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 
-import { publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
+import {
+  maskPublicProfessional,
+  publicProfessionalInitials,
+} from "@/lib/privacy/maskPublicIdentity";
 import type { PublicProfessional } from "@/types/public";
 
 export default function ProfessionalCard({ professional }: { professional: PublicProfessional }) {
-  const initials = publicProfessionalInitials(professional.fullName);
+  const display = maskPublicProfessional(professional);
+  const initials = publicProfessionalInitials(display.fullName);
 
   return (
     <Paper
@@ -61,7 +65,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
                 }}
                 noWrap
               >
-                {professional.fullName}
+                {display.fullName}
               </Typography>
               {professional.isVerified && (
                 <CheckCircleIcon sx={{ fontSize: 16, color: "#16a34a", flexShrink: 0 }} />
@@ -72,9 +76,9 @@ export default function ProfessionalCard({ professional }: { professional: Publi
               {professional.profession}
             </Typography>
 
-            {professional.barOrRegNumber && (
+            {display.barOrRegNumber && (
               <Typography variant="caption" sx={{ color: "#94a3b8", display: "block" }}>
-                Reg: {professional.barOrRegNumber}
+                Reg: {display.barOrRegNumber}
               </Typography>
             )}
           </Box>

@@ -24,6 +24,7 @@ import WorkIcon from "@mui/icons-material/Work";
 import PageHeader from "@/components/features/public/PageHeader";
 import Pagination from "@/components/features/public/Pagination";
 import EmptyState from "@/components/features/public/EmptyState";
+import { maskPublicProfessional, publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
 import { professionalService } from "@/services/public";
 import type { PublicProfessional, PublicPaginatedResponse } from "@/types/public";
 import Link from "next/link";
@@ -158,7 +159,9 @@ export default function DirectoryPage() {
             </Box>
 
             <Grid container spacing={2.5}>
-              {data.results.map((prof) => (
+              {data.results.map((prof) => {
+                const display = maskPublicProfessional(prof);
+                return (
                 <Grid size={{ xs: 12, sm: 6, md: 4 }} key={prof.id}>
                   <Card
                     elevation={0}
@@ -190,12 +193,12 @@ export default function DirectoryPage() {
                             flexShrink: 0,
                           }}
                         >
-                          {prof.fullName.split(" ").filter(w => w.match(/[A-Z]/)).slice(0, 2).map(w => w[0]).join("")}
+                          {publicProfessionalInitials(display.fullName)}
                         </Avatar>
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 0.3 }}>
                             <Typography sx={{ fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>
-                              {prof.fullName}
+                              {display.fullName}
                             </Typography>
                             {prof.isVerified && (
                               <VerifiedIcon sx={{ color: "#2563eb", fontSize: 16, flexShrink: 0 }} />
@@ -227,7 +230,7 @@ export default function DirectoryPage() {
                         <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                           <WorkIcon sx={{ color: "#94a3b8", fontSize: 14 }} />
                           <Typography variant="caption" sx={{ color: "#64748b" }}>
-                            {prof.experienceYears} yrs · {prof.barOrRegNumber || "ICJ Verified"}
+                            {prof.experienceYears} yrs · {display.barOrRegNumber || "ICJ Verified"}
                           </Typography>
                         </Box>
                       </Stack>
@@ -272,7 +275,8 @@ export default function DirectoryPage() {
                     </Button>
                   </Card>
                 </Grid>
-              ))}
+                );
+              })}
             </Grid>
 
             <Box sx={{ mt: 4 }}>

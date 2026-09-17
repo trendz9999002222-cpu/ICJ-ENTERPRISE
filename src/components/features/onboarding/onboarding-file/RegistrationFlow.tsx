@@ -497,6 +497,36 @@ export default function RegistrationFlow() {
           </Alert>
         )}
 
+        {currentStep === "group" && (() => {
+          const otherGroup = groups.find((g) => g.id.startsWith("other-") || g.code === "06");
+          const noteText =
+            state.categoryId === "legal-research-doc"
+              ? 'Note: If your professional group is not listed in the available options, you can select "Other Legal Research / Documentation Professional" and enter your details in the next step.'
+              : state.categoryId === "dispute-adr"
+              ? 'If your professional group is not listed above, you can select "Other ADR Professional" and specify your group in the next step.'
+              : otherGroup
+              ? `Note: If your professional group is not listed in the available options, you can select "${otherGroup.title}" and enter your details in the next step.`
+              : null;
+
+          if (!noteText) return null;
+
+          return (
+            <Alert
+              icon={<InfoOutlinedIcon fontSize="small" />}
+              sx={{
+                mt: 3,
+                bgcolor: "#eff6ff",
+                color: "#1e40af",
+                border: "1px solid #bfdbfe",
+                borderRadius: RADIUS.md,
+                fontSize: "0.82rem",
+              }}
+            >
+              {noteText}
+            </Alert>
+          );
+        })()}
+
         <Stack
           direction={{ xs: "column-reverse", sm: "row" }}
           spacing={1.5}

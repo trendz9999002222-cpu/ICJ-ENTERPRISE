@@ -317,15 +317,20 @@
       "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
       "groups": [
         {
-          "id": "arbitrators", "code": "01", "title": "Arbitrators",
-          "description": "Sole Arbitrator, Panel Arbitrator, Institutional Arbitrator and more",
-          "icon": "gavel", "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
-          "formId": "default", "sidebarId": "default",
+          "id": "arbitration",
+          "code": "01",
+          "title": "Arbitration",
+          "description": "Arbitrator, Sole Arbitrator, Arbitral Tribunal Member and more",
+          "icon": "gavel",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "specialisation", "details", "documents", "review"],
           "professions": [
-            { "id": "sole", "title": "Sole Arbitrator" },
-            { "id": "panel", "title": "Panel Arbitrator" },
-            { "id": "institutional", "title": "Institutional Arbitrator" },
+            { "id": "arbitrator", "title": "Arbitrator" },
+            { "id": "sole-arbitrator", "title": "Sole Arbitrator" },
+            { "id": "tribunal-member", "title": "Arbitral Tribunal Member" },
+            { "id": "institutional-arbitrator", "title": "Institutional Arbitrator" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": [
@@ -336,26 +341,88 @@
           ]
         },
         {
-          "id": "mediators", "code": "02", "title": "Mediators & Conciliators",
-          "description": "Court-annexed Mediator, Private Mediator, Conciliator and more",
-          "icon": "handshake", "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
-          "formId": "default", "sidebarId": "default",
+          "id": "mediation",
+          "code": "02",
+          "title": "Mediation",
+          "description": "Mediator, Court-Annexed Mediator, Private Mediator and more",
+          "icon": "handshake",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "court-mediator", "title": "Court-annexed Mediator" },
+            { "id": "mediator", "title": "Mediator" },
+            { "id": "court-annexed-mediator", "title": "Court-Annexed Mediator" },
             { "id": "private-mediator", "title": "Private Mediator" },
-            { "id": "conciliator", "title": "Conciliator" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "negotiation", "code": "03", "title": "Negotiation & Settlement",
-          "description": "Negotiation Experts, Settlement Advisors, Lok Adalat Panel Members and more",
-          "icon": "people", "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
-          "formId": "default", "sidebarId": "default",
+          "id": "conciliation",
+          "code": "03",
+          "title": "Conciliation",
+          "description": "Conciliator, Conciliation Professional and more",
+          "icon": "document",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "conciliator", "title": "Conciliator" },
+            { "id": "conciliation-professional", "title": "Conciliation Professional" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "negotiation",
+          "code": "04",
+          "title": "Negotiation",
+          "description": "Negotiation Professional, Dispute Resolution Consultant and more",
+          "icon": "people",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "negotiation-professional", "title": "Negotiation Professional" },
+            { "id": "dispute-resolution-consultant", "title": "Dispute Resolution Consultant" },
+            { "id": "settlement-advisor", "title": "Settlement Advisor" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "adr-support",
+          "code": "05",
+          "title": "ADR Support",
+          "description": "ADR Consultant, ADR Researcher, ADR Case Manager and more",
+          "icon": "library",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "adr-consultant", "title": "ADR Consultant" },
+            { "id": "adr-researcher", "title": "ADR Researcher" },
+            { "id": "adr-case-manager", "title": "ADR Case Manager" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-adr",
+          "code": "06",
+          "title": "Other ADR Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -369,15 +436,21 @@
       "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
       "groups": [
         {
-          "id": "chartered-accountants", "code": "01", "title": "Chartered Accountants",
-          "description": "CA in practice, Audit Professionals, Statutory Auditors and more",
-          "icon": "chart", "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
-          "formId": "default", "sidebarId": "default",
+          "id": "accounting",
+          "code": "01",
+          "title": "Accounting",
+          "description": "Chartered Accountant, Cost & Management Accountant, Accountant and more",
+          "icon": "chart",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "specialisation", "details", "documents", "review"],
           "professions": [
+            { "id": "chartered-accountant", "title": "Chartered Accountant" },
+            { "id": "cost-management-accountant", "title": "Cost & Management Accountant" },
+            { "id": "accountant", "title": "Accountant" },
             { "id": "ca-practice", "title": "Chartered Accountant (Practice)" },
             { "id": "ca-employment", "title": "Chartered Accountant (Employment)" },
-            { "id": "auditor", "title": "Statutory / Internal Auditor" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": [
@@ -388,12 +461,19 @@
           ]
         },
         {
-          "id": "company-secretaries", "code": "02", "title": "Company Secretaries",
-          "description": "CS in practice, Corporate Governance and Compliance Professionals",
-          "icon": "document", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "corporate-secretarial",
+          "code": "02",
+          "title": "Corporate Secretarial",
+          "description": "Company Secretary, Corporate Compliance Professional, Secretarial Professional and more",
+          "icon": "bank",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
+            { "id": "company-secretary", "title": "Company Secretary" },
+            { "id": "corporate-compliance", "title": "Corporate Compliance Professional" },
+            { "id": "secretarial-professional", "title": "Secretarial Professional" },
             { "id": "cs-practice", "title": "Company Secretary (Practice)" },
             { "id": "cs-employment", "title": "Company Secretary (Employment)" },
             { "id": "other", "title": "Other" }
@@ -401,31 +481,74 @@
           "specialisations": []
         },
         {
-          "id": "insolvency", "code": "03", "title": "Insolvency & Valuation",
-          "description": "Insolvency Professionals, Registered Valuers, Liquidators and more",
-          "icon": "bank", "theme": { "color": "#9a3412", "bg": "#fff7ed", "border": "#fed7aa" },
-          "formId": "default", "sidebarId": "default",
+          "id": "taxation",
+          "code": "03",
+          "title": "Taxation",
+          "description": "Income Tax Consultant, GST Consultant, Tax Consultant, Customs / Indirect Tax Professional and more",
+          "icon": "chart",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "ip", "title": "Insolvency Professional" },
-            { "id": "valuer", "title": "Registered Valuer" },
+            { "id": "income-tax-consultant", "title": "Income Tax Consultant" },
+            { "id": "gst-consultant", "title": "GST Consultant" },
+            { "id": "tax-consultant", "title": "Tax Consultant" },
+            { "id": "customs-indirect-tax", "title": "Customs / Indirect Tax Professional" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "insolvency",
+          "code": "04",
+          "title": "Insolvency",
+          "description": "Insolvency Professional, Insolvency Consultant, Resolution Professional Support and more",
+          "icon": "chart",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "insolvency-professional", "title": "Insolvency Professional" },
+            { "id": "insolvency-consultant", "title": "Insolvency Consultant" },
+            { "id": "resolution-professional-support", "title": "Resolution Professional Support" },
+            { "id": "registered-valuer", "title": "Registered Valuer" },
             { "id": "liquidator", "title": "Liquidator" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "tax-consultants", "code": "04", "title": "Tax Consultants",
-          "description": "Income Tax Practitioners, GST Practitioners, Customs Consultants and more",
-          "icon": "chart", "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
-          "formId": "default", "sidebarId": "default",
+          "id": "audit-investigation",
+          "code": "05",
+          "title": "Audit & Investigation",
+          "description": "Auditor, Forensic Accountant, Financial Due-Diligence Professional and more",
+          "icon": "search",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "itp", "title": "Income Tax Practitioner" },
-            { "id": "gstp", "title": "GST Practitioner" },
-            { "id": "customs", "title": "Customs & Trade Consultant" },
+            { "id": "auditor", "title": "Auditor" },
+            { "id": "forensic-accountant", "title": "Forensic Accountant" },
+            { "id": "financial-due-diligence", "title": "Financial Due-Diligence Professional" },
+            { "id": "statutory-internal-auditor", "title": "Statutory / Internal Auditor" },
             { "id": "other", "title": "Other" }
           ],
+          "specialisations": []
+        },
+        {
+          "id": "other-corporate-finance",
+          "code": "06",
+          "title": "Other Corporate / Finance Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "details", "documents", "review"],
+          "professions": [],
           "specialisations": []
         }
       ]
@@ -440,15 +563,21 @@
       "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
       "groups": [
         {
-          "id": "patent-agents", "code": "01", "title": "Patent Professionals",
-          "description": "Registered Patent Agents, Patent Attorneys, Patent Analysts and more",
-          "icon": "lightbulb", "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
-          "formId": "default", "sidebarId": "default",
+          "id": "patent",
+          "code": "01",
+          "title": "Patent",
+          "description": "Patent Agent, Patent Professional, Patent Consultant and more",
+          "icon": "lightbulb",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "specialisation", "details", "documents", "review"],
           "professions": [
-            { "id": "patent-agent", "title": "Registered Patent Agent" },
+            { "id": "patent-agent", "title": "Patent Agent" },
+            { "id": "patent-professional", "title": "Patent Professional" },
+            { "id": "patent-consultant", "title": "Patent Consultant" },
+            { "id": "registered-patent-agent", "title": "Registered Patent Agent" },
             { "id": "patent-attorney", "title": "Patent Attorney" },
-            { "id": "patent-analyst", "title": "Patent Analyst / Searcher" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": [
@@ -459,26 +588,93 @@
           ]
         },
         {
-          "id": "trademark-copyright", "code": "02", "title": "Trademark & Copyright",
-          "description": "Trademark Agents, Copyright Consultants, Design Registration Experts and more",
-          "icon": "document", "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "trademark",
+          "code": "02",
+          "title": "Trademark",
+          "description": "Trademark Professional, Trademark Consultant, Trademark Agent and more",
+          "icon": "document",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "tm-agent", "title": "Trademark Agent" },
-            { "id": "copyright", "title": "Copyright Consultant" },
-            { "id": "design", "title": "Design Registration Expert" },
+            { "id": "trademark-professional", "title": "Trademark Professional" },
+            { "id": "trademark-consultant", "title": "Trademark Consultant" },
+            { "id": "trademark-agent", "title": "Trademark Agent" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "regulatory", "code": "03", "title": "Regulatory & Compliance",
-          "description": "Regulatory Affairs, Compliance Officers, Licensing Consultants and more",
-          "icon": "bank", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "copyright-design",
+          "code": "03",
+          "title": "Copyright & Design",
+          "description": "Copyright Professional, Design Professional, IP Consultant and more",
+          "icon": "document",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "copyright-professional", "title": "Copyright Professional" },
+            { "id": "design-professional", "title": "Design Professional" },
+            { "id": "ip-consultant", "title": "IP Consultant" },
+            { "id": "copyright-consultant", "title": "Copyright Consultant" },
+            { "id": "design-registration-expert", "title": "Design Registration Expert" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "regulatory",
+          "code": "04",
+          "title": "Regulatory",
+          "description": "Regulatory Consultant, Compliance Professional, Competition Law Professional and more",
+          "icon": "bank",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "regulatory-consultant", "title": "Regulatory Consultant" },
+            { "id": "compliance-professional", "title": "Compliance Professional" },
+            { "id": "competition-law-professional", "title": "Competition Law Professional" },
+            { "id": "licensing-consultant", "title": "Licensing Consultant" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "technology-regulation",
+          "code": "05",
+          "title": "Technology Regulation",
+          "description": "Data Protection Professional, Privacy Consultant, FEMA Professional, Foreign Trade Professional and more",
+          "icon": "laptop",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "data-protection-professional", "title": "Data Protection Professional" },
+            { "id": "privacy-consultant", "title": "Privacy Consultant" },
+            { "id": "fema-professional", "title": "FEMA Professional" },
+            { "id": "foreign-trade-professional", "title": "Foreign Trade Professional" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-ip-regulatory",
+          "code": "06",
+          "title": "Other IP / Regulatory Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -492,16 +688,23 @@
       "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
       "groups": [
         {
-          "id": "forensic-experts", "code": "01", "title": "Forensic Science Experts",
-          "description": "Handwriting, Ballistics, DNA, Toxicology and Document Examiners",
-          "icon": "search", "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "forensic",
+          "code": "01",
+          "title": "Forensic",
+          "description": "Forensic Expert, Digital Forensic Expert, Cyber Forensic Expert, Document Expert and more",
+          "icon": "search",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "specialisation", "details", "documents", "review"],
           "professions": [
-            { "id": "handwriting", "title": "Handwriting & Document Examiner" },
-            { "id": "ballistics", "title": "Ballistics Expert" },
-            { "id": "dna", "title": "DNA / Serology Expert" },
-            { "id": "toxicology", "title": "Toxicology Expert" },
+            { "id": "forensic-expert", "title": "Forensic Expert" },
+            { "id": "digital-forensic-expert", "title": "Digital Forensic Expert" },
+            { "id": "cyber-forensic-expert", "title": "Cyber Forensic Expert" },
+            { "id": "document-expert", "title": "Document Expert" },
+            { "id": "handwriting-examiner", "title": "Handwriting & Document Examiner" },
+            { "id": "ballistics-expert", "title": "Ballistics Expert" },
+            { "id": "dna-serology-expert", "title": "DNA / Serology Expert" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": [
@@ -511,39 +714,95 @@
           ]
         },
         {
-          "id": "investigators", "code": "02", "title": "Investigators",
-          "description": "Private Detectives, Fraud Investigators, Corporate Investigators and more",
-          "icon": "search", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "investigation",
+          "code": "02",
+          "title": "Investigation",
+          "description": "Private Investigator, Corporate Investigator, Fraud Investigator and more",
+          "icon": "search",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
+            { "id": "private-investigator", "title": "Private Investigator" },
+            { "id": "corporate-investigator", "title": "Corporate Investigator" },
+            { "id": "fraud-investigator", "title": "Fraud Investigator" },
             { "id": "private-detective", "title": "Private Detective" },
-            { "id": "fraud", "title": "Fraud Investigator" },
-            { "id": "corporate", "title": "Corporate Investigator" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "cyber-experts", "code": "03", "title": "Cyber & Digital Forensics",
-          "description": "Cyber Forensic Analysts, Digital Evidence Experts, Data Recovery Specialists",
-          "icon": "laptop", "theme": { "color": "#166534", "bg": "#f0fdf4", "border": "#bbf7d0" },
-          "formId": "default", "sidebarId": "default",
+          "id": "digital-evidence",
+          "code": "03",
+          "title": "Digital Evidence",
+          "description": "Cyber Security Expert, Electronic Evidence Expert, Audio/Video Forensic Expert and more",
+          "icon": "laptop",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "cyber-forensics", "title": "Cyber Forensic Analyst" },
-            { "id": "digital-evidence", "title": "Digital Evidence Expert" },
+            { "id": "cyber-security-expert", "title": "Cyber Security Expert" },
+            { "id": "electronic-evidence-expert", "title": "Electronic Evidence Expert" },
+            { "id": "audio-video-forensic-expert", "title": "Audio/Video Forensic Expert" },
+            { "id": "cyber-forensic-analyst", "title": "Cyber Forensic Analyst" },
+            { "id": "data-recovery-specialist", "title": "Data Recovery Specialist" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "medical-experts", "code": "04", "title": "Medical & Scientific Experts",
-          "description": "Medico-legal Experts, Psychiatrists, Scientific Expert Witnesses and more",
-          "icon": "people", "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
-          "formId": "default", "sidebarId": "default",
+          "id": "scientific",
+          "code": "04",
+          "title": "Scientific",
+          "description": "Scientific Expert, Environmental Expert, Technical Expert and more",
+          "icon": "school",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "scientific-expert", "title": "Scientific Expert" },
+            { "id": "environmental-expert", "title": "Environmental Expert" },
+            { "id": "technical-expert", "title": "Technical Expert" },
+            { "id": "expert-witness", "title": "Scientific Expert Witness" },
+            { "id": "toxicology-expert", "title": "Toxicology Expert" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "medical-forensic",
+          "code": "05",
+          "title": "Medical / Forensic",
+          "description": "Medico-Legal Expert, Forensic Medicine Expert, Medical Expert and more",
+          "icon": "person",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "medico-legal-expert", "title": "Medico-Legal Expert" },
+            { "id": "forensic-medicine-expert", "title": "Forensic Medicine Expert" },
+            { "id": "medical-expert", "title": "Medical Expert" },
+            { "id": "psychiatrist-expert", "title": "Psychiatrist (Expert Witness)" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-expert-professional",
+          "code": "06",
+          "title": "Other Expert Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -609,39 +868,114 @@
       "theme": { "color": "#9f1239", "bg": "#fdf2f8", "border": "#fbcfe8" },
       "groups": [
         {
-          "id": "researchers", "code": "01", "title": "Legal Researchers",
-          "description": "Legal Research Associates, Academic Researchers, Policy Researchers and more",
-          "icon": "library", "theme": { "color": "#9f1239", "bg": "#fdf2f8", "border": "#fbcfe8" },
-          "formId": "default", "sidebarId": "default",
+          "id": "research",
+          "code": "01",
+          "title": "Research",
+          "description": "Legal Researcher, Law Research Associate, Legal Research Consultant and more",
+          "icon": "library",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "research-associate", "title": "Legal Research Associate" },
-            { "id": "academic", "title": "Academic Researcher" },
-            { "id": "policy", "title": "Policy Researcher" },
+            { "id": "legal-researcher", "title": "Legal Researcher" },
+            { "id": "law-research-associate", "title": "Law Research Associate" },
+            { "id": "legal-research-consultant", "title": "Legal Research Consultant" },
+            { "id": "academic-legal-researcher", "title": "Academic Legal Researcher" },
+            { "id": "policy-researcher", "title": "Policy Researcher" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "drafting", "code": "02", "title": "Drafting & Documentation",
-          "description": "Deed Writers, Contract Drafting Experts, Documentation Specialists and more",
-          "icon": "document", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "drafting",
+          "code": "02",
+          "title": "Drafting",
+          "description": "Legal Drafting Professional, Contract Drafting Professional, Deed Drafting Professional and more",
+          "icon": "assignment",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
+            { "id": "legal-drafting-professional", "title": "Legal Drafting Professional" },
+            { "id": "contract-drafting-professional", "title": "Contract Drafting Professional" },
+            { "id": "deed-drafting-professional", "title": "Deed Drafting Professional" },
             { "id": "deed-writer", "title": "Deed Writer" },
-            { "id": "contract-drafting", "title": "Contract Drafting Expert" },
+            { "id": "pleadings-conveyancing-specialist", "title": "Pleadings & Conveyancing Specialist" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "translators", "code": "03", "title": "Translators & Record Managers",
-          "description": "Legal Translators, Transcribers, Court Record Managers and more",
-          "icon": "library", "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "translation",
+          "code": "03",
+          "title": "Translation",
+          "description": "Legal Translator, Legal Interpreter, Court Interpreter and more",
+          "icon": "translate",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "legal-translator", "title": "Legal Translator" },
+            { "id": "legal-interpreter", "title": "Legal Interpreter" },
+            { "id": "court-interpreter", "title": "Court Interpreter" },
+            { "id": "legal-transcriber", "title": "Legal Transcriber" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "records-documentation",
+          "code": "04",
+          "title": "Records & Documentation",
+          "description": "Legal Documentation Professional, Legal Record Manager, Document Management Professional and more",
+          "icon": "folder",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "legal-documentation-professional", "title": "Legal Documentation Professional" },
+            { "id": "legal-record-manager", "title": "Legal Record Manager" },
+            { "id": "document-management-professional", "title": "Document Management Professional" },
+            { "id": "court-record-manager", "title": "Court Record Manager" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "legal-education",
+          "code": "05",
+          "title": "Legal Education",
+          "description": "Law Teacher / Educator, Legal Trainer, Legal Training Professional and more",
+          "icon": "school",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "law-teacher-educator", "title": "Law Teacher / Educator" },
+            { "id": "legal-trainer", "title": "Legal Trainer" },
+            { "id": "legal-training-professional", "title": "Legal Training Professional" },
+            { "id": "clinical-legal-educator", "title": "Clinical Legal Educator" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-research-doc",
+          "code": "06",
+          "title": "Other Research / Documentation Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -655,39 +989,114 @@
       "theme": { "color": "#1e40af", "bg": "#eff6ff", "border": "#bfdbfe" },
       "groups": [
         {
-          "id": "public-law", "code": "01", "title": "Public Law & Policy",
-          "description": "Public Law Experts, Policy Advisors, Legislative Drafting Experts and more",
-          "icon": "bank", "theme": { "color": "#1e40af", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "public-law",
+          "code": "01",
+          "title": "Public Law",
+          "description": "Public Law Professional, Constitutional Law Researcher, Administrative Law Professional and more",
+          "icon": "bank",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "public-law-expert", "title": "Public Law Expert" },
+            { "id": "public-law-professional", "title": "Public Law Professional" },
+            { "id": "constitutional-law-researcher", "title": "Constitutional Law Researcher" },
+            { "id": "administrative-law-professional", "title": "Administrative Law Professional" },
+            { "id": "legislative-drafting-expert", "title": "Legislative Drafting Expert" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "human-rights",
+          "code": "02",
+          "title": "Human Rights",
+          "description": "Human Rights Professional, Human Rights Researcher, Human Rights Consultant and more",
+          "icon": "people",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "human-rights-professional", "title": "Human Rights Professional" },
+            { "id": "human-rights-researcher", "title": "Human Rights Researcher" },
+            { "id": "human-rights-consultant", "title": "Human Rights Consultant" },
+            { "id": "human-rights-defender", "title": "Human Rights Defender" },
+            { "id": "ngo-legal-officer", "title": "NGO Legal Officer" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "legal-aid",
+          "code": "03",
+          "title": "Legal Aid",
+          "description": "Legal Aid Professional, Legal Aid Volunteer, Legal Service Coordinator and more",
+          "icon": "volunteer",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "legal-aid-professional", "title": "Legal Aid Professional" },
+            { "id": "legal-aid-volunteer", "title": "Legal Aid Volunteer" },
+            { "id": "legal-service-coordinator", "title": "Legal Service Coordinator" },
+            { "id": "paralegal-volunteer", "title": "Paralegal Volunteer" },
+            { "id": "lok-adalat-support", "title": "Lok Adalat Support" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "governance",
+          "code": "04",
+          "title": "Governance",
+          "description": "Governance Consultant, Public Policy Professional, Regulatory Governance Professional and more",
+          "icon": "document",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "governance-consultant", "title": "Governance Consultant" },
+            { "id": "public-policy-professional", "title": "Public Policy Professional" },
+            { "id": "regulatory-governance-professional", "title": "Regulatory Governance Professional" },
             { "id": "policy-advisor", "title": "Policy Advisor" },
-            { "id": "legislative-drafting", "title": "Legislative Drafting Expert" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "human-rights", "code": "02", "title": "Human Rights & Social Justice",
-          "description": "Human Rights Defenders, NGO Legal Officers, Social Justice Advocates and more",
-          "icon": "people", "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
-          "formId": "default", "sidebarId": "default",
+          "id": "retired-experienced",
+          "code": "05",
+          "title": "Retired / Experienced Professionals",
+          "description": "Retired Judicial Professional, Retired Government Officer, Subject Matter Expert and more",
+          "icon": "elderly",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "hr-defender", "title": "Human Rights Defender" },
-            { "id": "ngo-legal", "title": "NGO Legal Officer" },
+            { "id": "retired-judicial-professional", "title": "Retired Judicial Professional" },
+            { "id": "retired-government-officer", "title": "Retired Government Officer" },
+            { "id": "subject-matter-expert", "title": "Subject Matter Expert" },
+            { "id": "former-tribunal-member", "title": "Former Tribunal Member" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "legal-aid", "code": "03", "title": "Legal Aid & Paralegal Volunteers",
-          "description": "Legal Aid Counsel, Paralegal Volunteers, Lok Adalat Support and more",
-          "icon": "people", "theme": { "color": "#9a3412", "bg": "#fff7ed", "border": "#fed7aa" },
-          "formId": "default", "sidebarId": "default",
+          "id": "other-public-justice",
+          "code": "06",
+          "title": "Other Public / Social Justice Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -701,39 +1110,113 @@
       "theme": { "color": "#166534", "bg": "#f0fdf4", "border": "#bbf7d0" },
       "groups": [
         {
-          "id": "legal-tech", "code": "01", "title": "Legal Technology Professionals",
-          "description": "Legal-Tech Product Experts, Automation Specialists, e-Discovery Experts and more",
-          "icon": "laptop", "theme": { "color": "#166534", "bg": "#f0fdf4", "border": "#bbf7d0" },
-          "formId": "default", "sidebarId": "default",
+          "id": "legal-tech",
+          "code": "01",
+          "title": "Legal-Tech",
+          "description": "Legal-Tech Professional, Legal Software Consultant, Legal Process Consultant and more",
+          "icon": "laptop",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "legaltech-specialist", "title": "Legal-Tech Specialist" },
-            { "id": "ediscovery", "title": "e-Discovery Expert" },
-            { "id": "automation", "title": "Legal Automation Specialist" },
+            { "id": "legal-tech-professional", "title": "Legal-Tech Professional" },
+            { "id": "legal-software-consultant", "title": "Legal Software Consultant" },
+            { "id": "legal-process-consultant", "title": "Legal Process Consultant" },
+            { "id": "legal-automation-specialist", "title": "Legal Automation Specialist" },
+            { "id": "ediscovery-expert", "title": "e-Discovery Expert" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "cyber-law", "code": "02", "title": "Cyber Law & Data Protection",
-          "description": "Cyber Law Experts, Data Protection Officers, Privacy Consultants and more",
-          "icon": "search", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "cyber",
+          "code": "02",
+          "title": "Cyber",
+          "description": "Cyber Security Professional, Cyber Law Technology Specialist, Digital Evidence Specialist and more",
+          "icon": "shield",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "cyber-law-expert", "title": "Cyber Law Expert" },
-            { "id": "dpo", "title": "Data Protection Officer" },
+            { "id": "cyber-security-professional", "title": "Cyber Security Professional" },
+            { "id": "cyber-law-technology-specialist", "title": "Cyber Law Technology Specialist" },
+            { "id": "digital-evidence-specialist", "title": "Digital Evidence Specialist" },
+            { "id": "data-protection-officer", "title": "Data Protection Officer" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "digital-documentation", "code": "03", "title": "Digital Documentation & IT Support",
-          "description": "e-Filing Experts, Digital Signature Providers, IT Support for law offices",
-          "icon": "document", "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "legal-data",
+          "code": "03",
+          "title": "Legal Data",
+          "description": "Legal Data Analyst, Legal Information Professional, Legal Knowledge Management Professional and more",
+          "icon": "storage",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "legal-data-analyst", "title": "Legal Data Analyst" },
+            { "id": "legal-information-professional", "title": "Legal Information Professional" },
+            { "id": "legal-knowledge-management", "title": "Legal Knowledge Management Professional" },
+            { "id": "legal-database-administrator", "title": "Legal Database Administrator" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "digital-documentation",
+          "code": "04",
+          "title": "Digital Documentation",
+          "description": "E-Documentation Professional, Digital Record Professional, Legal Digitisation Professional and more",
+          "icon": "document",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "e-documentation-professional", "title": "E-Documentation Professional" },
+            { "id": "digital-record-professional", "title": "Digital Record Professional" },
+            { "id": "legal-digitisation-professional", "title": "Legal Digitisation Professional" },
+            { "id": "efiling-digital-signature-expert", "title": "e-Filing & Digital Signature Expert" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "technology-support",
+          "code": "05",
+          "title": "Technology Support",
+          "description": "IT Professional for Legal Services, Legal Portal / Technology Consultant, Technical Support Professional and more",
+          "icon": "settings",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "it-professional-legal", "title": "IT Professional for Legal Services" },
+            { "id": "legal-portal-consultant", "title": "Legal Portal / Technology Consultant" },
+            { "id": "technical-support-professional", "title": "Technical Support Professional" },
+            { "id": "court-tech-support-engineer", "title": "Court Tech Support Engineer" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-legal-tech",
+          "code": "06",
+          "title": "Other Legal-Tech Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     },
@@ -747,39 +1230,114 @@
       "theme": { "color": "#9a3412", "bg": "#fff7ed", "border": "#fed7aa" },
       "groups": [
         {
-          "id": "court-support", "code": "01", "title": "Court Support Staff",
-          "description": "Court Typists, Stenographers, Filing Clerks and more",
-          "icon": "document", "theme": { "color": "#9a3412", "bg": "#fff7ed", "border": "#fed7aa" },
-          "formId": "default", "sidebarId": "default",
+          "id": "court-support-services",
+          "code": "01",
+          "title": "Court Support Services",
+          "description": "Court Typist, Stenographer, Filing Assistant, Court Clerk, Process Server and more",
+          "icon": "people",
+          "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
-            { "id": "typist", "title": "Court Typist" },
+            { "id": "court-typist", "title": "Court Typist" },
             { "id": "stenographer", "title": "Stenographer" },
-            { "id": "filing-clerk", "title": "Filing Clerk" },
+            { "id": "filing-assistant", "title": "Filing Assistant" },
+            { "id": "court-clerk", "title": "Court Clerk" },
+            { "id": "process-server", "title": "Process Server" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "case-managers", "code": "02", "title": "Case & Office Management",
-          "description": "Case Managers, Law Office Administrators, Practice Managers and more",
-          "icon": "people", "theme": { "color": "#1d4ed8", "bg": "#eff6ff", "border": "#bfdbfe" },
-          "formId": "default", "sidebarId": "default",
+          "id": "legal-administration",
+          "code": "02",
+          "title": "Legal Administration",
+          "description": "Legal Operations Manager, Law Firm Administrator, Case Manager, Legal Secretary and more",
+          "icon": "assignment",
+          "theme": { "color": "#15803d", "bg": "#ecfdf5", "border": "#bbf7d0" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "profession", "details", "documents", "review"],
           "professions": [
+            { "id": "legal-operations-manager", "title": "Legal Operations Manager" },
+            { "id": "law-firm-administrator", "title": "Law Firm Administrator" },
             { "id": "case-manager", "title": "Case Manager" },
-            { "id": "office-admin", "title": "Law Office Administrator" },
+            { "id": "legal-secretary", "title": "Legal Secretary" },
+            { "id": "practice-manager", "title": "Practice Manager" },
             { "id": "other", "title": "Other" }
           ],
           "specialisations": []
         },
         {
-          "id": "field-support", "code": "03", "title": "Field & Process Support",
-          "description": "Process Servers, Field Verification Agents, Court Liaison Staff and more",
-          "icon": "more", "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
-          "formId": "default", "sidebarId": "default",
+          "id": "legal-education-support",
+          "code": "03",
+          "title": "Legal Education Support",
+          "description": "Paralegal, Legal Assistant, Law Student, Intern, Research Assistant and more",
+          "icon": "library",
+          "theme": { "color": "#a16207", "bg": "#fffbeb", "border": "#fde68a" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "paralegal", "title": "Paralegal" },
+            { "id": "legal-assistant", "title": "Legal Assistant" },
+            { "id": "law-student-intern", "title": "Law Student / Intern" },
+            { "id": "research-assistant", "title": "Research Assistant" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "mediation-support-services",
+          "code": "04",
+          "title": "Mediation & Support Services",
+          "description": "Mediation Assistant, Client Coordination Professional, Dispute Resolution Support and more",
+          "icon": "people",
+          "theme": { "color": "#be123c", "bg": "#fff1f2", "border": "#fecdd3" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "mediation-assistant", "title": "Mediation Assistant" },
+            { "id": "client-coordination-professional", "title": "Client Coordination Professional" },
+            { "id": "dispute-resolution-support", "title": "Dispute Resolution Support" },
+            { "id": "adr-case-coordinator", "title": "ADR Case Coordinator" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "client-advisory-support",
+          "code": "05",
+          "title": "Client Advisory & Support",
+          "description": "Client Relationship Manager, Client Support Executive, Legal Helpdesk Professional and more",
+          "icon": "headset",
+          "theme": { "color": "#6d28d9", "bg": "#f5f3ff", "border": "#ddd6fe" },
+          "formId": "default",
+          "sidebarId": "default",
+          "steps": ["category", "group", "profession", "details", "documents", "review"],
+          "professions": [
+            { "id": "client-relationship-manager", "title": "Client Relationship Manager" },
+            { "id": "client-support-executive", "title": "Client Support Executive" },
+            { "id": "legal-helpdesk-professional", "title": "Legal Helpdesk Professional" },
+            { "id": "client-intake-specialist", "title": "Client Intake Specialist" },
+            { "id": "other", "title": "Other" }
+          ],
+          "specialisations": []
+        },
+        {
+          "id": "other-support-professional",
+          "code": "06",
+          "title": "Other Support Professional",
+          "description": "If your professional group is not listed above, you can select this option and specify your group in the next step.",
+          "icon": "more",
+          "theme": { "color": "#0f766e", "bg": "#f0fdfa", "border": "#99f6e4" },
+          "formId": "default",
+          "sidebarId": "default",
           "steps": ["category", "group", "details", "documents", "review"],
-          "professions": [], "specialisations": []
+          "professions": [],
+          "specialisations": []
         }
       ]
     }
