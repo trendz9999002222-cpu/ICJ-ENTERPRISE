@@ -32,7 +32,16 @@ export type IconKey =
   | "library"
   | "work"
   | "school"
-  | "more";
+  | "more"
+  | "translate"
+  | "folder"
+  | "assignment"
+  | "volunteer"
+  | "elderly"
+  | "shield"
+  | "storage"
+  | "settings"
+  | "headset";
 
 export type FieldType =
   | "text"

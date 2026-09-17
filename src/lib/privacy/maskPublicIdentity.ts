@@ -17,6 +17,10 @@ export function maskAlphanumericRun(run: string): string {
 }
 
 function maskNameToken(token: string): string {
+  if (/^\([^)]*\)$/.test(token)) {
+    return "(X.)";
+  }
+
   if (/^[A-Za-z]\.$/.test(token)) {
     return "X.";
   }
