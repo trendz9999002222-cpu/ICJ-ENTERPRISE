@@ -1,6 +1,7 @@
+import { maskStaticDataset } from "@/lib/privacy/maskStaticDataset";
 import type { PublicProfessional } from "@/types/public";
 
-export const mockProfessionals: PublicProfessional[] = [
+const mockProfessionalsRaw: PublicProfessional[] = [
   {
     id: "prof-1",
     fullName: "Adv. Rajesh V. Sharma",
@@ -154,3 +155,5 @@ export const mockProfessionals: PublicProfessional[] = [
     courtsOrJurisdiction: ["National Green Tribunal", "Policy Research Think Tanks"],
   },
 ];
+
+export const mockProfessionals = maskStaticDataset(mockProfessionalsRaw);
