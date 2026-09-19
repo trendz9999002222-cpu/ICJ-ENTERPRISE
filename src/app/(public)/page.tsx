@@ -74,10 +74,49 @@ export default function HomePage() {
           bgcolor: "#0f2942",
           position: "relative",
           overflow: "hidden",
-          pt: { xs: 5, sm: 6, md: 7 },
           pb: { xs: 0, md: 0 },
         }}
       >
+        {/* Hero imagery — full right column height (content + stats), left-edge fade only */}
+        <Box
+          aria-hidden
+          sx={{
+            display: { xs: "none", md: "block" },
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: { md: "48%", lg: "46%" },
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        >
+          <Box sx={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+            <Image
+              src="/images/icjhero3.webp"
+              alt=""
+              fill
+              priority
+              quality={95}
+              sizes="(min-width: 2048px) 1200px, (min-width: 1536px) 960px, (min-width: 900px) 50vw, 0px"
+              style={{
+                objectFit: "cover",
+                objectPosition: "right center",
+                transform: "scale(1.14)",
+                transformOrigin: "right center",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(to right, #0f2942 0%, rgba(15, 41, 66, 0.9) 10%, rgba(15, 41, 66, 0.4) 28%, transparent 48%)",
+              }}
+            />
+          </Box>
+        </Box>
+
         {/* Subtle radial glow */}
         <Box
           sx={{
@@ -89,10 +128,19 @@ export default function HomePage() {
             borderRadius: "50%",
             bgcolor: "rgba(180,83,9,0.08)",
             pointerEvents: "none",
+            zIndex: 0,
           }}
         />
 
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Container
+          maxWidth="xl"
+          sx={{
+            px: { xs: 2, sm: 3, md: 4 },
+            pt: { xs: 5, sm: 6, md: 7 },
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
           <Grid container spacing={{ xs: 4, md: 6 }} sx={{ alignItems: "flex-end" }}>
             {/* Left — Text Content */}
             <Grid size={{ xs: 12, md: 7 }}>
@@ -230,52 +278,19 @@ export default function HomePage() {
                 ))}
               </Stack>
             </Grid>
-
-            {/* Right — Judicial Imagery */}
-            <Grid size={{ xs: 12, md: 5 }} sx={{ display: { xs: "none", md: "flex" }, alignItems: "flex-end", justifyContent: "center" }}>
-              <Box
-                sx={{
-                  position: "relative",
-                  width: "100%",
-                  maxWidth: 520,
-                  borderRadius: "12px 12px 0 0",
-                  overflow: "hidden",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.22)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderBottom: "none",
-                }}
-              >
-                <Image
-                  src="/images/hero-judicial.jpg"
-                  alt="Supreme Court of India — ICJ Partner Institution"
-                  width={520}
-                  height={350}
-                  priority
-                  style={{ width: "100%", height: "auto", display: "block" }}
-                />
-                {/* Caption overlay */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    px: 2,
-                    py: 1.25,
-                    background: "linear-gradient(transparent, rgba(15,41,66,0.85))",
-                  }}
-                >
-                  {/* <Typography sx={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.75)", fontStyle: "italic" }}>
-                    Supreme Court of India — Custodian of Constitutional Justice
-                  </Typography> */}
-                </Box>
-              </Box>
-            </Grid>
           </Grid>
         </Container>
 
         {/* Stats strip — inside the navy hero */}
-        <Box sx={{ bgcolor: "rgba(0,0,0,0.25)", mt: { xs: 4, md: 3 }, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            bgcolor: "rgba(0,0,0,0.25)",
+            mt: { xs: 4, md: 3 },
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
             <Grid container>
               {[
