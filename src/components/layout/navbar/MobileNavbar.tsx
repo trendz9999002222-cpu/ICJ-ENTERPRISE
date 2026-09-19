@@ -79,7 +79,7 @@ export default function MobileNavbar() {
         <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
           <Box
             component="a"
-            href="tel:+911140017000"
+            href="tel:+91-9999002222"
             sx={{
               display: "flex",
               alignItems: "center",
@@ -91,7 +91,7 @@ export default function MobileNavbar() {
             }}
           >
             <PhoneInTalkIcon sx={{ fontSize: 13, color: "#2563eb" }} />
-            <span>24x7 Help: +91-11-4001-7000</span>
+                <span>24x7 Help: +91-9999002222</span>
           </Box>
 
           <LanguageSelector compact />
@@ -162,7 +162,7 @@ export default function MobileNavbar() {
                   textOverflow: "ellipsis",
                 }}
               >
-                INTERNATIONAL CONSORTIUM OF JURISTS
+                ICJ
               </Typography>
               <Typography
                 sx={{
@@ -565,7 +565,7 @@ export default function MobileNavbar() {
           <Stack direction="row" spacing={1} sx={{ justifyContent: "center", alignItems: "center" }}>
             <HeadsetIcon sx={{ fontSize: 16, color: "#2563eb" }} />
             <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
-              Emergency Helpline: +91-11-4001-7000
+              Emergency Helpline: +91-9999002222
             </Typography>
           </Stack>
         </Box>

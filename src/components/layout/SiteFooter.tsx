@@ -14,7 +14,7 @@ export default function SiteFooter() {
         borderTop: "3px solid #b45309",
         color: "#f8fafc",
         pt: { xs: 5, md: 7 },
-        pb: 4,
+        pb: { xs: 12, sm: 13 },
         mt: "auto",
         width: "100%",
         position: "relative",

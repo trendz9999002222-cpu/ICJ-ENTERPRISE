@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 
 import { Navbar } from "@/components/layout/navbar";
+import FloatingJoinUsWidget from "@/components/layout/FloatingJoinUsWidget";
+import PlatformDevelopmentNotice from "@/components/layout/PlatformDevelopmentNotice";
 import SiteFooter from "@/components/layout/SiteFooter";
 
 type Props = {
@@ -27,11 +29,14 @@ export default function SiteShell({ children }: Props) {
           width: "100%",
           display: "flex",
           flexDirection: "column",
+          pb: { xs: 10, sm: 11 },
         }}
       >
         {children}
       </Box>
       <SiteFooter />
+      <PlatformDevelopmentNotice />
+      <FloatingJoinUsWidget />
     </Box>
   );
 }

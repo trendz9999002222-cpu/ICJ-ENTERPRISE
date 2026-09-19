@@ -74,10 +74,10 @@ export default function TopUtilityBar() {
               </span>
             </Box>
 
-            {/* Toll Free (Desktop) */}
+            {/* Landline (Desktop) */}
             <Box
               component="a"
-              href="tel:9999002222"
+              href="tel:+911140501642"
               sx={{
                 display: { xs: "none", lg: "flex" },
                 alignItems: "center",
@@ -89,7 +89,7 @@ export default function TopUtilityBar() {
               }}
             >
               <HeadsetIcon sx={{ fontSize: 14, color: "#059669" }} />
-              <span>Helpline Number: 011-40501642 </span>
+              <span>Landline: 011-40501642</span>
             </Box>
 
             {/* Email Support (Desktop) */}
