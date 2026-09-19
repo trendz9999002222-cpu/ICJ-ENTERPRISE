@@ -71,8 +71,7 @@ export default function PlatformDevelopmentNotice() {
           >
             Official notice: The International Consortium of Jurists digital platform is currently in{" "}
             <Box component="span" sx={{ color: "#fbbf24", fontWeight: 800 }}>
-              active development mode
-            </Box>
+              active development mode and Each and every data is dummy data           </Box>
             . Some features are preview-only; full public services will be announced when we go live.
           </Typography>
         </Stack>
