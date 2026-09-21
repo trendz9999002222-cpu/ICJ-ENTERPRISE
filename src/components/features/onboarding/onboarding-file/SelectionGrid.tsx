@@ -1,7 +1,6 @@
 "use client";
 
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Box, Typography } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
 
 import type { IconKey, Theme } from "@/types/registration";
 
@@ -16,22 +15,40 @@ export type SelectionItem = {
   theme?: Theme;
 };
 
+export type SelectionSection = {
+  id: string;
+  title: string;
+  theme?: Theme;
+  items: SelectionItem[];
+};
+
 type Props = {
   items: SelectionItem[];
-  selectedId: string | null;
-  /** Columns on the widest breakpoint. 5 for categories, 3 for groups. */
+  selectedIds: string[];
+  /** When false, only one item can be checked at a time. Default true. */
+  multiple?: boolean;
   columns?: number;
   fallbackTheme: Theme;
-  onSelect: (id: string) => void;
+  onSelectionChange: (ids: string[]) => void;
 };
 
 export default function SelectionGrid({
   items,
-  selectedId,
+  selectedIds,
+  multiple = true,
   columns = 3,
   fallbackTheme,
-  onSelect,
+  onSelectionChange,
 }: Props) {
+  const toggle = (id: string) => {
+    const checked = selectedIds.includes(id);
+    if (multiple) {
+      onSelectionChange(checked ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+    } else {
+      onSelectionChange(checked ? [] : [id]);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -48,17 +65,22 @@ export default function SelectionGrid({
       {items.map((item) => {
         const theme = item.theme ?? fallbackTheme;
         const Icon = resolveIcon(item.icon);
-        const selected = selectedId === item.id;
+        const selected = selectedIds.includes(item.id);
 
         return (
           <Box
             key={item.id}
-            component="button"
-            type="button"
-            onClick={() => onSelect(item.id)}
+            role="button"
+            tabIndex={0}
+            onClick={() => toggle(item.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggle(item.id);
+              }
+            }}
             aria-pressed={selected}
             sx={{
-              all: "unset",
               boxSizing: "border-box",
               display: "flex",
               flexDirection: "column",
@@ -95,26 +117,95 @@ export default function SelectionGrid({
             )}
 
             <Box
-              sx={{
-                mt: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 1,
-                bgcolor: theme.color,
-                color: "#fff",
-                borderRadius: RADIUS.sm,
-                py: 1,
-                fontWeight: 700,
-                fontSize: "0.82rem",
-              }}
+              sx={{ mt: 2, display: "flex", alignItems: "center", justifyContent: "center" }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {selected ? "Selected" : "Select"}
-              <ArrowForwardIcon sx={{ fontSize: 16 }} />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={selected}
+                    onChange={() => toggle(item.id)}
+                    sx={{
+                      color: theme.color,
+                      "&.Mui-checked": { color: theme.color },
+                    }}
+                  />
+                }
+                label={
+                  <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#334155" }}>
+                    {selected ? "Selected" : "Choose"}
+                  </Typography>
+                }
+                sx={{ m: 0, userSelect: "none" }}
+              />
             </Box>
           </Box>
         );
       })}
     </Box>
+  );
+}
+
+type GroupedProps = Omit<Props, "items"> & {
+  sections: SelectionSection[];
+};
+
+/** Renders multiple selection grids under category / group headings. */
+export function GroupedSelectionGrid({
+  sections,
+  selectedIds,
+  multiple = true,
+  columns = 3,
+  fallbackTheme,
+  onSelectionChange,
+}: GroupedProps) {
+  if (!sections.length) return null;
+
+  return (
+    <Stack spacing={4}>
+      {sections.map((section) => {
+        const accent = section.theme ?? fallbackTheme;
+        if (!section.items.length) return null;
+
+        return (
+          <Box key={section.id} component="section">
+            <Box
+              sx={{
+                mb: 2,
+                pb: 1.25,
+                borderBottom: `1px solid ${accent.border}`,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: "1rem", md: "1.1rem" },
+                  color: "#0f172a",
+                }}
+              >
+                {section.title}
+              </Typography>
+              <Box
+                sx={{
+                  mt: 0.75,
+                  height: 3,
+                  width: 56,
+                  borderRadius: 999,
+                  bgcolor: accent.color,
+                }}
+              />
+            </Box>
+            <SelectionGrid
+              items={section.items}
+              selectedIds={selectedIds}
+              multiple={multiple}
+              columns={columns}
+              fallbackTheme={fallbackTheme}
+              onSelectionChange={onSelectionChange}
+            />
+          </Box>
+        );
+      })}
+    </Stack>
   );
 }

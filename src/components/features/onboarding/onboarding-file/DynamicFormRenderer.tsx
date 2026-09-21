@@ -35,6 +35,12 @@ function labelWithFlag(field: FormField) {
   return field.label;
 }
 
+function resolveOptionEntries(field: FormField): { value: string; label: string }[] {
+  if (field.optionItems?.length) return field.optionItems;
+  const opts = getOptions(field.optionsRef, field.options);
+  return opts.map((o) => ({ value: o, label: o }));
+}
+
 export default function DynamicFormRenderer({ schema, values, errors, theme, onChange }: Props) {
   const inputSx = {
     "& .MuiOutlinedInput-root": { borderRadius: RADIUS.sm, bgcolor: "#fff" },
@@ -63,8 +69,8 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
       case "year": {
         const options =
           field.type === "year"
-            ? buildYearOptions(field.yearFrom ?? 1960)
-            : getOptions(field.optionsRef, field.options);
+            ? buildYearOptions(field.yearFrom ?? 1960).map((y) => ({ value: y, label: y }))
+            : resolveOptionEntries(field);
 
         return wrap(
           <TextField
@@ -82,8 +88,8 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
               <em>Select</em>
             </MenuItem>
             {options.map((opt) => (
-              <MenuItem key={opt} value={opt}>
-                {opt}
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
               </MenuItem>
             ))}
           </TextField>
@@ -91,7 +97,7 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
       }
 
       case "radio": {
-        const options = getOptions(field.optionsRef, field.options);
+        const options = resolveOptionEntries(field);
         return wrap(
           <FormControl error={!!error} component="fieldset" fullWidth>
             <FormLabel sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#334155", mb: 0.5 }}>
@@ -104,10 +110,10 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             >
               {options.map((opt) => (
                 <FormControlLabel
-                  key={opt}
-                  value={opt}
+                  key={opt.value}
+                  value={opt.value}
                   control={<Radio size="small" sx={{ "&.Mui-checked": { color: theme.color } }} />}
-                  label={<Typography sx={{ fontSize: "0.85rem" }}>{opt}</Typography>}
+                  label={<Typography sx={{ fontSize: "0.85rem" }}>{opt.label}</Typography>}
                 />
               ))}
             </RadioGroup>
@@ -117,7 +123,7 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
       }
 
       case "checkboxGroup": {
-        const options = getOptions(field.optionsRef, field.options);
+        const options = resolveOptionEntries(field);
         const selected = Array.isArray(value) ? (value as string[]) : [];
         const toggle = (opt: string) => {
           const next = selected.includes(opt) ? selected.filter((s) => s !== opt) : [...selected, opt];
@@ -146,16 +152,16 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             >
               {options.map((opt) => (
                 <FormControlLabel
-                  key={opt}
+                  key={opt.value}
                   control={
                     <Checkbox
                       size="small"
-                      checked={selected.includes(opt)}
-                      onChange={() => toggle(opt)}
+                      checked={selected.includes(opt.value)}
+                      onChange={() => toggle(opt.value)}
                       sx={{ "&.Mui-checked": { color: theme.color } }}
                     />
                   }
-                  label={<Typography sx={{ fontSize: "0.83rem" }}>{opt}</Typography>}
+                  label={<Typography sx={{ fontSize: "0.83rem" }}>{opt.label}</Typography>}
                 />
               ))}
             </Box>
