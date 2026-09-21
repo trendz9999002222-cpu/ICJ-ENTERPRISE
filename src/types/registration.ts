@@ -73,6 +73,7 @@ export type FormField = {
   /** Inner columns for checkboxGroup / radio layouts. */
   columns?: number;
   options?: string[];
+  optionItems?: { value: string; label: string }[];
   optionsRef?: string;
   yearFrom?: number;
   pattern?: string;
@@ -151,9 +152,9 @@ export type RegistrationConfig = {
 
 /** Runtime state of the whole flow. */
 export type RegistrationState = {
-  categoryId: string | null;
-  groupId: string | null;
-  professionId: string | null;
+  categoryIds: string[];
+  groupIds: string[];
+  professionIds: string[];
   associationId: string | null;
   specialisationId: string | null;
   values: Record<string, unknown>;
@@ -162,9 +163,9 @@ export type RegistrationState = {
 };
 
 export const INITIAL_REGISTRATION_STATE: RegistrationState = {
-  categoryId: null,
-  groupId: null,
-  professionId: null,
+  categoryIds: [],
+  groupIds: [],
+  professionIds: [],
   associationId: null,
   specialisationId: null,
   values: {},

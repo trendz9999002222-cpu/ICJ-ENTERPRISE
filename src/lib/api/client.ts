@@ -14,6 +14,8 @@ export class ApiError extends Error {
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
+  /** When true, failed responses are not written to the error logger (caller handles fallback). */
+  suppressErrorLog?: boolean;
 };
 
 type FormDataRequestOptions = Omit<RequestInit, "body"> & {
@@ -24,7 +26,7 @@ export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body, headers, suppressErrorLog, ...rest } = options;
 
   const url = `${env.apiUrl}${path}`;
 
@@ -66,12 +68,14 @@ export async function apiClient<T>(
   }
 
   if (!response.ok) {
-    logger.error("API request failed", {
-      url,
-      status: response.status,
-      statusText: response.statusText,
-      data,
-    });
+    if (!suppressErrorLog) {
+      logger.error("API request failed", {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        data,
+      });
+    }
 
     throw new ApiError(
       "API request failed",
@@ -102,13 +106,13 @@ export async function apiClientFormData<T>(
       body: formData,
     });
   } catch (error) {
-    logger.error("Network request failed", {
-      url,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    throw new ApiError("Unable to connect to the server.", 0, {
-      message: error instanceof Error ? error.message : String(error),
-    });
+    const detail = error instanceof Error ? error.message : String(error);
+    logger.error("Network request failed", { url, error: detail });
+    throw new ApiError(
+      "Unable to connect to the API. Check that the backend is running and CORS allows this site.",
+      0,
+      { message: detail },
+    );
   }
 
   const contentType = response.headers.get("content-type") ?? "";

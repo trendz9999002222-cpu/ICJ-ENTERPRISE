@@ -18,9 +18,8 @@ export const adminDashboardService = {
    */
   getStats: async (): Promise<DashboardStats> => {
     try {
-      const [allAdvocates, pendingAdvocates, users, cases] = await Promise.allSettled([
-        adminAdvocatesService.listAdvocates({ status: "all" }),
-        adminAdvocatesService.listAdvocates({ status: "pending" }),
+      const [allAdvocates, users, cases] = await Promise.allSettled([
+        adminAdvocatesService.listAdvocates({ status: "all", page_size: 500 }),
         adminUsersService.listUsers(),
         adminCasesService.listCases(),
       ]);
@@ -29,7 +28,11 @@ export const adminDashboardService = {
         allAdvocates.status === "fulfilled" ? allAdvocates.value.count : 0;
 
       const pendingKycCount =
-        pendingAdvocates.status === "fulfilled" ? pendingAdvocates.value.count : 0;
+        allAdvocates.status === "fulfilled"
+          ? allAdvocates.value.results.filter(
+              (a) => a.verification_status === "pending",
+            ).length
+          : 0;
 
       const totalUsersCount =
         users.status === "fulfilled" ? users.value.count : 0;

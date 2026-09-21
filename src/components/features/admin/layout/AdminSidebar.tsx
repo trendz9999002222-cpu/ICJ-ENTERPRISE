@@ -58,7 +58,11 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" /> },
   { label: "Appointments", href: "/admin/appointments", icon: <CalendarMonthIcon fontSize="small" />, section: "Operations" },
   { label: "Services", href: "/admin/services", icon: <HandshakeIcon fontSize="small" /> },
-  { label: "Practice Areas", href: "/admin/practice-areas", icon: <LibraryBooksIcon fontSize="small" /> },
+  {
+    label: "Professional Onboarding",
+    href: "/admin/practice-areas",
+    icon: <LibraryBooksIcon fontSize="small" />,
+  },
   { label: "Content", href: "/admin/content", icon: <CampaignIcon fontSize="small" />, section: "Platform" },
   { label: "Research", href: "/admin/research", icon: <LocalLibraryIcon fontSize="small" /> },
   { label: "Events", href: "/admin/events", icon: <EventIcon fontSize="small" /> },

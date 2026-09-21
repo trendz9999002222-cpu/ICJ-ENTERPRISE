@@ -164,6 +164,7 @@ export const adminAdvocatesService = {
 
       const res = await apiClient<DjangoAdvocateListResponse>(path, {
         headers: authHeaders(),
+        suppressErrorLog: true,
       });
 
       return {
@@ -172,9 +173,7 @@ export const adminAdvocatesService = {
         next: res.data.next,
         previous: res.data.previous,
       };
-    } catch (err) {
-      console.warn("[adminAdvocatesService] API unavailable, using mock data:", err);
-
+    } catch {
       let results = [...mockAdvocates];
       if (params.search) {
         const q = params.search.toLowerCase();
@@ -209,11 +208,10 @@ export const adminAdvocatesService = {
     try {
       const res = await apiClient<DjangoAdvocateDetailResponse>(
         API_ENDPOINTS.onboarding.adminAdvocateDetail(id),
-        { headers: authHeaders() }
+        { headers: authHeaders(), suppressErrorLog: true },
       );
       return mapToAdminAdvocateDetail(res.data);
-    } catch (err) {
-      console.warn("[adminAdvocatesService] getAdvocateDetail error:", err);
+    } catch {
       // Mock fallback if id matches
       const m = mockAdvocates.find((a) => a.id === id);
       if (!m) return null;

@@ -4,7 +4,7 @@ import { Alert, Box, Button, Paper, Stack, TextField, Typography } from "@mui/ma
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { apiClient } from "@/lib/api/client";
+import { ApiError, apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { AuthTokens } from "@/types/api";
 
@@ -48,8 +48,20 @@ export default function ChangePasswordPage() {
       }
       localStorage.removeItem("icj_password_change_required");
       router.push("/dashboard");
-    } catch {
-      setError("पासवर्ड अपडेट नहीं हुआ। वर्तमान पासवर्ड और नई पासवर्ड नीति जाँचें।");
+    } catch (err) {
+      if (err instanceof ApiError && err.body && typeof err.body === "object") {
+        const body = err.body as {
+          message?: string;
+          errors?: Record<string, string[]>;
+        };
+        const fieldMsg =
+          body.errors?.current_password?.[0] ||
+          body.errors?.new_password?.[0] ||
+          body.errors?.confirm_password?.[0];
+        setError(fieldMsg || body.message || "पासवर्ड अपडेट नहीं हुआ।");
+      } else {
+        setError("पासवर्ड अपडेट नहीं हुआ। वर्तमान पासवर्ड और नई पासवर्ड नीति जाँचें।");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +75,7 @@ export default function ChangePasswordPage() {
             Set a new password
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            पहली बार लॉगिन के बाद आपको एक मजबूत पासवर्ड सेट करना होगा।
+            पहली बार लॉगिन के बाद आपको एक मजबूत पासवर्ड सेट करना होगा। नया पासवर्ड कम से कम 12 अक्षर का हो, common password न हो, और current password से अलग हो।
           </Typography>
           <TextField
             label="Current password"

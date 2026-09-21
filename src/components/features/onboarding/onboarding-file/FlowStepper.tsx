@@ -95,10 +95,14 @@ export default function FlowStepper({
                         fontSize: "0.68rem",
                         color: chosen ? "#15803d" : "#94a3b8",
                         fontWeight: chosen ? 600 : 400,
-                        whiteSpace: "nowrap",
-                        maxWidth: 150,
+                        maxWidth: { xs: 120, md: 200 },
                         overflow: "hidden",
                         textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        whiteSpace: "normal",
+                        lineHeight: 1.25,
                       }}
                     >
                       {chosen ?? meta.subtitle}
