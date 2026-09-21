@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+from django.db.models import Prefetch
+
+from apps.professional_onboarding.models import (
+    CommonField,
+    FieldOption,
+    Profession,
+    ProfessionDocument,
+    ProfessionField,
+)
+from apps.professional_onboarding.services.theme import resolve_profession_theme
+
+
+def build_profession_configuration(profession: Profession) -> dict:
+    profession = (
+        Profession.objects.select_related(
+            "group",
+            "group__category",
+            "group__visual_theme",
+            "group__category__visual_theme",
+            "visual_theme",
+        )
+        .get(pk=profession.pk)
+    )
+
+    common_option_prefetch = Prefetch(
+        "options",
+        queryset=FieldOption.objects.filter(is_active=True).order_by("display_order", "label"),
+        to_attr="active_options",
+    )
+
+    common_fields = (
+        CommonField.objects.filter(is_active=True)
+        .prefetch_related(common_option_prefetch)
+        .order_by("display_order", "name")
+    )
+
+    profession_fields = (
+        ProfessionField.objects.filter(profession=profession, is_active=True)
+        .prefetch_related(
+            Prefetch(
+                "options",
+                queryset=FieldOption.objects.filter(is_active=True).order_by("display_order", "label"),
+                to_attr="active_options",
+            )
+        )
+        .order_by("display_order", "name")
+    )
+
+    documents = (
+        ProfessionDocument.objects.filter(profession=profession, is_active=True)
+        .select_related("document")
+        .order_by("display_order", "document__name")
+    )
+
+    colors, resolved_source = resolve_profession_theme(profession)
+
+    return {
+        "profession": {
+            "id": str(profession.id),
+            "name": profession.name,
+            "description": profession.description,
+        },
+        "group": {
+            "id": str(profession.group_id),
+            "name": profession.group.name,
+        },
+        "category": {
+            "id": str(profession.group.category_id),
+            "name": profession.group.category.name,
+        },
+        "theme": {
+            "resolved": colors,
+            "resolved_source": resolved_source,
+        },
+        "common_fields": common_fields,
+        "profession_fields": profession_fields,
+        "documents": documents,
+    }

@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Django
+backend/staticfiles/
+backend/media/
+backend/db.sqlite3
+backend/.pytest_cache/
+backend/htmlcov/
+.coverage
+
+# Logs
+*.log
+logs/
