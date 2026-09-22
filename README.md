@@ -11,6 +11,7 @@ pip install -r requirements.txt
 cp .env.example .env
 python manage.py migrate
 python manage.py create_default_admin
+python manage.py seed_professional_onboarding
 python manage.py runserver 8000
 ```
 
