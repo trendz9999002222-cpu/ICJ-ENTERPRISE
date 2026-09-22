@@ -56,6 +56,14 @@ export type OnboardingProfession = {
   updated_at: string;
 };
 
+export type FieldOptionDraft = {
+  id?: string;
+  value: string;
+  label: string;
+  display_order?: number;
+  is_active?: boolean;
+};
+
 export type CommonField = {
   id: string;
   name: string;
@@ -68,6 +76,7 @@ export type CommonField = {
   is_required: boolean;
   is_active: boolean;
   display_order: number;
+  options?: (FieldOption | FieldOptionDraft)[];
   created_at: string;
   updated_at: string;
 };
@@ -86,6 +95,7 @@ export type ProfessionField = {
   is_required: boolean;
   is_active: boolean;
   display_order: number;
+  options?: (FieldOption | FieldOptionDraft)[];
   created_at: string;
   updated_at: string;
 };
@@ -101,6 +111,7 @@ export type FieldOption = {
   created_at: string;
   updated_at: string;
 };
+
 
 export type OnboardingDocument = {
   id: string;

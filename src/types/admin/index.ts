@@ -23,7 +23,11 @@ export type SortDirection = "asc" | "desc";
 /** Common query params for all paginated admin list endpoints */
 export type AdminListParams = {
   search?: string;
+  role?: string;
   status?: string;
+  category?: string;
+  group?: string;
+  profession?: string;
   page?: number;
   page_size?: number;
   ordering?: string;
@@ -39,9 +43,15 @@ export type AdminUserRole =
   | "admin"
   | "advocate"
   | "client"
+  | "member"
   | "staff";
 
 export type AdminUserStatus = "active" | "inactive" | "suspended" | "pending";
+
+export type AdminUserHierarchyItem = {
+  id: string;
+  name: string;
+};
 
 export type AdminUser = {
   id: number;
@@ -53,6 +63,12 @@ export type AdminUser = {
   role: AdminUserRole;
   status: AdminUserStatus;
   mobile: string;
+  category_name?: string | null;
+  group_name?: string | null;
+  profession_name?: string | null;
+  categories?: AdminUserHierarchyItem[];
+  groups?: AdminUserHierarchyItem[];
+  professions?: AdminUserHierarchyItem[];
   date_joined: ISODateString;
   last_login: ISODateString | null;
   is_verified: boolean;
@@ -84,6 +100,10 @@ export type AdminAdvocate = {
   full_name: string;
   email: string;
   mobile: string;
+  photo_url?: string | null;
+  category_name?: string;
+  group_name?: string;
+  profession_name?: string;
   bar_number: string;
   enrollment_number: string;
   practice_areas: string[];
@@ -102,6 +122,10 @@ export type AdminAdvocateDetail = {
   status: AdvocateVerificationStatus;
   full_name: string;
   mobile: string;
+  photo_url?: string | null;
+  category_name?: string;
+  group_name?: string;
+  profession_name?: string;
   bar_number: string;
   enrollment_number: string;
   practice_areas: string[];

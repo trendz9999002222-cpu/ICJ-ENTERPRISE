@@ -83,7 +83,7 @@ export default function UserDetailPage() {
     setToggling(true);
     setError("");
     try {
-      const updated = await adminUsersService.toggleUserStatus(user.id);
+      const updated = await adminUsersService.toggleUserStatus(user.id, user.status);
       setUser(updated);
       const label = updated.status === "active" ? "activated" : "deactivated";
       setToastMsg(`User ${updated.full_name} has been ${label}.`);

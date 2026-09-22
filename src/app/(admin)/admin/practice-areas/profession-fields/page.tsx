@@ -21,6 +21,7 @@ import {
   Tab,
   Tabs,
   TextField,
+  Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -35,6 +36,7 @@ import FieldFormFields, {
   emptyFieldForm,
   type FieldFormState,
 } from "@/components/features/admin/professional-onboarding/FieldFormFields";
+import { OPTION_FIELD_TYPES } from "@/components/features/admin/professional-onboarding/constants";
 import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
@@ -44,6 +46,7 @@ import {
   professionalOnboardingService,
 } from "@/services/admin/professionalOnboarding.service";
 import type {
+  FieldOption,
   OnboardingDocument,
   ProfessionDocument,
   ProfessionField,
@@ -80,6 +83,11 @@ function ProfessionFieldsPageContent() {
   const [toastMsg, setToastMsg] = useState("");
   const [deleteField, setDeleteField] = useState<ProfessionField | null>(null);
   const [deleteDoc, setDeleteDoc] = useState<ProfessionDocument | null>(null);
+
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [optionsField, setOptionsField] = useState<ProfessionField | null>(null);
+  const [options, setOptions] = useState<FieldOption[]>([]);
+  const [optionForm, setOptionForm] = useState({ value: "", label: "", display_order: 0 });
 
   useEffect(() => {
     professionalOnboardingService
@@ -122,6 +130,25 @@ function ProfessionFieldsPageContent() {
     loadProfessionContext();
   }, [loadProfessionContext]);
 
+  const loadOptions = async (field: ProfessionField) => {
+    const res = await professionalOnboardingService.listFieldOptions({
+      profession_field: field.id,
+      page_size: 100,
+      ordering: "display_order",
+    });
+    setOptions(res.results);
+  };
+
+  const openOptions = async (field: ProfessionField) => {
+    setOptionsField(field);
+    setOptionsOpen(true);
+    try {
+      await loadOptions(field);
+    } catch (err) {
+      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to load options."));
+    }
+  };
+
   const fieldColumns: AdminTableColumn<ProfessionField>[] = [
     { key: "label", label: "Label", minWidth: 140, render: (r) => <strong>{r.label}</strong> },
     { key: "key", label: "Key", minWidth: 120, render: (r) => r.field_key },
@@ -131,10 +158,15 @@ function ProfessionFieldsPageContent() {
     {
       key: "actions",
       label: "",
-      width: 90,
+      width: 140,
       align: "right",
       render: (r) => (
-        <Stack direction="row" sx={{ justifyContent: "flex-end" }}>
+        <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
+          {OPTION_FIELD_TYPES.includes(r.field_type) && (
+            <Button size="small" onClick={() => openOptions(r)}>
+              Options
+            </Button>
+          )}
           <IconButton
             size="small"
             onClick={() => {
@@ -150,6 +182,7 @@ function ProfessionFieldsPageContent() {
                 is_required: r.is_required,
                 is_active: r.is_active,
                 display_order: r.display_order,
+                options: r.options || [],
               });
               setFieldDialog(true);
             }}
@@ -318,6 +351,70 @@ function ProfessionFieldsPageContent() {
             Save
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog open={optionsOpen} onClose={() => setOptionsOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          Options — {optionsField?.label}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {options.map((o) => (
+              <Stack key={o.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Typography variant="body2" sx={{ flex: 1 }}>
+                  {o.label} ({o.value})
+                </Typography>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={async () => {
+                    try {
+                      await professionalOnboardingService.deleteFieldOption(o.id);
+                      if (optionsField) await loadOptions(optionsField);
+                    } catch (err) {
+                      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to delete option."));
+                    }
+                  }}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Stack>
+            ))}
+            <TextField
+              label="Value / Key"
+              size="small"
+              value={optionForm.value}
+              onChange={(e) => setOptionForm((f) => ({ ...f, value: e.target.value }))}
+            />
+            <TextField
+              label="Label"
+              size="small"
+              value={optionForm.label}
+              onChange={(e) => setOptionForm((f) => ({ ...f, label: e.target.value }))}
+            />
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                if (!optionsField) return;
+                try {
+                  await professionalOnboardingService.createFieldOption({
+                    profession_field: optionsField.id,
+                    value: optionForm.value,
+                    label: optionForm.label || optionForm.value,
+                    display_order: optionForm.display_order,
+                    is_active: true,
+                  });
+                  setOptionForm({ value: "", label: "", display_order: 0 });
+                  await loadOptions(optionsField);
+                } catch (err) {
+                  setToastMsg(getOnboardingApiErrorMessage(err, "Failed to add option."));
+                }
+              }}
+            >
+              Add option
+            </Button>
+          </Stack>
+        </DialogContent>
       </Dialog>
 
       <Dialog open={docDialog} onClose={() => setDocDialog(false)} maxWidth="sm" fullWidth>

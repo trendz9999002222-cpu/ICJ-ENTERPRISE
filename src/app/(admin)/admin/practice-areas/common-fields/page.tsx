@@ -169,8 +169,10 @@ export default function CommonFieldsPage() {
               is_required: r.is_required,
               is_active: r.is_active,
               display_order: r.display_order,
+              options: r.options || [],
             });
             setDialogOpen(true);
+
           }}>
             <EditOutlinedIcon fontSize="small" />
           </IconButton>

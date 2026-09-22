@@ -121,6 +121,7 @@ export default function ProfessionalProfilePage() {
               >
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "center" } }}>
                   <Avatar
+                    src={professional.photoUrl || undefined}
                     sx={{
                       width: 80,
                       height: 80,

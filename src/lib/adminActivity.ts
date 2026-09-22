@@ -19,7 +19,8 @@ const ROUTE_NAME_MAP: Record<string, string> = {
   "/admin": "Admin Home",
   "/admin/dashboard": "Admin Dashboard",
   "/admin/users": "Users Management",
-  "/admin/advocates": "Advocates List",
+  "/admin/advocates": "Professionals List",
+  "/admin/professionals": "Professionals List",
   "/admin/kyc": "KYC Verification",
   "/admin/cases": "Cases Management",
   "/admin/assistance": "Assistance Requests",
@@ -42,9 +43,9 @@ export function resolveUrlTitle(pathname: string): { title: string; type: string
     return { title: `Accessed ${ROUTE_NAME_MAP[pathname]}`, type: "page_visit" };
   }
 
-  if (pathname.startsWith("/admin/advocates/")) {
-    const id = pathname.replace("/admin/advocates/", "");
-    return { title: `Viewed Advocate Application (${id.slice(0, 8)}...)`, type: "advocate_view" };
+  if (pathname.startsWith("/admin/advocates/") || pathname.startsWith("/admin/professionals/")) {
+    const id = pathname.replace("/admin/advocates/", "").replace("/admin/professionals/", "");
+    return { title: `Viewed Professional Application (${id.slice(0, 8)}...)`, type: "professional_view" };
   }
 
   if (pathname.startsWith("/admin/users/")) {

@@ -275,6 +275,7 @@ export default function AdvocateDetailPage() {
             {/* Left: Avatar + Identity */}
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Avatar
+                src={advocate.photo_url || undefined}
                 sx={{
                   width: { xs: 56, sm: 68 },
                   height: { xs: 56, sm: 68 },
