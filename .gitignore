@@ -21,7 +21,7 @@ build/
 *.swp
 .DS_Store
 Thumbs.db
-
+/media/
 # Next.js
 frontend/.next/
 frontend/out/
