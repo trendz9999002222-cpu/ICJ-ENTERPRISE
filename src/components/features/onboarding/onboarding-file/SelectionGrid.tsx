@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Checkbox, FormControlLabel, Stack, Typography } from "@mui/material";
+import { Box, Checkbox, FormControlLabel, Radio, Stack, Typography } from "@mui/material";
 
 import type { IconKey, Theme } from "@/types/registration";
 
@@ -27,6 +27,8 @@ type Props = {
   selectedIds: string[];
   /** When false, only one item can be checked at a time. Default true. */
   multiple?: boolean;
+  /** When true, renders radio buttons for single selection per group */
+  isRadio?: boolean;
   columns?: number;
   fallbackTheme: Theme;
   onSelectionChange: (ids: string[]) => void;
@@ -36,6 +38,7 @@ export default function SelectionGrid({
   items,
   selectedIds,
   multiple = true,
+  isRadio = false,
   columns = 3,
   fallbackTheme,
   onSelectionChange,
@@ -91,8 +94,8 @@ export default function SelectionGrid({
               bgcolor: theme.bg,
               border: selected ? `2px solid ${theme.color}` : `1px solid ${theme.border}`,
               boxShadow: selected ? SHADOW.cardHover : SHADOW.card,
-              transition: "box-shadow 0.2s ease, border-color 0.2s ease",
-              "&:hover": { boxShadow: SHADOW.cardHover },
+              transition: "box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease",
+              "&:hover": { boxShadow: SHADOW.cardHover, transform: "translateY(-1px)" },
               "&:focus-visible": { outline: `2px solid ${theme.color}`, outlineOffset: 3 },
             }}
           >
@@ -122,14 +125,25 @@ export default function SelectionGrid({
             >
               <FormControlLabel
                 control={
-                  <Checkbox
-                    checked={selected}
-                    onChange={() => toggle(item.id)}
-                    sx={{
-                      color: theme.color,
-                      "&.Mui-checked": { color: theme.color },
-                    }}
-                  />
+                  isRadio ? (
+                    <Radio
+                      checked={selected}
+                      onChange={() => toggle(item.id)}
+                      sx={{
+                        color: theme.color,
+                        "&.Mui-checked": { color: theme.color },
+                      }}
+                    />
+                  ) : (
+                    <Checkbox
+                      checked={selected}
+                      onChange={() => toggle(item.id)}
+                      sx={{
+                        color: theme.color,
+                        "&.Mui-checked": { color: theme.color },
+                      }}
+                    />
+                  )
                 }
                 label={
                   <Typography sx={{ fontWeight: 600, fontSize: "0.82rem", color: "#334155" }}>
@@ -148,6 +162,8 @@ export default function SelectionGrid({
 
 type GroupedProps = Omit<Props, "items"> & {
   sections: SelectionSection[];
+  /** When true, allows selecting only 1 item per section (Group -> 1 Profession) */
+  singleSelectPerSection?: boolean;
 };
 
 /** Renders multiple selection grids under category / group headings. */
@@ -155,6 +171,7 @@ export function GroupedSelectionGrid({
   sections,
   selectedIds,
   multiple = true,
+  singleSelectPerSection = false,
   columns = 3,
   fallbackTheme,
   onSelectionChange,
@@ -167,41 +184,64 @@ export function GroupedSelectionGrid({
         const accent = section.theme ?? fallbackTheme;
         if (!section.items.length) return null;
 
+        const sectionItemIds = new Set(section.items.map((i) => i.id));
+        const handleSectionChange = (newIds: string[]) => {
+          if (singleSelectPerSection) {
+            // Keep selections from other sections, and apply the new single selection for this section
+            const otherSelections = selectedIds.filter((id) => !sectionItemIds.has(id));
+            onSelectionChange([...otherSelections, ...newIds]);
+          } else {
+            const otherSelections = selectedIds.filter((id) => !sectionItemIds.has(id));
+            onSelectionChange([...otherSelections, ...newIds]);
+          }
+        };
+
         return (
           <Box key={section.id} component="section">
             <Box
               sx={{
                 mb: 2,
                 pb: 1.25,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-end",
                 borderBottom: `1px solid ${accent.border}`,
               }}
             >
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: { xs: "1rem", md: "1.1rem" },
-                  color: "#0f172a",
-                }}
-              >
-                {section.title}
-              </Typography>
-              <Box
-                sx={{
-                  mt: 0.75,
-                  height: 3,
-                  width: 56,
-                  borderRadius: 999,
-                  bgcolor: accent.color,
-                }}
-              />
+              <Box>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: "1rem", md: "1.1rem" },
+                    color: "#0f172a",
+                  }}
+                >
+                  {section.title}
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 0.75,
+                    height: 3,
+                    width: 56,
+                    borderRadius: 999,
+                    bgcolor: accent.color,
+                  }}
+                />
+              </Box>
+              {singleSelectPerSection && (
+                <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
+                  Select 1 profession
+                </Typography>
+              )}
             </Box>
             <SelectionGrid
               items={section.items}
-              selectedIds={selectedIds}
-              multiple={multiple}
+              selectedIds={selectedIds.filter((id) => sectionItemIds.has(id))}
+              multiple={!singleSelectPerSection}
+              isRadio={singleSelectPerSection}
               columns={columns}
               fallbackTheme={fallbackTheme}
-              onSelectionChange={onSelectionChange}
+              onSelectionChange={handleSectionChange}
             />
           </Box>
         );

@@ -69,7 +69,9 @@ export type ProfessionType =
 export type PublicProfessional = {
   id: string;
   fullName: string;
-  profession: ProfessionType;
+  profession: ProfessionType | string;
+  categoryName?: string;
+  photoUrl?: string | null;
   barOrRegNumber?: string;
   stateBarCouncil?: string;
   specialisations: string[];
@@ -80,7 +82,7 @@ export type PublicProfessional = {
   languages: string[];
   isVerified: boolean;
   profileBio: string;
-  availability: "Online" | "Offline" | "Both";
+  availability: "Online" | "Offline" | "Both" | string;
   qualifications: string[];
   courtsOrJurisdiction: string[];
 };

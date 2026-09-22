@@ -2,6 +2,7 @@
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
+  Avatar,
   Box,
   Chip,
   IconButton,
@@ -9,6 +10,7 @@ import {
   Select,
   Stack,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -60,38 +62,38 @@ export default function AdvocatesPage() {
       setRows(res.results);
       setTotalCount(res.count);
     } catch {
-      setError("Failed to load advocates. Please try again.");
+      setError("Failed to load practitioners. Please try again.");
     } finally {
       setLoading(false);
     }
   }, [search, statusFilter, page, rowsPerPage]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const columns: AdminTableColumn<AdminAdvocate>[] = [
     {
       key: "name",
-      label: "Name",
-      minWidth: 180,
+      label: "Practitioner",
+      minWidth: 200,
       render: (a) => (
-        <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
-          <Box
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Avatar
+            src={a.photo_url || undefined}
             sx={{
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
+              width: 34,
+              height: 34,
               bgcolor: "#eff6ff",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-              fontSize: "0.65rem",
+              fontSize: "0.75rem",
               fontWeight: 800,
               color: "#1d4ed8",
+              boxShadow: "0 2px 6px rgba(37,99,235,0.15)",
             }}
           >
             {a.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-          </Box>
-          <Box>
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
             <Box sx={{ fontWeight: 600, color: "#0f172a", fontSize: "0.8125rem", whiteSpace: "nowrap" }}>
               {a.full_name}
             </Box>
@@ -101,31 +103,36 @@ export default function AdvocatesPage() {
       ),
     },
     {
+      key: "profession",
+      label: "Profession & Category",
+      minWidth: 170,
+      render: (a) => (
+        <Stack spacing={0.5}>
+          <Chip
+            size="small"
+            color="primary"
+            label={a.profession_name || "Advocate"}
+            sx={{ fontWeight: 700, fontSize: "0.68rem", maxWidth: 150 }}
+          />
+          {a.category_name && (
+            <Typography variant="caption" sx={{ color: "#64748b", fontSize: "0.7rem" }}>
+              {a.category_name}
+            </Typography>
+          )}
+        </Stack>
+      ),
+    },
+    {
       key: "bar",
-      label: "Bar #",
-      minWidth: 130,
-      render: (a) => <span style={{ fontWeight: 600, color: "#2563eb" }}>{a.bar_number}</span>,
+      label: "Reg / Enrollment #",
+      minWidth: 140,
+      render: (a) => <span style={{ fontWeight: 600, color: "#2563eb", fontFamily: "monospace" }}>{a.bar_number}</span>,
     },
     {
       key: "council",
-      label: "Bar Council",
+      label: "Regulatory Body",
       minWidth: 160,
       render: (a) => a.state_bar_council || "—",
-    },
-    {
-      key: "practice",
-      label: "Practice Areas",
-      minWidth: 180,
-      render: (a) =>
-        a.practice_areas.length
-          ? a.practice_areas.slice(0, 2).join(", ") + (a.practice_areas.length > 2 ? " +" + (a.practice_areas.length - 2) : "")
-          : "—",
-    },
-    {
-      key: "exp",
-      label: "Exp.",
-      minWidth: 80,
-      render: (a) => a.years_of_experience ? `${a.years_of_experience} yr` : "—",
     },
     {
       key: "mobile",
@@ -147,26 +154,19 @@ export default function AdvocatesPage() {
       ),
     },
     {
-      key: "joined",
-      label: "Submitted",
-      minWidth: 120,
-      render: (a) =>
-        new Date(a.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" }),
-    },
-    {
       key: "actions",
-      label: "",
-      minWidth: 60,
+      label: "Actions",
+      minWidth: 90,
       align: "right",
       render: (a) => (
-        <Tooltip title="View details">
+        <Tooltip title="View full profile">
           <IconButton
             size="small"
             component={Link}
             href={`/admin/advocates/${a.id}`}
             sx={{ color: "#2563eb" }}
           >
-            <VisibilityIcon sx={{ fontSize: 16 }} />
+            <VisibilityIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </Tooltip>
       ),
@@ -178,14 +178,17 @@ export default function AdvocatesPage() {
     totalCount,
     rowsPerPage,
     onPageChange: (p) => setPage(p),
-    onRowsPerPageChange: (r) => { setRowsPerPage(r); setPage(0); },
+    onRowsPerPageChange: (r) => {
+      setRowsPerPage(r);
+      setPage(0);
+    },
     rowsPerPageOptions: [10, 25, 50],
   };
 
   return (
     <AdminPageShell
-      title="Advocates"
-      subtitle="Registered advocates — data pulled from Django DB"
+      title="Professionals & Advocates Directory"
+      subtitle="Review and manage empaneled advocates, chartered accountants, company secretaries, mediators, and institutional practitioners."
     >
       <AdminDataTable
         columns={columns}
@@ -193,25 +196,31 @@ export default function AdvocatesPage() {
         loading={loading}
         error={error}
         searchValue={search}
-        searchPlaceholder="Search name, email, or bar number…"
-        onSearchChange={(v) => { setSearch(v); setPage(0); }}
+        searchPlaceholder="Search by name, email, reg number…"
+        onSearchChange={(v) => {
+          setSearch(v);
+          setPage(0);
+        }}
         filterSlot={
           <Select
             size="small"
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(0);
+            }}
             displayEmpty
-            sx={{ minWidth: 160, bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
+            sx={{ minWidth: 150, bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
           >
             <MenuItem value="">All Statuses</MenuItem>
             <MenuItem value="approved">Approved</MenuItem>
             <MenuItem value="pending">Pending</MenuItem>
-            <MenuItem value="rejected">Rejected</MenuItem>
             <MenuItem value="under_review">Under Review</MenuItem>
+            <MenuItem value="rejected">Rejected</MenuItem>
           </Select>
         }
         getRowKey={(a) => a.id}
-        emptyMessage="No advocates found."
+        emptyMessage="No practitioners found matching the selected criteria."
         pagination={pagination}
       />
     </AdminPageShell>

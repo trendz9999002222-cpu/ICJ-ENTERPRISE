@@ -10,70 +10,120 @@ import type {
 } from "@/types/admin";
 
 // =============================================================================
-// Admin Advocates Service
-//
-// PRIMARY source: Django REST API — GET /api/v1/onboarding/admin/advocates/
-// Detail endpoint: GET /api/v1/onboarding/admin/advocates/<id>/
-// Approve endpoint: POST /api/v1/onboarding/admin/advocates/<id>/approve/
-// Reject endpoint: POST /api/v1/onboarding/admin/advocates/<id>/reject/
-// FALLBACK: mock data (when API is unreachable / not authenticated)
+// Admin Advocates / Professionals Service
+// Connected to Django REST API: /api/v1/admin/professional-onboarding/registrations/
 // =============================================================================
 
-// Django onboarding list response shape
-type DjangoAdvocateListResponse = {
+type ApiEnvelope<T> = {
   success: boolean;
   message: string;
-  data: {
-    results: {
-      id: string;
-      reference_id: string;
-      email: string;
-      status: string;
-      full_name: string;
-      mobile: string;
-      bar_number: string;
-      created_at: string;
-      reviewed_at: string | null;
-    }[];
-    count: number;
-    next: string | null;
-    previous: string | null;
-  };
+  data: T;
 };
 
-// Django onboarding detail response shape
-type DjangoAdvocateDetailResponse = {
-  success: boolean;
-  message: string;
-  data: {
+type BackendRegistrationItem = {
+  id: string;
+  reference_id: string;
+  applicant_name: string;
+  email: string;
+  mobile?: string;
+  photo_url?: string | null;
+  categories: string[];
+  groups: string[];
+  professions: string[];
+  status: string;
+  created_at: string;
+};
+
+type BackendRegistrationDetail = {
+  id: string;
+  reference_id: string;
+  status: string;
+  submitted_by: string | null;
+  applicant_name: string;
+  email: string;
+  mobile?: string;
+  photo_url?: string | null;
+  enrollment_number?: string;
+  regulatory_body?: string;
+  categories: { id: string; name: string }[];
+  groups: { id: string; name: string }[];
+  professions: { id: string; name: string }[];
+  common_field_values: Record<string, any>;
+  profession_field_values: Record<string, any>;
+  files: {
     id: string;
-    reference_id: string;
-    email: string;
-    status: string;
-    personal_data?: Record<string, any>;
-    address_data?: Record<string, any>;
-    advocate_data?: Record<string, any>;
-    rejection_reason?: string | null;
-    reviewed_by_email?: string | null;
-    reviewed_at?: string | null;
-    created_at: string;
-    updated_at: string;
-    documents?: {
-      id: string;
-      doc_key: string;
-      original_name: string;
-      content_type?: string;
-      size_bytes?: number;
-      uploaded_at?: string;
-      file_url: string | null;
-    }[];
-  };
+    document_key: string;
+    original_name: string;
+    content_type: string;
+    size_bytes: number;
+    uploaded_at: string;
+    file_url?: string | null;
+  }[];
+  created_at: string;
+  updated_at: string;
 };
 
 function authHeaders(): Record<string, string> {
   const token = readAccessTokenFromCookie();
   if (!token) throw new Error("Not authenticated");
   return { Authorization: `Bearer ${token}` };
+}
+
+function resolveMediaUrl(url?: string | null): string | null {
+  if (!url) return null;
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("blob:") ||
+    url.startsWith("data:")
+  ) {
+    return url;
+  }
+  const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
+  return `${backendBase.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
+}
+
+function parsePossibleJson(val: any): any {
+  if (typeof val === "string" && (val.startsWith("{") || val.startsWith("["))) {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+}
+
+function flattenProfFieldValues(raw: Record<string, any>): Record<string, any> {
+  if (!raw || typeof raw !== "object") return {};
+  const result: Record<string, any> = {};
+
+  for (const [k, v] of Object.entries(raw)) {
+    const parsed = parsePossibleJson(v);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      if ("field_name" in parsed && "value" in parsed) {
+        result[parsed.field_name || k] = parsePossibleJson(parsed.value);
+      } else {
+        for (const [subK, subV] of Object.entries(parsed)) {
+          const subParsed = parsePossibleJson(subV);
+          if (
+            subParsed &&
+            typeof subParsed === "object" &&
+            !Array.isArray(subParsed) &&
+            "field_name" in subParsed &&
+            "value" in subParsed
+          ) {
+            result[subParsed.field_name || subK] = parsePossibleJson(subParsed.value);
+          } else {
+            result[subK] = subParsed;
+          }
+        }
+      }
+    } else {
+      result[k] = parsed;
+    }
+  }
+  return result;
 }
 
 function mapStatus(status: string): AdvocateVerificationStatus {
@@ -83,71 +133,94 @@ function mapStatus(status: string): AdvocateVerificationStatus {
   return "under_review";
 }
 
-/** Map a Django onboarding application record → AdminAdvocate */
-function mapToAdminAdvocate(rec: DjangoAdvocateListResponse["data"]["results"][number]): AdminAdvocate {
+function mapRegistrationToAdminAdvocate(rec: BackendRegistrationItem): AdminAdvocate {
   return {
     id: rec.id,
     user_id: 0,
-    full_name: rec.full_name || rec.email,
+    full_name: rec.applicant_name || rec.email,
     email: rec.email,
     mobile: rec.mobile || "—",
-    bar_number: rec.bar_number || "—",
-    enrollment_number: "—",
+    photo_url: resolveMediaUrl(rec.photo_url),
+    category_name: rec.categories && rec.categories.length > 0 ? rec.categories[0] : undefined,
+    group_name: rec.groups && rec.groups.length > 0 ? rec.groups[0] : undefined,
+    profession_name: rec.professions && rec.professions.length > 0 ? rec.professions[0] : "Advocate / Lawyer",
+    bar_number: rec.reference_id,
+    enrollment_number: rec.reference_id,
     practice_areas: [],
     state_bar_council: "—",
     years_of_experience: 0,
     verification_status: mapStatus(rec.status),
     profile_bio: "",
     created_at: rec.created_at,
-    updated_at: rec.reviewed_at ?? rec.created_at,
+    updated_at: rec.created_at,
   };
 }
 
-/** Map Django detail response data → AdminAdvocateDetail */
-function mapToAdminAdvocateDetail(d: DjangoAdvocateDetailResponse["data"]): AdminAdvocateDetail {
-  const personal = d.personal_data || {};
-  const advocate = d.advocate_data || {};
-  const address = d.address_data || {};
+function mapDetailToAdminAdvocateDetail(d: BackendRegistrationDetail): AdminAdvocateDetail {
+  const common = d.common_field_values || {};
+  const prof = flattenProfFieldValues(d.profession_field_values || {});
+
+  let photoUrl: string | null = resolveMediaUrl(d.photo_url);
+  const docs = (d.files || []).map((f) => {
+    const resolved = resolveMediaUrl(f.file_url);
+    if (!photoUrl && f.document_key in { photo: 1, profile_photo: 1, passport_photo: 1, avatar: 1 }) {
+      photoUrl = resolved;
+    }
+    return {
+      id: f.id,
+      doc_key: f.document_key,
+      original_name: f.original_name || f.document_key,
+      content_type: f.content_type,
+      size_bytes: f.size_bytes,
+      uploaded_at: f.uploaded_at,
+      file_url: resolved,
+    };
+  });
+
+  const practiceAreas = Array.isArray(prof.practice_areas)
+    ? prof.practice_areas
+    : Array.isArray(prof.specialisations)
+    ? prof.specialisations
+    : typeof prof.practice_areas === "string"
+    ? prof.practice_areas.split(",").map((s: string) => s.trim())
+    : [];
 
   return {
     id: d.id,
     reference_id: d.reference_id,
-    email: d.email,
+    email: d.email || common.email || "—",
     status: mapStatus(d.status),
-    full_name: personal.fullName || personal.name || d.email,
-    mobile: personal.mobile || personal.phone || "—",
-    bar_number: advocate.barNumber || advocate.bar_number || "—",
-    enrollment_number: advocate.enrollmentNumber || advocate.enrollment_number || "—",
-    practice_areas: Array.isArray(advocate.practiceAreas)
-      ? advocate.practiceAreas
-      : Array.isArray(advocate.practice_areas)
-        ? advocate.practice_areas
-        : [],
-    state_bar_council: advocate.stateBarCouncil || advocate.state_bar_council || "—",
-    years_of_experience: Number(advocate.yearsOfExperience || advocate.years_of_experience) || 0,
-    rejection_reason: d.rejection_reason || null,
-    reviewed_by_email: d.reviewed_by_email || null,
-    reviewed_at: d.reviewed_at || null,
+    full_name: d.applicant_name || common.full_name || common.name || "—",
+    mobile: d.mobile || common.mobile_number || common.mobile || common.phone || "—",
+    photo_url: photoUrl,
+    category_name: d.categories && d.categories.length > 0 ? d.categories[0].name : undefined,
+    group_name: d.groups && d.groups.length > 0 ? d.groups[0].name : undefined,
+    profession_name: d.professions && d.professions.length > 0 ? d.professions[0].name : "Advocate / Lawyer",
+    bar_number: prof.enrollment_number || prof.bar_number || d.enrollment_number || d.reference_id,
+    enrollment_number: prof.enrollment_number || prof.bar_number || d.enrollment_number || d.reference_id,
+    practice_areas: practiceAreas,
+    state_bar_council: prof.bar_council || prof.state_bar_council || d.regulatory_body || "—",
+    years_of_experience: Number(prof.experience || prof.years_of_experience) || 0,
+    rejection_reason: null,
+    reviewed_by_email: null,
+    reviewed_at: null,
     created_at: d.created_at,
     updated_at: d.updated_at,
-    personal_data: personal,
-    address_data: address,
-    advocate_data: advocate,
-    documents: (d.documents || []).map((doc) => ({
-      id: doc.id,
-      doc_key: doc.doc_key,
-      original_name: doc.original_name || doc.doc_key,
-      content_type: doc.content_type,
-      size_bytes: doc.size_bytes,
-      uploaded_at: doc.uploaded_at,
-      file_url: doc.file_url,
-    })),
+    personal_data: common,
+    address_data: {
+      address: common.address || prof.office_address || prof.address,
+      city: prof.practice_city || common.city || prof.city,
+      state: prof.state || common.state || prof.practice_state,
+      pincode: common.pincode || prof.pincode,
+    },
+    advocate_data: prof,
+    documents: docs,
   };
 }
 
 export const adminAdvocatesService = {
   /**
-   * List advocates — calls Django REST API, falls back to mock on error.
+   * List advocates/professionals from registration submissions API.
    */
   listAdvocates: async (
     params: AdminListParams & { status?: string } = {}
@@ -156,19 +229,21 @@ export const adminAdvocatesService = {
       const query = new URLSearchParams();
       if (params.status && params.status !== "all") query.set("status", params.status);
       if (params.search) query.set("search", params.search);
-      if (params.page && params.page > 1) query.set("page", String(params.page));
+      if (params.category) query.set("category", params.category);
+      if (params.group) query.set("group", params.group);
+      if (params.profession) query.set("profession", params.profession);
+      if (params.page && params.page > 0) query.set("page", String(params.page));
       if (params.page_size) query.set("page_size", String(params.page_size));
 
       const qs = query.toString();
-      const path = `${API_ENDPOINTS.onboarding.adminAdvocates}${qs ? `?${qs}` : ""}`;
+      const path = `${API_ENDPOINTS.adminProfessionalOnboarding.registrations}${qs ? `?${qs}` : ""}`;
 
-      const res = await apiClient<DjangoAdvocateListResponse>(path, {
+      const res = await apiClient<ApiEnvelope<PaginatedResponse<BackendRegistrationItem>>>(path, {
         headers: authHeaders(),
-        suppressErrorLog: true,
       });
 
       return {
-        results: res.data.results.map(mapToAdminAdvocate),
+        results: res.data.results.map(mapRegistrationToAdminAdvocate),
         count: res.data.count,
         next: res.data.next,
         previous: res.data.previous,
@@ -202,15 +277,15 @@ export const adminAdvocatesService = {
   },
 
   /**
-   * Get single advocate application detail.
+   * Get single advocate / professional registration detail.
    */
   getAdvocateDetail: async (id: string): Promise<AdminAdvocateDetail | null> => {
     try {
-      const res = await apiClient<DjangoAdvocateDetailResponse>(
-        API_ENDPOINTS.onboarding.adminAdvocateDetail(id),
-        { headers: authHeaders(), suppressErrorLog: true },
+      const res = await apiClient<ApiEnvelope<BackendRegistrationDetail>>(
+        API_ENDPOINTS.adminProfessionalOnboarding.registration(id),
+        { headers: authHeaders() }
       );
-      return mapToAdminAdvocateDetail(res.data);
+      return mapDetailToAdminAdvocateDetail(res.data);
     } catch {
       // Mock fallback if id matches
       const m = mockAdvocates.find((a) => a.id === id);
@@ -222,6 +297,7 @@ export const adminAdvocatesService = {
         status: m.verification_status,
         full_name: m.full_name,
         mobile: m.mobile,
+        photo_url: null,
         bar_number: m.bar_number,
         enrollment_number: m.enrollment_number,
         practice_areas: m.practice_areas,
@@ -248,32 +324,31 @@ export const adminAdvocatesService = {
   },
 
   /**
-   * Approve advocate application
+   * Approve advocate / professional
    */
   approveAdvocate: async (id: string): Promise<AdminAdvocateDetail> => {
-    const res = await apiClient<DjangoAdvocateDetailResponse>(
-      API_ENDPOINTS.onboarding.adminAdvocateApprove(id),
+    const res = await apiClient<ApiEnvelope<BackendRegistrationDetail>>(
+      API_ENDPOINTS.adminProfessionalOnboarding.registrationApprove(id),
       {
         method: "POST",
         headers: authHeaders(),
       }
     );
-    return mapToAdminAdvocateDetail(res.data);
+    return mapDetailToAdminAdvocateDetail(res.data);
   },
 
   /**
-   * Reject advocate application
+   * Reject advocate / professional
    */
-  rejectAdvocate: async (id: string, reason: string): Promise<AdminAdvocateDetail> => {
-    const res = await apiClient<DjangoAdvocateDetailResponse>(
-      API_ENDPOINTS.onboarding.adminAdvocateReject(id),
+  rejectAdvocate: async (id: string, reason?: string): Promise<AdminAdvocateDetail> => {
+    const res = await apiClient<ApiEnvelope<BackendRegistrationDetail>>(
+      API_ENDPOINTS.adminProfessionalOnboarding.registrationReject(id),
       {
         method: "POST",
         headers: authHeaders(),
         body: { reason },
       }
     );
-    return mapToAdminAdvocateDetail(res.data);
+    return mapDetailToAdminAdvocateDetail(res.data);
   },
 };
-

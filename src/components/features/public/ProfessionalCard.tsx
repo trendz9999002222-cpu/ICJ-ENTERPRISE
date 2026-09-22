@@ -40,6 +40,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
         {/* Header: Avatar + Identity + Verified Badge */}
         <Stack direction="row" spacing={1.75} sx={{ alignItems: "flex-start", mb: 2 }}>
           <Avatar
+            src={professional.photoUrl || undefined}
             sx={{
               width: 50,
               height: 50,

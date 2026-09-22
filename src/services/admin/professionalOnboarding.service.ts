@@ -308,4 +308,26 @@ export const professionalOnboardingService = {
 
   getRegistration: (id: string) =>
     request<Record<string, unknown>>(API_ENDPOINTS.adminProfessionalOnboarding.registration(id)),
+
+  approveRegistration: (id: string) =>
+    request<Record<string, unknown>>(API_ENDPOINTS.adminProfessionalOnboarding.registrationApprove(id), {
+      method: "POST",
+    }),
+
+  rejectRegistration: (id: string) =>
+    request<Record<string, unknown>>(API_ENDPOINTS.adminProfessionalOnboarding.registrationReject(id), {
+      method: "POST",
+    }),
+
+  markRegistrationUnderReview: (id: string) =>
+    request<Record<string, unknown>>(API_ENDPOINTS.adminProfessionalOnboarding.registrationUnderReview(id), {
+      method: "POST",
+    }),
+
+  deleteRegistration: (id: string) =>
+    apiClient<{ success: boolean }>(API_ENDPOINTS.adminProfessionalOnboarding.registration(id), {
+      method: "DELETE",
+      headers: authHeaders(),
+    }),
 };
+

@@ -1,6 +1,8 @@
 import { mockServices } from "@/data/public/services";
 import { mockProfessionals } from "@/data/public/professionals";
 import { mockAcademyCourses, mockResearchPapers, mockTrainingEvents } from "@/data/public/research";
+import { apiClient } from "@/lib/api/client";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { maskPublicProfessional } from "@/lib/privacy/maskPublicIdentity";
 import { paginateArray } from "@/services/public/paginate";
 import type {
@@ -55,16 +57,68 @@ export const serviceService = {
 // Professionals Service
 // =============================================================================
 
+function mapBackendToPublicProfessional(p: any): PublicProfessional {
+  return {
+    id: p.id || p.reference_id,
+    fullName: p.full_name,
+    profession: p.profession_name || "Advocate",
+    categoryName: p.category_name,
+    photoUrl: p.photo_url || null,
+    barOrRegNumber: p.enrollment_number || p.reference_id,
+    stateBarCouncil: p.bar_council || p.state,
+    specialisations: Array.isArray(p.specialisations) && p.specialisations.length > 0 ? p.specialisations : ["General Practice"],
+    experienceYears: Number(p.experience_years) || 5,
+    state: p.state || "Delhi",
+    city: p.city || "New Delhi",
+    languages: Array.isArray(p.languages) && p.languages.length > 0 ? p.languages : ["English", "Hindi"],
+    isVerified: p.is_verified ?? true,
+    profileBio: p.overview || "",
+    availability: p.consultation_modes || "Both",
+    qualifications: p.qualification ? [p.qualification] : ["Graduate Practitioner"],
+    courtsOrJurisdiction: Array.isArray(p.courts) && p.courts.length > 0 ? p.courts : ["High Court"],
+  };
+}
+
 export const professionalService = {
   listProfessionals: async (
     params: PublicPaginationParams & {
+      category?: string;
+      group?: string;
       profession?: string;
       state?: string;
       specialisation?: string;
       experienceMin?: number;
     } = {}
   ): Promise<PublicPaginatedResponse<PublicProfessional>> => {
-    await new Promise((r) => setTimeout(r, 120));
+    try {
+      const q = new URLSearchParams();
+      if (params.page) q.set("page", String(params.page));
+      if (params.pageSize) q.set("page_size", String(params.pageSize));
+      if (params.search) q.set("search", params.search);
+      if (params.category && params.category !== "all") q.set("category", params.category);
+      if (params.group && params.group !== "all") q.set("group", params.group);
+      if (params.profession && params.profession !== "all") q.set("profession", params.profession);
+      if (params.state && params.state !== "all" && params.state !== "All States") q.set("state", params.state);
+
+      const qs = q.toString();
+      const path = `${API_ENDPOINTS.professionalOnboardingPublic.publicProfessionals}${qs ? `?${qs}` : ""}`;
+      const res = await apiClient<{ success: boolean; data: { count: number; next: string | null; previous: string | null; results: any[] } }>(path, {
+        suppressErrorLog: true,
+      });
+
+      const apiResults = (res.data?.results || []).map(mapBackendToPublicProfessional);
+      if (apiResults.length > 0) {
+        return {
+          count: res.data.count,
+          next: res.data.next,
+          previous: res.data.previous,
+          results: apiResults,
+        };
+      }
+    } catch {
+      // fallback to mock data
+    }
+
     let filtered = [...mockProfessionals];
 
     if (params.profession && params.profession !== "all") {
@@ -73,7 +127,7 @@ export const professionalService = {
       );
     }
 
-    if (params.state && params.state !== "all") {
+    if (params.state && params.state !== "all" && params.state !== "All States") {
       filtered = filtered.filter((p) => p.state.toLowerCase() === params.state?.toLowerCase());
     }
 
@@ -104,7 +158,16 @@ export const professionalService = {
   },
 
   getProfessionalById: async (id: string): Promise<PublicProfessional | null> => {
-    await new Promise((r) => setTimeout(r, 60));
+    try {
+      const path = API_ENDPOINTS.professionalOnboardingPublic.publicProfessionalDetail(id);
+      const res = await apiClient<{ success: boolean; data: any }>(path, { suppressErrorLog: true });
+      if (res?.data) {
+        return mapBackendToPublicProfessional(res.data);
+      }
+    } catch {
+      // fallback to mock
+    }
+
     const found = mockProfessionals.find((p) => p.id === id) ?? null;
     return found ? maskPublicProfessional(found) : null;
   },

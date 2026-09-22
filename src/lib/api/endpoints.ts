@@ -19,6 +19,9 @@ export const API_ENDPOINTS = {
       `/professional-onboarding/professions/${professionId}/configuration/`,
     submissions: "/professional-onboarding/submissions/",
     register: "/professional-onboarding/register/",
+    publicProfessionals: "/professional-onboarding/public-professionals/",
+    publicProfessionalDetail: (identifier: string) =>
+      `/professional-onboarding/public-professionals/${identifier}/`,
   },
   onboarding: {
     advocateSubmit: "/onboarding/advocate/",
@@ -65,5 +68,14 @@ export const API_ENDPOINTS = {
       `/admin/professional-onboarding/profession-documents/${id}/`,
     registrations: "/admin/professional-onboarding/registrations/",
     registration: (id: string) => `/admin/professional-onboarding/registrations/${id}/`,
+    registrationApprove: (id: string) => `/admin/professional-onboarding/registrations/${id}/approve/`,
+    registrationReject: (id: string) => `/admin/professional-onboarding/registrations/${id}/reject/`,
+    registrationUnderReview: (id: string) => `/admin/professional-onboarding/registrations/${id}/under-review/`,
+  },
+  adminUsers: {
+    list: "/admin/users/",
+    detail: (id: number) => `/admin/users/${id}/`,
+    activate: (id: number) => `/admin/users/${id}/activate/`,
+    deactivate: (id: number) => `/admin/users/${id}/deactivate/`,
   },
 } as const;

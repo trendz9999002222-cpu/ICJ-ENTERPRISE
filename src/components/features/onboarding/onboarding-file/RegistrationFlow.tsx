@@ -299,8 +299,17 @@ export default function RegistrationFlow() {
       return true;
     }
     if (currentStep === "profession") {
-      if (!professionPick.length) {
-        setErrors({ profession: "Select at least one profession to continue" });
+      const missingGroups = state.groupIds.filter(
+        (groupId) => !professions.some((p) => p.groupId === groupId && professionPick.includes(p.id)),
+      );
+      if (missingGroups.length > 0) {
+        const groupNames = missingGroups
+          .map((id) => groups.find((g) => g.id === id)?.title)
+          .filter(Boolean)
+          .join(", ");
+        setErrors({
+          profession: `Please select 1 profession for each of your selected groups (${groupNames}).`,
+        });
         return false;
       }
       setState((prev) => {
@@ -315,6 +324,7 @@ export default function RegistrationFlow() {
       setMaxReached((m) => Math.max(m, 3));
       return true;
     }
+
     return true;
   };
 
@@ -347,9 +357,19 @@ export default function RegistrationFlow() {
     if (currentStep === "group" && groups.length && !groupPick.length) {
       stepErrors.selection = "Select at least one group to continue";
     }
-    if (currentStep === "profession" && professions.length && !professionPick.length) {
-      stepErrors.profession = "Select at least one profession to continue";
+    if (currentStep === "profession" && professions.length) {
+      const missingGroups = state.groupIds.filter(
+        (groupId) => !professions.some((p) => p.groupId === groupId && professionPick.includes(p.id)),
+      );
+      if (missingGroups.length > 0) {
+        const groupNames = missingGroups
+          .map((id) => groups.find((g) => g.id === id)?.title)
+          .filter(Boolean)
+          .join(", ");
+        stepErrors.profession = `Please select 1 profession for each of your selected groups (${groupNames}).`;
+      }
     }
+
     if (currentStep === "details" && schema) {
       stepErrors = validateSections(schema.sections, state.values);
     }
@@ -517,8 +537,9 @@ export default function RegistrationFlow() {
     },
     profession: {
       title: `Step ${stepIndex + 1}: Select Profession`,
-      subtitle: "Choose one or more professions from your selected groups.",
+      subtitle: "Choose 1 profession for each of your selected groups.",
     },
+
     association: { title: "", subtitle: "" },
     specialisation: { title: "", subtitle: "" },
     details: {
@@ -593,11 +614,13 @@ export default function RegistrationFlow() {
           <GroupedSelectionGrid
             sections={professionSections}
             selectedIds={professionPick}
+            singleSelectPerSection={true}
             columns={3}
             fallbackTheme={theme}
             onSelectionChange={setProfessionPick}
           />
         );
+
 
       case "details":
         if (loadingConfiguration) return renderLoading("Loading professional configuration…");
