@@ -174,7 +174,7 @@ export default function NotFound() {
                     Need Urgent Legal Help?
                   </Typography>
                   <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                    24-hour helpline: +91-11-4001-7000
+                    24-hour helpline: +91-9999002222
                   </Typography>
                 </Box>
                 <Button
