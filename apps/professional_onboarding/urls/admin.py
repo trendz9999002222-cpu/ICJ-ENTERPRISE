@@ -7,8 +7,11 @@ from apps.professional_onboarding.views.admin_theme import (
     ProfessionThemeAPIView,
 )
 from apps.professional_onboarding.views.admin_registrations import (
+    AdminRegistrationApproveAPIView,
     AdminRegistrationDetailAPIView,
     AdminRegistrationListAPIView,
+    AdminRegistrationRejectAPIView,
+    AdminRegistrationUnderReviewAPIView,
 )
 from apps.professional_onboarding.views.admin_config import (
     CategoryDetailAPIView,
@@ -35,6 +38,21 @@ urlpatterns = [
         "registrations/<uuid:pk>/",
         AdminRegistrationDetailAPIView.as_view(),
         name="admin-onboarding-registration-detail",
+    ),
+    path(
+        "registrations/<uuid:pk>/approve/",
+        AdminRegistrationApproveAPIView.as_view(),
+        name="admin-onboarding-registration-approve",
+    ),
+    path(
+        "registrations/<uuid:pk>/reject/",
+        AdminRegistrationRejectAPIView.as_view(),
+        name="admin-onboarding-registration-reject",
+    ),
+    path(
+        "registrations/<uuid:pk>/under-review/",
+        AdminRegistrationUnderReviewAPIView.as_view(),
+        name="admin-onboarding-registration-under-review",
     ),
     path("categories/", CategoryListCreateAPIView.as_view(), name="admin-onboarding-categories"),
     path("categories/<uuid:pk>/", CategoryDetailAPIView.as_view(), name="admin-onboarding-category-detail"),

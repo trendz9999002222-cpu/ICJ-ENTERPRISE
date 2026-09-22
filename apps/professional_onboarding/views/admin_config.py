@@ -25,6 +25,7 @@ from apps.professional_onboarding.serializers import (
     ProfessionSerializer,
 )
 from apps.professional_onboarding.services.crud import ServiceError, create_model, update_model
+from apps.professional_onboarding.services.options import sync_field_options
 from apps.professional_onboarding.services.queries import (
     filter_categories,
     filter_common_fields,
@@ -223,6 +224,8 @@ class CommonFieldListCreateAPIView(AdminConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = create_model(CommonField, serializer.validated_data)
+            if "options" in request.data:
+                sync_field_options(obj, request.data.get("options"))
         except ServiceError as exc:
             return _handle_service_error(exc)
         return api_success(
@@ -243,6 +246,8 @@ class CommonFieldDetailAPIView(AdminConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = update_model(obj, serializer.validated_data)
+            if "options" in request.data:
+                sync_field_options(obj, request.data.get("options"))
         except ServiceError as exc:
             return _handle_service_error(exc)
         return api_success(data=CommonFieldSerializer(obj).data, message="Common field updated.")
@@ -273,6 +278,8 @@ class ProfessionFieldListCreateAPIView(AdminConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = create_model(ProfessionField, serializer.validated_data)
+            if "options" in request.data:
+                sync_field_options(obj, request.data.get("options"))
         except ServiceError as exc:
             return _handle_service_error(exc)
         return api_success(
@@ -293,6 +300,8 @@ class ProfessionFieldDetailAPIView(AdminConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = update_model(obj, serializer.validated_data)
+            if "options" in request.data:
+                sync_field_options(obj, request.data.get("options"))
         except ServiceError as exc:
             return _handle_service_error(exc)
         return api_success(data=ProfessionFieldSerializer(obj).data, message="Profession field updated.")
@@ -300,6 +309,7 @@ class ProfessionFieldDetailAPIView(AdminConfigAPIView):
     def delete(self, request, pk):
         get_object_or_404(ProfessionField, pk=pk).delete()
         return api_success(message="Profession field deleted.")
+
 
 
 class FieldOptionListCreateAPIView(AdminConfigAPIView):
