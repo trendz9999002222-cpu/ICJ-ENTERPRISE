@@ -70,47 +70,47 @@ class AdminUserListSerializer(serializers.ModelSerializer):
         user._cached_submissions = submissions
         return submissions
 
-    def get_category_name(self, user) -> str | None:
-        subs = self._get_submissions(user)
-        if subs and subs[0].category:
-            return subs[0].category.name
-        return None
-
-    def get_group_name(self, user) -> str | None:
-        subs = self._get_submissions(user)
-        if subs and subs[0].group:
-            return subs[0].group.name
-        return None
-
-    def get_profession_name(self, user) -> str | None:
-        subs = self._get_submissions(user)
-        if subs and subs[0].profession:
-            return subs[0].profession.name
-        return None
-
     def get_categories(self, user) -> list[dict]:
         subs = self._get_submissions(user)
         seen = {}
+        from apps.professional_onboarding.models import Category
         for s in subs:
-            if s.category_id and s.category:
-                seen[str(s.category.id)] = {"id": str(s.category.id), "name": s.category.name}
+            cat_ids = s.selected_category_ids or ([str(s.category_id)] if s.category_id else [])
+            for c in Category.objects.filter(pk__in=cat_ids):
+                seen[str(c.id)] = {"id": str(c.id), "name": c.name}
         return list(seen.values())
 
     def get_groups(self, user) -> list[dict]:
         subs = self._get_submissions(user)
         seen = {}
+        from apps.professional_onboarding.models import Group
         for s in subs:
-            if s.group_id and s.group:
-                seen[str(s.group.id)] = {"id": str(s.group.id), "name": s.group.name}
+            grp_ids = s.selected_group_ids or ([str(s.group_id)] if s.group_id else [])
+            for g in Group.objects.filter(pk__in=grp_ids):
+                seen[str(g.id)] = {"id": str(g.id), "name": g.name}
         return list(seen.values())
 
     def get_professions(self, user) -> list[dict]:
         subs = self._get_submissions(user)
         seen = {}
+        from apps.professional_onboarding.models import Profession
         for s in subs:
-            if s.profession_id and s.profession:
-                seen[str(s.profession.id)] = {"id": str(s.profession.id), "name": s.profession.name}
+            prof_ids = s.selected_profession_ids or ([str(s.profession_id)] if s.profession_id else [])
+            for p in Profession.objects.filter(pk__in=prof_ids):
+                seen[str(p.id)] = {"id": str(p.id), "name": p.name}
         return list(seen.values())
+
+    def get_category_name(self, user) -> str | None:
+        cats = self.get_categories(user)
+        return ", ".join(c["name"] for c in cats) if cats else None
+
+    def get_group_name(self, user) -> str | None:
+        grps = self.get_groups(user)
+        return ", ".join(g["name"] for g in grps) if grps else None
+
+    def get_profession_name(self, user) -> str | None:
+        profs = self.get_professions(user)
+        return ", ".join(p["name"] for p in profs) if profs else None
 
 
 class AdminUserDetailSerializer(AdminUserListSerializer):

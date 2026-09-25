@@ -37,3 +37,5 @@ backend/htmlcov/
 # Logs
 *.log
 logs/
+
+media/
