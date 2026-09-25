@@ -1,30 +1,34 @@
 /**
  * /admin/professionals/[id] — Professional Application Detail View
  *
- * Fully responsive admin detail view for reviewing professional onboarding applications.
- * Includes:
- * - Profile photo display with zoom/preview dialog
- * - Complete personal, address, and dynamic profession-specific details (properly unrolled and formatted)
- * - Interactive document previews (thumbnails for images, PDF viewer links)
- * - Approve / Reject workflow with feedback
+ * Clean, responsive admin detail view for reviewing professional onboarding applications.
+ * Features:
+ * - Clean hero profile header without messy chips
+ * - Cascading Category > Group > Profession dropdown selector to view role-specific practice data
+ * - Common personal and address details
+ * - Verification document preview table with lightbox
+ * - One-click approval and rejection with feedback
  */
 "use client";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BlockIcon from "@mui/icons-material/Block";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import BusinessIcon from "@mui/icons-material/Business";
+import CategoryIcon from "@mui/icons-material/Category";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
 import EmailIcon from "@mui/icons-material/Email";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import GavelIcon from "@mui/icons-material/Gavel";
+import GroupWorkIcon from "@mui/icons-material/GroupWork";
 import HistoryIcon from "@mui/icons-material/History";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import TuneIcon from "@mui/icons-material/Tune";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
 import {
@@ -33,7 +37,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   CircularProgress,
   Dialog,
@@ -42,9 +45,13 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Snackbar,
   Stack,
   Table,
@@ -148,10 +155,14 @@ const FIELD_LABEL_MAP: Record<string, string> = {
   bio: "Professional Bio / Overview",
   profile_bio: "Professional Bio / Overview",
   overview: "Professional Overview",
+  about: "Professional Overview",
   courts: "Courts & Jurisdictions",
   practice_areas: "Practice Areas & Specialisations",
   specialisations: "Specialisations",
   languages: "Languages Spoken",
+  university: "University / Institute",
+  issuing_body: "Issuing Authority / Body",
+  organisation: "Organisation / Practice Name",
 };
 
 function formatDocKey(key: string): string {
@@ -280,6 +291,11 @@ export default function ProfessionalDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
 
+  // Role Dropdown Filters inside the Profile Details section
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  const [selectedProfessionFilter, setSelectedProfessionFilter] = useState<string>("all");
+
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState("");
@@ -344,10 +360,9 @@ export default function ProfessionalDetailPage() {
     }
   };
 
-  // Process and unroll professional fields cleanly
-  const professionalFields = useMemo(() => {
-    if (!advocate?.advocate_data) return [];
-    const raw = advocate.advocate_data;
+  // Helper to unroll and extract entries from a dictionary
+  const extractEntries = (raw?: Record<string, unknown>): { key: string; label: string; value: unknown }[] => {
+    if (!raw || typeof raw !== "object") return [];
     const entries: { key: string; label: string; value: unknown }[] = [];
 
     const isUUID = (str: string) =>
@@ -356,7 +371,6 @@ export default function ProfessionalDetailPage() {
     for (const [k, v] of Object.entries(raw)) {
       if (v === null || v === undefined || v === "") continue;
 
-      // If key is a UUID, try to see if value has field_name or sub-fields
       if (isUUID(k) && typeof v === "object" && !Array.isArray(v)) {
         const obj = v as Record<string, unknown>;
         if ("field_name" in obj && "value" in obj) {
@@ -388,24 +402,116 @@ export default function ProfessionalDetailPage() {
     }
 
     return entries;
+  };
+
+  // Structure all registered professions with their category and group
+  const structuredProfessions = useMemo(() => {
+    if (!advocate) return [];
+
+    const categories = advocate.categories || [];
+    const groups = advocate.groups || [];
+    const professions = advocate.professions || [];
+    const profFieldValues = advocate.profession_field_values || {};
+    const advocateData = advocate.advocate_data || {};
+
+    if (professions.length === 0) {
+      return [
+        {
+          id: "primary",
+          name: advocate.profession_name || "Professional",
+          categoryId: "cat_default",
+          categoryName: advocate.category_name || "General",
+          groupId: "grp_default",
+          groupName: advocate.group_name || "General",
+          fields: extractEntries(advocateData),
+        },
+      ];
+    }
+
+    return professions.map((p) => {
+      const parentGroup = groups.find((g) => g.id === p.group_id);
+      const parentCatId = p.category_id || parentGroup?.category_id;
+      const parentCategory = categories.find((c) => c.id === parentCatId);
+
+      // Find fields for this profession
+      let rawFields = profFieldValues[p.id];
+      if (!rawFields || (typeof rawFields === "object" && Object.keys(rawFields).length === 0)) {
+        rawFields = advocateData;
+      }
+
+      return {
+        id: p.id,
+        name: p.name,
+        categoryId: parentCategory?.id || parentCatId || "cat_default",
+        categoryName: parentCategory?.name || advocate.category_name || "Category",
+        groupId: parentGroup?.id || p.group_id || "grp_default",
+        groupName: parentGroup?.name || advocate.group_name || "Group",
+        fields: extractEntries(rawFields as Record<string, unknown>),
+      };
+    });
   }, [advocate]);
+
+  // Unique Categories available for this applicant
+  const availableCategories = useMemo(() => {
+    const map = new Map<string, string>();
+    structuredProfessions.forEach((p) => {
+      map.set(p.categoryId, p.categoryName);
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [structuredProfessions]);
+
+  // Unique Groups available (filtered by selected category if applicable)
+  const availableGroups = useMemo(() => {
+    const map = new Map<string, string>();
+    structuredProfessions.forEach((p) => {
+      if (selectedCategoryFilter === "all" || p.categoryId === selectedCategoryFilter) {
+        map.set(p.groupId, p.groupName);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [structuredProfessions, selectedCategoryFilter]);
+
+  // Unique Professions available (filtered by category and group if applicable)
+  const availableProfessions = useMemo(() => {
+    const map = new Map<string, string>();
+    structuredProfessions.forEach((p) => {
+      const matchCat = selectedCategoryFilter === "all" || p.categoryId === selectedCategoryFilter;
+      const matchGrp = selectedGroupFilter === "all" || p.groupId === selectedGroupFilter;
+      if (matchCat && matchGrp) {
+        map.set(p.id, p.name);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [structuredProfessions, selectedCategoryFilter, selectedGroupFilter]);
+
+  // Filtered list of professions to display
+  const filteredProfessions = useMemo(() => {
+    return structuredProfessions.filter((p) => {
+      if (selectedCategoryFilter !== "all" && p.categoryId !== selectedCategoryFilter) return false;
+      if (selectedGroupFilter !== "all" && p.groupId !== selectedGroupFilter) return false;
+      if (selectedProfessionFilter !== "all" && p.id !== selectedProfessionFilter) return false;
+      return true;
+    });
+  }, [structuredProfessions, selectedCategoryFilter, selectedGroupFilter, selectedProfessionFilter]);
+
+  // Reset dependent filters on category change
+  const handleCategoryChange = (catId: string) => {
+    setSelectedCategoryFilter(catId);
+    setSelectedGroupFilter("all");
+    setSelectedProfessionFilter("all");
+  };
+
+  // Reset dependent filters on group change
+  const handleGroupChange = (grpId: string) => {
+    setSelectedGroupFilter(grpId);
+    setSelectedProfessionFilter("all");
+  };
 
   // Process personal fields cleanly
   const personalFields = useMemo(() => {
-    if (!advocate?.personal_data) return [];
-    const raw = advocate.personal_data;
-    const entries: { key: string; label: string; value: unknown }[] = [];
-
-    for (const [k, v] of Object.entries(raw)) {
-      if (v === null || v === undefined || v === "") continue;
-      entries.push({
-        key: k,
-        label: formatFieldKey(k),
-        value: v,
-      });
-    }
-
-    return entries;
+    if (!advocate?.personal_data && !advocate?.common_field_values) return [];
+    const raw = advocate.personal_data || advocate.common_field_values || {};
+    return extractEntries(raw);
   }, [advocate]);
 
   if (loading) {
@@ -465,7 +571,7 @@ export default function ProfessionalDetailPage() {
               label={String(item)}
               variant="outlined"
               color="primary"
-              sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+              sx={{ fontWeight: 600, fontSize: "0.75rem", borderRadius: 1.5 }}
             />
           ))}
         </Stack>
@@ -479,7 +585,7 @@ export default function ProfessionalDetailPage() {
           label={val ? "Yes" : "No"}
           color={val ? "success" : "default"}
           variant="outlined"
-          sx={{ fontWeight: 700, fontSize: "0.75rem" }}
+          sx={{ fontWeight: 700, fontSize: "0.75rem", borderRadius: 1.5 }}
         />
       );
     }
@@ -521,7 +627,7 @@ export default function ProfessionalDetailPage() {
 
       <Stack spacing={3} sx={{ width: "100%", pb: 4 }}>
         {/* ================================================================= */}
-        {/* HERO HEADER CARD                                                 */}
+        {/* CLEAN HERO HEADER CARD (No cluttered chips)                       */}
         {/* ================================================================= */}
         <Paper
           elevation={0}
@@ -549,13 +655,13 @@ export default function ProfessionalDetailPage() {
                   src={advocate.photo_url || undefined}
                   alt={advocate.full_name}
                   sx={{
-                    width: { xs: 68, sm: 84 },
-                    height: { xs: 68, sm: 84 },
+                    width: { xs: 64, sm: 76 },
+                    height: { xs: 64, sm: 76 },
                     bgcolor: "#2563eb",
-                    fontSize: { xs: "1.5rem", sm: "1.875rem" },
+                    fontSize: { xs: "1.4rem", sm: "1.75rem" },
                     fontWeight: 800,
                     border: "3px solid #eff6ff",
-                    boxShadow: "0 4px 14px rgba(37,99,235,0.25)",
+                    boxShadow: "0 4px 12px rgba(37,99,235,0.2)",
                     cursor: advocate.photo_url ? "pointer" : "default",
                   }}
                   onClick={() => {
@@ -600,50 +706,23 @@ export default function ProfessionalDetailPage() {
 
               <Box sx={{ minWidth: 0 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.75, mb: 0.5 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", fontSize: { xs: "1.2rem", sm: "1.4rem" } }}>
                     {advocate.full_name}
                   </Typography>
                   <Chip
                     label={advocate.status.replace("_", " ")}
                     color={STATUS_COLOR[advocate.status]}
                     size="small"
-                    sx={{ fontWeight: 700, textTransform: "capitalize", fontSize: "0.75rem" }}
+                    sx={{ fontWeight: 700, textTransform: "capitalize", fontSize: "0.725rem", borderRadius: 1.5 }}
                   />
                 </Stack>
 
                 <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500, wordBreak: "break-word" }}>
-                  {advocate.email} · Ref:{" "}
+                  {advocate.email} · Reference:{" "}
                   <strong style={{ color: "#2563eb", fontFamily: "monospace" }}>
                     {advocate.bar_number || advocate.reference_id || "—"}
                   </strong>
                 </Typography>
-
-                {(advocate.category_name || advocate.group_name || advocate.profession_name) && (
-                  <Stack direction="row" spacing={0.75} sx={{ mt: 1, gap: 0.75, flexWrap: "wrap" }}>
-                    {advocate.category_name && (
-                      <Chip
-                        size="small"
-                        label={advocate.category_name}
-                        sx={{ bgcolor: "#f0fdf4", color: "#15803d", fontSize: "0.725rem", fontWeight: 700, border: "1px solid #bbf7d0" }}
-                      />
-                    )}
-                    {advocate.group_name && (
-                      <Chip
-                        size="small"
-                        label={advocate.group_name}
-                        sx={{ bgcolor: "#faf5ff", color: "#7e22ce", fontSize: "0.725rem", fontWeight: 700, border: "1px solid #e9d5ff" }}
-                      />
-                    )}
-                    {advocate.profession_name && (
-                      <Chip
-                        size="small"
-                        label={advocate.profession_name}
-                        color="primary"
-                        sx={{ fontSize: "0.725rem", fontWeight: 700 }}
-                      />
-                    )}
-                  </Stack>
-                )}
               </Box>
             </Stack>
 
@@ -667,7 +746,7 @@ export default function ProfessionalDetailPage() {
                 startIcon={<ArrowBackIcon />}
                 sx={{ borderColor: "#cbd5e1", color: "#475569", textTransform: "none", fontWeight: 600 }}
               >
-                Back to Professionals
+                Back
               </Button>
 
               {advocate.status !== "approved" && (
@@ -783,10 +862,180 @@ export default function ProfessionalDetailPage() {
         </Paper>
 
         {/* ================================================================= */}
+        {/* ROLE & PRACTICE DETAILS WITH CASCADING DROPDOWN FILTERS          */}
+        {/* ================================================================= */}
+        <SectionCard
+          title="Professional Practice & Role Details"
+          icon={<WorkHistoryIcon sx={{ fontSize: 20 }} />}
+          badge={
+            <Typography variant="caption" sx={{ fontWeight: 600, color: "#64748b" }}>
+              Total Registered Roles: <strong>{structuredProfessions.length}</strong>
+            </Typography>
+          }
+        >
+          {/* Top Filter Bar for Category, Group, Profession */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 2.5,
+              bgcolor: "#f8fafc",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5 }}>
+              <TuneIcon sx={{ fontSize: 18, color: "#2563eb" }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                Filter Practice Details by Category, Group & Profession:
+              </Typography>
+            </Stack>
+
+            <Grid container spacing={2}>
+              {/* Category Dropdown */}
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel sx={{ fontSize: "0.85rem" }}>Category</InputLabel>
+                  <Select
+                    label="Category"
+                    value={selectedCategoryFilter}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
+                    sx={{ bgcolor: "#ffffff", borderRadius: 1.5, fontSize: "0.85rem" }}
+                  >
+                    <MenuItem value="all">All Categories ({availableCategories.length})</MenuItem>
+                    {availableCategories.map((c) => (
+                      <MenuItem key={c.id} value={c.id}>
+                        {c.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Group Dropdown */}
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel sx={{ fontSize: "0.85rem" }}>Group</InputLabel>
+                  <Select
+                    label="Group"
+                    value={selectedGroupFilter}
+                    onChange={(e) => handleGroupChange(e.target.value)}
+                    sx={{ bgcolor: "#ffffff", borderRadius: 1.5, fontSize: "0.85rem" }}
+                  >
+                    <MenuItem value="all">All Groups ({availableGroups.length})</MenuItem>
+                    {availableGroups.map((g) => (
+                      <MenuItem key={g.id} value={g.id}>
+                        {g.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Profession Dropdown */}
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel sx={{ fontSize: "0.85rem" }}>Profession</InputLabel>
+                  <Select
+                    label="Profession"
+                    value={selectedProfessionFilter}
+                    onChange={(e) => setSelectedProfessionFilter(e.target.value)}
+                    sx={{ bgcolor: "#ffffff", borderRadius: 1.5, fontSize: "0.85rem" }}
+                  >
+                    <MenuItem value="all">All Professions ({availableProfessions.length})</MenuItem>
+                    {availableProfessions.map((p) => (
+                      <MenuItem key={p.id} value={p.id}>
+                        {p.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Render Profession Details based on selected filters */}
+          {filteredProfessions.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 4, color: "#94a3b8" }}>
+              <WorkHistoryIcon sx={{ fontSize: 36, mb: 1, color: "#cbd5e1" }} />
+              <Typography variant="body2">
+                No registered role matches the selected Category, Group, or Profession filter.
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={2.5}>
+              {filteredProfessions.map((prof, idx) => (
+                <Paper
+                  key={prof.id || idx}
+                  elevation={0}
+                  sx={{
+                    p: { xs: 2, sm: 2.5 },
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 2.5,
+                    bgcolor: "#ffffff",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                  }}
+                >
+                  {/* Clean Role Header */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 1.5,
+                      pb: 1.5,
+                      mb: 2,
+                      borderBottom: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <Typography sx={{ fontWeight: 800, fontSize: "1.05rem", color: "#0f172a" }}>
+                      {prof.name}
+                    </Typography>
+
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
+                        Category: <strong style={{ color: "#15803d" }}>{prof.categoryName}</strong>
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#cbd5e1" }}>•</Typography>
+                      <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
+                        Group: <strong style={{ color: "#7e22ce" }}>{prof.groupName}</strong>
+                      </Typography>
+                    </Stack>
+                  </Box>
+
+                  {/* Role Fields Grid */}
+                  {prof.fields.length > 0 ? (
+                    <Grid container spacing={2.5}>
+                      {prof.fields.map((field) => (
+                        <Grid
+                          key={field.key}
+                          size={{
+                            xs: 12,
+                            sm: Array.isArray(field.value) ? 12 : 6,
+                            md: Array.isArray(field.value) ? 12 : 4,
+                          }}
+                        >
+                          <DetailField label={field.label} value={renderFieldValue(field.value)} />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                      No specific practice fields recorded for this role.
+                    </Typography>
+                  )}
+                </Paper>
+              ))}
+            </Stack>
+          )}
+        </SectionCard>
+
+        {/* ================================================================= */}
         {/* PERSONAL INFORMATION                                             */}
         {/* ================================================================= */}
         {personalFields.length > 0 && (
-          <SectionCard title="Personal Information" icon={<PersonIcon sx={{ fontSize: 20 }} />}>
+          <SectionCard title="Common Personal Information" icon={<PersonIcon sx={{ fontSize: 20 }} />}>
             <Grid container spacing={2.5}>
               {personalFields.map((field) => (
                 <Grid key={field.key} size={{ xs: 12, sm: 6, md: 4 }}>
@@ -823,36 +1072,6 @@ export default function ProfessionalDetailPage() {
                   <DetailField label="Pincode" value={address.pincode} />
                 </Grid>
               )}
-            </Grid>
-          </SectionCard>
-        )}
-
-        {/* ================================================================= */}
-        {/* PROFESSIONAL INFORMATION                                         */}
-        {/* ================================================================= */}
-        {professionalFields.length > 0 && (
-          <SectionCard
-            title="Professional & Practice Details"
-            icon={<WorkHistoryIcon sx={{ fontSize: 20 }} />}
-            badge={
-              advocate.profession_name ? (
-                <Chip size="small" label={advocate.profession_name} color="primary" sx={{ fontWeight: 700 }} />
-              ) : null
-            }
-          >
-            <Grid container spacing={2.5}>
-              {professionalFields.map((field) => (
-                <Grid
-                  key={field.key}
-                  size={{
-                    xs: 12,
-                    sm: Array.isArray(field.value) ? 12 : 6,
-                    md: Array.isArray(field.value) ? 12 : 4,
-                  }}
-                >
-                  <DetailField label={field.label} value={renderFieldValue(field.value)} />
-                </Grid>
-              ))}
             </Grid>
           </SectionCard>
         )}
@@ -997,7 +1216,7 @@ export default function ProfessionalDetailPage() {
                             label={doc.content_type || "file"}
                             color={isPdf ? "error" : isImg ? "primary" : "default"}
                             variant="outlined"
-                            sx={{ fontSize: "0.68rem", fontWeight: 600 }}
+                            sx={{ fontSize: "0.68rem", fontWeight: 600, borderRadius: 1.5 }}
                           />
                         </TableCell>
 

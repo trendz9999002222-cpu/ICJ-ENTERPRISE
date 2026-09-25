@@ -104,6 +104,9 @@ export type AdminAdvocate = {
   category_name?: string;
   group_name?: string;
   profession_name?: string;
+  categories?: string[];
+  groups?: string[];
+  professions?: string[];
   bar_number: string;
   enrollment_number: string;
   practice_areas: string[];
@@ -126,6 +129,12 @@ export type AdminAdvocateDetail = {
   category_name?: string;
   group_name?: string;
   profession_name?: string;
+  categories?: { id: string; name: string }[];
+  groups?: { id: string; name: string; category_id?: string }[];
+  professions?: { id: string; name: string; group_id?: string; category_id?: string }[];
+  selected_category_ids?: string[];
+  selected_group_ids?: string[];
+  selected_profession_ids?: string[];
   bar_number: string;
   enrollment_number: string;
   practice_areas: string[];
@@ -139,6 +148,8 @@ export type AdminAdvocateDetail = {
   personal_data: Record<string, any>;
   address_data: Record<string, any>;
   advocate_data: Record<string, any>;
+  profession_field_values?: Record<string, any>;
+  common_field_values?: Record<string, any>;
   documents: AdvocateDocument[];
 };
 
