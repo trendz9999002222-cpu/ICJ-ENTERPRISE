@@ -134,6 +134,10 @@ function mapStatus(status: string): AdvocateVerificationStatus {
 }
 
 function mapRegistrationToAdminAdvocate(rec: BackendRegistrationItem): AdminAdvocate {
+  const categories = Array.isArray(rec.categories) ? rec.categories : [];
+  const groups = Array.isArray(rec.groups) ? rec.groups : [];
+  const professions = Array.isArray(rec.professions) ? rec.professions : [];
+
   return {
     id: rec.id,
     user_id: 0,
@@ -141,9 +145,12 @@ function mapRegistrationToAdminAdvocate(rec: BackendRegistrationItem): AdminAdvo
     email: rec.email,
     mobile: rec.mobile || "—",
     photo_url: resolveMediaUrl(rec.photo_url),
-    category_name: rec.categories && rec.categories.length > 0 ? rec.categories[0] : undefined,
-    group_name: rec.groups && rec.groups.length > 0 ? rec.groups[0] : undefined,
-    profession_name: rec.professions && rec.professions.length > 0 ? rec.professions[0] : "Advocate / Lawyer",
+    category_name: categories.join(", ") || undefined,
+    group_name: groups.join(", ") || undefined,
+    profession_name: professions.join(", ") || "Professional",
+    categories,
+    groups,
+    professions,
     bar_number: rec.reference_id,
     enrollment_number: rec.reference_id,
     practice_areas: [],
@@ -158,7 +165,12 @@ function mapRegistrationToAdminAdvocate(rec: BackendRegistrationItem): AdminAdvo
 
 function mapDetailToAdminAdvocateDetail(d: BackendRegistrationDetail): AdminAdvocateDetail {
   const common = d.common_field_values || {};
-  const prof = flattenProfFieldValues(d.profession_field_values || {});
+  const rawProf = d.profession_field_values || {};
+  const prof = flattenProfFieldValues(rawProf);
+
+  const categories = d.categories || [];
+  const groups = d.groups || [];
+  const professions = d.professions || [];
 
   let photoUrl: string | null = resolveMediaUrl(d.photo_url);
   const docs = (d.files || []).map((f) => {
@@ -193,9 +205,12 @@ function mapDetailToAdminAdvocateDetail(d: BackendRegistrationDetail): AdminAdvo
     full_name: d.applicant_name || common.full_name || common.name || "—",
     mobile: d.mobile || common.mobile_number || common.mobile || common.phone || "—",
     photo_url: photoUrl,
-    category_name: d.categories && d.categories.length > 0 ? d.categories[0].name : undefined,
-    group_name: d.groups && d.groups.length > 0 ? d.groups[0].name : undefined,
-    profession_name: d.professions && d.professions.length > 0 ? d.professions[0].name : "Advocate / Lawyer",
+    category_name: categories.map((c) => c.name).join(", "),
+    group_name: groups.map((g) => g.name).join(", "),
+    profession_name: professions.map((p) => p.name).join(", ") || "Professional",
+    categories,
+    groups,
+    professions,
     bar_number: prof.enrollment_number || prof.bar_number || d.enrollment_number || d.reference_id,
     enrollment_number: prof.enrollment_number || prof.bar_number || d.enrollment_number || d.reference_id,
     practice_areas: practiceAreas,
@@ -214,6 +229,8 @@ function mapDetailToAdminAdvocateDetail(d: BackendRegistrationDetail): AdminAdvo
       pincode: common.pincode || prof.pincode,
     },
     advocate_data: prof,
+    profession_field_values: rawProf,
+    common_field_values: common,
     documents: docs,
   };
 }

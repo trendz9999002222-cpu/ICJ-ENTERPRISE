@@ -93,7 +93,7 @@ export default function ProfessionalsPage() {
         );
         setCategories(res.data.results ?? []);
       } catch {
-        // ignore; filters won't show options but page still works
+        // ignore
       } finally {
         setLoadingFilters(false);
       }
@@ -176,26 +176,26 @@ export default function ProfessionalsPage() {
   }, [load]);
 
   // -------------------------------------------------------------------------
-  // Table columns
+  // Clean, uncluttered Table columns
   // -------------------------------------------------------------------------
 
   const columns: AdminTableColumn<AdminAdvocate>[] = [
     {
       key: "name",
       label: "Professional",
-      minWidth: 220,
+      minWidth: 240,
       render: (a) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
             src={a.photo_url || undefined}
             sx={{
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               bgcolor: "#eff6ff",
-              fontSize: "0.78rem",
+              fontSize: "0.85rem",
               fontWeight: 800,
               color: "#1d4ed8",
-              boxShadow: "0 2px 8px rgba(37,99,235,0.18)",
+              boxShadow: "0 2px 6px rgba(37,99,235,0.15)",
               border: "2px solid #dbeafe",
             }}
           >
@@ -207,100 +207,77 @@ export default function ProfessionalsPage() {
               .toUpperCase()}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Box
+            <Typography
               sx={{
                 fontWeight: 700,
                 color: "#0f172a",
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                maxWidth: 160,
+                maxWidth: 220,
               }}
             >
               {a.full_name}
-            </Box>
-            <Box sx={{ fontSize: "0.7rem", color: "#94a3b8", whiteSpace: "nowrap" }}>
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: "0.75rem",
+                color: "#64748b",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 220,
+              }}
+            >
               {a.email}
-            </Box>
+            </Typography>
           </Box>
         </Stack>
       ),
     },
     {
-      key: "category",
-      label: "Category",
-      minWidth: 130,
-      render: (a) =>
-        a.category_name ? (
-          <Chip
-            size="small"
-            label={a.category_name}
-            sx={{
-              bgcolor: "#f0fdf4",
-              color: "#15803d",
-              fontWeight: 700,
-              fontSize: "0.68rem",
-              border: "1px solid #bbf7d0",
-            }}
-          />
-        ) : (
-          <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-            —
-          </Typography>
-        ),
-    },
-    {
-      key: "group",
-      label: "Group",
-      minWidth: 130,
-      render: (a) =>
-        a.group_name ? (
-          <Chip
-            size="small"
-            label={a.group_name}
-            sx={{
-              bgcolor: "#faf5ff",
-              color: "#7e22ce",
-              fontWeight: 700,
-              fontSize: "0.68rem",
-              border: "1px solid #e9d5ff",
-            }}
-          />
-        ) : (
-          <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-            —
-          </Typography>
-        ),
-    },
-    {
-      key: "profession",
-      label: "Profession",
-      minWidth: 150,
-      render: (a) => (
-        <Chip
-          size="small"
-          color="primary"
-          label={a.profession_name || "—"}
-          sx={{ fontWeight: 700, fontSize: "0.68rem", maxWidth: 140 }}
-        />
-      ),
-    },
-    {
       key: "bar",
-      label: "Reg / Ref #",
-      minWidth: 130,
+      label: "Reference ID",
+      minWidth: 140,
       render: (a) => (
-        <span style={{ fontWeight: 600, color: "#2563eb", fontFamily: "monospace", fontSize: "0.78rem" }}>
-          {a.bar_number}
-        </span>
+        <Typography
+          sx={{
+            fontWeight: 700,
+            color: "#2563eb",
+            fontFamily: "monospace",
+            fontSize: "0.825rem",
+          }}
+        >
+          {a.bar_number || a.enrollment_number || "—"}
+        </Typography>
       ),
     },
     {
       key: "mobile",
       label: "Mobile",
-      minWidth: 120,
-      render: (a) => a.mobile || "—",
+      minWidth: 130,
+      render: (a) => (
+        <Typography sx={{ fontSize: "0.825rem", color: "#334155", fontWeight: 500 }}>
+          {a.mobile || "—"}
+        </Typography>
+      ),
+    },
+    {
+      key: "created_at",
+      label: "Submitted Date",
+      minWidth: 130,
+      render: (a) => (
+        <Typography sx={{ fontSize: "0.8125rem", color: "#64748b", fontWeight: 500 }}>
+          {a.created_at
+            ? new Date(a.created_at).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "—"}
+        </Typography>
+      ),
     },
     {
       key: "status",
@@ -311,7 +288,12 @@ export default function ProfessionalsPage() {
           size="small"
           label={a.verification_status.replace("_", " ")}
           color={STATUS_COLOR[a.verification_status]}
-          sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
+          sx={{
+            fontWeight: 700,
+            fontSize: "0.7rem",
+            textTransform: "capitalize",
+            borderRadius: 1.5,
+          }}
         />
       ),
     },
@@ -321,12 +303,17 @@ export default function ProfessionalsPage() {
       minWidth: 80,
       align: "right",
       render: (a) => (
-        <Tooltip title="View full profile">
+        <Tooltip title="View application details">
           <IconButton
             size="small"
             component={Link}
             href={`/admin/professionals/${a.id}`}
-            sx={{ color: "#2563eb" }}
+            sx={{
+              color: "#2563eb",
+              bgcolor: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              "&:hover": { bgcolor: "#dbeafe" },
+            }}
           >
             <VisibilityIcon sx={{ fontSize: 18 }} />
           </IconButton>
@@ -348,32 +335,39 @@ export default function ProfessionalsPage() {
   };
 
   // -------------------------------------------------------------------------
-  // Filter slot — cascading dropdowns
+  // Filter slot — cascading dropdowns (Category > Group > Profession + Status)
   // -------------------------------------------------------------------------
 
   const filterSlot = (
-    <Stack direction="row" spacing={1.5} sx={{ flexWrap: "wrap" }} useFlexGap>
-      {/* Status */}
-      <Select
-        size="small"
-        value={statusFilter}
-        onChange={(e) => {
-          setStatusFilter(e.target.value);
-          setPage(0);
-        }}
-        displayEmpty
-        sx={{ minWidth: 140, bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
-      >
-        <MenuItem value="">All Statuses</MenuItem>
-        <MenuItem value="approved">Approved</MenuItem>
-        <MenuItem value="pending">Pending</MenuItem>
-        <MenuItem value="under_review">Under Review</MenuItem>
-        <MenuItem value="rejected">Rejected</MenuItem>
-      </Select>
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      spacing={1.5}
+      sx={{ flexWrap: "wrap", alignItems: { xs: "stretch", sm: "center" } }}
+      useFlexGap
+    >
+      {/* Status Filter */}
+      <FormControl size="small" sx={{ minWidth: 140 }}>
+        <InputLabel sx={{ fontSize: "0.85rem" }}>Status</InputLabel>
+        <Select
+          label="Status"
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(0);
+          }}
+          sx={{ bgcolor: "#fff", borderRadius: 2, fontSize: "0.85rem" }}
+        >
+          <MenuItem value="">All Statuses</MenuItem>
+          <MenuItem value="pending">Pending</MenuItem>
+          <MenuItem value="under_review">Under Review</MenuItem>
+          <MenuItem value="approved">Approved</MenuItem>
+          <MenuItem value="rejected">Rejected</MenuItem>
+        </Select>
+      </FormControl>
 
-      {/* Category */}
-      <FormControl size="small" sx={{ minWidth: 150 }}>
-        <InputLabel sx={{ fontSize: "0.875rem" }}>Category</InputLabel>
+      {/* Category Filter */}
+      <FormControl size="small" sx={{ minWidth: 160 }}>
+        <InputLabel sx={{ fontSize: "0.85rem" }}>Category</InputLabel>
         <Select
           label="Category"
           value={categoryFilter}
@@ -381,7 +375,7 @@ export default function ProfessionalsPage() {
             setCategoryFilter(e.target.value);
             setPage(0);
           }}
-          sx={{ bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
+          sx={{ bgcolor: "#fff", borderRadius: 2, fontSize: "0.85rem" }}
           disabled={loadingFilters}
         >
           <MenuItem value="">All Categories</MenuItem>
@@ -393,50 +387,80 @@ export default function ProfessionalsPage() {
         </Select>
       </FormControl>
 
-      {/* Group — only if category selected */}
-      {categoryFilter && (
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel sx={{ fontSize: "0.875rem" }}>Group</InputLabel>
-          <Select
-            label="Group"
-            value={groupFilter}
-            onChange={(e) => {
-              setGroupFilter(e.target.value);
-              setPage(0);
-            }}
-            sx={{ bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
-          >
-            <MenuItem value="">All Groups</MenuItem>
-            {groups.map((g) => (
-              <MenuItem key={g.id} value={g.id}>
-                {g.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      {/* Group Filter */}
+      <FormControl size="small" sx={{ minWidth: 160 }}>
+        <InputLabel sx={{ fontSize: "0.85rem" }}>Group</InputLabel>
+        <Select
+          label="Group"
+          value={groupFilter}
+          onChange={(e) => {
+            setGroupFilter(e.target.value);
+            setPage(0);
+          }}
+          disabled={!categoryFilter || groups.length === 0}
+          sx={{ bgcolor: "#fff", borderRadius: 2, fontSize: "0.85rem" }}
+        >
+          <MenuItem value="">All Groups</MenuItem>
+          {groups.map((g) => (
+            <MenuItem key={g.id} value={g.id}>
+              {g.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-      {/* Profession — only if group selected */}
-      {groupFilter && (
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel sx={{ fontSize: "0.875rem" }}>Profession</InputLabel>
-          <Select
-            label="Profession"
-            value={professionFilter}
-            onChange={(e) => {
-              setProfessionFilter(e.target.value);
-              setPage(0);
-            }}
-            sx={{ bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.875rem" }}
-          >
-            <MenuItem value="">All Professions</MenuItem>
-            {professions.map((p) => (
-              <MenuItem key={p.id} value={p.id}>
-                {p.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      {/* Profession Filter */}
+      <FormControl size="small" sx={{ minWidth: 170 }}>
+        <InputLabel sx={{ fontSize: "0.85rem" }}>Profession</InputLabel>
+        <Select
+          label="Profession"
+          value={professionFilter}
+          onChange={(e) => {
+            setProfessionFilter(e.target.value);
+            setPage(0);
+          }}
+          disabled={!groupFilter || professions.length === 0}
+          sx={{ bgcolor: "#fff", borderRadius: 2, fontSize: "0.85rem" }}
+        >
+          <MenuItem value="">All Professions</MenuItem>
+          {professions.map((p) => (
+            <MenuItem key={p.id} value={p.id}>
+              {p.name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Clear Filters Button */}
+      {(statusFilter || categoryFilter || groupFilter || professionFilter || search) && (
+        <Chip
+          label="Clear Filters"
+          onDelete={() => {
+            setStatusFilter("");
+            setCategoryFilter("");
+            setGroupFilter("");
+            setProfessionFilter("");
+            setSearch("");
+            setPage(0);
+          }}
+          onClick={() => {
+            setStatusFilter("");
+            setCategoryFilter("");
+            setGroupFilter("");
+            setProfessionFilter("");
+            setSearch("");
+            setPage(0);
+          }}
+          size="medium"
+          sx={{
+            fontWeight: 700,
+            bgcolor: "#fee2e2",
+            color: "#b91c1c",
+            borderRadius: 2,
+            "&:hover": { bgcolor: "#fecaca" },
+            cursor: "pointer",
+          }}
+        />
       )}
     </Stack>
   );
@@ -446,7 +470,7 @@ export default function ProfessionalsPage() {
   return (
     <AdminPageShell
       title="Professionals Directory"
-      subtitle="Review and manage registered professionals — advocates, chartered accountants, company secretaries, mediators, and institutional practitioners."
+      subtitle="Review and manage registered professionals across all categories and groups."
     >
       <AdminDataTable
         columns={columns}
@@ -454,7 +478,7 @@ export default function ProfessionalsPage() {
         loading={loading}
         error={error}
         searchValue={search}
-        searchPlaceholder="Search by name, email, ref number, category…"
+        searchPlaceholder="Search by name, email, ref number…"
         onSearchChange={(v) => {
           setSearch(v);
           setPage(0);
