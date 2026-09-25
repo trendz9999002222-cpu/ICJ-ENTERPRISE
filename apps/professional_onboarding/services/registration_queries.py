@@ -18,11 +18,26 @@ def filter_registrations(
     if status:
         qs = qs.filter(status=status)
     if category_id:
-        qs = qs.filter(selected_category_ids__contains=[str(category_id)])
+        cid = str(category_id).strip()
+        qs = qs.filter(
+            Q(category_id=cid)
+            | Q(selected_category_ids__contains=[cid])
+            | Q(selected_category_ids__contains=cid)
+        )
     if group_id:
-        qs = qs.filter(selected_group_ids__contains=[str(group_id)])
+        gid = str(group_id).strip()
+        qs = qs.filter(
+            Q(group_id=gid)
+            | Q(selected_group_ids__contains=[gid])
+            | Q(selected_group_ids__contains=gid)
+        )
     if profession_id:
-        qs = qs.filter(selected_profession_ids__contains=[str(profession_id)])
+        pid = str(profession_id).strip()
+        qs = qs.filter(
+            Q(profession_id=pid)
+            | Q(selected_profession_ids__contains=[pid])
+            | Q(selected_profession_ids__contains=pid)
+        )
     if created_from:
         qs = qs.filter(created_at__gte=created_from)
     if created_to:
@@ -36,6 +51,8 @@ def filter_registrations(
                 | Q(common_field_values__full_name__icontains=term)
                 | Q(common_field_values__name__icontains=term)
                 | Q(common_field_values__email__icontains=term)
+                | Q(common_field_values__mobile_number__icontains=term)
+                | Q(common_field_values__mobile__icontains=term)
             )
 
     if ordering:

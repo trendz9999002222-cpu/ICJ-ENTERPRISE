@@ -163,19 +163,16 @@ class ProfessionalRegistrationSubmissionListSerializer(serializers.ModelSerializ
         return list(names)
 
     def get_categories(self, obj) -> list[str]:
-        if obj.category:
-            return [obj.category.name]
-        return self._titles_for_ids(Category, obj.selected_category_ids or [])
+        ids = obj.selected_category_ids or ([str(obj.category_id)] if obj.category_id else [])
+        return self._titles_for_ids(Category, ids)
 
     def get_groups(self, obj) -> list[str]:
-        if obj.group:
-            return [obj.group.name]
-        return self._titles_for_ids(Group, obj.selected_group_ids or [])
+        ids = obj.selected_group_ids or ([str(obj.group_id)] if obj.group_id else [])
+        return self._titles_for_ids(Group, ids)
 
     def get_professions(self, obj) -> list[str]:
-        if obj.profession:
-            return [obj.profession.name]
-        return self._titles_for_ids(Profession, obj.selected_profession_ids or [])
+        ids = obj.selected_profession_ids or ([str(obj.profession_id)] if obj.profession_id else [])
+        return self._titles_for_ids(Profession, ids)
 
 
 class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerializer):
@@ -263,16 +260,34 @@ class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerial
         return [{"id": str(r["id"]), "name": r["name"]} for r in rows]
 
     def get_categories(self, obj) -> list[dict]:
-        if obj.category:
-            return [{"id": str(obj.category.id), "name": obj.category.name}]
-        return self._titles_map(Category, obj.selected_category_ids or [])
+        ids = obj.selected_category_ids or ([str(obj.category_id)] if obj.category_id else [])
+        return self._titles_map(Category, ids)
 
     def get_groups(self, obj) -> list[dict]:
-        if obj.group:
-            return [{"id": str(obj.group.id), "name": obj.group.name}]
-        return self._titles_map(Group, obj.selected_group_ids or [])
+        ids = obj.selected_group_ids or ([str(obj.group_id)] if obj.group_id else [])
+        if not ids:
+            return []
+        rows = Group.objects.filter(pk__in=ids).values("id", "name", "category_id")
+        return [
+            {
+                "id": str(r["id"]),
+                "name": r["name"],
+                "category_id": str(r["category_id"]),
+            }
+            for r in rows
+        ]
 
     def get_professions(self, obj) -> list[dict]:
-        if obj.profession:
-            return [{"id": str(obj.profession.id), "name": obj.profession.name}]
-        return self._titles_map(Profession, obj.selected_profession_ids or [])
+        ids = obj.selected_profession_ids or ([str(obj.profession_id)] if obj.profession_id else [])
+        if not ids:
+            return []
+        rows = Profession.objects.filter(pk__in=ids).values("id", "name", "group_id", "group__category_id")
+        return [
+            {
+                "id": str(r["id"]),
+                "name": r["name"],
+                "group_id": str(r["group_id"]),
+                "category_id": str(r.get("group__category_id") or ""),
+            }
+            for r in rows
+        ]
