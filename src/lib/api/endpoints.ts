@@ -8,6 +8,10 @@ export const API_ENDPOINTS = {
     changePassword: "/auth/change-password/",
   },
   members: "/members/",
+  membershipOnboardingPublic: {
+    configuration: "/membership-onboarding/configuration/",
+    register: "/membership-onboarding/register/",
+  },
   professionalOnboardingPublic: {
     base: "/professional-onboarding/",
     categories: "/professional-onboarding/categories/",

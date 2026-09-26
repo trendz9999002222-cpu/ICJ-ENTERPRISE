@@ -22,6 +22,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
+import AnimatedHighlightBorder from "@/components/ui/AnimatedHighlightBorder";
 import { NAV_MODULES, NAV_VERIFICATION_LINKS } from "@/config/navModules";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -83,20 +84,25 @@ export default function NavbarMenu() {
             </Button>
           ))}
 
-          <Button
-            component={Link}
-            href="/membership"
-            sx={{
-              color: pathname.startsWith("/membership") ? "#2563eb" : "#334155",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              textTransform: "none",
-              px: 1.25,
-              "&:hover": { color: "#2563eb", bgcolor: "#f8fafc" },
-            }}
-          >
-            Membership
-          </Button>
+          <AnimatedHighlightBorder borderRadius={8} innerBg="#ffffff" padding={2}>
+            <Button
+              component={Link}
+              href="/membership"
+              sx={{
+                color: pathname.startsWith("/membership") ? "#1d4ed8" : "#0f172a",
+                fontWeight: 700,
+                fontSize: "0.875rem",
+                textTransform: "none",
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 1.5,
+                bgcolor: pathname.startsWith("/membership") ? "#eff6ff" : "#f8fafc",
+                "&:hover": { color: "#1d4ed8", bgcolor: "#eff6ff" },
+              }}
+            >
+              Join Membership
+            </Button>
+          </AnimatedHighlightBorder>
 
           <Button
             component={Link}
@@ -375,22 +381,27 @@ export default function NavbarMenu() {
               About ICJ
             </Button>
 
-            <Button
-              component={Link}
-              href="/membership"
-              onClick={() => setDrawerOpen(false)}
-              fullWidth
-              sx={{
-                justifyContent: "flex-start",
-                color: "#0f172a",
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                textTransform: "none",
-                py: 1.25,
-              }}
-            >
-              Join ICJ (Membership)
-            </Button>
+            <AnimatedHighlightBorder borderRadius={10} innerBg="#ffffff" padding={2}>
+              <Button
+                component={Link}
+                href="/membership"
+                onClick={() => setDrawerOpen(false)}
+                fullWidth
+                sx={{
+                  justifyContent: "center",
+                  color: "#1d4ed8",
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  textTransform: "none",
+                  py: 1.25,
+                  px: 2,
+                  borderRadius: 2,
+                  bgcolor: "#eff6ff",
+                }}
+              >
+                Join ICJ (Membership)
+              </Button>
+            </AnimatedHighlightBorder>
           </Stack>
 
           {/* Accordion Categories */}

@@ -17,12 +17,14 @@ type PageHeaderProps = {
   breadcrumbs?: BreadcrumbItem[];
   primaryAction?: {
     label: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     icon?: React.ReactNode;
   };
   secondaryAction?: {
     label: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     icon?: React.ReactNode;
   };
 };
@@ -169,8 +171,9 @@ export default function PageHeader({
             >
               {secondaryAction && (
                 <Button
-                  component={Link}
-                  href={secondaryAction.href}
+                  component={secondaryAction.href ? Link : "button"}
+                  href={secondaryAction.href ?? undefined}
+                  onClick={secondaryAction.onClick}
                   variant="outlined"
                   startIcon={secondaryAction.icon}
                   sx={{
@@ -190,8 +193,9 @@ export default function PageHeader({
 
               {primaryAction && (
                 <Button
-                  component={Link}
-                  href={primaryAction.href}
+                  component={primaryAction.href ? Link : "button"}
+                  href={primaryAction.href ?? undefined}
+                  onClick={primaryAction.onClick}
                   variant="contained"
                   startIcon={primaryAction.icon}
                   sx={{
