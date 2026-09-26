@@ -89,7 +89,7 @@ class PublicMembershipFormSerializer(serializers.ModelSerializer):
 
 
 class PublicMembershipConfigurationSerializer(serializers.Serializer):
-    membership_type = PublicMembershipTypeSerializer()
+    membership_type = PublicMembershipTypeSerializer(required=False, allow_null=True)
     form = PublicMembershipFormSerializer(allow_null=True)
     steps = PublicMembershipStepSerializer(many=True)
     documents = PublicMembershipDocumentSerializer(many=True)

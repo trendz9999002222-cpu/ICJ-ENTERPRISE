@@ -19,6 +19,7 @@ from apps.membership_onboarding.serializers.admin import (
     MembershipStepSerializer,
     MembershipTypeSerializer,
 )
+from apps.membership_onboarding.services.public_config import ensure_default_membership_type
 from apps.membership_onboarding.views.base import AdminMembershipConfigAPIView
 from apps.professional_onboarding.services.crud import ServiceError, create_model, update_model
 
@@ -63,7 +64,16 @@ class MembershipFormListCreateAPIView(AdminMembershipConfigAPIView):
         return api_success(data={"results": MembershipFormSerializer(qs, many=True).data}, message="Forms retrieved.")
 
     def post(self, request):
-        serializer = MembershipFormSerializer(data=request.data)
+        data = {**request.data}
+        if not data.get("membership_type"):
+            data["membership_type"] = str(ensure_default_membership_type().id)
+        mtype_id = data["membership_type"]
+        if not data.get("version"):
+            last = MembershipForm.objects.filter(membership_type_id=mtype_id).order_by("-version").first()
+            data["version"] = (last.version + 1) if last else 1
+        if data.get("is_active", True):
+            MembershipForm.objects.update(is_active=False)
+        serializer = MembershipFormSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         try:
             obj = create_model(MembershipForm, serializer.validated_data)

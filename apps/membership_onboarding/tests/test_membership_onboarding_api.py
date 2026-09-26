@@ -51,6 +51,26 @@ def test_public_configuration(api_client, configured_type):
 
 
 @pytest.mark.django_db
+def test_public_active_configuration(api_client, configured_type):
+    res = api_client.get("/api/v1/membership-onboarding/configuration/")
+    assert res.status_code == status.HTTP_200_OK
+    assert len(res.data["data"]["steps"]) >= 1
+
+
+@pytest.mark.django_db
+def test_submit_without_type_id(api_client, configured_type):
+    res = api_client.post(
+        "/api/v1/membership-onboarding/register/",
+        {
+            "field_values": '{"full_name": "No Type", "email": "notype@example.com"}',
+            "declaration_accepted": "true",
+        },
+        format="multipart",
+    )
+    assert res.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
 def test_submit_membership(api_client, configured_type):
     res = api_client.post(
         "/api/v1/membership-onboarding/register/",

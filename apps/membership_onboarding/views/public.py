@@ -13,7 +13,12 @@ from apps.membership_onboarding.serializers.public import (
     PublicMembershipConfigurationSerializer,
     PublicMembershipTypeSerializer,
 )
-from apps.membership_onboarding.services.public_config import build_type_configuration
+from apps.membership_onboarding.services.public_config import (
+    build_active_configuration,
+    build_type_configuration,
+    ensure_default_membership_type,
+    get_active_membership_form,
+)
 from apps.membership_onboarding.services.submission import MembershipApplicationService, parse_field_values_json
 from apps.professional_onboarding.services.crud import ServiceError
 
@@ -26,6 +31,24 @@ class PublicMembershipTypeListAPIView(APIView):
         return api_success(
             data={"results": PublicMembershipTypeSerializer(qs, many=True).data},
             message="Membership types retrieved.",
+        )
+
+
+class PublicMembershipConfigurationAPIView(APIView):
+    """Active membership form (no type selection required)."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        config = build_active_configuration()
+        payload = {
+            "form": config["form"],
+            "steps": config["steps"],
+            "documents": config["documents"],
+        }
+        return api_success(
+            data=PublicMembershipConfigurationSerializer(payload).data,
+            message="Membership configuration retrieved.",
         )
 
 
@@ -55,7 +78,11 @@ class PublicMembershipRegisterAPIView(APIView):
     def post(self, request):
         membership_type_id = request.data.get("membership_type_id")
         if not membership_type_id:
-            return api_error("membership_type_id is required.", status_code=status.HTTP_400_BAD_REQUEST)
+            active_form = get_active_membership_form()
+            if active_form:
+                membership_type_id = str(active_form.membership_type_id)
+            else:
+                membership_type_id = str(ensure_default_membership_type().id)
 
         try:
             field_values = parse_field_values_json(request.data.get("field_values") or "{}")

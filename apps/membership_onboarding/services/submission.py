@@ -15,7 +15,7 @@ from apps.membership_onboarding.models import (
     MembershipStepField,
     MembershipType,
 )
-from apps.membership_onboarding.services.public_config import build_type_configuration, get_active_form_for_type
+from apps.membership_onboarding.services.public_config import build_configuration_for_form, get_active_membership_form
 from apps.person.services import resolve_person_for_application
 from apps.professional_onboarding.services.crud import ServiceError
 from apps.professional_onboarding.services.field_validation import validate_configured_field_value
@@ -61,15 +61,19 @@ class MembershipApplicationService:
             if existing:
                 return existing
 
+        form = get_active_membership_form()
+        if not form:
+            raise ServiceError("No active membership form.", {"form": ["Not configured."]})
+
         try:
             membership_type = MembershipType.objects.get(pk=membership_type_id, is_active=True)
         except MembershipType.DoesNotExist:
-            raise ServiceError("Invalid membership type.", {"membership_type_id": ["Not found."]})
+            membership_type = form.membership_type
 
-        config = build_type_configuration(membership_type_id)
-        form = config["form"]
-        if not form:
-            raise ServiceError("No active form for this membership type.", {"form": ["Not configured."]})
+        if str(membership_type.id) != str(form.membership_type_id):
+            membership_type = form.membership_type
+
+        config = build_configuration_for_form(form)
 
         errors: dict[str, list[str]] = {}
         field_meta: dict[str, MembershipStepField] = {}
