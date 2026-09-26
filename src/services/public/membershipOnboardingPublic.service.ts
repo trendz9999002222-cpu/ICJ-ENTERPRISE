@@ -1,8 +1,6 @@
 import { apiClient, apiClientFormData } from "@/lib/api/client";
-import type {
-  MembershipOnboardingConfiguration,
-  MembershipTypePublic,
-} from "@/types/public/membershipOnboarding";
+import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import type { MembershipOnboardingConfiguration } from "@/types/public/membershipOnboarding";
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -13,28 +11,18 @@ type ApiEnvelope<T> = {
 const BASE = "/membership-onboarding";
 
 export const membershipOnboardingPublicService = {
-  async fetchTypes(): Promise<MembershipTypePublic[]> {
-    const res = await apiClient<ApiEnvelope<{ results: MembershipTypePublic[] }>>(`${BASE}/types/`);
-    return res.data.results;
-  },
-
-  async fetchConfiguration(membershipTypeId: string): Promise<MembershipOnboardingConfiguration> {
-    return (
-      await apiClient<ApiEnvelope<MembershipOnboardingConfiguration>>(
-        `${BASE}/types/${membershipTypeId}/configuration/`,
-      )
-    ).data;
+  async fetchConfiguration(): Promise<MembershipOnboardingConfiguration> {
+    const path = API_ENDPOINTS.membershipOnboardingPublic.configuration;
+    return (await apiClient<ApiEnvelope<MembershipOnboardingConfiguration>>(path)).data;
   },
 
   async submitApplication(payload: {
-    membershipTypeId: string;
     fieldValues: Record<string, unknown>;
     files: Record<string, File | null>;
     declarationAccepted: boolean;
     idempotencyKey?: string;
   }): Promise<{ referenceId: string; status: string }> {
     const formData = new FormData();
-    formData.set("membership_type_id", payload.membershipTypeId);
     formData.set("field_values", JSON.stringify(payload.fieldValues));
     formData.set("declaration_accepted", payload.declarationAccepted ? "true" : "false");
 

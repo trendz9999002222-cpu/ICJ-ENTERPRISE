@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -15,9 +14,7 @@ import {
   CircularProgress,
   Container,
   FormControlLabel,
-  MenuItem,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 
@@ -30,14 +27,13 @@ import { membershipOnboardingPublicService } from "@/services/public/membershipO
 import type {
   MembershipOnboardingConfiguration,
   MembershipOnboardingDocument,
-  MembershipTypePublic,
 } from "@/types/public/membershipOnboarding";
 import type { DocumentField, Theme } from "@/types/registration";
 import { scrollToFirstError, validateDocuments, validateSections } from "@/lib/validation";
 
 const THEME: Theme = { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" };
 
-type FlowPhase = "select-type" | "steps" | "documents" | "review" | "done";
+type FlowPhase = "steps" | "documents" | "review" | "done";
 
 function documentsToFields(docs: MembershipOnboardingDocument[]): DocumentField[] {
   return docs.map((d) => ({
@@ -50,16 +46,17 @@ function documentsToFields(docs: MembershipOnboardingDocument[]): DocumentField[
   }));
 }
 
-export default function JoinMembershipApplicationFlow() {
-  const searchParams = useSearchParams();
-  const preselected = searchParams.get("type") || "";
+function initialPhase(cfg: MembershipOnboardingConfiguration): FlowPhase {
+  if (cfg.steps.length) return "steps";
+  if (cfg.documents.length) return "documents";
+  return "review";
+}
 
-  const [types, setTypes] = useState<MembershipTypePublic[]>([]);
-  const [membershipTypeId, setMembershipTypeId] = useState("");
+export default function JoinMembershipApplicationFlow() {
   const [config, setConfig] = useState<MembershipOnboardingConfiguration | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<FlowPhase>("select-type");
+  const [phase, setPhase] = useState<FlowPhase>("steps");
   const [stepIndex, setStepIndex] = useState(0);
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [files, setFiles] = useState<Record<string, File | null>>({});
@@ -73,31 +70,14 @@ export default function JoinMembershipApplicationFlow() {
 
   useEffect(() => {
     membershipOnboardingPublicService
-      .fetchTypes()
-      .then((list) => {
-        setTypes(list);
-        const initial = preselected && list.find((t) => t.slug === preselected || t.id === preselected);
-        if (initial) setMembershipTypeId(initial.id);
-        else if (list[0]) setMembershipTypeId(list[0].id);
+      .fetchConfiguration()
+      .then((cfg) => {
+        setConfig(cfg);
+        setPhase(initialPhase(cfg));
       })
-      .catch(() => setLoadError("Unable to load membership types."))
+      .catch(() => setLoadError("Unable to load membership form. Please try again later."))
       .finally(() => setLoading(false));
-  }, [preselected]);
-
-  const loadConfiguration = async (typeId: string) => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const cfg = await membershipOnboardingPublicService.fetchConfiguration(typeId);
-      setConfig(cfg);
-      setStepIndex(0);
-      setPhase(cfg.steps.length ? "steps" : cfg.documents.length ? "documents" : "review");
-    } catch {
-      setLoadError("Unable to load membership form configuration.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   const steps = config?.steps ?? [];
   const currentStep = steps[stepIndex];
@@ -153,15 +133,13 @@ export default function JoinMembershipApplicationFlow() {
       return;
     }
     if (stepIndex > 0) setStepIndex((i) => i - 1);
-    else setPhase("select-type");
   };
 
   const handleSubmit = async () => {
-    if (!validateCurrent() || !config || !membershipTypeId) return;
+    if (!validateCurrent() || !config) return;
     setSubmitting(true);
     try {
       const { referenceId: ref } = await membershipOnboardingPublicService.submitApplication({
-        membershipTypeId,
         fieldValues: values,
         files,
         declarationAccepted,
@@ -182,7 +160,7 @@ export default function JoinMembershipApplicationFlow() {
     }
   };
 
-  if (loading && !config) {
+  if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
         <CircularProgress />
@@ -190,8 +168,12 @@ export default function JoinMembershipApplicationFlow() {
     );
   }
 
-  if (loadError && !config) {
-    return <Alert severity="error">{loadError}</Alert>;
+  if (loadError || !config?.form) {
+    return (
+      <Alert severity="warning">
+        {loadError ?? "Membership application form is not configured yet. Please check back soon."}
+      </Alert>
+    );
   }
 
   if (phase === "done" && referenceId) {
@@ -211,41 +193,20 @@ export default function JoinMembershipApplicationFlow() {
     );
   }
 
+  const formTitle = config.form?.title ?? "Membership application";
+
   return (
     <Box sx={{ bgcolor: "#fff", border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden" }}>
       <Box sx={{ px: 3, py: 2, borderBottom: "1px solid #e2e8f0", bgcolor: "#f8fafc" }}>
         <Typography sx={{ fontWeight: 800 }}>Apply for Membership</Typography>
         <Typography variant="body2" sx={{ color: "#64748b" }}>
-          {config?.membership_type.name ?? "Select membership type"}
+          {formTitle}
+          {config.form?.version ? ` · Version ${config.form.version}` : ""}
         </Typography>
       </Box>
 
       <Container maxWidth="md" sx={{ py: 3 }}>
         {errors.submit && <Alert severity="error" sx={{ mb: 2 }}>{errors.submit}</Alert>}
-
-        {phase === "select-type" && (
-          <Stack spacing={2}>
-            <TextField
-              select
-              fullWidth
-              label="Membership Type"
-              value={membershipTypeId}
-              onChange={(e) => setMembershipTypeId(e.target.value)}
-            >
-              {types.map((t) => (
-                <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-              ))}
-            </TextField>
-            <Button
-              variant="contained"
-              onClick={() => membershipTypeId && loadConfiguration(membershipTypeId)}
-              disabled={!membershipTypeId}
-              sx={{ alignSelf: "flex-start", textTransform: "none", fontWeight: 700 }}
-            >
-              Continue to application
-            </Button>
-          </Stack>
-        )}
 
         {phase === "steps" && stepSchema && currentStep && (
           <>
@@ -293,20 +254,25 @@ export default function JoinMembershipApplicationFlow() {
           </Stack>
         )}
 
-        {phase !== "select-type" && (
-          <Stack direction="row" sx={{ mt: 4, justifyContent: "space-between" }}>
-            <Button startIcon={<ArrowBackIcon />} onClick={goBack} sx={{ textTransform: "none" }}>Back</Button>
-            <Button
-              variant="contained"
-              endIcon={phase === "review" ? undefined : <ArrowForwardIcon />}
-              disabled={submitting}
-              onClick={phase === "review" ? handleSubmit : goNext}
-              sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 3 }}
-            >
-              {submitting ? "Submitting…" : phase === "review" ? "Submit application" : "Continue"}
-            </Button>
-          </Stack>
-        )}
+        <Stack direction="row" sx={{ mt: 4, justifyContent: "space-between" }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={goBack}
+            disabled={phase === "steps" && stepIndex === 0}
+            sx={{ textTransform: "none" }}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            endIcon={phase === "review" ? undefined : <ArrowForwardIcon />}
+            disabled={submitting}
+            onClick={phase === "review" ? handleSubmit : goNext}
+            sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 3 }}
+          >
+            {submitting ? "Submitting…" : phase === "review" ? "Submit application" : "Continue"}
+          </Button>
+        </Stack>
       </Container>
     </Box>
   );

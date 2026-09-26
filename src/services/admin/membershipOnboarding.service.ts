@@ -52,6 +52,7 @@ export type MembershipStepFieldAdmin = {
   id: string;
   step: string;
   name: string;
+  label?: string;
   field_key: string;
   field_type: string;
   is_required: boolean;
@@ -141,7 +142,7 @@ export const membershipOnboardingAdminService = {
     return data.results;
   },
 
-  async createForm(payload: { membership_type: string; title: string; is_active?: boolean }) {
+  async createForm(payload: { title: string; is_active?: boolean }) {
     return request<MembershipFormAdmin>(`${BASE}/forms/`, { method: "POST", body: payload });
   },
 

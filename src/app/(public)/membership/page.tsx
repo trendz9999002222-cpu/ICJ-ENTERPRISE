@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -10,21 +9,16 @@ import {
   Box,
   Button,
   Card,
-  Chip,
-  CircularProgress,
   Container,
   Grid,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Stack,
   Typography,
 } from "@mui/material";
 
 import PageHeader from "@/components/features/public/PageHeader";
-import { membershipOnboardingPublicService } from "@/services/public/membershipOnboardingPublic.service";
-import type { MembershipTypePublic } from "@/types/public/membershipOnboarding";
 
 const BENEFITS = [
   "Verified institutional membership registry",
@@ -34,25 +28,14 @@ const BENEFITS = [
 ];
 
 const PROCESS = [
-  "Choose your membership type",
-  "Complete the dynamic application form",
+  "Open the membership application form",
+  "Complete each configured step",
   "Upload required documents",
   "Accept declaration and submit",
   "Admin review and approval (no payment in this phase)",
 ];
 
 export default function MembershipPage() {
-  const [types, setTypes] = useState<MembershipTypePublic[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    membershipOnboardingPublicService
-      .fetchTypes()
-      .then(setTypes)
-      .catch(() => setTypes([]))
-      .finally(() => setLoading(false));
-  }, []);
-
   return (
     <Box sx={{ bgcolor: "#f8fafc", minHeight: "100vh", pb: 10 }}>
       <PageHeader
@@ -78,8 +61,8 @@ export default function MembershipPage() {
             <List dense>
               {BENEFITS.map((b) => (
                 <ListItem key={b} disableGutters>
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <CheckCircleIcon sx={{ color: "#059669", fontSize: 20 }} />
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <CheckCircleIcon sx={{ color: "#2563eb", fontSize: 22 }} />
                   </ListItemIcon>
                   <ListItemText primary={b} />
                 </ListItem>
@@ -88,11 +71,14 @@ export default function MembershipPage() {
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
             <Card sx={{ p: 3, borderRadius: 3, border: "1px solid #e2e8f0" }}>
-              <Typography sx={{ fontWeight: 800, mb: 1 }}>Application process</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Application process</Typography>
               <List dense>
                 {PROCESS.map((step, i) => (
-                  <ListItem key={step} disableGutters>
-                    <ListItemText primary={`${i + 1}. ${step}`} slotProps={{ primary: { sx: { fontSize: "0.9rem" } } }} />
+                  <ListItem key={step} disableGutters sx={{ alignItems: "flex-start" }}>
+                    <ListItemText
+                      primary={`${i + 1}. ${step}`}
+                      slotProps={{ primary: { variant: "body2", sx: { color: "#475569" } } }}
+                    />
                   </ListItem>
                 ))}
               </List>
@@ -110,38 +96,9 @@ export default function MembershipPage() {
           </Grid>
         </Grid>
 
-        <Typography variant="h5" sx={{ fontWeight: 800, mb: 3 }}>Membership types</Typography>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : types.length === 0 ? (
-          <Typography sx={{ color: "#64748b" }}>No membership types are configured yet. Please check back soon.</Typography>
-        ) : (
-          <Grid container spacing={3}>
-            {types.map((type) => (
-              <Grid size={{ xs: 12, md: 6 }} key={type.id}>
-                <Card sx={{ p: 3, height: "100%", borderRadius: 3, border: "1px solid #e2e8f0" }}>
-                  <Stack direction="row" sx={{ mb: 1, justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800 }}>{type.name}</Typography>
-                    <Chip label="Open" size="small" color="primary" variant="outlined" />
-                  </Stack>
-                  <Typography variant="body2" sx={{ color: "#64748b", mb: 2, minHeight: 48 }}>
-                    {type.description || "Admin-configured membership track."}
-                  </Typography>
-                  <Button
-                    component={Link}
-                    href={`/join-membership?type=${type.slug}`}
-                    variant="outlined"
-                    sx={{ textTransform: "none", fontWeight: 600 }}
-                  >
-                    Apply for {type.name}
-                  </Button>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
+        <Typography variant="body2" sx={{ color: "#64748b", textAlign: "center" }}>
+          The application form is configured by administrators and may include multiple steps and document uploads.
+        </Typography>
       </Container>
     </Box>
   );

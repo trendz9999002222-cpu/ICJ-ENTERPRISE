@@ -93,7 +93,7 @@ export default function AdminMembershipsPage() {
                 <TableCell>Application ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>Type</TableCell>
+                <TableCell>Form</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -104,7 +104,7 @@ export default function AdminMembershipsPage() {
                   <TableCell sx={{ fontWeight: 700 }}>{row.reference_id}</TableCell>
                   <TableCell>{row.person_name || "—"}</TableCell>
                   <TableCell>{row.email || "—"}</TableCell>
-                  <TableCell>{row.membership_type_name}</TableCell>
+                  <TableCell>{row.membership_type_name || "Membership"}</TableCell>
                   <TableCell>
                     <Chip label={row.status} size="small" />
                   </TableCell>

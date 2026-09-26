@@ -45,7 +45,7 @@ export type MembershipTypePublic = {
 };
 
 export type MembershipOnboardingConfiguration = {
-  membership_type: MembershipTypePublic;
+  membership_type?: MembershipTypePublic | null;
   form: { id: string; title: string; version: number; is_active: boolean } | null;
   steps: MembershipOnboardingStep[];
   documents: MembershipOnboardingDocument[];

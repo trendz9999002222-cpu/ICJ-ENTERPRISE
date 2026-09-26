@@ -31,7 +31,6 @@ import {
   type MembershipFormAdmin,
   type MembershipStepAdmin,
   type MembershipStepFieldAdmin,
-  type MembershipTypeAdmin,
 } from "@/services/admin/membershipOnboarding.service";
 
 const FIELD_TYPES = [
@@ -56,8 +55,6 @@ const FIELD_TYPES = [
 ];
 
 export default function MembershipFormBuilderPage() {
-  const [types, setTypes] = useState<MembershipTypeAdmin[]>([]);
-  const [typeId, setTypeId] = useState("");
   const [forms, setForms] = useState<MembershipFormAdmin[]>([]);
   const [formId, setFormId] = useState("");
   const [steps, setSteps] = useState<MembershipStepAdmin[]>([]);
@@ -73,19 +70,16 @@ export default function MembershipFormBuilderPage() {
     is_required: true,
   });
 
-  const loadTypes = useCallback(async () => {
-    const list = await membershipOnboardingAdminService.listTypes();
-    setTypes(list);
-    if (!typeId && list[0]) setTypeId(list[0].id);
-  }, [typeId]);
-
   const loadForms = useCallback(async () => {
-    if (!typeId) return;
-    const list = await membershipOnboardingAdminService.listForms(typeId);
+    const list = await membershipOnboardingAdminService.listForms();
     setForms(list);
     const active = list.find((f) => f.is_active) ?? list[0];
-    setFormId(active?.id ?? "");
-  }, [typeId]);
+    setFormId((prev) => {
+      if (prev && list.some((f) => f.id === prev)) return prev;
+      return active?.id ?? "";
+    });
+    return list;
+  }, []);
 
   const loadSteps = useCallback(async () => {
     if (!formId) {
@@ -104,11 +98,7 @@ export default function MembershipFormBuilderPage() {
 
   useEffect(() => {
     setLoading(true);
-    loadTypes().finally(() => setLoading(false));
-  }, [loadTypes]);
-
-  useEffect(() => {
-    loadForms();
+    loadForms().finally(() => setLoading(false));
   }, [loadForms]);
 
   useEffect(() => {
@@ -116,18 +106,50 @@ export default function MembershipFormBuilderPage() {
     loadSteps().finally(() => setLoading(false));
   }, [loadSteps]);
 
+  const ensureActiveFormId = async (): Promise<string> => {
+    if (formId) return formId;
+    const list = await loadForms();
+    if (list.length) {
+      const active = list.find((f) => f.is_active) ?? list[0];
+      if (active) {
+        setFormId(active.id);
+        return active.id;
+      }
+    }
+    const created = await membershipOnboardingAdminService.createForm({
+      title: "Membership application",
+      is_active: true,
+    });
+    await loadForms();
+    setFormId(created.id);
+    return created.id;
+  };
+
+  const createNewFormVersion = async () => {
+    await membershipOnboardingAdminService.createForm({
+      title: "Membership application",
+      is_active: true,
+    });
+    await loadForms();
+  };
+
   const moveStep = async (step: MembershipStepAdmin, delta: number) => {
     const order = Math.max(0, step.display_order + delta);
     await membershipOnboardingAdminService.updateStep(step.id, { display_order: order });
     loadSteps();
   };
 
+  const openAddStep = async () => {
+    await ensureActiveFormId();
+    setStepDialog(true);
+  };
+
   const addStep = async () => {
-    if (!formId) return;
+    const fid = await ensureActiveFormId();
     const title = stepForm.title.trim();
     const name = stepForm.name.trim() || title;
     const slug = stepForm.slug.trim() || slugFromName(name);
-    await membershipOnboardingAdminService.createStep(formId, {
+    await membershipOnboardingAdminService.createStep(fid, {
       title,
       name,
       slug,
@@ -146,10 +168,11 @@ export default function MembershipFormBuilderPage() {
     const field_key = fieldForm.field_key.trim() || slugFromName(name).replace(/-/g, "_");
     await membershipOnboardingAdminService.createStepField(fieldDialog.stepId, {
       name,
+      label: name,
       field_key,
       field_type: fieldForm.field_type,
       is_required: fieldForm.is_required,
-      display_order: (fieldsByStep[fieldDialog.stepId]?.length ?? 0),
+      display_order: fieldsByStep[fieldDialog.stepId]?.length ?? 0,
       is_active: true,
     });
     setFieldDialog(null);
@@ -160,20 +183,12 @@ export default function MembershipFormBuilderPage() {
   return (
     <AdminPageShell
       title="Membership form builder"
-      subtitle="Configure membership types, forms, steps, and fields. Payment is not part of this form."
+      subtitle="Add steps and fields for the public membership application. New form versions become the active configuration."
     >
-      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap" }}>
+      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: "wrap", alignItems: "center" }}>
         <Button component={Link} href="/admin/memberships" variant="outlined" sx={{ textTransform: "none" }}>
           ← Applications
         </Button>
-        <FormControl size="small" sx={{ minWidth: 220 }}>
-          <InputLabel>Membership type</InputLabel>
-          <Select label="Membership type" value={typeId} onChange={(e) => setTypeId(e.target.value)}>
-            {types.map((t) => (
-              <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
         {forms.length > 0 && (
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>Form version</InputLabel>
@@ -186,22 +201,10 @@ export default function MembershipFormBuilderPage() {
             </Select>
           </FormControl>
         )}
-        <Button
-          variant="contained"
-          disabled={!typeId}
-          sx={{ textTransform: "none" }}
-          onClick={async () => {
-            await membershipOnboardingAdminService.createForm({
-              membership_type: typeId,
-              title: "Membership application",
-              is_active: forms.length === 0,
-            });
-            loadForms();
-          }}
-        >
+        <Button variant="contained" onClick={createNewFormVersion} sx={{ textTransform: "none" }}>
           New form version
         </Button>
-        <Button variant="contained" disabled={!formId} sx={{ textTransform: "none" }} onClick={() => setStepDialog(true)}>
+        <Button variant="contained" onClick={openAddStep} sx={{ textTransform: "none" }}>
           Add step
         </Button>
       </Stack>
@@ -209,7 +212,9 @@ export default function MembershipFormBuilderPage() {
       {loading ? (
         <Box sx={{ py: 6, textAlign: "center" }}><CircularProgress /></Box>
       ) : !formId ? (
-        <Typography sx={{ color: "#64748b" }}>Create a form version for this membership type to add steps.</Typography>
+        <Typography sx={{ color: "#64748b" }}>
+          No form yet. Click <strong>New form version</strong> or <strong>Add step</strong> to create one.
+        </Typography>
       ) : (
         <Stack spacing={2}>
           {steps.map((step, idx) => (
@@ -280,7 +285,7 @@ export default function MembershipFormBuilderPage() {
             </Paper>
           ))}
           {!steps.length && (
-            <Typography sx={{ color: "#64748b" }}>No steps configured. Use “Add step” to begin.</Typography>
+            <Typography sx={{ color: "#64748b" }}>No steps yet. Use “Add step” to configure the public form.</Typography>
           )}
         </Stack>
       )}
