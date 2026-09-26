@@ -12,6 +12,7 @@ cp .env.example .env
 python manage.py migrate
 python manage.py create_default_admin
 python manage.py seed_professional_onboarding
+python manage.py seed_membership_onboarding
 python manage.py runserver 8000
 ```
 
@@ -29,6 +30,8 @@ For the complete reference of all REST API endpoints (Auth, Admin User Managemen
 - Authentication: `http://localhost:8000/api/v1/auth/`
 - Admin User Management: `http://localhost:8000/api/v1/admin/users/`
 - Public Onboarding: `http://localhost:8000/api/v1/professional-onboarding/`
+- Membership Onboarding: `http://localhost:8000/api/v1/membership-onboarding/`
+- Admin Membership Onboarding: `http://localhost:8000/api/v1/admin/membership-onboarding/`
 - Admin Onboarding & Registrations: `http://localhost:8000/api/v1/admin/professional-onboarding/`
 
 ## Tests

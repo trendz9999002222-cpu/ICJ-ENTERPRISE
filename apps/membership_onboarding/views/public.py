@@ -1,0 +1,115 @@
+import json
+
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+
+from common.responses import api_error, api_success
+
+from apps.membership_onboarding.models import MembershipApplication, MembershipType
+from apps.membership_onboarding.serializers.public import (
+    PublicMembershipConfigurationSerializer,
+    PublicMembershipTypeSerializer,
+)
+from apps.membership_onboarding.services.public_config import build_type_configuration
+from apps.membership_onboarding.services.submission import MembershipApplicationService, parse_field_values_json
+from apps.professional_onboarding.services.crud import ServiceError
+
+
+class PublicMembershipTypeListAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        qs = MembershipType.objects.filter(is_active=True).order_by("display_order", "name")
+        return api_success(
+            data={"results": PublicMembershipTypeSerializer(qs, many=True).data},
+            message="Membership types retrieved.",
+        )
+
+
+class PublicMembershipTypeConfigurationAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, membership_type_id):
+        config = build_type_configuration(membership_type_id)
+        if not config["membership_type"].is_active:
+            return api_error("Membership type is not active.", status_code=status.HTTP_404_NOT_FOUND)
+        payload = {
+            "membership_type": config["membership_type"],
+            "form": config["form"],
+            "steps": config["steps"],
+            "documents": config["documents"],
+        }
+        return api_success(
+            data=PublicMembershipConfigurationSerializer(payload).data,
+            message="Membership configuration retrieved.",
+        )
+
+
+class PublicMembershipRegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        membership_type_id = request.data.get("membership_type_id")
+        if not membership_type_id:
+            return api_error("membership_type_id is required.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            field_values = parse_field_values_json(request.data.get("field_values") or "{}")
+        except (json.JSONDecodeError, ValueError):
+            return api_error("Invalid JSON in field_values.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        declaration_accepted = str(request.data.get("declaration_accepted", "")).lower() in ("1", "true", "yes")
+
+        uploaded_files = {}
+        for key, file in request.FILES.items():
+            if key.startswith("document__") or key.startswith("file__"):
+                uploaded_files[key.split("__", 1)[1]] = file
+
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        idempotency_key = (
+            request.headers.get("Idempotency-Key")
+            or request.headers.get("HTTP_IDEMPOTENCY_KEY")
+            or request.data.get("idempotency_key")
+        )
+
+        try:
+            application = MembershipApplicationService.submit(
+                membership_type_id=str(membership_type_id),
+                field_values=field_values,
+                uploaded_files=uploaded_files,
+                declaration_accepted=declaration_accepted,
+                user=user,
+                idempotency_key=idempotency_key,
+            )
+        except ServiceError as exc:
+            return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
+
+        return api_success(
+            data={
+                "reference_id": application.reference_id,
+                "status": application.status,
+                "submitted_at": application.submitted_at.isoformat() if application.submitted_at else None,
+            },
+            message="Membership application submitted successfully.",
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
+class PublicMembershipApplicationStatusAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, reference_id):
+        app = get_object_or_404(MembershipApplication, reference_id=reference_id)
+        return api_success(
+            data={
+                "reference_id": app.reference_id,
+                "status": app.status,
+                "membership_type": app.membership_type.name if app.membership_type_id else None,
+                "submitted_at": app.submitted_at.isoformat() if app.submitted_at else None,
+            },
+            message="Application status retrieved.",
+        )

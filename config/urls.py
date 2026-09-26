@@ -18,6 +18,14 @@ urlpatterns = [
         "api/v1/professional-onboarding/",
         include("apps.professional_onboarding.urls.public"),
     ),
+    path(
+        "api/v1/admin/membership-onboarding/",
+        include("apps.membership_onboarding.urls.admin"),
+    ),
+    path(
+        "api/v1/membership-onboarding/",
+        include("apps.membership_onboarding.urls.public"),
+    ),
 ]
 
 if settings.DEBUG or True:
