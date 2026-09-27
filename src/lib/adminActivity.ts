@@ -32,6 +32,7 @@ const ROUTE_NAME_MAP: Record<string, string> = {
   "/admin/research": "Legal Research",
   "/admin/events": "Events Management",
   "/admin/memberships": "Memberships",
+  "/admin/memberships/form-builder": "Membership Onboarding",
   "/admin/grievances": "Grievance Portal",
   "/admin/notifications": "Notifications Center",
   "/admin/reports": "Reports & Analytics",

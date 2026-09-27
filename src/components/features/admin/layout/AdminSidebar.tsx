@@ -1,6 +1,6 @@
 "use client";
 
-import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import BallotOutlinedIcon from "@mui/icons-material/BallotOutlined";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
@@ -52,6 +52,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin/dashboard", icon: <DashboardIcon fontSize="small" /> },
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
   { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
+  { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
   { label: "Cases", href: "/admin/cases", icon: <FolderOpenIcon fontSize="small" />, section: "Legal" },
   { label: "Assistance", href: "/admin/assistance", icon: <SupportAgentIcon fontSize="small" /> },
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" /> },
@@ -62,15 +63,33 @@ const NAV_ITEMS: NavItem[] = [
     href: "/admin/practice-areas",
     icon: <LibraryBooksIcon fontSize="small" />,
   },
+  {
+    label: "Membership Onboarding",
+    href: "/admin/memberships/form-builder",
+    icon: <BallotOutlinedIcon fontSize="small" />,
+  },
   { label: "Content", href: "/admin/content", icon: <CampaignIcon fontSize="small" />, section: "Platform" },
   { label: "Research", href: "/admin/research", icon: <LocalLibraryIcon fontSize="small" /> },
   { label: "Events", href: "/admin/events", icon: <EventIcon fontSize="small" /> },
-  { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
   { label: "Grievances", href: "/admin/grievances", icon: <ReportProblemIcon fontSize="small" />, section: "Support" },
   { label: "Notifications", href: "/admin/notifications", icon: <NotificationsIcon fontSize="small" /> },
   { label: "Reports", href: "/admin/reports", icon: <SummarizeIcon fontSize="small" />, section: "Admin" },
   { label: "Settings", href: "/admin/settings", icon: <SettingsIcon fontSize="small" /> },
 ];
+
+function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "/admin/dashboard") return pathname === href;
+  if (href === "/admin/memberships/form-builder") {
+    return pathname.startsWith("/admin/memberships/form-builder");
+  }
+  if (href === "/admin/memberships") {
+    return (
+      pathname === "/admin/memberships" ||
+      pathname.startsWith("/admin/memberships/applications")
+    );
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 // ---------------------------------------------------------------------------
 
@@ -198,10 +217,7 @@ function SidebarContent({ open: expanded, onToggle }: { open: boolean; onToggle:
       >
         <List dense disablePadding sx={{ pt: 0.5 }}>
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === "/admin/dashboard"
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+            const isActive = isNavItemActive(pathname, item.href);
 
             return (
               <Box key={item.href}>

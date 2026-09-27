@@ -487,6 +487,7 @@ export default function ProfessionalsPage() {
         getRowKey={(a) => a.id}
         emptyMessage="No professionals found matching the selected criteria."
         pagination={pagination}
+        showSerialNumber
       />
     </AdminPageShell>
   );

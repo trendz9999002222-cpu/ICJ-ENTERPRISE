@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import {
   Box,
   Button,
@@ -15,11 +16,13 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
@@ -54,21 +57,34 @@ const FIELD_TYPES = [
   "pincode",
 ];
 
+const emptyStepForm = { title: "", name: "", slug: "" };
+
+const emptyFieldForm = {
+  label: "",
+  name: "",
+  field_key: "",
+  field_type: "text",
+  is_required: true,
+  placeholder: "",
+  help_text: "",
+};
+
 export default function MembershipFormBuilderPage() {
   const [forms, setForms] = useState<MembershipFormAdmin[]>([]);
   const [formId, setFormId] = useState("");
   const [steps, setSteps] = useState<MembershipStepAdmin[]>([]);
   const [fieldsByStep, setFieldsByStep] = useState<Record<string, MembershipStepFieldAdmin[]>>({});
   const [loading, setLoading] = useState(true);
-  const [stepDialog, setStepDialog] = useState(false);
-  const [fieldDialog, setFieldDialog] = useState<{ stepId: string } | null>(null);
-  const [stepForm, setStepForm] = useState({ title: "", name: "", slug: "" });
-  const [fieldForm, setFieldForm] = useState({
-    name: "",
-    field_key: "",
-    field_type: "text",
-    is_required: true,
-  });
+  const [saving, setSaving] = useState(false);
+
+  const [stepDialogOpen, setStepDialogOpen] = useState(false);
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+  const [stepForm, setStepForm] = useState(emptyStepForm);
+
+  const [fieldDialogOpen, setFieldDialogOpen] = useState(false);
+  const [fieldDialogStepId, setFieldDialogStepId] = useState<string | null>(null);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  const [fieldForm, setFieldForm] = useState(emptyFieldForm);
 
   const loadForms = useCallback(async () => {
     const list = await membershipOnboardingAdminService.listForms();
@@ -141,43 +157,114 @@ export default function MembershipFormBuilderPage() {
 
   const openAddStep = async () => {
     await ensureActiveFormId();
-    setStepDialog(true);
+    setEditingStepId(null);
+    setStepForm(emptyStepForm);
+    setStepDialogOpen(true);
   };
 
-  const addStep = async () => {
-    const fid = await ensureActiveFormId();
+  const openEditStep = (step: MembershipStepAdmin) => {
+    setEditingStepId(step.id);
+    setStepForm({
+      title: step.title,
+      name: step.name,
+      slug: step.slug,
+    });
+    setStepDialogOpen(true);
+  };
+
+  const closeStepDialog = () => {
+    setStepDialogOpen(false);
+    setEditingStepId(null);
+    setStepForm(emptyStepForm);
+  };
+
+  const saveStep = async () => {
     const title = stepForm.title.trim();
+    if (!title) return;
     const name = stepForm.name.trim() || title;
     const slug = stepForm.slug.trim() || slugFromName(name);
-    await membershipOnboardingAdminService.createStep(fid, {
-      title,
-      name,
-      slug,
-      display_order: steps.length,
-      is_active: true,
-      is_required: true,
-    });
-    setStepDialog(false);
-    setStepForm({ title: "", name: "", slug: "" });
-    loadSteps();
+    setSaving(true);
+    try {
+      if (editingStepId) {
+        await membershipOnboardingAdminService.updateStep(editingStepId, { title, name, slug });
+      } else {
+        const fid = await ensureActiveFormId();
+        await membershipOnboardingAdminService.createStep(fid, {
+          title,
+          name,
+          slug,
+          display_order: steps.length,
+          is_active: true,
+          is_required: true,
+        });
+      }
+      closeStepDialog();
+      await loadSteps();
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const addField = async () => {
-    if (!fieldDialog) return;
-    const name = fieldForm.name.trim();
-    const field_key = fieldForm.field_key.trim() || slugFromName(name).replace(/-/g, "_");
-    await membershipOnboardingAdminService.createStepField(fieldDialog.stepId, {
-      name,
-      label: name,
-      field_key,
-      field_type: fieldForm.field_type,
-      is_required: fieldForm.is_required,
-      display_order: fieldsByStep[fieldDialog.stepId]?.length ?? 0,
-      is_active: true,
+  const openAddField = (stepId: string) => {
+    setFieldDialogStepId(stepId);
+    setEditingFieldId(null);
+    setFieldForm(emptyFieldForm);
+    setFieldDialogOpen(true);
+  };
+
+  const openEditField = (field: MembershipStepFieldAdmin) => {
+    setFieldDialogStepId(field.step);
+    setEditingFieldId(field.id);
+    setFieldForm({
+      label: field.label || field.name,
+      name: field.name,
+      field_key: field.field_key,
+      field_type: field.field_type,
+      is_required: field.is_required,
+      placeholder: field.placeholder ?? "",
+      help_text: field.help_text ?? "",
     });
-    setFieldDialog(null);
-    setFieldForm({ name: "", field_key: "", field_type: "text", is_required: true });
-    loadSteps();
+    setFieldDialogOpen(true);
+  };
+
+  const closeFieldDialog = () => {
+    setFieldDialogOpen(false);
+    setFieldDialogStepId(null);
+    setEditingFieldId(null);
+    setFieldForm(emptyFieldForm);
+  };
+
+  const saveField = async () => {
+    if (!fieldDialogStepId) return;
+    const label = fieldForm.label.trim();
+    if (!label) return;
+    const name = fieldForm.name.trim() || label;
+    const field_key = fieldForm.field_key.trim() || slugFromName(name).replace(/-/g, "_");
+    setSaving(true);
+    try {
+      const payload = {
+        name,
+        label,
+        field_key,
+        field_type: fieldForm.field_type,
+        is_required: fieldForm.is_required,
+        placeholder: fieldForm.placeholder.trim(),
+        help_text: fieldForm.help_text.trim(),
+      };
+      if (editingFieldId) {
+        await membershipOnboardingAdminService.updateStepField(editingFieldId, payload);
+      } else {
+        await membershipOnboardingAdminService.createStepField(fieldDialogStepId, {
+          ...payload,
+          display_order: fieldsByStep[fieldDialogStepId]?.length ?? 0,
+          is_active: true,
+        });
+      }
+      closeFieldDialog();
+      await loadSteps();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -228,6 +315,9 @@ export default function MembershipFormBuilderPage() {
                   {!step.is_active && <Chip label="Inactive" size="small" color="warning" sx={{ mt: 1 }} />}
                 </Box>
                 <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
+                  <Button size="small" startIcon={<EditOutlinedIcon />} onClick={() => openEditStep(step)} sx={{ textTransform: "none" }}>
+                    Edit
+                  </Button>
                   <Button size="small" startIcon={<ArrowUpwardIcon />} onClick={() => moveStep(step, -1)} sx={{ textTransform: "none" }}>
                     Up
                   </Button>
@@ -243,7 +333,7 @@ export default function MembershipFormBuilderPage() {
                   >
                     {step.is_active ? "Deactivate" : "Activate"}
                   </Button>
-                  <Button size="small" variant="outlined" onClick={() => setFieldDialog({ stepId: step.id })} sx={{ textTransform: "none" }}>
+                  <Button size="small" variant="outlined" onClick={() => openAddField(step.id)} sx={{ textTransform: "none" }}>
                     Add field
                   </Button>
                 </Stack>
@@ -255,27 +345,35 @@ export default function MembershipFormBuilderPage() {
                     sx={{
                       display: "flex",
                       justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 1,
                       py: 0.75,
                       px: 1,
                       borderRadius: 1,
                       bgcolor: "#f8fafc",
                     }}
                   >
-                    <Typography variant="body2">
-                      <strong>{f.name}</strong> ({f.field_key}) — {f.field_type}
+                    <Typography variant="body2" sx={{ minWidth: 0 }}>
+                      <strong>{f.label || f.name}</strong> ({f.field_key}) — {f.field_type}
                       {f.is_required ? " · required" : ""}
+                      {!f.is_active && " · inactive"}
                     </Typography>
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        membershipOnboardingAdminService
-                          .updateStepField(f.id, { is_active: !f.is_active })
-                          .then(loadSteps)
-                      }
-                      sx={{ textTransform: "none", minWidth: 0 }}
-                    >
-                      {f.is_active ? "Deactivate" : "Activate"}
-                    </Button>
+                    <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                      <Button size="small" startIcon={<EditOutlinedIcon sx={{ fontSize: 16 }} />} onClick={() => openEditField(f)} sx={{ textTransform: "none", minWidth: 0 }}>
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() =>
+                          membershipOnboardingAdminService
+                            .updateStepField(f.id, { is_active: !f.is_active })
+                            .then(loadSteps)
+                        }
+                        sx={{ textTransform: "none", minWidth: 0 }}
+                      >
+                        {f.is_active ? "Deactivate" : "Activate"}
+                      </Button>
+                    </Stack>
                   </Box>
                 ))}
                 {!(fieldsByStep[step.id]?.length) && (
@@ -290,8 +388,8 @@ export default function MembershipFormBuilderPage() {
         </Stack>
       )}
 
-      <Dialog open={stepDialog} onClose={() => setStepDialog(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Add step</DialogTitle>
+      <Dialog open={stepDialogOpen} onClose={closeStepDialog} fullWidth maxWidth="sm">
+        <DialogTitle>{editingStepId ? "Edit step" : "Add step"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -311,21 +409,30 @@ export default function MembershipFormBuilderPage() {
               value={stepForm.slug}
               onChange={(e) => setStepForm((s) => ({ ...s, slug: e.target.value }))}
               fullWidth
+              helperText="Used in URLs and configuration. Change only if you know existing submissions do not depend on it."
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setStepDialog(false)}>Cancel</Button>
-          <Button variant="contained" onClick={addStep} disabled={!stepForm.title.trim()}>Save</Button>
+          <Button onClick={closeStepDialog} disabled={saving}>Cancel</Button>
+          <Button variant="contained" onClick={saveStep} disabled={!stepForm.title.trim() || saving}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(fieldDialog)} onClose={() => setFieldDialog(null)} fullWidth maxWidth="sm">
-        <DialogTitle>Add field</DialogTitle>
+      <Dialog open={fieldDialogOpen} onClose={closeFieldDialog} fullWidth maxWidth="sm">
+        <DialogTitle>{editingFieldId ? "Edit field" : "Add field"}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Label"
+              label="Label (shown to applicants)"
+              value={fieldForm.label}
+              onChange={(e) => setFieldForm((s) => ({ ...s, label: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Internal name"
               value={fieldForm.name}
               onChange={(e) => setFieldForm((s) => ({ ...s, name: e.target.value }))}
               fullWidth
@@ -335,6 +442,7 @@ export default function MembershipFormBuilderPage() {
               value={fieldForm.field_key}
               onChange={(e) => setFieldForm((s) => ({ ...s, field_key: e.target.value }))}
               fullWidth
+              helperText="Stored in application data. Renaming may not update past submissions."
             />
             <FormControl fullWidth>
               <InputLabel>Field type</InputLabel>
@@ -348,11 +456,36 @@ export default function MembershipFormBuilderPage() {
                 ))}
               </Select>
             </FormControl>
+            <TextField
+              label="Placeholder"
+              value={fieldForm.placeholder}
+              onChange={(e) => setFieldForm((s) => ({ ...s, placeholder: e.target.value }))}
+              fullWidth
+            />
+            <TextField
+              label="Help text"
+              value={fieldForm.help_text}
+              onChange={(e) => setFieldForm((s) => ({ ...s, help_text: e.target.value }))}
+              fullWidth
+              multiline
+              minRows={2}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={fieldForm.is_required}
+                  onChange={(e) => setFieldForm((s) => ({ ...s, is_required: e.target.checked }))}
+                />
+              }
+              label="Required field"
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFieldDialog(null)}>Cancel</Button>
-          <Button variant="contained" onClick={addField} disabled={!fieldForm.name.trim()}>Save</Button>
+          <Button onClick={closeFieldDialog} disabled={saving}>Cancel</Button>
+          <Button variant="contained" onClick={saveField} disabled={!fieldForm.label.trim() || saving}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
         </DialogActions>
       </Dialog>
     </AdminPageShell>

@@ -58,6 +58,9 @@ type Props<T> = {
   getRowKey: (row: T) => string | number;
   /** If provided, renders MUI TablePagination below the table */
   pagination?: AdminPaginationConfig;
+  /** Prepends a serial number column (respects pagination offset) */
+  showSerialNumber?: boolean;
+  serialLabel?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -106,7 +109,11 @@ export default function AdminDataTable<T>({
   filterSlot,
   getRowKey,
   pagination,
+  showSerialNumber = false,
+  serialLabel = "S.No.",
 }: Props<T>) {
+  const colCount = columns.length + (showSerialNumber ? 1 : 0);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Search + filters bar */}
@@ -164,6 +171,25 @@ export default function AdminDataTable<T>({
           <Table size="small" sx={{ minWidth: columns.reduce((a, c) => a + (c.minWidth ?? 120), 0) }}>
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                {showSerialNumber && (
+                  <TableCell
+                    align="center"
+                    sx={{
+                      minWidth: 56,
+                      width: 56,
+                      fontWeight: 700,
+                      color: "#475569",
+                      fontSize: "0.7rem",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.6,
+                      borderBottom: "1px solid #e2e8f0",
+                      py: 1.5,
+                      bgcolor: "#f8fafc",
+                    }}
+                  >
+                    {serialLabel}
+                  </TableCell>
+                )}
                 {columns.map((col) => (
                   <TableCell
                     key={col.key}
@@ -189,17 +215,17 @@ export default function AdminDataTable<T>({
             </TableHead>
             <TableBody>
               {loading ? (
-                <SkeletonRows cols={columns.length} />
+                <SkeletonRows cols={colCount} />
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length} sx={{ py: 6, textAlign: "center", borderBottom: 0 }}>
+                  <TableCell colSpan={colCount} sx={{ py: 6, textAlign: "center", borderBottom: 0 }}>
                     <Typography variant="body2" color="text.secondary">
                       {emptyMessage}
                     </Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((row) => (
+                rows.map((row, rowIndex) => (
                   <TableRow
                     key={getRowKey(row)}
                     hover
@@ -209,6 +235,20 @@ export default function AdminDataTable<T>({
                       transition: "background 0.1s ease",
                     }}
                   >
+                    {showSerialNumber && (
+                      <TableCell
+                        align="center"
+                        sx={{
+                          py: 1.25,
+                          color: "#64748b",
+                          fontSize: "0.8125rem",
+                          fontWeight: 600,
+                          minWidth: 56,
+                        }}
+                      >
+                        {(pagination ? pagination.page * pagination.rowsPerPage : 0) + rowIndex + 1}
+                      </TableCell>
+                    )}
                     {columns.map((col) => (
                       <TableCell
                         key={col.key}

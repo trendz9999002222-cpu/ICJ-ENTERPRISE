@@ -52,7 +52,7 @@ export type MembershipStepFieldAdmin = {
   id: string;
   step: string;
   name: string;
-  label?: string;
+  label: string;
   field_key: string;
   field_type: string;
   is_required: boolean;
@@ -90,11 +90,12 @@ export type AdminMembershipApplicationDetail = AdminMembershipApplication & {
 };
 
 export const membershipOnboardingAdminService = {
-  async listApplications(params?: { search?: string; status?: string; page?: number }) {
+  async listApplications(params?: { search?: string; status?: string; page?: number; page_size?: number }) {
     const qs = new URLSearchParams();
     if (params?.search) qs.set("search", params.search);
     if (params?.status) qs.set("status", params.status);
     if (params?.page) qs.set("page", String(params.page));
+    if (params?.page_size) qs.set("page_size", String(params.page_size));
     const path = `${BASE}/applications/${qs.toString() ? `?${qs}` : ""}`;
     return request<{
       results: AdminMembershipApplication[];
