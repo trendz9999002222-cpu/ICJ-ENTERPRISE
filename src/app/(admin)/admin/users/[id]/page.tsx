@@ -4,6 +4,7 @@ import BlockIcon from "@mui/icons-material/Block";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import {
   Alert,
   Avatar,
@@ -23,6 +24,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import CredentialsDialog, {
+  type CredentialsData,
+} from "@/components/features/admin/shared/CredentialsDialog";
 import { adminUsersService } from "@/services/admin/adminUsers.service";
 import type { AdminUser } from "@/types/admin";
 
@@ -43,12 +47,13 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       >
         {label}
       </Typography>
-      <Typography sx={{ fontSize: "0.8rem", color: "#0f172a", flex: 1, wordBreak: "break-all" }}>
+      <Box sx={{ fontSize: "0.8rem", color: "#0f172a", flex: 1, wordBreak: "break-all" }}>
         {value}
-      </Typography>
+      </Box>
     </Box>
   );
 }
+
 
 // ---------------------------------------------------------------------------
 
@@ -60,7 +65,12 @@ export default function UserDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toggling, setToggling] = useState(false);
+  const [generatingPwd, setGeneratingPwd] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+  const [credentialsModal, setCredentialsModal] = useState<{
+    open: boolean;
+    data: CredentialsData | null;
+  }>({ open: false, data: null });
 
   const loadUser = async () => {
     setLoading(true);
@@ -77,6 +87,33 @@ export default function UserDetailPage() {
   };
 
   useEffect(() => { loadUser(); }, [userId]);
+
+  const handleResetPassword = async () => {
+    if (!user) return;
+    setGeneratingPwd(true);
+    try {
+      const res = await adminUsersService.resetUserPassword(user.id);
+      setCredentialsModal({
+        open: true,
+        data: {
+          user_id: user.id,
+          email: res.email || user.email,
+          name: res.name || user.full_name,
+          role: res.role || user.role,
+          temp_password: res.temp_password,
+          profession_name: user.profession_name || undefined,
+          category_name: user.category_name || undefined,
+          is_new_user: false,
+        },
+      });
+      setToastMsg(`Temporary password generated for ${user.email}`);
+      await loadUser();
+    } catch {
+      setError("Failed to generate temporary password.");
+    } finally {
+      setGeneratingPwd(false);
+    }
+  };
 
   const handleToggle = async () => {
     if (!user) return;
@@ -131,6 +168,17 @@ export default function UserDetailPage() {
             sx={{ borderColor: "#e2e8f0", color: "#64748b" }}
           >
             ← Back
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            size="small"
+            startIcon={generatingPwd ? <CircularProgress size={14} color="inherit" /> : <VpnKeyIcon />}
+            onClick={handleResetPassword}
+            disabled={generatingPwd}
+            sx={{ fontWeight: 700 }}
+          >
+            {user.temp_password ? "View / Reset Password" : "Generate Temp Password"}
           </Button>
           <Button
             variant={user.status === "active" ? "contained" : "outlined"}
@@ -331,6 +379,14 @@ export default function UserDetailPage() {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Credentials Dialog */}
+      <CredentialsDialog
+        open={credentialsModal.open}
+        onClose={() => setCredentialsModal({ open: false, data: null })}
+        credentials={credentialsModal.data}
+        title="User Login Credentials"
+      />
 
       <Snackbar
         open={!!toastMsg}
