@@ -199,3 +199,28 @@ class AdminUserDeactivateAPIView(APIView):
             data=AdminUserDetailSerializer(user).data,
             message=f"User {user.email} has been deactivated.",
         )
+
+
+class AdminUserResetPasswordAPIView(APIView):
+    """POST /api/v1/admin/users/:id/reset-password/ — generate or regenerate a temporary password."""
+
+    permission_classes = [IsAdminRole]
+
+    def post(self, request, pk):
+        user = get_object_or_404(User, pk=pk)
+        from apps.accounts.services.user_provisioning import generate_and_set_user_temp_password
+
+        temp_password = generate_and_set_user_temp_password(user)
+
+        data = {
+            "user_id": user.id,
+            "email": user.email,
+            "name": user.get_full_name() or user.username,
+            "role": user.role,
+            "temp_password": temp_password,
+            "password_change_required": True,
+        }
+        return api_success(
+            data=data,
+            message=f"Temporary password generated successfully for {user.email}.",
+        )

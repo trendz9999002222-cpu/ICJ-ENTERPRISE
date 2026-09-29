@@ -60,12 +60,29 @@ class MembershipApplicationReviewAPIView(AdminMembershipConfigAPIView):
 
 class MembershipApplicationApproveAPIView(AdminMembershipConfigAPIView):
     def post(self, request, pk):
-        obj = get_object_or_404(MembershipApplication, pk=pk)
+        obj = get_object_or_404(MembershipApplication.objects.select_related("person", "user"), pk=pk)
         try:
-            obj = approve_application(obj, request.user)
+            obj, temp_password, is_new = approve_application(obj, request.user)
         except ServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
-        return api_success(data=MembershipApplicationListSerializer(obj).data, message="Application approved.")
+
+        data = MembershipApplicationListSerializer(obj).data
+        user = obj.user
+        if user:
+            data["credentials"] = {
+                "user_id": user.id,
+                "email": user.email,
+                "role": user.role,
+                "temp_password": temp_password if is_new else None,
+                "is_new_user": is_new,
+                "password_change_required": user.password_change_required,
+            }
+
+        msg = "Application approved."
+        if is_new and temp_password and user:
+            msg += f" Member user account created for {user.email} with temporary credentials."
+
+        return api_success(data=data, message=msg)
 
 
 class MembershipApplicationRejectAPIView(AdminMembershipConfigAPIView):

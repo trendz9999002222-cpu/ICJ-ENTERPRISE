@@ -3,12 +3,15 @@ from django.utils import timezone
 
 from apps.membership_onboarding.models import Membership, MembershipApplication, MembershipApplicationHistory
 from apps.professional_onboarding.services.crud import ServiceError
+from apps.accounts.services.user_provisioning import provision_user_for_membership
+
+
 @transaction.atomic
-def approve_application(application: MembershipApplication, actor) -> MembershipApplication:
+def approve_application(application: MembershipApplication, actor):
     application = MembershipApplication.objects.select_for_update().get(pk=application.pk)
     if application.status == MembershipApplication.Status.APPROVED:
         if hasattr(application, "membership_record"):
-            return application
+            return application, None, False
     if application.status == MembershipApplication.Status.REJECTED:
         raise ServiceError("Cannot approve a rejected application.", {})
 
@@ -16,6 +19,9 @@ def approve_application(application: MembershipApplication, actor) -> Membership
     application.status = MembershipApplication.Status.APPROVED
     application.approved_at = now
     application.approved_by = actor
+
+    user, temp_password, is_new = provision_user_for_membership(application)
+    application.user = user
     application.save()
 
     if not hasattr(application, "membership_record"):
@@ -35,9 +41,9 @@ def approve_application(application: MembershipApplication, actor) -> Membership
         application=application,
         action="application_approved",
         actor=actor,
-        metadata={},
+        metadata={"user_created": is_new, "user_email": user.email if user else None},
     )
-    return application
+    return application, temp_password, is_new
 
 
 @transaction.atomic

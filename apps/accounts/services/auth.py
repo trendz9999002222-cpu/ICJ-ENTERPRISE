@@ -83,7 +83,8 @@ def change_password(user: User, current_password: str, new_password: str, confir
 
     user.set_password(new_password)
     user.password_change_required = False
-    user.save(update_fields=["password", "password_change_required", "updated_at"])
+    user.last_temp_password = ""
+    user.save(update_fields=["password", "password_change_required", "last_temp_password", "updated_at"])
     return user
 
 

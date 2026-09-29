@@ -61,21 +61,49 @@ class AdminRegistrationDetailAPIView(AdminConfigAPIView):
         return api_success(message=f"Registration {ref} deleted.")
 
 
+from apps.accounts.services.user_provisioning import provision_user_for_professional
+
+
 class AdminRegistrationApproveAPIView(AdminConfigAPIView):
     """POST /registrations/:id/approve/ — approve a submission."""
 
     def post(self, request, pk):
-        obj = get_object_or_404(ProfessionalRegistrationSubmission, pk=pk)
+        obj = get_object_or_404(
+            ProfessionalRegistrationSubmission.objects.select_related("profession", "user"),
+            pk=pk,
+        )
         if obj.status == ProfessionalRegistrationSubmission.Status.APPROVED:
             return api_error("Registration is already approved.", status_code=status.HTTP_400_BAD_REQUEST)
+
         obj.status = ProfessionalRegistrationSubmission.Status.APPROVED
-        obj.save(update_fields=["status", "updated_at"])
+        user, temp_password, is_new = provision_user_for_professional(obj)
+        obj.user = user
+        obj.save(update_fields=["status", "user", "updated_at"])
+
+        serialized = ProfessionalRegistrationSubmissionDetailSerializer(
+            ProfessionalRegistrationSubmission.objects.select_related("user", "profession").prefetch_related("files").get(pk=pk),
+            context={"request": request},
+        ).data
+
+        response_data = {
+            **serialized,
+            "credentials": {
+                "user_id": user.id,
+                "email": user.email,
+                "role": user.role,
+                "temp_password": temp_password if is_new else None,
+                "is_new_user": is_new,
+                "password_change_required": user.password_change_required,
+            },
+        }
+
+        msg = f"Registration {obj.reference_id} approved."
+        if is_new and temp_password:
+            msg += f" User account created for {user.email} with temporary credentials."
+
         return api_success(
-            data=ProfessionalRegistrationSubmissionDetailSerializer(
-                ProfessionalRegistrationSubmission.objects.select_related("user").prefetch_related("files").get(pk=pk),
-                context={"request": request},
-            ).data,
-            message=f"Registration {obj.reference_id} approved.",
+            data=response_data,
+            message=msg,
         )
 
 
