@@ -23,6 +23,7 @@ import DeliveryChannelSelector from "@/components/features/auth/DeliveryChannelS
 import { ApiError } from "@/lib/api/client";
 import { authService } from "@/services/auth.service";
 import type { DeliveryChannel } from "@/types/auth";
+import { getDashboardRoute } from "@/types/api";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -50,7 +51,8 @@ export default function LoginForm() {
         router.push("/login/change-password");
       } else {
         localStorage.removeItem("icj_password_change_required");
-        router.push("/dashboard");
+        const role = tokens.user?.role ?? "client";
+        router.push(getDashboardRoute(role));
       }
     } catch (err) {
       if (err instanceof ApiError) {

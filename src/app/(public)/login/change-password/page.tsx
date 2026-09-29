@@ -4,14 +4,16 @@ import { Alert, Box, Button, Paper, Stack, TextField, Typography } from "@mui/ma
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { ApiError, apiClient } from "@/lib/api/client";
+import { ApiError, apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { AuthTokens } from "@/types/api";
+import { getDashboardRoute } from "@/types/api";
 
-function getAccessToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )icj_access_token=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
+function decodeJwt(token: string): Record<string, unknown> | null {
+  try {
+    const b64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(b64));
+  } catch { return null; }
 }
 
 export default function ChangePasswordPage() {
@@ -25,7 +27,7 @@ export default function ChangePasswordPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    const token = getAccessToken();
+    const token = readAccessTokenFromCookie();
     if (!token) {
       router.replace("/login");
       return;
@@ -47,7 +49,11 @@ export default function ChangePasswordPage() {
         document.cookie = `icj_refresh_token=${result.refresh}; path=/; max-age=604800; SameSite=Lax`;
       }
       localStorage.removeItem("icj_password_change_required");
-      router.push("/dashboard");
+      // Redirect based on role in new token
+      const newToken = result.access ?? token;
+      const payload = decodeJwt(newToken);
+      const role = (payload?.role as string) ?? "client";
+      router.push(getDashboardRoute(role as Parameters<typeof getDashboardRoute>[0]));
     } catch (err) {
       if (err instanceof ApiError && err.body && typeof err.body === "object") {
         const body = err.body as {

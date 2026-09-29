@@ -114,7 +114,7 @@ export const membershipOnboardingAdminService = {
   },
 
   async approveApplication(id: string) {
-    await request(`${BASE}/applications/${id}/approve/`, { method: "POST" });
+    return request<Record<string, unknown>>(`${BASE}/applications/${id}/approve/`, { method: "POST" });
   },
 
   async rejectApplication(id: string, rejectionReason: string) {

@@ -42,6 +42,7 @@ export type AdminUserRole =
   | "super_admin"
   | "admin"
   | "advocate"
+  | "professional"
   | "client"
   | "member"
   | "staff";
@@ -61,6 +62,7 @@ export type AdminUser = {
   last_name: string;
   full_name: string;
   role: AdminUserRole;
+  roles?: string[];
   status: AdminUserStatus;
   mobile: string;
   category_name?: string | null;
@@ -72,6 +74,8 @@ export type AdminUser = {
   date_joined: ISODateString;
   last_login: ISODateString | null;
   is_verified: boolean;
+  temp_password?: string;
+  password_change_required?: boolean;
 };
 
 // ---------------------------------------------------------------------------

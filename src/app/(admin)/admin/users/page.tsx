@@ -5,6 +5,7 @@ import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import {
   Box,
   Button,
@@ -32,6 +33,9 @@ import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import CredentialsDialog, {
+  type CredentialsData,
+} from "@/components/features/admin/shared/CredentialsDialog";
 import { adminUsersService } from "@/services/admin/adminUsers.service";
 import { professionalOnboardingService } from "@/services/admin/professionalOnboarding.service";
 import type { AdminUser } from "@/types/admin";
@@ -50,12 +54,13 @@ const STATUS_COLOR: Record<AdminUser["status"], "success" | "warning" | "error" 
   inactive: "default",
 };
 
-const ROLE_COLOR: Record<AdminUser["role"], "primary" | "secondary" | "default"> = {
+const ROLE_COLOR: Record<string, "primary" | "secondary" | "success" | "warning" | "info" | "default"> = {
   super_admin: "primary",
   admin: "primary",
-  advocate: "secondary",
-  client: "default",
-  member: "default",
+  advocate: "info",
+  professional: "warning",
+  client: "warning",
+  member: "success",
   staff: "default",
 };
 
@@ -89,6 +94,11 @@ export default function UsersPage() {
   const [toggling, setToggling] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [generatingPwdId, setGeneratingPwdId] = useState<number | null>(null);
+  const [credentialsModal, setCredentialsModal] = useState<{
+    open: boolean;
+    data: CredentialsData | null;
+  }>({ open: false, data: null });
 
   // Load dropdown lists (categories, groups, professions)
   useEffect(() => {
@@ -190,6 +200,49 @@ export default function UsersPage() {
     setPage(0);
   };
 
+  const handlePasswordAction = async (u: AdminUser) => {
+    if (u.temp_password) {
+      setCredentialsModal({
+        open: true,
+        data: {
+          user_id: u.id,
+          email: u.email,
+          name: u.full_name,
+          role: u.role,
+          temp_password: u.temp_password,
+          profession_name: u.profession_name || undefined,
+          category_name: u.category_name || undefined,
+          is_new_user: false,
+        },
+      });
+      return;
+    }
+
+    setGeneratingPwdId(u.id);
+    try {
+      const res = await adminUsersService.resetUserPassword(u.id);
+      setCredentialsModal({
+        open: true,
+        data: {
+          user_id: u.id,
+          email: res.email || u.email,
+          name: res.name || u.full_name,
+          role: res.role || u.role,
+          temp_password: res.temp_password,
+          profession_name: u.profession_name || undefined,
+          category_name: u.category_name || undefined,
+          is_new_user: false,
+        },
+      });
+      setToastMsg(`Temporary password generated for ${u.email}`);
+      await load();
+    } catch {
+      setToastMsg("Failed to generate temporary password.");
+    } finally {
+      setGeneratingPwdId(null);
+    }
+  };
+
   const columns: AdminTableColumn<AdminUser>[] = [
     {
       key: "name",
@@ -239,16 +292,24 @@ export default function UsersPage() {
     },
     {
       key: "role",
-      label: "Role",
-      minWidth: 110,
-      render: (u) => (
-        <Chip
-          size="small"
-          label={u.role.replace("_", " ")}
-          color={ROLE_COLOR[u.role]}
-          sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
-        />
-      ),
+      label: "Role(s)",
+      minWidth: 120,
+      render: (u) => {
+        const rolesList = u.roles && u.roles.length > 0 ? u.roles : [u.role];
+        return (
+          <Stack spacing={0.5} sx={{ py: 0.5 }}>
+            {rolesList.map((r) => (
+              <Chip
+                key={r}
+                size="small"
+                label={r === "client" ? "Professional" : r.replace("_", " ")}
+                color={ROLE_COLOR[r] || "default"}
+                sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
+              />
+            ))}
+          </Stack>
+        );
+      },
     },
     {
       key: "hierarchy",
@@ -339,6 +400,16 @@ export default function UsersPage() {
       align: "right",
       render: (u) => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end", alignItems: "center" }}>
+          <Tooltip title={u.temp_password ? "View Temporary Password" : "Generate / Reset Temporary Password"}>
+            <IconButton
+              size="small"
+              onClick={() => handlePasswordAction(u)}
+              disabled={generatingPwdId === u.id}
+              sx={{ color: "#d97706", "&:hover": { bgcolor: "#fef3c7" } }}
+            >
+              <VpnKeyIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="View details">
             <IconButton
               size="small"
@@ -432,7 +503,7 @@ export default function UsersPage() {
                 <MenuItem value="super_admin">Super Admin</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
                 <MenuItem value="advocate">Advocate</MenuItem>
-                <MenuItem value="client">Client</MenuItem>
+                <MenuItem value="professional">Professional</MenuItem>
                 <MenuItem value="member">Member</MenuItem>
               </Select>
             </FormControl>
@@ -575,6 +646,14 @@ export default function UsersPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Credentials Dialog */}
+      <CredentialsDialog
+        open={credentialsModal.open}
+        onClose={() => setCredentialsModal({ open: false, data: null })}
+        credentials={credentialsModal.data}
+        title="User Login Credentials"
+      />
 
       {/* Toast notification */}
       <Snackbar

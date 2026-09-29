@@ -40,6 +40,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import CredentialsDialog, {
+  type CredentialsData,
+} from "@/components/features/admin/shared/CredentialsDialog";
 import {
   getOnboardingApiErrorMessage,
   professionalOnboardingService,
@@ -208,6 +211,10 @@ export default function RegistrationDetailPage() {
     message: "",
     action: async () => { },
   });
+  const [credentialsModal, setCredentialsModal] = useState<{
+    open: boolean;
+    data: CredentialsData | null;
+  }>({ open: false, data: null });
 
   const loadRegistration = useCallback(async () => {
     if (!id) return;
@@ -236,8 +243,23 @@ export default function RegistrationDetailPage() {
       action: async () => {
         setActionLoading(true);
         try {
-          await professionalOnboardingService.approveRegistration(id);
-          setToastMsg("Registration approved successfully.");
+          const res = (await professionalOnboardingService.approveRegistration(id)) as Record<string, unknown>;
+          const creds = (res?.credentials || (res?.data as Record<string, unknown>)?.credentials) as CredentialsData | undefined;
+          if (creds && creds.temp_password) {
+            setCredentialsModal({
+              open: true,
+              data: {
+                ...creds,
+                email: creds.email || (data?.common_field_values?.email as string) || data?.email || "",
+                name: (data?.common_field_values?.full_name as string) || (data?.common_field_values?.name as string) || data?.applicant_name || "",
+                reference_id: data?.reference_id,
+                profession_name: data?.professions?.[0]?.name,
+                category_name: data?.categories?.[0]?.name,
+              },
+            });
+          } else {
+            setToastMsg("Registration approved successfully.");
+          }
           await loadRegistration();
         } catch (err) {
           setError(getOnboardingApiErrorMessage(err, "Failed to approve registration."));
@@ -726,6 +748,14 @@ export default function RegistrationDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Credentials Dialog */}
+      <CredentialsDialog
+        open={credentialsModal.open}
+        onClose={() => setCredentialsModal({ open: false, data: null })}
+        credentials={credentialsModal.data}
+        title="Professional Account Provisioned"
+      />
 
       {/* Snackbar feedback */}
       <Snackbar

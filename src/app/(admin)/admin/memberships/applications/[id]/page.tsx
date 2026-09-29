@@ -51,6 +51,9 @@ import {
 } from "@/components/features/admin/shared/AdminDetailPrimitives";
 import { formatDocKey, formatFieldKey, isImageUrl, isPdfUrl } from "@/components/features/admin/shared/adminDetailFormatters";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import CredentialsDialog, {
+  type CredentialsData,
+} from "@/components/features/admin/shared/CredentialsDialog";
 import {
   membershipOnboardingAdminService,
   type AdminMembershipApplicationDetail,
@@ -109,14 +112,34 @@ export default function AdminMembershipApplicationDetailPage() {
       }));
   }, [app]);
 
+  const [credentialsModal, setCredentialsModal] = useState<{
+    open: boolean;
+    data: CredentialsData | null;
+  }>({ open: false, data: null });
+
   const handleApprove = async () => {
     if (!app) return;
     setActionLoading(true);
     try {
-      await membershipOnboardingAdminService.approveApplication(id);
+      const res = (await membershipOnboardingAdminService.approveApplication(id)) as Record<string, unknown>;
       await load();
       setApproveDialogOpen(false);
-      setToastMsg(`${app.person_name || "Applicant"} has been approved successfully.`);
+      const creds = (res?.credentials || (res?.data as Record<string, unknown>)?.credentials) as CredentialsData | undefined;
+      if (creds && creds.temp_password) {
+        setCredentialsModal({
+          open: true,
+          data: {
+            ...creds,
+            email: creds.email || app.email || "",
+            name: app.person_name || "",
+            reference_id: app.reference_id,
+            profession_name: app.membership_type_name || "ICJ Member",
+            role: "member",
+          },
+        });
+      } else {
+        setToastMsg(`${app.person_name || "Applicant"} has been approved successfully.`);
+      }
     } catch {
       setError("Failed to approve application.");
     } finally {
@@ -679,6 +702,14 @@ export default function AdminMembershipApplicationDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Credentials Dialog */}
+      <CredentialsDialog
+        open={credentialsModal.open}
+        onClose={() => setCredentialsModal({ open: false, data: null })}
+        credentials={credentialsModal.data}
+        title="Member Account Provisioned"
+      />
 
       <Snackbar
         open={!!toastMsg}

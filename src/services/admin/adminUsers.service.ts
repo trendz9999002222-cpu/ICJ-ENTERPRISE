@@ -103,6 +103,18 @@ export const adminUsersService = {
     return res.data;
   },
 
+  /** Generate or regenerate temporary password for a user. */
+  resetUserPassword: async (id: number): Promise<{ user_id: number; email: string; name: string; role: string; temp_password: string; password_change_required: boolean }> => {
+    const res = await apiClient<ApiEnvelope<{ user_id: number; email: string; name: string; role: string; temp_password: string; password_change_required: boolean }>>(
+      API_ENDPOINTS.adminUsers.resetPassword(id),
+      {
+        method: "POST",
+        headers: authHeaders(),
+      }
+    );
+    return res.data;
+  },
+
   /**
    * Convenience toggle: if active → deactivate, else → activate.
    */

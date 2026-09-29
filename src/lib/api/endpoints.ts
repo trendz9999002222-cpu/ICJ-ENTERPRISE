@@ -81,5 +81,6 @@ export const API_ENDPOINTS = {
     detail: (id: number) => `/admin/users/${id}/`,
     activate: (id: number) => `/admin/users/${id}/activate/`,
     deactivate: (id: number) => `/admin/users/${id}/deactivate/`,
+    resetPassword: (id: number) => `/admin/users/${id}/reset-password/`,
   },
 } as const;
