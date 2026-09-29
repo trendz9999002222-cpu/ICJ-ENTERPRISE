@@ -18,10 +18,14 @@ def _compute_status(user) -> str:
 class AdminUserListSerializer(serializers.ModelSerializer):
     """Compact list serializer used in GET /admin/users/."""
 
+    role = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     mobile = serializers.CharField(source="phone_number", read_only=True)
     is_verified = serializers.BooleanField(source="email_verified", read_only=True)
+    temp_password = serializers.CharField(source="last_temp_password", read_only=True)
+    password_change_required = serializers.BooleanField(read_only=True)
     category_name = serializers.SerializerMethodField()
     group_name = serializers.SerializerMethodField()
     profession_name = serializers.SerializerMethodField()
@@ -39,7 +43,10 @@ class AdminUserListSerializer(serializers.ModelSerializer):
             "last_name",
             "full_name",
             "role",
+            "roles",
             "mobile",
+            "temp_password",
+            "password_change_required",
             "status",
             "is_verified",
             "category_name",
@@ -52,6 +59,14 @@ class AdminUserListSerializer(serializers.ModelSerializer):
             "last_login",
             "is_active",
         )
+
+    def get_role(self, user) -> str:
+        if user.role == "client":
+            return "professional"
+        return user.role
+
+    def get_roles(self, user) -> list[str]:
+        return user.get_all_roles()
 
     def get_full_name(self, user) -> str:
         return user.get_full_name() or user.username or user.email.split("@")[0]

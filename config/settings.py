@@ -113,6 +113,9 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_DAYS", "7"))),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    # Custom token serializer — embeds role, email, first_name into JWT payload
+    "TOKEN_OBTAIN_SERIALIZER": "apps.accounts.tokens.ICJTokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
 }
 
 CORS_ALLOWED_ORIGINS = [

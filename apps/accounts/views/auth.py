@@ -12,8 +12,10 @@ from apps.accounts.serializers import (
     LoginSerializer,
     LogoutSerializer,
     ResetPasswordSerializer,
+    UpdateProfileSerializer,
     UserSerializer,
 )
+
 from apps.accounts.services.auth import (
     AuthServiceError,
     authenticate_user,
@@ -43,6 +45,18 @@ class LoginView(APIView):
             return api_error(exc.message, exc.errors, status.HTTP_401_UNAUTHORIZED)
 
         refresh = RefreshToken.for_user(user)
+        user_data = UserSerializer(user).data
+        # Embed essential claims into token
+        access = refresh.access_token
+        access["role"] = "professional" if user.role == "client" else user.role
+        access["roles"] = user.get_all_roles()
+        access["email"] = user.email
+        access["first_name"] = user.first_name
+        access["user_id"] = user.id
+        access["password_change_required"] = user.password_change_required
+
+
+
         message = (
             "Login successful. Password change required."
             if user.password_change_required
@@ -51,7 +65,7 @@ class LoginView(APIView):
         return api_success(
             message=message,
             requires_password_change=user.password_change_required,
-            access=str(refresh.access_token),
+            access=str(access),
             refresh=str(refresh),
             user=UserSerializer(user).data,
             status_code=status.HTTP_200_OK,
@@ -119,10 +133,19 @@ class ChangePasswordView(APIView):
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
 
         refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+        access["role"] = "professional" if user.role == "client" else user.role
+        access["roles"] = user.get_all_roles()
+        access["email"] = user.email
+        access["first_name"] = user.first_name
+        access["user_id"] = user.id
+        access["password_change_required"] = False
+
+
         return api_success(
             message="Password changed successfully.",
             requires_password_change=False,
-            access=str(refresh.access_token),
+            access=str(access),
             refresh=str(refresh),
             user=UserSerializer(user).data,
         )
@@ -134,6 +157,13 @@ class MeView(APIView):
 
     def get(self, request):
         return api_success(data=UserSerializer(request.user).data, message="Profile retrieved.")
+
+    def patch(self, request):
+        serializer = UpdateProfileSerializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return api_success(data=UserSerializer(request.user).data, message="Profile updated successfully.")
+
 
 
 class RefreshTokenView(TokenRefreshView):
