@@ -4,6 +4,7 @@ from django.utils import timezone
 from apps.membership_onboarding.models import Membership, MembershipApplication, MembershipApplicationHistory
 from apps.professional_onboarding.services.crud import ServiceError
 from apps.accounts.services.user_provisioning import provision_user_for_membership
+from apps.membership_onboarding.services.submission import allocate_membership_id
 
 
 @transaction.atomic
@@ -24,9 +25,11 @@ def approve_application(application: MembershipApplication, actor):
     application.user = user
     application.save()
 
-    if not hasattr(application, "membership_record"):
+    record = getattr(application, "membership_record", None)
+    if record is None:
+        membership_id = allocate_membership_id()
         Membership.objects.create(
-            membership_id=application.reference_id,
+            membership_id=membership_id,
             person=application.person,
             membership_type=application.membership_type,
             application=application,
@@ -36,12 +39,18 @@ def approve_application(application: MembershipApplication, actor):
             approved_at=now,
             approved_by=actor,
         )
+    else:
+        membership_id = record.membership_id
 
     MembershipApplicationHistory.objects.create(
         application=application,
         action="application_approved",
         actor=actor,
-        metadata={"user_created": is_new, "user_email": user.email if user else None},
+        metadata={
+            "user_created": is_new,
+            "user_email": user.email if user else None,
+            "membership_id": membership_id,
+        },
     )
     return application, temp_password, is_new
 

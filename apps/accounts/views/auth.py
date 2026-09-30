@@ -1,4 +1,5 @@
 from rest_framework import permissions, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
@@ -12,6 +13,7 @@ from apps.accounts.serializers import (
     LoginSerializer,
     LogoutSerializer,
     ResetPasswordSerializer,
+    SetInitialPasswordSerializer,
     UpdateProfileSerializer,
     UserSerializer,
 )
@@ -22,6 +24,7 @@ from apps.accounts.services.auth import (
     change_password,
     request_password_reset,
     reset_password_with_token,
+    set_initial_password,
 )
 from apps.accounts.throttles import ForgotPasswordRateThrottle, LoginRateThrottle
 
@@ -48,7 +51,9 @@ class LoginView(APIView):
         user_data = UserSerializer(user).data
         # Embed essential claims into token
         access = refresh.access_token
-        access["role"] = "professional" if user.role == "client" else user.role
+        from apps.accounts.role_utils import normalize_platform_role
+
+        access["role"] = normalize_platform_role(user.role) or "member"
         access["roles"] = user.get_all_roles()
         access["email"] = user.email
         access["first_name"] = user.first_name
@@ -116,6 +121,45 @@ class ResetPasswordView(APIView):
         return api_success(message="Password has been reset successfully.")
 
 
+def _issue_auth_tokens_response(user, message: str):
+    refresh = RefreshToken.for_user(user)
+    access = refresh.access_token
+    from apps.accounts.role_utils import normalize_platform_role
+
+    access["role"] = normalize_platform_role(user.role) or "member"
+    access["roles"] = user.get_all_roles()
+    access["email"] = user.email
+    access["first_name"] = user.first_name
+    access["user_id"] = user.id
+    access["password_change_required"] = user.password_change_required
+
+    return api_success(
+        message=message,
+        requires_password_change=user.password_change_required,
+        access=str(access),
+        refresh=str(refresh),
+        user=UserSerializer(user).data,
+    )
+
+
+class SetInitialPasswordView(APIView):
+    permission_classes = [AllowDuringPasswordChange]
+
+    def post(self, request):
+        serializer = SetInitialPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            user = set_initial_password(
+                user=request.user,
+                new_password=serializer.validated_data["new_password"],
+                confirm_password=serializer.validated_data["confirm_password"],
+            )
+        except AuthServiceError as exc:
+            return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
+
+        return _issue_auth_tokens_response(user, "Password set successfully. You can now use the dashboard.")
+
+
 class ChangePasswordView(APIView):
     permission_classes = [AllowDuringPasswordChange]
 
@@ -132,37 +176,29 @@ class ChangePasswordView(APIView):
         except AuthServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
 
-        refresh = RefreshToken.for_user(user)
-        access = refresh.access_token
-        access["role"] = "professional" if user.role == "client" else user.role
-        access["roles"] = user.get_all_roles()
-        access["email"] = user.email
-        access["first_name"] = user.first_name
-        access["user_id"] = user.id
-        access["password_change_required"] = False
-
-
-        return api_success(
-            message="Password changed successfully.",
-            requires_password_change=False,
-            access=str(access),
-            refresh=str(refresh),
-            user=UserSerializer(user).data,
-        )
+        return _issue_auth_tokens_response(user, "Password changed successfully.")
 
 
 class MeView(APIView):
     permission_classes = [AllowDuringPasswordChange]
     skip_password_change_check = True
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request):
-        return api_success(data=UserSerializer(request.user).data, message="Profile retrieved.")
+        return api_success(
+            data=UserSerializer(request.user, context={"request": request}).data,
+            message="Profile retrieved.",
+        )
 
     def patch(self, request):
         serializer = UpdateProfileSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return api_success(data=UserSerializer(request.user).data, message="Profile updated successfully.")
+        request.user.refresh_from_db()
+        return api_success(
+            data=UserSerializer(request.user, context={"request": request}).data,
+            message="Profile updated successfully.",
+        )
 
 
 

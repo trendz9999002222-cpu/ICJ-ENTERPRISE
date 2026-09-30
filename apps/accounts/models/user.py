@@ -1,6 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from apps.accounts.role_utils import normalize_platform_role, normalize_platform_roles
+
+
+def user_profile_picture_upload_to(instance: "User", filename: str) -> str:
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    if ext not in {"jpg", "jpeg", "png", "webp"}:
+        ext = "jpg"
+    return f"users/{instance.pk or 'new'}/profile.{ext}"
+
 
 class User(AbstractUser):
     """Single user model for all ICJ roles (auth is common; access is role-based)."""
@@ -8,14 +17,17 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         SUPER_ADMIN = "super_admin", "Super Admin"
         ADMIN = "admin", "Admin"
-        ADVOCATE = "advocate", "Advocate"
         PROFESSIONAL = "professional", "Professional"
-        CLIENT = "client", "Client"
         MEMBER = "member", "Member"
 
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=32, choices=Role.choices, default=Role.MEMBER)
     phone_number = models.CharField(max_length=20, blank=True)
+    profile_picture = models.FileField(
+        upload_to=user_profile_picture_upload_to,
+        blank=True,
+        null=True,
+    )
     password_change_required = models.BooleanField(default=False)
     last_temp_password = models.CharField(max_length=128, blank=True, default="")
     email_verified = models.BooleanField(default=False)
@@ -40,34 +52,25 @@ class User(AbstractUser):
 
     def get_all_roles(self) -> list[str]:
         """
-        Compute all active roles a user possesses across memberships and professional registrations.
+        Platform roles only: admin, professional, member.
         """
-        roles = set()
-        if self.role:
-            # Map legacy 'client' to 'professional'
-            norm_role = "professional" if self.role == "client" else self.role
-            roles.add(norm_role)
-
+        roles: set[str] = set()
+        norm = normalize_platform_role(self.role)
+        if norm:
+            roles.add(norm)
         if self.is_admin_role:
             roles.add("admin")
 
-        # Check for approved professional registrations
         try:
-            pro_subs = self.professional_registration_submissions.filter(status="approved").select_related("profession")
-            for sub in pro_subs:
-                prof_name = sub.profession.name.lower() if sub.profession else ""
-                if "advocate" in prof_name or "lawyer" in prof_name or "vakil" in prof_name:
-                    roles.add("advocate")
-                else:
-                    roles.add("professional")
+            if self.professional_registration_submissions.filter(status="approved").exists():
+                roles.add("professional")
         except Exception:
             pass
 
-        # Check for approved membership applications
         try:
             if self.membership_applications.filter(status="approved").exists():
                 roles.add("member")
         except Exception:
             pass
 
-        return sorted(list(roles))
+        return normalize_platform_roles(sorted(roles))

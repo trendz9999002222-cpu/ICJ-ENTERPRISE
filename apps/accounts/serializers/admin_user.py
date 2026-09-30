@@ -5,6 +5,8 @@ Admin-facing user serializers.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from apps.accounts.role_utils import normalize_platform_role, normalize_platform_roles
+
 User = get_user_model()
 
 
@@ -61,12 +63,10 @@ class AdminUserListSerializer(serializers.ModelSerializer):
         )
 
     def get_role(self, user) -> str:
-        if user.role == "client":
-            return "professional"
-        return user.role
+        return normalize_platform_role(user.role) or "member"
 
     def get_roles(self, user) -> list[str]:
-        return user.get_all_roles()
+        return normalize_platform_roles(user.get_all_roles())
 
     def get_full_name(self, user) -> str:
         return user.get_full_name() or user.username or user.email.split("@")[0]

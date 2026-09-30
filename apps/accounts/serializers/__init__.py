@@ -4,6 +4,7 @@ from apps.accounts.serializers.auth import (
     LoginSerializer,
     LogoutSerializer,
     ResetPasswordSerializer,
+    SetInitialPasswordSerializer,
     UpdateProfileSerializer,
     UserSerializer,
 )
@@ -14,6 +15,7 @@ __all__ = [
     "LoginSerializer",
     "LogoutSerializer",
     "ResetPasswordSerializer",
+    "SetInitialPasswordSerializer",
     "UpdateProfileSerializer",
     "UserSerializer",
 ]

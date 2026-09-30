@@ -185,6 +185,7 @@ class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerial
     categories = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
     professions = serializers.SerializerMethodField()
+    profession_registrations = serializers.SerializerMethodField()
     files = ProfessionalRegistrationSubmissionFileSerializer(many=True, read_only=True)
     submitted_by = serializers.SerializerMethodField()
 
@@ -204,6 +205,7 @@ class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerial
             "categories",
             "groups",
             "professions",
+            "profession_registrations",
             "category_id",
             "group_id",
             "profession_id",
@@ -291,3 +293,8 @@ class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerial
             }
             for r in rows
         ]
+
+    def get_profession_registrations(self, obj) -> list[dict]:
+        from apps.professional_onboarding.services.submission_professions import expand_submission_professions
+
+        return expand_submission_professions(obj)

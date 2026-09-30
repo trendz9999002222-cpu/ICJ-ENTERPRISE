@@ -12,11 +12,13 @@ from common.api_listing import list_params, paginated_success
 from common.responses import api_error, api_success
 
 from apps.accounts.permissions import IsAdminRole
+from apps.accounts.role_utils import normalize_platform_role
 from apps.accounts.serializers.admin_user import (
     AdminUserDetailSerializer,
     AdminUserListSerializer,
     AdminUserUpdateSerializer,
 )
+from apps.membership_onboarding.models import MembershipApplication
 from apps.professional_onboarding.models import ProfessionalRegistrationSubmission
 
 User = get_user_model()
@@ -24,17 +26,20 @@ User = get_user_model()
 
 class AdminUserListAPIView(APIView):
     """
-    GET /api/v1/admin/users/ — list all users (paginated & filterable).
+    GET /api/v1/admin/users/ — list approved users and admins (paginated & filterable).
     
     Filters:
       - search: email, username, first_name, last_name, phone, submission reference, category/group/profession name
-      - role: super_admin, admin, advocate, client, member
+      - role: admin, professional, member (super_admin maps to admin)
       - status: active, inactive, blocked
       - category: category UUID
       - group: group UUID
       - profession: profession UUID
       - verified: true / false
       - ordering: sorting field (default: -date_joined)
+
+    Only lists users with an approved professional registration and/or approved membership,
+    plus admin/staff accounts. Pending-only applicants are excluded (manage via onboarding modules).
     """
 
     permission_classes = [IsAdminRole]
@@ -49,6 +54,16 @@ class AdminUserListAPIView(APIView):
                 ).order_by("-created_at"),
             )
         )
+
+        # Users list = approved platform accounts only (pending applicants stay under Memberships / Registrations).
+        qs = qs.filter(
+            Q(role__in=["admin", "super_admin"])
+            | Q(is_staff=True)
+            | Q(
+                professional_registration_submissions__status=ProfessionalRegistrationSubmission.Status.APPROVED
+            )
+            | Q(membership_applications__status=MembershipApplication.Status.APPROVED)
+        ).distinct()
 
         # Search
         search = params.get("search")
@@ -65,10 +80,18 @@ class AdminUserListAPIView(APIView):
                 | Q(professional_registration_submissions__profession__name__icontains=search)
             )
 
-        # Role filter
+        # Role filter (platform roles: admin, professional, member)
         role = request.query_params.get("role")
         if role:
-            qs = qs.filter(role=role)
+            norm = normalize_platform_role(role) or role
+            if norm == "admin":
+                qs = qs.filter(role__in=["admin", "super_admin"])
+            elif norm == "professional":
+                qs = qs.filter(role__in=["professional", "advocate", "client"])
+            elif norm == "member":
+                qs = qs.filter(role="member")
+            else:
+                qs = qs.filter(role=role)
 
         # Status filter
         status_filter = request.query_params.get("status")

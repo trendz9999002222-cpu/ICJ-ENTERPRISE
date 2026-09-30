@@ -88,6 +88,36 @@ def change_password(user: User, current_password: str, new_password: str, confir
     return user
 
 
+@transaction.atomic
+def set_initial_password(user: User, new_password: str, confirm_password: str) -> User:
+    """First-time password setup (no current password) when password_change_required is true."""
+    if not user.password_change_required:
+        raise AuthServiceError(
+            "Password is already set. Use change password instead.",
+            {"password": ["Initial setup not required."]},
+        )
+
+    if new_password != confirm_password:
+        raise AuthServiceError(
+            "Password confirmation does not match.",
+            {"confirm_password": ["Passwords do not match."]},
+        )
+
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError as exc:
+        raise AuthServiceError(
+            "Password does not meet policy requirements.",
+            {"new_password": list(exc.messages)},
+        )
+
+    user.set_password(new_password)
+    user.password_change_required = False
+    user.last_temp_password = ""
+    user.save(update_fields=["password", "password_change_required", "last_temp_password", "updated_at"])
+    return user
+
+
 def request_password_reset(email: str, request=None) -> str:
     """
     Always returns the generic message (no email enumeration).

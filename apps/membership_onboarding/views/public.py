@@ -19,6 +19,8 @@ from apps.membership_onboarding.services.public_config import (
     ensure_default_membership_type,
     get_active_membership_form,
 )
+from apps.accounts.services.jwt_issue import issue_jwt_pair_for_user
+from apps.accounts.serializers import UserSerializer
 from apps.membership_onboarding.services.submission import MembershipApplicationService, parse_field_values_json
 from apps.professional_onboarding.services.crud import ServiceError
 
@@ -103,26 +105,41 @@ class PublicMembershipRegisterAPIView(APIView):
             or request.data.get("idempotency_key")
         )
 
+        membership_payment_id = request.data.get("payment_id") or request.data.get("membership_payment_id")
+
         try:
-            application = MembershipApplicationService.submit(
+            application, _, is_new_user = MembershipApplicationService.submit(
                 membership_type_id=str(membership_type_id),
                 field_values=field_values,
                 uploaded_files=uploaded_files,
                 declaration_accepted=declaration_accepted,
                 user=user,
                 idempotency_key=idempotency_key,
+                membership_payment_id=membership_payment_id,
             )
         except ServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
 
+        payload = {
+            "reference_id": application.reference_id,
+            "status": application.status,
+            "submitted_at": application.submitted_at.isoformat() if application.submitted_at else None,
+        }
+        extra: dict = {}
+        if application.user_id:
+            user = application.user
+            payload["user"] = UserSerializer(user).data
+            payload["user"]["is_new_user"] = is_new_user
+            access, refresh, pwd_change = issue_jwt_pair_for_user(user)
+            extra["access"] = access
+            extra["refresh"] = refresh
+            extra["requires_password_change"] = pwd_change
+
         return api_success(
-            data={
-                "reference_id": application.reference_id,
-                "status": application.status,
-                "submitted_at": application.submitted_at.isoformat() if application.submitted_at else None,
-            },
-            message="Membership application submitted successfully.",
+            data=payload,
+            message="Membership application submitted successfully. Admin approval is required before full member access.",
             status_code=status.HTTP_201_CREATED,
+            **extra,
         )
 
 

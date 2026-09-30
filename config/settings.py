@@ -152,3 +152,6 @@ FRONTEND_PASSWORD_RESET_URL = os.getenv(
     "FRONTEND_PASSWORD_RESET_URL",
     "http://localhost:3001/login/reset-password",
 )
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")

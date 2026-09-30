@@ -16,6 +16,7 @@ from apps.professional_onboarding.models import (
     ProfessionalRegistrationSubmission,
     ProfessionalRegistrationSubmissionFile,
 )
+from apps.accounts.services.user_provisioning import provision_professional_user_at_registration
 from apps.professional_onboarding.services.crud import ServiceError
 from apps.professional_onboarding.services.field_validation import validate_configured_field_value
 from apps.professional_onboarding.services.public_config import build_profession_configuration
@@ -173,6 +174,8 @@ class ProfessionalRegistrationSubmissionService:
         uploaded_files: dict[str, UploadedFile],
         user=None,
         idempotency_key: str | None = None,
+        new_password: str | None = None,
+        confirm_password: str | None = None,
     ) -> ProfessionalRegistrationSubmission:
         category_ids = _parse_uuid_list(category_ids or ([str(category_id)] if category_id else []))
         group_ids = _parse_uuid_list(group_ids or ([str(group_id)] if group_id else []))
@@ -272,6 +275,13 @@ class ProfessionalRegistrationSubmissionService:
             if allowed and not _file_allowed(file, allowed):
                 errors.setdefault(doc_key, []).append("File type is not allowed.")
 
+        authenticated = bool(user and getattr(user, "is_authenticated", False))
+        if not authenticated:
+            if not (new_password or "").strip():
+                errors.setdefault("new_password", []).append("Password is required.")
+            if not (confirm_password or "").strip():
+                errors.setdefault("confirm_password", []).append("Please confirm your password.")
+
         if errors:
             raise ServiceError("Validation failed.", errors)
 
@@ -319,6 +329,16 @@ class ProfessionalRegistrationSubmissionService:
                     file=file,
                 )
                 saved_keys.add(doc_key)
+
+            if authenticated and user:
+                submission.user = user
+                submission.save(update_fields=["user"])
+            else:
+                provision_professional_user_at_registration(
+                    submission,
+                    (new_password or "").strip(),
+                    (confirm_password or "").strip(),
+                )
 
         return submission
 

@@ -16,12 +16,15 @@ from apps.membership_onboarding.models import (
     MembershipType,
 )
 from apps.membership_onboarding.services.public_config import build_configuration_for_form, get_active_membership_form
+from apps.accounts.services.user_provisioning import provision_user_for_membership
+from apps.membership_onboarding.models import MembershipPayment
+from apps.membership_onboarding.services.fee_settings import payment_required_for_submission
 from apps.person.services import resolve_person_for_application
 from apps.professional_onboarding.services.crud import ServiceError
 from apps.professional_onboarding.services.field_validation import validate_configured_field_value
 
 
-def allocate_membership_reference_id() -> str:
+def _allocate_prefixed_reference(prefix: str) -> str:
     year = timezone.now().year
     with transaction.atomic():
         counter, _ = MembershipReferenceCounter.objects.select_for_update().get_or_create(
@@ -30,7 +33,17 @@ def allocate_membership_reference_id() -> str:
         )
         counter.last_value += 1
         counter.save(update_fields=["last_value"])
-        return f"MEM-{year}-{counter.last_value:06d}"
+        return f"{prefix}-{year}-{counter.last_value:06d}"
+
+
+def allocate_application_reference_id() -> str:
+    """Public application reference at submit (before admin approval)."""
+    return _allocate_prefixed_reference("APP")
+
+
+def allocate_membership_id() -> str:
+    """Official membership ID issued when admin approves the application."""
+    return _allocate_prefixed_reference("MEM")
 
 
 def _normalize_field_type(field_type: str) -> str:
@@ -51,15 +64,26 @@ class MembershipApplicationService:
         declaration_accepted: bool,
         user=None,
         idempotency_key: str | None = None,
-    ) -> MembershipApplication:
+        membership_payment_id: str | None = None,
+    ) -> tuple[MembershipApplication, str | None, bool]:
         if not declaration_accepted:
             raise ServiceError("Declaration must be accepted.", {"declaration_accepted": ["Required."]})
+
+        payment: MembershipPayment | None = None
+        if payment_required_for_submission():
+            if not membership_payment_id:
+                raise ServiceError("Membership fee payment is required.", {"payment_id": ["Complete payment before submitting."]})
+            payment = MembershipPayment.objects.filter(pk=membership_payment_id).first()
+            if not payment or payment.status != MembershipPayment.Status.PAID:
+                raise ServiceError("Valid payment is required.", {"payment_id": ["Payment not verified."]})
+            if payment.application_id:
+                raise ServiceError("Payment already used.", {"payment_id": ["This payment is linked to another application."]})
 
         idempotency_key = (idempotency_key or "").strip() or None
         if idempotency_key and user:
             existing = MembershipApplication.objects.filter(user=user, idempotency_key=idempotency_key).first()
             if existing:
-                return existing
+                return existing, None, False
 
         form = get_active_membership_form()
         if not form:
@@ -119,7 +143,7 @@ class MembershipApplicationService:
 
         with transaction.atomic():
             person = resolve_person_for_application(field_values=field_values, user=user)
-            reference_id = allocate_membership_reference_id()
+            reference_id = allocate_application_reference_id()
             now = timezone.now()
             application = MembershipApplication(
                 reference_id=reference_id,
@@ -156,7 +180,15 @@ class MembershipApplicationService:
                 metadata={"reference_id": reference_id},
             )
 
-        return application
+            if payment:
+                payment.application = application
+                payment.save(update_fields=["application"])
+
+        user_obj, _, is_new = provision_user_for_membership(application)
+        application.user = user_obj
+        application.save(update_fields=["user"])
+
+        return application, None, is_new
 
 
 def parse_field_values_json(raw) -> dict[str, Any]:

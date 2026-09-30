@@ -82,4 +82,4 @@ def test_submit_membership(api_client, configured_type):
         format="multipart",
     )
     assert res.status_code == status.HTTP_201_CREATED
-    assert res.data["data"]["reference_id"].startswith("MEM-")
+    assert res.data["data"]["reference_id"].startswith("APP-")

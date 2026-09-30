@@ -29,6 +29,14 @@ def catalog(db):
         is_required=True,
         is_active=True,
     )
+    CommonField.objects.create(
+        name="Email",
+        field_key="email",
+        field_type="email",
+        label="Email",
+        is_required=True,
+        is_active=True,
+    )
     return category, group, profession
 
 
@@ -37,8 +45,10 @@ def _submit_payload(category, group, profession):
         "category_ids": f'["{category.id}"]',
         "group_ids": f'["{group.id}"]',
         "profession_ids": f'["{profession.id}"]',
-        "common_field_values": '{"full_name": "Jane Doe"}',
+        "common_field_values": '{"full_name": "Jane Doe", "email": "jane.doe@example.com"}',
         "profession_field_values": "{}",
+        "new_password": "SecurePass123!@#",
+        "confirm_password": "SecurePass123!@#",
     }
 
 

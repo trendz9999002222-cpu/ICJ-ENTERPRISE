@@ -58,12 +58,14 @@ class MembershipApplicationListSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source="person.email", read_only=True, default="")
     mobile = serializers.CharField(source="person.mobile", read_only=True, default="")
     membership_type_name = serializers.CharField(source="membership_type.name", read_only=True, default="")
+    membership_id = serializers.SerializerMethodField()
 
     class Meta:
         model = MembershipApplication
         fields = (
             "id",
             "reference_id",
+            "membership_id",
             "person_name",
             "email",
             "mobile",
@@ -74,12 +76,17 @@ class MembershipApplicationListSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
+    def get_membership_id(self, obj) -> str | None:
+        record = getattr(obj, "membership_record", None)
+        return record.membership_id if record else None
+
 
 class MembershipApplicationDetailSerializer(serializers.ModelSerializer):
     person_name = serializers.CharField(source="person.full_name", read_only=True, default="")
     email = serializers.CharField(source="person.email", read_only=True, default="")
     mobile = serializers.CharField(source="person.mobile", read_only=True, default="")
     membership_type_name = serializers.CharField(source="membership_type.name", read_only=True, default="")
+    membership_id = serializers.SerializerMethodField()
     documents = serializers.SerializerMethodField()
     history = serializers.SerializerMethodField()
 
@@ -88,6 +95,7 @@ class MembershipApplicationDetailSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "reference_id",
+            "membership_id",
             "person_name",
             "email",
             "mobile",
@@ -106,6 +114,10 @@ class MembershipApplicationDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+
+    def get_membership_id(self, obj) -> str | None:
+        record = getattr(obj, "membership_record", None)
+        return record.membership_id if record else None
 
     def get_documents(self, obj):
         request = self.context.get("request")

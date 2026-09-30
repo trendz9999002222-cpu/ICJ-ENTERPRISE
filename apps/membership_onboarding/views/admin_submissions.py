@@ -15,7 +15,7 @@ from apps.professional_onboarding.services.crud import ServiceError
 class MembershipApplicationListAPIView(AdminMembershipConfigAPIView):
     def get(self, request):
         params = list_params(request)
-        qs = MembershipApplication.objects.select_related("person", "membership_type").all()
+        qs = MembershipApplication.objects.select_related("person", "membership_type", "membership_record").all()
         search = (params.get("search") or "").strip()
         if search:
             qs = qs.filter(
@@ -37,7 +37,9 @@ class MembershipApplicationListAPIView(AdminMembershipConfigAPIView):
 class MembershipApplicationDetailAPIView(AdminMembershipConfigAPIView):
     def get(self, request, pk):
         obj = get_object_or_404(
-            MembershipApplication.objects.select_related("person", "membership_type", "form").prefetch_related(
+            MembershipApplication.objects.select_related(
+                "person", "membership_type", "form", "membership_record"
+            ).prefetch_related(
                 "documents", "history"
             ),
             pk=pk,
@@ -62,25 +64,14 @@ class MembershipApplicationApproveAPIView(AdminMembershipConfigAPIView):
     def post(self, request, pk):
         obj = get_object_or_404(MembershipApplication.objects.select_related("person", "user"), pk=pk)
         try:
-            obj, temp_password, is_new = approve_application(obj, request.user)
+            obj, _, _ = approve_application(obj, request.user)
         except ServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
 
         data = MembershipApplicationListSerializer(obj).data
-        user = obj.user
-        if user:
-            data["credentials"] = {
-                "user_id": user.id,
-                "email": user.email,
-                "role": user.role,
-                "temp_password": temp_password if is_new else None,
-                "is_new_user": is_new,
-                "password_change_required": user.password_change_required,
-            }
-
         msg = "Application approved."
-        if is_new and temp_password and user:
-            msg += f" Member user account created for {user.email} with temporary credentials."
+        if obj.user:
+            msg += f" Member can continue using the account they created during application ({obj.user.email})."
 
         return api_success(data=data, message=msg)
 

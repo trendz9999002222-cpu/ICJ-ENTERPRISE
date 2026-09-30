@@ -14,6 +14,7 @@ from apps.membership_onboarding.views.admin_config import (
     MembershipTypeDetailAPIView,
     MembershipTypeListCreateAPIView,
 )
+from apps.membership_onboarding.views.payment import AdminMembershipFeeSettingsAPIView
 from apps.membership_onboarding.views.admin_submissions import (
     MembershipApplicationApproveAPIView,
     MembershipApplicationDetailAPIView,
@@ -37,6 +38,7 @@ urlpatterns = [
     path("step-fields/<uuid:field_id>/options/", MembershipFieldOptionListCreateAPIView.as_view()),
     path("field-options/<uuid:pk>/", MembershipFieldOptionDetailAPIView.as_view()),
     path("documents/<uuid:pk>/", MembershipDocumentDetailAPIView.as_view()),
+    path("payment-settings/", AdminMembershipFeeSettingsAPIView.as_view()),
     path("applications/", MembershipApplicationListAPIView.as_view()),
     path("applications/<uuid:pk>/", MembershipApplicationDetailAPIView.as_view()),
     path("applications/<uuid:pk>/review/", MembershipApplicationReviewAPIView.as_view()),
