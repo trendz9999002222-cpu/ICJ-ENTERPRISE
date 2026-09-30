@@ -1,6 +1,5 @@
 "use client";
 
-import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -33,6 +32,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { MEMBER_CHANGE_PASSWORD_QUERY } from "@/lib/memberDashboard";
+import { normalizePlatformRoles } from "@/lib/roles";
+
 export const SIDEBAR_WIDTH = 240;
 export const SIDEBAR_COLLAPSED_WIDTH = 56;
 
@@ -44,15 +46,63 @@ export type PortalNavItem = {
   badge?: string;
 };
 
-export function getPortalNavItems(roles: string[], primaryRole: string): PortalNavItem[] {
-  const allRoles = roles.length > 0 ? roles : [primaryRole];
-  const hasPro = allRoles.includes("professional") || allRoles.includes("client");
+export function getPortalNavItems(
+  roles: string[],
+  primaryRole: string,
+  options?: { memberApproved?: boolean; professionalApproved?: boolean; activeRole?: string },
+): PortalNavItem[] {
+  const allRoles = normalizePlatformRoles(roles.length > 0 ? roles : [primaryRole]);
+  const hasPro = allRoles.includes("professional");
   const hasMember = allRoles.includes("member");
-  const hasAdvocate = allRoles.includes("advocate");
+  const memberApproved = options?.memberApproved ?? true;
+  const professionalApproved = options?.professionalApproved ?? true;
+  const activeRole = options?.activeRole ?? primaryRole;
+  const memberLimited = activeRole === "member" && hasMember && !memberApproved;
+  const professionalLimited = activeRole === "professional" && hasPro && !professionalApproved;
 
-  const items: PortalNavItem[] = [
-    { label: "Dashboard", href: "/dashboard", icon: <DashboardIcon fontSize="small" /> },
-  ];
+  const items: PortalNavItem[] = [];
+
+  if (professionalLimited) {
+    items.push({
+      label: "Professional Dashboard",
+      href: "/dashboard/professional",
+      icon: <DashboardIcon fontSize="small" />,
+    });
+    items.push({
+      label: "My Profile & Edit",
+      href: "/dashboard/profile",
+      icon: <PersonIcon fontSize="small" />,
+      section: "Account",
+    });
+    items.push({
+      label: "Change Password",
+      href: "/login/change-password",
+      icon: <LockOutlinedIcon fontSize="small" />,
+    });
+    return items;
+  }
+
+  if (memberLimited) {
+    items.push({
+      label: "Member Dashboard",
+      href: "/dashboard/member",
+      icon: <DashboardIcon fontSize="small" />,
+    });
+    items.push({
+      label: "My Profile & Edit",
+      href: "/dashboard/profile",
+      icon: <PersonIcon fontSize="small" />,
+      section: "Account",
+    });
+    items.push({
+      label: "Change Password",
+      href: MEMBER_CHANGE_PASSWORD_QUERY,
+      icon: <LockOutlinedIcon fontSize="small" />,
+    });
+    return items;
+  }
+
+  items.push({ label: "Dashboard", href: "/dashboard", icon: <DashboardIcon fontSize="small" /> });
 
   // Section: Practice / Membership
   if (hasPro) {
@@ -79,31 +129,16 @@ export function getPortalNavItems(roles: string[], primaryRole: string): PortalN
       badge: "Member",
     });
     items.push({
-      label: "Find Advocates",
+      label: "Find Professionals",
       href: "/dashboard/member/find-advocate",
       icon: <SearchIcon fontSize="small" />,
-    });
-  }
-
-  if (hasAdvocate) {
-    items.push({
-      label: "Advocate Desk",
-      href: "/dashboard/advocate",
-      icon: <GavelIcon fontSize="small" />,
-      section: "Legal Practice",
-      badge: "Advocate",
-    });
-    items.push({
-      label: "Advocate Profile",
-      href: "/dashboard/advocate/profile",
-      icon: <AccountCircleOutlinedIcon fontSize="small" />,
     });
   }
 
   // Section: Vault & Documents
   items.push({
     label: "Documents & Vault",
-    href: hasAdvocate ? "/dashboard/advocate/documents" : "/dashboard/member/documents",
+    href: hasPro ? "/dashboard/advocate/documents" : "/dashboard/member/documents",
     icon: <FolderOpenIcon fontSize="small" />,
     section: "Documents",
   });
@@ -118,12 +153,12 @@ export function getPortalNavItems(roles: string[], primaryRole: string): PortalN
   });
   items.push({
     label: "Change Password",
-    href: "/login/change-password",
+    href: hasMember ? MEMBER_CHANGE_PASSWORD_QUERY : "/login/change-password",
     icon: <LockOutlinedIcon fontSize="small" />,
   });
   items.push({
     label: "Support Desk",
-    href: hasAdvocate ? "/dashboard/advocate/support" : "/dashboard/member/support",
+    href: hasPro ? "/dashboard/advocate/support" : "/dashboard/member/support",
     icon: <SupportAgentIcon fontSize="small" />,
   });
 
@@ -141,6 +176,9 @@ type Props = {
   variant?: "permanent" | "persistent" | "temporary";
   roles: string[];
   primaryRole: string;
+  memberApproved?: boolean;
+  professionalApproved?: boolean;
+  activeRole?: string;
   userName?: string;
   userEmail?: string;
 };
@@ -151,12 +189,19 @@ export default function PortalSidebar({
   variant = "persistent",
   roles,
   primaryRole,
+  memberApproved = true,
+  professionalApproved = true,
+  activeRole,
   userName = "User",
   userEmail = "",
 }: Props) {
   const pathname = usePathname();
   const collapsed = !open && variant === "persistent";
-  const navItems = getPortalNavItems(roles, primaryRole);
+  const navItems = getPortalNavItems(roles, primaryRole, {
+    memberApproved,
+    professionalApproved,
+    activeRole: activeRole ?? primaryRole,
+  });
 
   const initials = userName
     .split(" ")

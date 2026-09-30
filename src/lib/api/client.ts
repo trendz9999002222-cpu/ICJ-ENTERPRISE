@@ -49,10 +49,11 @@ export async function apiClient<T>(
     });
 
     throw new ApiError(
-      "Unable to connect to the server.",
+      "Unable to reach the API. Confirm Django is running (e.g. python manage.py runserver 8000) and that CORS allows your frontend origin (localhost and 127.0.0.1 on port 3000).",
       0,
       {
         message: error instanceof Error ? error.message : String(error),
+        url,
       },
     );
   }

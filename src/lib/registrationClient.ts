@@ -83,6 +83,8 @@ export async function submitRegistration(payload: {
   professionValuesByProfession: Record<string, Record<string, unknown>>;
   files: Record<string, File | null>;
   idempotencyKey?: string;
+  password: string;
+  confirmPassword: string;
 }) {
   return professionalOnboardingPublicService.submitRegistration(payload);
 }

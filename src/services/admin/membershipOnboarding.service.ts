@@ -65,6 +65,7 @@ export type MembershipStepFieldAdmin = {
 export type AdminMembershipApplication = {
   id: string;
   reference_id: string;
+  membership_id?: string | null;
   person_name: string;
   email: string;
   mobile: string;
@@ -175,5 +176,25 @@ export const membershipOnboardingAdminService = {
 
   async updateStepField(id: string, payload: Partial<MembershipStepFieldAdmin>) {
     return request<MembershipStepFieldAdmin>(`${BASE}/step-fields/${id}/`, { method: "PATCH", body: payload });
+  },
+
+  async getPaymentSettings() {
+    return request<{
+      amount_paise: number;
+      amount_inr: number;
+      currency: string;
+      is_payment_enabled: boolean;
+      updated_at: string | null;
+    }>(`${BASE}/payment-settings/`);
+  },
+
+  async updatePaymentSettings(payload: { amount_inr?: number; is_payment_enabled?: boolean }) {
+    return request<{
+      amount_paise: number;
+      amount_inr: number;
+      currency: string;
+      is_payment_enabled: boolean;
+      updated_at: string;
+    }>(`${BASE}/payment-settings/`, { method: "PATCH", body: payload });
   },
 };

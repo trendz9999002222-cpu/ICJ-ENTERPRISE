@@ -159,6 +159,8 @@ export type RegistrationState = {
   specialisationId: string | null;
   values: Record<string, unknown>;
   files: Record<string, File | null>;
+  password: string;
+  confirmPassword: string;
   declarationAgreed: boolean;
 };
 
@@ -170,5 +172,7 @@ export const INITIAL_REGISTRATION_STATE: RegistrationState = {
   specialisationId: null,
   values: {},
   files: {},
+  password: "",
+  confirmPassword: "",
   declarationAgreed: false,
 };

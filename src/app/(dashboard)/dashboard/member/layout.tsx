@@ -1,7 +1,15 @@
-export const metadata = {
-  title: "Member Dashboard — ICJ Enterprise",
-};
+"use client";
 
-export default function MemberDashboardLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+import { Box } from "@mui/material";
+import type { ReactNode } from "react";
+
+import MemberPendingApprovalAlert from "@/components/features/dashboard/member/MemberPendingApprovalAlert";
+
+export default function MemberDashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <Box>
+      <MemberPendingApprovalAlert />
+      {children}
+    </Box>
+  );
 }

@@ -39,6 +39,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
+import { normalizePlatformRole, userHasProfessionalAccess } from "@/lib/roles";
 import type { UserRole } from "@/types/api";
 
 
@@ -80,7 +81,7 @@ export default function UnifiedDashboardPage() {
       return;
     }
 
-    const r = (payload.role === "client" ? "professional" : payload.role) as UserRole;
+    const r = normalizePlatformRole(String(payload.role)) ?? "professional";
     setPrimaryRole(r);
 
     if (Array.isArray(payload.roles)) {
@@ -97,9 +98,8 @@ export default function UnifiedDashboardPage() {
     if (payload.user_id) setUserId(String(payload.user_id));
   }, [router]);
 
-  const hasProfessional = roles.includes("professional") || roles.includes("client") || primaryRole === "professional" || primaryRole === "client";
   const hasMember = roles.includes("member") || primaryRole === "member";
-  const hasAdvocate = roles.includes("advocate") || primaryRole === "advocate";
+  const hasProfessional = userHasProfessionalAccess(roles, primaryRole);
 
   const memberIdDisplay = `ICJ-MEM-${userId.padStart(6, "0") || "001024"}`;
 
@@ -196,10 +196,10 @@ export default function UnifiedDashboardPage() {
                     sx={{ fontWeight: 700, fontSize: "0.68rem" }}
                   />
                 )}
-                {hasAdvocate && (
+                {hasProfessional && (
                   <Chip
                     icon={<Gavel sx={{ fontSize: "14px !important" }} />}
-                    label="Enrolled Advocate"
+                    label="Professional"
                     color="info"
                     size="small"
                     sx={{ fontWeight: 700, fontSize: "0.68rem" }}
@@ -257,8 +257,8 @@ export default function UnifiedDashboardPage() {
           {hasMember && (
             <Tab icon={<CardMembership sx={{ fontSize: 18 }} />} iconPosition="start" label="Digital Membership" />
           )}
-          {hasAdvocate && (
-            <Tab icon={<Gavel sx={{ fontSize: 18 }} />} iconPosition="start" label="Advocate Desk" />
+          {hasProfessional && (
+            <Tab icon={<Gavel sx={{ fontSize: 18 }} />} iconPosition="start" label="Professional Desk" />
           )}
         </Tabs>
       </Box>
@@ -680,7 +680,7 @@ export default function UnifiedDashboardPage() {
       )}
 
       {/* TAB 3: ADVOCATE DESK */}
-      {activeTab === 3 && hasAdvocate && (
+      {activeTab === 3 && hasProfessional && (
         <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 2.5, p: 3 }}>
           <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 3 }}>
             <Box>

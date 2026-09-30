@@ -49,6 +49,8 @@ export const professionalOnboardingPublicService = {
     professionValuesByProfession: Record<string, Record<string, unknown>>;
     files: Record<string, File | null>;
     idempotencyKey?: string;
+    password: string;
+    confirmPassword: string;
   }): Promise<{ referenceId: string; status: string }> {
     const formData = new FormData();
     formData.set("category_ids", JSON.stringify(payload.categoryIds));
@@ -64,6 +66,8 @@ export const professionalOnboardingPublicService = {
     if (payload.idempotencyKey) {
       formData.set("idempotency_key", payload.idempotencyKey);
     }
+    formData.set("new_password", payload.password);
+    formData.set("confirm_password", payload.confirmPassword);
 
     const res = await apiClientFormData<
       ApiEnvelope<{ reference_id: string; status: string; submitted_at?: string }>

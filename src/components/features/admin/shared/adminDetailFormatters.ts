@@ -48,3 +48,16 @@ export function isPdfUrl(url?: string | null, name?: string): boolean {
   const n = (name || url || "").toLowerCase();
   return n.endsWith(".pdf");
 }
+
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Calendar date from ISO string — identical on server and client (no locale/timezone drift). */
+export function formatAdminDateShort(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const datePart = iso.includes("T") ? iso.slice(0, 10) : iso.slice(0, 10);
+  const [year, month, day] = datePart.split("-");
+  const m = Number(month);
+  const d = Number(day);
+  if (!year || !m || !d || m < 1 || m > 12) return datePart;
+  return `${d} ${MONTHS_SHORT[m - 1]} ${year}`;
+}

@@ -67,6 +67,13 @@ interface RegistrationDetail {
   categories?: { id: string; name: string }[];
   groups?: { id: string; name: string }[];
   professions?: { id: string; name: string }[];
+  profession_registrations?: {
+    profession_id: string;
+    profession_name: string;
+    group_name: string;
+    category_name: string;
+    field_values: Record<string, unknown>;
+  }[];
   selected_category_ids?: string[];
   selected_group_ids?: string[];
   selected_profession_ids?: string[];
@@ -365,7 +372,28 @@ export default function RegistrationDetailPage() {
   );
 
   const commonEntries = extractKeyValuePairs(data?.common_field_values);
-  const profEntries = extractKeyValuePairs(data?.profession_field_values);
+  const professionBlocks =
+    data?.profession_registrations && data.profession_registrations.length > 0
+      ? data.profession_registrations
+      : (data?.professions || []).length > 0
+        ? (data?.professions || []).map((p) => ({
+            profession_id: p.id,
+            profession_name: p.name,
+            group_name: "",
+            category_name: "",
+            field_values: (data?.profession_field_values as Record<string, unknown>)?.[p.id] as Record<string, unknown> || {},
+          }))
+        : data?.profession_field_values
+          ? [
+              {
+                profession_id: "default",
+                profession_name: "Profession details",
+                group_name: "",
+                category_name: "",
+                field_values: data.profession_field_values,
+              },
+            ]
+          : [];
 
   return (
     <AdminPageShell
@@ -607,38 +635,51 @@ export default function RegistrationDetailPage() {
               </TableContainer>
             </Paper>
 
-            {/* Profession Specific Details */}
-            <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, mb: 3, overflow: "hidden", bgcolor: "#ffffff" }}>
-              <Box sx={{ px: 3, py: 2, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a" }}>
-                  Profession-Specific Details
-                </Typography>
-              </Box>
-              <TableContainer>
-                <Table size="small">
-                  <TableBody>
-                    {profEntries.length > 0 ? (
-                      profEntries.map((row) => (
-                        <TableRow key={row.key} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
-                          <TableCell sx={{ width: "38%", fontWeight: 600, color: "#64748b", fontSize: "0.8125rem" }}>
-                            {row.label}
-                          </TableCell>
-                          <TableCell sx={{ color: "#0f172a" }}>
-                            {renderFieldValue(row.value)}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={2} sx={{ color: "#94a3b8", textAlign: "center", py: 3 }}>
-                          No profession-specific fields submitted.
-                        </TableCell>
-                      </TableRow>
+            {/* Profession Specific Details (per selected profession) */}
+            {professionBlocks.map((block) => {
+              const profEntries = extractKeyValuePairs(block.field_values);
+              return (
+                <Paper
+                  key={block.profession_id}
+                  elevation={0}
+                  sx={{ border: "1px solid #e2e8f0", borderRadius: 3, mb: 3, overflow: "hidden", bgcolor: "#ffffff" }}
+                >
+                  <Box sx={{ px: 3, py: 2, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                      {block.profession_name}
+                    </Typography>
+                    {(block.category_name || block.group_name) && (
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        {block.category_name}
+                        {block.group_name ? ` • ${block.group_name}` : ""}
+                      </Typography>
                     )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
+                  </Box>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableBody>
+                        {profEntries.length > 0 ? (
+                          profEntries.map((row) => (
+                            <TableRow key={row.key} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                              <TableCell sx={{ width: "38%", fontWeight: 600, color: "#64748b", fontSize: "0.8125rem" }}>
+                                {row.label}
+                              </TableCell>
+                              <TableCell sx={{ color: "#0f172a" }}>{renderFieldValue(row.value)}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={2} sx={{ color: "#94a3b8", textAlign: "center", py: 3 }}>
+                              No fields submitted for this profession.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              );
+            })}
 
             {/* Uploaded Documents */}
             <Paper elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden", bgcolor: "#ffffff" }}>

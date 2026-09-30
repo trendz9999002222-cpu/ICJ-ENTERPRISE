@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     register: "/auth/register/",
     me: "/auth/me/",
     changePassword: "/auth/change-password/",
+    setPassword: "/auth/set-password/",
   },
   members: "/members/",
   membershipOnboardingPublic: {

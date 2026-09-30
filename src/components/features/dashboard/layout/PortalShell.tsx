@@ -3,6 +3,12 @@
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import MandatorySetPasswordGate from "@/components/features/dashboard/auth/MandatorySetPasswordGate";
+import MemberRouteGuard from "@/components/features/dashboard/member/MemberRouteGuard";
+import ProfessionalRouteGuard from "@/components/features/dashboard/professional/ProfessionalRouteGuard";
+import { isProfessionalApproved } from "@/lib/professionalDashboard";
+import { normalizePlatformRoles } from "@/lib/roles";
+
 import PortalHeader, { MembershipItem, ProfessionItem } from "./PortalHeader";
 import PortalSidebar, { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "./PortalSidebar";
 
@@ -63,13 +69,17 @@ export default function PortalShell({ children }: Props) {
       } else if (payload.role) {
         extractedRoles = [payload.role as string];
       }
-      extractedRoles = extractedRoles.map((r) => (r === "client" ? "professional" : r));
+      extractedRoles = extractedRoles.map((r) => {
+        const key = String(r).toLowerCase();
+        if (key === "client" || key === "advocate") return "professional";
+        return r;
+      });
       if (extractedRoles.length === 0) extractedRoles = ["professional"];
       setRoles(extractedRoles);
 
       // determine active role from pathname
-      if (pathname.includes("/dashboard/advocate")) {
-        setActiveRole("advocate");
+      if (pathname.includes("/dashboard/advocate") || pathname.includes("/dashboard/professional")) {
+        setActiveRole("professional");
       } else if (pathname.includes("/dashboard/member")) {
         setActiveRole("member");
       } else if (pathname.includes("/dashboard/professional")) {
@@ -100,7 +110,14 @@ export default function PortalShell({ children }: Props) {
             }
           }
           if (data.membership) {
-            setMembership(data.membership);
+            setMembership({
+              application_id: data.membership.application_id,
+              reference_id: data.membership.reference_id,
+              membership_id: data.membership.membership_id ?? null,
+              membership_type: data.membership.membership_type,
+              status: data.membership.status,
+              is_approved: data.membership.is_approved,
+            });
           }
           if (Array.isArray(data.roles) && data.roles.length > 0) {
             setRoles(data.roles);
@@ -124,6 +141,24 @@ export default function PortalShell({ children }: Props) {
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
   const closeSidebar = () => setSidebarOpen(false);
 
+  const hasMemberRole = normalizePlatformRoles(roles).includes("member");
+  const memberApproved =
+    !hasMemberRole ||
+    membership?.status === "approved" ||
+    membership?.is_approved === true;
+
+  const hasProRole = normalizePlatformRoles(roles).includes("professional");
+  const professionalApproved = !hasProRole || isProfessionalApproved(
+    professions.map((p) => ({
+      registration_id: p.registration_id,
+      reference_id: p.reference_id,
+      category_name: p.category_name ?? "",
+      group_name: p.group_name ?? "",
+      profession_name: p.profession_name,
+      status: p.status ?? "pending",
+    })),
+  );
+
   return (
     <Box
       sx={{
@@ -142,6 +177,9 @@ export default function PortalShell({ children }: Props) {
           variant="temporary"
           roles={roles}
           primaryRole={activeRole}
+          memberApproved={memberApproved}
+          professionalApproved={professionalApproved}
+          activeRole={activeRole}
           userName={userName}
           userEmail={userEmail}
         />
@@ -152,6 +190,9 @@ export default function PortalShell({ children }: Props) {
           variant="persistent"
           roles={roles}
           primaryRole={activeRole}
+          memberApproved={memberApproved}
+          professionalApproved={professionalApproved}
+          activeRole={activeRole}
           userName={userName}
           userEmail={userEmail}
         />
@@ -194,7 +235,11 @@ export default function PortalShell({ children }: Props) {
             boxSizing: "border-box",
           }}
         >
-          {children}
+          <MandatorySetPasswordGate>
+            <MemberRouteGuard>
+              <ProfessionalRouteGuard>{children}</ProfessionalRouteGuard>
+            </MemberRouteGuard>
+          </MandatorySetPasswordGate>
         </Box>
       </Box>
     </Box>

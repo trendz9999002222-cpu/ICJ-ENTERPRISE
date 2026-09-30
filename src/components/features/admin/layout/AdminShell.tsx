@@ -4,6 +4,7 @@ import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import MandatorySetPasswordGate from "@/components/features/dashboard/auth/MandatorySetPasswordGate";
 import { logAdminActivity, resolveUrlTitle } from "@/lib/adminActivity";
 import AdminHeader from "./AdminHeader";
 import AdminSidebar, { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "./AdminSidebar";
@@ -95,7 +96,7 @@ export default function AdminShell({ children }: Props) {
             boxSizing: "border-box",
           }}
         >
-          {children}
+          <MandatorySetPasswordGate>{children}</MandatorySetPasswordGate>
         </Box>
       </Box>
     </Box>

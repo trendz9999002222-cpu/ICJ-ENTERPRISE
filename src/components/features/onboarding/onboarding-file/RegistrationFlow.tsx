@@ -16,6 +16,7 @@ import {
   Container,
   FormControlLabel,
   Stack,
+  TextField,
   Typography,
 } from "@mui/material";
 
@@ -376,8 +377,20 @@ export default function RegistrationFlow() {
     if (currentStep === "documents" && schema) {
       stepErrors = validateDocuments(schema.documents, state.files);
     }
-    if (currentStep === "review" && !state.declarationAgreed) {
-      stepErrors.declaration = "Please accept the declaration to submit";
+    if (currentStep === "review") {
+      if (!state.password.trim()) {
+        stepErrors.password = "Password is required";
+      } else if (state.password.length < 12) {
+        stepErrors.password = "Use at least 12 characters";
+      }
+      if (!state.confirmPassword.trim()) {
+        stepErrors.confirmPassword = "Please confirm your password";
+      } else if (state.password !== state.confirmPassword) {
+        stepErrors.confirmPassword = "Passwords do not match";
+      }
+      if (!state.declarationAgreed) {
+        stepErrors.declaration = "Please accept the declaration to submit";
+      }
     }
 
     if (Object.keys(stepErrors).length) {
@@ -449,6 +462,8 @@ export default function RegistrationFlow() {
         professionValuesByProfession,
         files: state.files,
         idempotencyKey: idempotencyKeyRef.current,
+        password: state.password,
+        confirmPassword: state.confirmPassword,
       });
       setReferenceId(ref);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -692,6 +707,47 @@ export default function RegistrationFlow() {
               onEditDetails={() => jumpToStep("details")}
               onEditDocuments={() => jumpToStep("documents")}
             />
+            <Box
+              data-field="password"
+              sx={{
+                mt: 2,
+                p: 2,
+                borderRadius: RADIUS.sm,
+                border: "1px solid #e2e8f0",
+                bgcolor: "#fff",
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", mb: 1.5 }}>
+                Account password
+              </Typography>
+              <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 2 }}>
+                Create the password you will use to log in after your application is approved.
+              </Typography>
+              <Stack spacing={2}>
+                <TextField
+                  label="Password"
+                  type="password"
+                  value={state.password}
+                  onChange={(e) => setState((prev) => ({ ...prev, password: e.target.value }))}
+                  required
+                  fullWidth
+                  autoComplete="new-password"
+                  error={Boolean(errors.password)}
+                  helperText={errors.password || "At least 12 characters"}
+                />
+                <TextField
+                  label="Confirm password"
+                  type="password"
+                  value={state.confirmPassword}
+                  onChange={(e) => setState((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                  fullWidth
+                  autoComplete="new-password"
+                  error={Boolean(errors.confirmPassword)}
+                  helperText={errors.confirmPassword}
+                />
+              </Stack>
+            </Box>
             <Box data-field="declaration" sx={{ mt: 2 }}>
               <FormControlLabel
                 control={

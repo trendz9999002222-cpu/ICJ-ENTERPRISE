@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 // =============================================================================
 // AdminPageShell
@@ -30,6 +30,12 @@ export default function AdminPageShell({
   actions,
   children,
 }: Props) {
+  // Subtitle is client-only so SSR HTML matches first client paint (avoids hydration drift after HMR / copy changes).
+  const [showSubtitle, setShowSubtitle] = useState(false);
+  useEffect(() => {
+    setShowSubtitle(true);
+  }, []);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
       {/* Page header */}
@@ -46,7 +52,7 @@ export default function AdminPageShell({
           >
             {title}
           </Typography>
-          {subtitle && (
+          {subtitle && showSubtitle && (
             <Typography
               variant="body2"
               sx={{ color: "#64748b", mt: 0.5 }}

@@ -1,29 +1,12 @@
-﻿import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
-import { Paper, Typography } from "@mui/material";
+﻿import AdminAccountSecuritySettings from "@/components/features/admin/settings/AdminAccountSecuritySettings";
+import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 
 export const metadata = { title: "Settings — Admin Portal | ICJ Enterprise" };
 
 export default function Page() {
   return (
-    <AdminPageShell title="Settings" subtitle="Platform configuration and admin settings">
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          border: "1px solid #e2e8f0",
-          borderRadius: 3,
-          textAlign: "center",
-          bgcolor: "#f8fafc",
-        }}
-      >
-        <Typography variant="h6" sx={{ fontWeight: 700, color: "#64748b", mb: 1 }}>
-          Settings
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          This section is ready for implementation. Connect the Django REST API and
-          add components here — the admin shell layout and navigation are fully functional.
-        </Typography>
-      </Paper>
+    <AdminPageShell title="Settings" subtitle="Account security and platform configuration">
+      <AdminAccountSecuritySettings />
     </AdminPageShell>
   );
 }

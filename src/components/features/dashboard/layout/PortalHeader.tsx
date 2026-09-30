@@ -38,12 +38,12 @@ const LABEL_MAP: Record<string, string> = {
   dashboard: "Dashboard",
   professional: "Professional Practice",
   member: "Membership",
-  advocate: "Advocate Desk",
+  advocate: "Professional",
   profile: "My Profile",
   application: "Application Status",
   documents: "Documents & Vault",
   support: "Support Desk",
-  "find-advocate": "Find Advocates",
+  "find-advocate": "Find Professionals",
   card: "Membership Card",
 };
 
@@ -71,8 +71,10 @@ export interface ProfessionItem {
 export interface MembershipItem {
   application_id: string;
   reference_id: string;
+  membership_id?: string | null;
   membership_type: string;
   status?: string;
+  is_approved?: boolean;
 }
 
 type Props = {
@@ -131,8 +133,8 @@ export default function PortalHeader({
     } else {
       activeDisplayIcon = <WorkspacePremiumIcon fontSize="small" sx={{ color: "#d97706" }} />;
     }
-  } else if (activeRole === "advocate") {
-    activeDisplayLabel = "Advocate Desk";
+  } else if (activeRole === "professional" || activeRole === "advocate") {
+    activeDisplayLabel = "Professional";
     activeDisplayIcon = <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />;
   } else if (activeRole === "member") {
     activeDisplayLabel = "ICJ Member";
@@ -284,7 +286,7 @@ export default function PortalHeader({
                           if (onSelectProfession) onSelectProfession(prof);
                           setSwitcherAnchor(null);
                           if (isAdv) {
-                            if (onRoleChange) onRoleChange("advocate");
+                            if (onRoleChange) onRoleChange("professional");
                             router.push("/dashboard/advocate");
                           } else {
                             if (onRoleChange) onRoleChange("professional");
@@ -344,7 +346,11 @@ export default function PortalHeader({
                     </ListItemIcon>
                     <ListItemText
                       primary={`${membership.membership_type || "Standard"} Member`}
-                      secondary={`Ref: ${membership.reference_id}`}
+                      secondary={
+                        membership.membership_id
+                          ? `ID: ${membership.membership_id}`
+                          : `App: ${membership.reference_id}`
+                      }
                       slotProps={{
                         primary: { sx: { fontSize: "0.85rem", fontWeight: activeRole === "member" ? 800 : 600 } },
                         secondary: { sx: { fontSize: "0.7rem", color: "#64748b" } },

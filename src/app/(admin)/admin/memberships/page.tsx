@@ -147,6 +147,23 @@ export default function AdminMembershipsPage() {
       ),
     },
     {
+      key: "membership_id",
+      label: "Membership ID",
+      minWidth: 140,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 700,
+            color: row.membership_id ? "#059669" : "#94a3b8",
+            fontFamily: "monospace",
+            fontSize: "0.825rem",
+          }}
+        >
+          {row.membership_id || "—"}
+        </Typography>
+      ),
+    },
+    {
       key: "mobile",
       label: "Mobile",
       minWidth: 130,

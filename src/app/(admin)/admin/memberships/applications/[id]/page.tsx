@@ -51,9 +51,6 @@ import {
 } from "@/components/features/admin/shared/AdminDetailPrimitives";
 import { formatDocKey, formatFieldKey, isImageUrl, isPdfUrl } from "@/components/features/admin/shared/adminDetailFormatters";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
-import CredentialsDialog, {
-  type CredentialsData,
-} from "@/components/features/admin/shared/CredentialsDialog";
 import {
   membershipOnboardingAdminService,
   type AdminMembershipApplicationDetail,
@@ -112,34 +109,14 @@ export default function AdminMembershipApplicationDetailPage() {
       }));
   }, [app]);
 
-  const [credentialsModal, setCredentialsModal] = useState<{
-    open: boolean;
-    data: CredentialsData | null;
-  }>({ open: false, data: null });
-
   const handleApprove = async () => {
     if (!app) return;
     setActionLoading(true);
     try {
-      const res = (await membershipOnboardingAdminService.approveApplication(id)) as Record<string, unknown>;
+      await membershipOnboardingAdminService.approveApplication(id);
       await load();
       setApproveDialogOpen(false);
-      const creds = (res?.credentials || (res?.data as Record<string, unknown>)?.credentials) as CredentialsData | undefined;
-      if (creds && creds.temp_password) {
-        setCredentialsModal({
-          open: true,
-          data: {
-            ...creds,
-            email: creds.email || app.email || "",
-            name: app.person_name || "",
-            reference_id: app.reference_id,
-            profession_name: app.membership_type_name || "ICJ Member",
-            role: "member",
-          },
-        });
-      } else {
-        setToastMsg(`${app.person_name || "Applicant"} has been approved successfully.`);
-      }
+      setToastMsg(`${app.person_name || "Applicant"} has been approved successfully.`);
     } catch {
       setError("Failed to approve application.");
     } finally {
@@ -400,6 +377,21 @@ export default function AdminMembershipApplicationDetailPage() {
                 </Box>
               </Stack>
             </Grid>
+            {app.membership_id && (
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
+                  <Box sx={{ bgcolor: "#ecfdf5", p: 1, borderRadius: 2, display: "flex", color: "#059669" }}>
+                    <CardMembershipIcon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: "#94a3b8", display: "block" }}>Membership ID</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: "#059669", fontFamily: "monospace" }}>
+                      {app.membership_id}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+            )}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
                 <Box sx={{ bgcolor: "#f1f5f9", p: 1, borderRadius: 2, display: "flex", color: "#64748b" }}>
@@ -487,7 +479,19 @@ export default function AdminMembershipApplicationDetailPage() {
               <Table size="medium">
                 <TableHead>
                   <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                    <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>Preview</TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                        color: "#64748b",
+                        py: 1.5,
+                        whiteSpace: "nowrap",
+                        width: 72,
+                        minWidth: 72,
+                      }}
+                    >
+                      Preview
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>Document Type</TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>File Name</TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>Status</TableCell>
@@ -549,8 +553,8 @@ export default function AdminMembershipApplicationDetailPage() {
                             sx={{ fontSize: "0.68rem", fontWeight: 600, borderRadius: 1.5, textTransform: "capitalize" }}
                           />
                         </TableCell>
-                        <TableCell align="right" sx={{ py: 1.5 }}>
-                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                        <TableCell align="right" sx={{ py: 1.5, whiteSpace: "nowrap" }}>
+                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
                             {isImg && doc.url && (
                               <Button
                                 size="small"
@@ -559,7 +563,13 @@ export default function AdminMembershipApplicationDetailPage() {
                                 onClick={() =>
                                   setPreviewMedia({ open: true, url: doc.url!, title: formatDocKey(doc.document_key) })
                                 }
-                                sx={{ textTransform: "none", fontSize: "0.75rem", fontWeight: 600 }}
+                                sx={{
+                                  textTransform: "none",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 600,
+                                  whiteSpace: "nowrap",
+                                  flexShrink: 0,
+                                }}
                               >
                                 Preview
                               </Button>
@@ -573,7 +583,14 @@ export default function AdminMembershipApplicationDetailPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
-                                sx={{ textTransform: "none", fontSize: "0.75rem", fontWeight: 600, bgcolor: "#2563eb" }}
+                                sx={{
+                                  textTransform: "none",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 600,
+                                  bgcolor: "#2563eb",
+                                  whiteSpace: "nowrap",
+                                  flexShrink: 0,
+                                }}
                               >
                                 Open File
                               </Button>
@@ -649,7 +666,7 @@ export default function AdminMembershipApplicationDetailPage() {
         <DialogTitle sx={{ fontWeight: 800 }}>Confirm Application Approval</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Approve <strong>{app.person_name}</strong>&apos;s membership application? This will create an active membership record.
+            Approve <strong>{app.person_name}</strong>&apos;s membership application? This will activate their membership. The member keeps the password they set after payment.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 2.5 }}>
@@ -702,14 +719,6 @@ export default function AdminMembershipApplicationDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Credentials Dialog */}
-      <CredentialsDialog
-        open={credentialsModal.open}
-        onClose={() => setCredentialsModal({ open: false, data: null })}
-        credentials={credentialsModal.data}
-        title="Member Account Provisioned"
-      />
 
       <Snackbar
         open={!!toastMsg}

@@ -175,13 +175,13 @@ export default function AdminDataTable<T>({
                   <TableCell
                     align="center"
                     sx={{
-                      minWidth: 56,
-                      width: 56,
+                      minWidth: 72,
+                      width: 72,
                       fontWeight: 700,
                       color: "#475569",
                       fontSize: "0.7rem",
-                      textTransform: "uppercase",
                       letterSpacing: 0.6,
+                      whiteSpace: "nowrap",
                       borderBottom: "1px solid #e2e8f0",
                       py: 1.5,
                       bgcolor: "#f8fafc",
@@ -243,7 +243,9 @@ export default function AdminDataTable<T>({
                           color: "#64748b",
                           fontSize: "0.8125rem",
                           fontWeight: 600,
-                          minWidth: 56,
+                          minWidth: 72,
+                          width: 72,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {(pagination ? pagination.page * pagination.rowsPerPage : 0) + rowIndex + 1}

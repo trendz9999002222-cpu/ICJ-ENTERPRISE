@@ -38,14 +38,8 @@ export type AdminListParams = {
 // Admin User
 // ---------------------------------------------------------------------------
 
-export type AdminUserRole =
-  | "super_admin"
-  | "admin"
-  | "advocate"
-  | "professional"
-  | "client"
-  | "member"
-  | "staff";
+/** Platform roles: admin, professional, member (API may send legacy values). */
+export type AdminUserRole = "admin" | "professional" | "member" | "super_admin";
 
 export type AdminUserStatus = "active" | "inactive" | "suspended" | "pending";
 

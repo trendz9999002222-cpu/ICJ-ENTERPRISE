@@ -76,6 +76,9 @@ export default function MembershipFormBuilderPage() {
   const [fieldsByStep, setFieldsByStep] = useState<Record<string, MembershipStepFieldAdmin[]>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [feeInr, setFeeInr] = useState("499");
+  const [feeEnabled, setFeeEnabled] = useState(true);
+  const [feeSaving, setFeeSaving] = useState(false);
 
   const [stepDialogOpen, setStepDialogOpen] = useState(false);
   const [editingStepId, setEditingStepId] = useState<string | null>(null);
@@ -111,6 +114,30 @@ export default function MembershipFormBuilderPage() {
     }
     setFieldsByStep(map);
   }, [formId]);
+
+  useEffect(() => {
+    membershipOnboardingAdminService
+      .getPaymentSettings()
+      .then((s) => {
+        setFeeInr(String(s.amount_inr));
+        setFeeEnabled(s.is_payment_enabled);
+      })
+      .catch(() => {});
+  }, []);
+
+  const saveFeeSettings = async () => {
+    setFeeSaving(true);
+    try {
+      const updated = await membershipOnboardingAdminService.updatePaymentSettings({
+        amount_inr: parseFloat(feeInr),
+        is_payment_enabled: feeEnabled,
+      });
+      setFeeInr(String(updated.amount_inr));
+      setFeeEnabled(updated.is_payment_enabled);
+    } finally {
+      setFeeSaving(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -295,6 +322,31 @@ export default function MembershipFormBuilderPage() {
           Add step
         </Button>
       </Stack>
+
+      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2, bgcolor: "#f8fafc" }}>
+        <Typography sx={{ fontWeight: 800, mb: 1 }}>Membership fee (Razorpay)</Typography>
+        <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+          Applicants pay this amount on the step before submit. Configure Razorpay test keys in backend{" "}
+          <code>RAZORPAY_KEY_ID</code> / <code>RAZORPAY_KEY_SECRET</code>.
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ alignItems: { sm: "center" } }}>
+          <TextField
+            size="small"
+            label="Fee (INR)"
+            type="number"
+            value={feeInr}
+            onChange={(e) => setFeeInr(e.target.value)}
+            sx={{ width: 160, bgcolor: "#fff" }}
+          />
+          <FormControlLabel
+            control={<Switch checked={feeEnabled} onChange={(e) => setFeeEnabled(e.target.checked)} />}
+            label="Require payment before submit"
+          />
+          <Button variant="contained" onClick={saveFeeSettings} disabled={feeSaving} sx={{ textTransform: "none" }}>
+            {feeSaving ? "Saving…" : "Save fee"}
+          </Button>
+        </Stack>
+      </Paper>
 
       {loading ? (
         <Box sx={{ py: 6, textAlign: "center" }}><CircularProgress /></Box>

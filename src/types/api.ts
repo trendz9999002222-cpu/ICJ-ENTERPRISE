@@ -3,23 +3,29 @@ export type HealthResponse = {
   database: boolean;
 };
 
-export type UserRole = "super_admin" | "admin" | "advocate" | "professional" | "client" | "member";
+/** Canonical platform roles; legacy JWT values are normalized in `lib/roles.ts`. */
+export type UserRole = "admin" | "professional" | "member" | "super_admin";
 
 export type UserProfessionInfo = {
   registration_id: string;
   reference_id: string;
+  profession_id?: string;
   category_name: string;
   group_name: string;
   profession_name: string;
   status: string;
+  common_field_values?: Record<string, unknown>;
+  profession_field_values?: Record<string, unknown>;
   created_at?: string;
 };
 
 export type UserMembershipInfo = {
   application_id: string;
   reference_id: string;
+  membership_id?: string | null;
   membership_type: string;
   status: string;
+  is_approved?: boolean;
 };
 
 export type User = {
@@ -34,6 +40,7 @@ export type User = {
   membership?: UserMembershipInfo | null;
   phone_number: string;
   mobile: string;
+  profile_picture_url?: string | null;
   password_change_required: boolean;
   email_verified: boolean;
   is_active: boolean;
@@ -54,6 +61,10 @@ export function getDashboardRoute(role: UserRole): string {
     case "super_admin":
     case "admin":
       return "/admin/dashboard";
+    case "member":
+      return "/dashboard/member";
+    case "professional":
+      return "/dashboard/professional";
     default:
       return "/dashboard";
   }

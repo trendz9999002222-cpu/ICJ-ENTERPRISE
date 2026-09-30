@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import { formatPlatformRoleLabel, normalizePlatformRole, normalizePlatformRoles } from "@/lib/roles";
 import CredentialsDialog, {
   type CredentialsData,
 } from "@/components/features/admin/shared/CredentialsDialog";
@@ -38,6 +39,26 @@ const STATUS_COLOR: Record<AdminUser["status"], "success" | "warning" | "error" 
   suspended: "error",
   inactive: "default",
 };
+
+function ChipList({ items, color }: { items: { id: string; name: string }[]; color?: "default" | "primary" | "secondary" }) {
+  if (!items.length) {
+    return <Typography variant="body2" sx={{ color: "#94a3b8" }}>—</Typography>;
+  }
+  return (
+    <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
+      {items.map((item) => (
+        <Chip
+          key={item.id}
+          size="small"
+          label={item.name}
+          color={color}
+          variant={color ? "filled" : "outlined"}
+          sx={{ fontWeight: 600, fontSize: "0.75rem", height: 26 }}
+        />
+      ))}
+    </Stack>
+  );
+}
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -154,10 +175,16 @@ export default function UserDetailPage() {
 
   const initials = user.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
+  const categories = user.categories ?? [];
+  const groups = user.groups ?? [];
+  const professions = user.professions ?? [];
+  const showProfessionalSection =
+    categories.length > 0 || groups.length > 0 || professions.length > 0;
+
   return (
     <AdminPageShell
       title={user.full_name}
-      subtitle={`User ID: ${user.id} · ${user.role.replace("_", " ")}`}
+      subtitle={`User ID: ${user.id} · ${formatPlatformRoleLabel(user.role)}`}
       actions={
         <Stack direction="row" spacing={1.5}>
           <Button
@@ -219,7 +246,7 @@ export default function UserDetailPage() {
               sx={{
                 width: 80,
                 height: 80,
-                bgcolor: user.role === "admin" || user.role === "super_admin" ? "#2563eb" : "#64748b",
+                bgcolor: normalizePlatformRole(user.role) === "admin" ? "#2563eb" : "#64748b",
                 fontSize: "1.5rem",
                 fontWeight: 800,
                 mx: "auto",
@@ -237,7 +264,7 @@ export default function UserDetailPage() {
 
             <Stack spacing={1} sx={{ mb: 2 }}>
               <Chip
-                label={user.role.replace("_", " ")}
+                label={formatPlatformRoleLabel(user.role)}
                 color="primary"
                 size="small"
                 sx={{ fontWeight: 700, textTransform: "capitalize" }}
@@ -296,7 +323,10 @@ export default function UserDetailPage() {
               <InfoRow label="Username" value={`@${user.username}`} />
               <InfoRow label="Email" value={user.email} />
               <InfoRow label="Mobile" value={user.mobile || "—"} />
-              <InfoRow label="Role" value={user.role.replace("_", " ")} />
+              <InfoRow
+                label="Role(s)"
+                value={normalizePlatformRoles(user.roles?.length ? user.roles : [user.role]).map(formatPlatformRoleLabel).join(", ")}
+              />
               <InfoRow
                 label="Status"
                 value={
@@ -330,6 +360,27 @@ export default function UserDetailPage() {
               )}
             </Box>
           </Paper>
+
+          {showProfessionalSection && (
+            <Paper
+              elevation={0}
+              sx={{ mt: 3, border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden" }}
+            >
+              <Box sx={{ px: 3, py: 2, bgcolor: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                  Professional registration
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>
+                  Categories, groups, and professions linked to this account (same context as the Professionals module).
+                </Typography>
+              </Box>
+              <Box sx={{ px: 3, py: 1 }}>
+                <InfoRow label="Categories" value={<ChipList items={categories} />} />
+                <InfoRow label="Groups" value={<ChipList items={groups} color="primary" />} />
+                <InfoRow label="Professions" value={<ChipList items={professions} color="secondary" />} />
+              </Box>
+            </Paper>
+          )}
 
           {/* Activate/Deactivate card */}
           <Paper

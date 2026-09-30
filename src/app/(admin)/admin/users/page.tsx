@@ -33,6 +33,7 @@ import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
+import { formatAdminDateShort } from "@/components/features/admin/shared/adminDetailFormatters";
 import CredentialsDialog, {
   type CredentialsData,
 } from "@/components/features/admin/shared/CredentialsDialog";
@@ -44,6 +45,7 @@ import type {
   OnboardingGroup,
   OnboardingProfession,
 } from "@/types/admin/professionalOnboarding";
+import { formatPlatformRoleLabel, normalizePlatformRole, normalizePlatformRoles } from "@/lib/roles";
 
 // ---------------------------------------------------------------------------
 
@@ -55,16 +57,15 @@ const STATUS_COLOR: Record<AdminUser["status"], "success" | "warning" | "error" 
 };
 
 const ROLE_COLOR: Record<string, "primary" | "secondary" | "success" | "warning" | "info" | "default"> = {
-  super_admin: "primary",
   admin: "primary",
-  advocate: "info",
   professional: "warning",
-  client: "warning",
   member: "success",
-  staff: "default",
 };
 
 const PAGE_SIZE = 10;
+
+const USERS_PAGE_SUBTITLE =
+  "Search and manage users by role and status. Open a user to view category, group, and profession details.";
 
 // ---------------------------------------------------------------------------
 
@@ -255,13 +256,13 @@ export default function UsersPage() {
               width: 32,
               height: 32,
               borderRadius: "50%",
-              bgcolor: u.role === "admin" || u.role === "super_admin" ? "#dbeafe" : "#f1f5f9",
+              bgcolor: normalizePlatformRole(u.role) === "admin" ? "#dbeafe" : "#f1f5f9",
               display: "grid",
               placeItems: "center",
               flexShrink: 0,
               fontSize: "0.7rem",
               fontWeight: 800,
-              color: u.role === "admin" || u.role === "super_admin" ? "#1d4ed8" : "#475569",
+              color: normalizePlatformRole(u.role) === "admin" ? "#1d4ed8" : "#475569",
             }}
           >
             {u.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
@@ -295,62 +296,20 @@ export default function UsersPage() {
       label: "Role(s)",
       minWidth: 120,
       render: (u) => {
-        const rolesList = u.roles && u.roles.length > 0 ? u.roles : [u.role];
+        const rolesList = normalizePlatformRoles(
+          u.roles && u.roles.length > 0 ? u.roles : [u.role],
+        );
         return (
           <Stack spacing={0.5} sx={{ py: 0.5 }}>
             {rolesList.map((r) => (
               <Chip
                 key={r}
                 size="small"
-                label={r === "client" ? "Professional" : r.replace("_", " ")}
+                label={formatPlatformRoleLabel(r)}
                 color={ROLE_COLOR[r] || "default"}
-                sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
+                sx={{ fontWeight: 700, fontSize: "0.68rem" }}
               />
             ))}
-          </Stack>
-        );
-      },
-    },
-    {
-      key: "hierarchy",
-      label: "Category / Group / Profession",
-      minWidth: 200,
-      render: (u) => {
-        const catName = u.category_name || (u.categories && u.categories.length > 0 ? u.categories[0].name : null);
-        const grpName = u.group_name || (u.groups && u.groups.length > 0 ? u.groups[0].name : null);
-        const profName = u.profession_name || (u.professions && u.professions.length > 0 ? u.professions[0].name : null);
-
-        if (!catName && !grpName && !profName) {
-          return <Typography variant="caption" sx={{ color: "#94a3b8" }}>—</Typography>;
-        }
-
-        return (
-          <Stack spacing={0.5} sx={{ py: 0.5 }}>
-            {catName && (
-              <Chip
-                size="small"
-                variant="outlined"
-                label={catName}
-                sx={{ fontSize: "0.65rem", height: 20, maxWidth: 180, fontWeight: 600 }}
-              />
-            )}
-            {grpName && (
-              <Chip
-                size="small"
-                variant="outlined"
-                color="primary"
-                label={grpName}
-                sx={{ fontSize: "0.65rem", height: 20, maxWidth: 180, fontWeight: 600 }}
-              />
-            )}
-            {profName && (
-              <Chip
-                size="small"
-                color="secondary"
-                label={profName}
-                sx={{ fontSize: "0.65rem", height: 20, maxWidth: 180, fontWeight: 600 }}
-              />
-            )}
           </Stack>
         );
       },
@@ -389,7 +348,7 @@ export default function UsersPage() {
       minWidth: 110,
       render: (u) => (
         <Typography variant="caption" sx={{ color: "#64748b" }}>
-          {new Date(u.date_joined).toLocaleDateString("en-IN", { dateStyle: "medium" })}
+          {formatAdminDateShort(u.date_joined)}
         </Typography>
       ),
     },
@@ -466,7 +425,7 @@ export default function UsersPage() {
   return (
     <AdminPageShell
       title="User Management"
-      subtitle="Filter, search, and manage platform users by role, category, group, profession, and status."
+      subtitle={USERS_PAGE_SUBTITLE}
     >
       <AdminDataTable
         columns={columns}
@@ -500,9 +459,7 @@ export default function UsersPage() {
                 sx={{ bgcolor: "#fff", borderRadius: 1.5, fontSize: "0.8125rem" }}
               >
                 <MenuItem value="">All Roles</MenuItem>
-                <MenuItem value="super_admin">Super Admin</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
-                <MenuItem value="advocate">Advocate</MenuItem>
                 <MenuItem value="professional">Professional</MenuItem>
                 <MenuItem value="member">Member</MenuItem>
               </Select>

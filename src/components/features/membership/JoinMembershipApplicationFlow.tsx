@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Alert,
   Box,
@@ -22,8 +21,13 @@ import DocumentsUpload from "@/components/features/onboarding/onboarding-file/Do
 import DynamicFormRenderer from "@/components/features/onboarding/onboarding-file/DynamicFormRenderer";
 import { RADIUS } from "@/components/features/onboarding/onboarding-file/iconMap";
 import { ApiError } from "@/lib/api/client";
+import { authService } from "@/services/auth.service";
 import { stepToFormSchema } from "@/lib/membership/mapMembershipStep";
-import { membershipOnboardingPublicService } from "@/services/public/membershipOnboardingPublic.service";
+import { loadRazorpayCheckout } from "@/lib/razorpay/loadRazorpay";
+import {
+  membershipOnboardingPublicService,
+  type MembershipPaymentSettings,
+} from "@/services/public/membershipOnboardingPublic.service";
 import type {
   MembershipOnboardingConfiguration,
   MembershipOnboardingDocument,
@@ -32,8 +36,9 @@ import type { DocumentField, Theme } from "@/types/registration";
 import { scrollToFirstError, validateDocuments, validateSections } from "@/lib/validation";
 
 const THEME: Theme = { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" };
+const MEMBER_DASHBOARD = "/dashboard/member";
 
-type FlowPhase = "steps" | "documents" | "review" | "done";
+type FlowPhase = "steps" | "documents" | "review" | "payment" | "done";
 
 function documentsToFields(docs: MembershipOnboardingDocument[]): DocumentField[] {
   return docs.map((d) => ({
@@ -63,16 +68,21 @@ export default function JoinMembershipApplicationFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [declarationAccepted, setDeclarationAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [paymentSettings, setPaymentSettings] = useState<MembershipPaymentSettings | null>(null);
+  const [verifiedPaymentId, setVerifiedPaymentId] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
   const idempotencyKeyRef = useRef(
     typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
   );
 
   useEffect(() => {
-    membershipOnboardingPublicService
-      .fetchConfiguration()
-      .then((cfg) => {
+    Promise.all([
+      membershipOnboardingPublicService.fetchConfiguration(),
+      membershipOnboardingPublicService.fetchPaymentSettings().catch(() => null),
+    ])
+      .then(([cfg, pay]) => {
         setConfig(cfg);
+        setPaymentSettings(pay);
         setPhase(initialPhase(cfg));
       })
       .catch(() => setLoadError("Unable to load membership form. Please try again later."))
@@ -122,7 +132,13 @@ export default function JoinMembershipApplicationFlow() {
     if (phase === "documents") setPhase("review");
   };
 
+  const paymentRequired = paymentSettings?.payment_required ?? false;
+
   const goBack = () => {
+    if (phase === "payment") {
+      setPhase("review");
+      return;
+    }
     if (phase === "review") {
       setPhase(formDocuments.length ? "documents" : "steps");
       return;
@@ -135,18 +151,76 @@ export default function JoinMembershipApplicationFlow() {
     if (stepIndex > 0) setStepIndex((i) => i - 1);
   };
 
-  const handleSubmit = async () => {
-    if (!validateCurrent() || !config) return;
+  const handleReviewContinue = () => {
+    if (!validateCurrent()) return;
+    if (paymentRequired) setPhase("payment");
+    else handleSubmit();
+  };
+
+  const applySessionAndGoToMemberArea = (access: string, refresh: string) => {
+    document.cookie = `icj_access_token=${access}; path=/; max-age=1800; SameSite=Lax`;
+    document.cookie = `icj_refresh_token=${refresh}; path=/; max-age=604800; SameSite=Lax`;
+    try {
+      const b64 = access.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      const payload = JSON.parse(atob(b64)) as { password_change_required?: boolean };
+      if (payload.password_change_required) {
+        localStorage.setItem("icj_password_change_required", "1");
+      } else {
+        localStorage.removeItem("icj_password_change_required");
+      }
+    } catch {
+      localStorage.setItem("icj_password_change_required", "1");
+    }
+    window.location.assign(MEMBER_DASHBOARD);
+  };
+
+  const signInAndRedirectToMemberDashboard = async (
+    result: Awaited<ReturnType<typeof membershipOnboardingPublicService.submitApplication>>,
+  ) => {
+    setRedirecting(true);
+
+    if (result.access && result.refresh) {
+      applySessionAndGoToMemberArea(result.access, result.refresh);
+      return;
+    }
+
+    const email = String(result.user?.email ?? values.email ?? values.email_address ?? "")
+      .trim()
+      .toLowerCase();
+    const tempPassword = result.user?.temp_password;
+
+    if (email && tempPassword) {
+      try {
+        const tokens = await authService.login(email, tempPassword, "whatsapp");
+        if (tokens.access && tokens.refresh) {
+          applySessionAndGoToMemberArea(tokens.access, tokens.refresh);
+          return;
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+
+    setRedirecting(false);
+    setErrors({
+      submit:
+        "Application submitted. Please log in with your email to open the member dashboard.",
+    });
+  };
+
+  const submitApplication = async (paymentId?: string) => {
+    if (!config) return;
     setSubmitting(true);
     try {
-      const { referenceId: ref } = await membershipOnboardingPublicService.submitApplication({
+      const pid = paymentId ?? verifiedPaymentId ?? undefined;
+      const result = await membershipOnboardingPublicService.submitApplication({
         fieldValues: values,
         files,
         declarationAccepted,
         idempotencyKey: idempotencyKeyRef.current,
+        paymentId: pid,
       });
-      setReferenceId(ref);
-      setPhase("done");
+      await signInAndRedirectToMemberDashboard(result);
     } catch (err) {
       let message = "Submission failed.";
       if (err instanceof ApiError && err.body && typeof err.body === "object") {
@@ -160,10 +234,81 @@ export default function JoinMembershipApplicationFlow() {
     }
   };
 
-  if (loading) {
+  const handleSubmit = async () => {
+    if (!validateCurrent()) return;
+    await submitApplication(verifiedPaymentId ?? undefined);
+  };
+
+  const handlePayAndSubmit = async () => {
+    if (!paymentSettings?.payment_required) {
+      await handleSubmit();
+      return;
+    }
+    setSubmitting(true);
+    setErrors({});
+    try {
+      await loadRazorpayCheckout();
+      const order = await membershipOnboardingPublicService.createPaymentOrder();
+      const Razorpay = window.Razorpay;
+      if (!Razorpay) throw new Error("Razorpay failed to load.");
+
+      const email = String(values.email ?? values.email_address ?? "").trim();
+      const name = String(values.full_name ?? values.name ?? "Applicant").trim();
+
+      await new Promise<void>((resolve, reject) => {
+        const rzp = new Razorpay({
+          key: order.razorpay_key_id,
+          amount: order.amount_paise,
+          currency: order.currency,
+          name: "ICJ Membership",
+          description: "Membership application fee",
+          order_id: order.razorpay_order_id,
+          prefill: { email, name },
+          theme: { color: "#2563eb" },
+          handler: async (response: {
+            razorpay_order_id: string;
+            razorpay_payment_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              await membershipOnboardingPublicService.verifyPayment({
+                payment_id: order.payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+              setVerifiedPaymentId(order.payment_id);
+              resolve();
+            } catch (e) {
+              reject(e);
+            }
+          },
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled.")),
+          },
+        });
+        rzp.open();
+      });
+
+      await submitApplication(order.payment_id);
+    } catch (err) {
+      let message = "Payment failed.";
+      if (err instanceof ApiError && err.body && typeof err.body === "object") {
+        const body = err.body as { message?: string };
+        if (body.message) message = body.message;
+      } else if (err instanceof Error) message = err.message;
+      setErrors({ submit: message });
+      setSubmitting(false);
+    }
+  };
+
+  if (loading || redirecting) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 8, gap: 2 }}>
         <CircularProgress />
+        <Typography sx={{ color: "#64748b", fontWeight: 600 }}>
+          {redirecting ? "Payment received — opening your member dashboard…" : "Loading…"}
+        </Typography>
       </Box>
     );
   }
@@ -173,23 +318,6 @@ export default function JoinMembershipApplicationFlow() {
       <Alert severity="warning">
         {loadError ?? "Membership application form is not configured yet. Please check back soon."}
       </Alert>
-    );
-  }
-
-  if (phase === "done" && referenceId) {
-    return (
-      <Container maxWidth="sm" sx={{ py: 6, textAlign: "center" }}>
-        <CheckCircleIcon sx={{ fontSize: 56, color: "#059669", mb: 2 }} />
-        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Membership Application Submitted</Typography>
-        <Typography sx={{ color: "#64748b", mb: 2 }}>Reference ID: {referenceId}</Typography>
-        <Typography sx={{ fontWeight: 600, color: "#2563eb" }}>Status: Pending Review</Typography>
-        <Typography variant="body2" sx={{ mt: 2, color: "#64748b" }}>
-          Payment is not required at this stage.
-        </Typography>
-        <Button component={Link} href="/membership" sx={{ mt: 3, textTransform: "none" }}>
-          Back to Membership
-        </Button>
-      </Container>
     );
   }
 
@@ -231,6 +359,15 @@ export default function JoinMembershipApplicationFlow() {
           </>
         )}
 
+        {phase === "payment" && paymentSettings && (
+          <Stack spacing={2}>
+            <Typography sx={{ fontWeight: 700 }}>Membership fee (Razorpay test)</Typography>
+            <Typography variant="body2" sx={{ color: "#64748b" }}>
+              Pay ₹{paymentSettings.amount_inr.toFixed(2)} to submit your application. Use Razorpay test cards in test mode.
+            </Typography>
+          </Stack>
+        )}
+
         {phase === "review" && (
           <Stack spacing={2}>
             <Typography sx={{ fontWeight: 700 }}>Review & Submit</Typography>
@@ -265,12 +402,26 @@ export default function JoinMembershipApplicationFlow() {
           </Button>
           <Button
             variant="contained"
-            endIcon={phase === "review" ? undefined : <ArrowForwardIcon />}
+            endIcon={phase === "review" || phase === "payment" ? undefined : <ArrowForwardIcon />}
             disabled={submitting}
-            onClick={phase === "review" ? handleSubmit : goNext}
+            onClick={
+              phase === "payment"
+                ? handlePayAndSubmit
+                : phase === "review"
+                  ? handleReviewContinue
+                  : goNext
+            }
             sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 3 }}
           >
-            {submitting ? "Submitting…" : phase === "review" ? "Submit application" : "Continue"}
+            {submitting
+              ? "Please wait…"
+              : phase === "payment"
+                ? "Pay & submit application"
+                : phase === "review"
+                  ? paymentRequired
+                    ? "Continue to payment"
+                    : "Submit application"
+                  : "Continue"}
           </Button>
         </Stack>
       </Container>

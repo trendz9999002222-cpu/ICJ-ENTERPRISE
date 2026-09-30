@@ -433,10 +433,10 @@ export default function ProfessionalDetailPage() {
       const parentCatId = p.category_id || parentGroup?.category_id;
       const parentCategory = categories.find((c) => c.id === parentCatId);
 
-      // Find fields for this profession
+      // Profession-specific fields only (common/personal data is shown once separately)
       let rawFields = profFieldValues[p.id];
       if (!rawFields || (typeof rawFields === "object" && Object.keys(rawFields).length === 0)) {
-        rawFields = advocateData;
+        rawFields = professions.length === 1 ? advocateData : {};
       }
 
       return {
@@ -1093,7 +1093,17 @@ export default function ProfessionalDetailPage() {
               <Table size="medium">
                 <TableHead>
                   <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                    <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                        color: "#64748b",
+                        py: 1.5,
+                        whiteSpace: "nowrap",
+                        width: 72,
+                        minWidth: 72,
+                      }}
+                    >
                       Preview
                     </TableCell>
                     <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", color: "#64748b", py: 1.5 }}>
@@ -1237,8 +1247,12 @@ export default function ProfessionalDetailPage() {
                         </TableCell>
 
                         {/* Actions */}
-                        <TableCell align="right" sx={{ py: 1.5 }}>
-                          <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", alignItems: "center" }}>
+                        <TableCell align="right" sx={{ py: 1.5, whiteSpace: "nowrap" }}>
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            sx={{ justifyContent: "flex-end", alignItems: "center", flexWrap: "nowrap" }}
+                          >
                             {isImg && doc.file_url && (
                               <Button
                                 size="small"
@@ -1257,6 +1271,8 @@ export default function ProfessionalDetailPage() {
                                   fontWeight: 600,
                                   borderColor: "#cbd5e1",
                                   color: "#334155",
+                                  whiteSpace: "nowrap",
+                                  flexShrink: 0,
                                 }}
                               >
                                 Preview
@@ -1277,6 +1293,8 @@ export default function ProfessionalDetailPage() {
                                   fontSize: "0.75rem",
                                   fontWeight: 600,
                                   bgcolor: "#2563eb",
+                                  whiteSpace: "nowrap",
+                                  flexShrink: 0,
                                   "&:hover": { bgcolor: "#1d4ed8" },
                                 }}
                               >

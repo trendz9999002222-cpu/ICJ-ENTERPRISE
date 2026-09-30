@@ -26,8 +26,17 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
+import { env } from "@/config/env";
+import {
+  PROFESSIONAL_ONBOARDING_STEPS,
+  formatProfessionalStatusLabel,
+  getPrimaryProfession,
+  isProfessionalApproved,
+  statusToActiveStep,
+} from "@/lib/professionalDashboard";
+import type { UserProfessionInfo } from "@/types/api";
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -44,13 +53,10 @@ function decodeJwt(token: string): Record<string, unknown> | null {
   }
 }
 
-const STEPS = ["Application Submitted", "Documents Verified", "Admin Review", "Approved & Active"];
-
 export default function ProfessionalDashboardPage() {
   const [name, setName] = useState("Professional");
   const [email, setEmail] = useState("");
-  const [roles, setRoles] = useState<string[]>([]);
-  const [activeStep] = useState(3);
+  const [professions, setProfessions] = useState<UserProfessionInfo[]>([]);
 
   useEffect(() => {
     const token = readCookie("icj_access_token");
@@ -61,20 +67,58 @@ export default function ProfessionalDashboardPage() {
       setName(full || (p.first_name as string));
     }
     if (p?.email) setEmail(p.email as string);
-    if (Array.isArray(p?.roles)) setRoles(p.roles as string[]);
+
+    fetch(`${env.apiUrl}/auth/me/`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const data = json?.data ?? json;
+        if (Array.isArray(data?.professions)) {
+          setProfessions(data.professions as UserProfessionInfo[]);
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const proStats = [
-    { label: "Account Status", value: "Approved & Active", icon: <CheckCircleIcon />, color: "#16a34a", bg: "#f0fdf4" },
-    { label: "Professional Profile", value: "Verified Listing", icon: <WorkspacePremiumIcon />, color: "#d97706", bg: "#fffbeb" },
-    { label: "Credentials & Docs", value: "Verified by Admin", icon: <DescriptionIcon />, color: "#2563eb", bg: "#eff6ff" },
-  ];
+  const primary = getPrimaryProfession(professions);
+  const status = primary?.status ?? "pending";
+  const approved = isProfessionalApproved(professions);
+  const activeStep = statusToActiveStep(status);
+  const statusLabel = formatProfessionalStatusLabel(status);
 
-  const proActions = [
-    { label: "View & Edit My Profile", href: "/dashboard/profile", icon: <PersonIcon fontSize="small" /> },
-    { label: "Change Account Password", href: "/login/change-password", icon: <LockOutlinedIcon fontSize="small" /> },
-    { label: "Search & Browse Directory", href: "/directory", icon: <SearchIcon fontSize="small" /> },
-  ];
+  const sharedCommonFields = useMemo(() => {
+    const withCommon = professions.find(
+      (p) => p.common_field_values && Object.keys(p.common_field_values).length > 0,
+    );
+    return withCommon?.common_field_values ?? {};
+  }, [professions]);
+
+  const proStats = useMemo(() => {
+    if (approved) {
+      return [
+        { label: "Account Status", value: "Approved & Active", icon: <CheckCircleIcon />, color: "#16a34a", bg: "#f0fdf4" },
+        { label: "Professional Profile", value: "Verified Listing", icon: <WorkspacePremiumIcon />, color: "#d97706", bg: "#fffbeb" },
+        { label: "Credentials & Docs", value: "Verified by Admin", icon: <DescriptionIcon />, color: "#2563eb", bg: "#eff6ff" },
+      ];
+    }
+    return [
+      { label: "Account Status", value: statusLabel, icon: <HourglassTopIcon />, color: "#d97706", bg: "#fffbeb" },
+      { label: "Application Ref", value: primary?.reference_id ?? "—", icon: <DescriptionIcon />, color: "#2563eb", bg: "#eff6ff" },
+      { label: "Profession", value: primary?.profession_name ?? "—", icon: <WorkspacePremiumIcon />, color: "#64748b", bg: "#f8fafc" },
+    ];
+  }, [approved, statusLabel, primary]);
+
+  const proActions = useMemo(() => {
+    const base = [
+      { label: "View & Edit My Profile", href: "/dashboard/profile", icon: <PersonIcon fontSize="small" /> },
+      { label: "Change Account Password", href: "/login/change-password", icon: <LockOutlinedIcon fontSize="small" /> },
+    ];
+    if (approved) {
+      base.push({ label: "Search & Browse Directory", href: "/directory", icon: <SearchIcon fontSize="small" /> });
+    }
+    return base;
+  }, [approved]);
 
 
   return (
@@ -139,10 +183,16 @@ export default function ProfessionalDashboardPage() {
                     Welcome back, {name}
                   </Typography>
                   <Chip
-                    icon={<VerifiedUserIcon sx={{ fontSize: "14px !important" }} />}
-                    label="Approved Professional"
+                    icon={
+                      approved ? (
+                        <VerifiedUserIcon sx={{ fontSize: "14px !important" }} />
+                      ) : (
+                        <HourglassTopIcon sx={{ fontSize: "14px !important" }} />
+                      )
+                    }
+                    label={approved ? "Approved Professional" : statusLabel}
                     size="small"
-                    color="warning"
+                    color={approved ? "success" : status === "rejected" ? "error" : "warning"}
                     sx={{ height: 22, fontSize: "0.68rem", fontWeight: 700 }}
                   />
                 </Stack>
@@ -152,23 +202,25 @@ export default function ProfessionalDashboardPage() {
               </Box>
             </Stack>
 
-            <Button
-              component={Link}
-              href="/directory"
-              variant="outlined"
-              size="small"
-              startIcon={<SearchIcon />}
-              sx={{
-                fontWeight: 700,
-                borderColor: "#cbd5e1",
-                color: "#0f172a",
-                textTransform: "none",
-                borderRadius: "8px",
-                "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
-              }}
-            >
-              Public Directory
-            </Button>
+            {approved && (
+              <Button
+                component={Link}
+                href="/directory"
+                variant="outlined"
+                size="small"
+                startIcon={<SearchIcon />}
+                sx={{
+                  fontWeight: 700,
+                  borderColor: "#cbd5e1",
+                  color: "#0f172a",
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
+                }}
+              >
+                Public Directory
+              </Button>
+            )}
           </Stack>
         </Card>
 
@@ -186,7 +238,7 @@ export default function ProfessionalDashboardPage() {
             Professional Onboarding & Verification Status
           </Typography>
           <Stepper activeStep={activeStep} alternativeLabel>
-            {STEPS.map((label, i) => (
+            {PROFESSIONAL_ONBOARDING_STEPS.map((label, i) => (
               <Step key={label} completed={i < activeStep}>
                 <StepLabel
                   icon={
@@ -222,20 +274,105 @@ export default function ProfessionalDashboardPage() {
             sx={{
               mt: 3,
               p: 2,
-              bgcolor: "#f0fdf4",
               borderRadius: "8px",
-              border: "1px solid #bbf7d0",
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               gap: 1.5,
+              bgcolor: approved ? "#f0fdf4" : status === "rejected" ? "#fef2f2" : "#fffbeb",
+              border: approved ? "1px solid #bbf7d0" : status === "rejected" ? "1px solid #fecaca" : "1px solid #fde68a",
             }}
           >
-            <CheckCircleIcon sx={{ color: "#16a34a", fontSize: 20 }} />
-            <Typography variant="body2" sx={{ color: "#166534", fontWeight: 700 }}>
-              Your professional application has been approved by the Admin. You have full access to your workspace and directory listing.
+            {approved ? (
+              <CheckCircleIcon sx={{ color: "#16a34a", fontSize: 20, mt: 0.2 }} />
+            ) : (
+              <HourglassTopIcon sx={{ color: "#d97706", fontSize: 20, mt: 0.2 }} />
+            )}
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 700,
+                color: approved ? "#166534" : status === "rejected" ? "#991b1b" : "#92400e",
+              }}
+            >
+              {approved
+                ? "Your professional application has been approved. You have full access to your workspace and directory listing."
+                : status === "rejected"
+                  ? "Your application was not approved. Contact support or update your profile if you were asked to resubmit."
+                  : `Your application is ${statusLabel.toLowerCase()}${primary?.reference_id ? ` (Ref: ${primary.reference_id})` : ""}. You can use this dashboard, edit your profile, and change your password until admin approval unlocks all services.`}
             </Typography>
           </Box>
         </Card>
+
+        {Object.keys(sharedCommonFields).length > 0 && (
+          <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#ffffff", p: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
+              Shared personal information
+            </Typography>
+            <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.75 }}>
+              {Object.entries(sharedCommonFields).map(([k, v]) => (
+                <Chip
+                  key={k}
+                  size="small"
+                  variant="outlined"
+                  label={`${k.replace(/_/g, " ")}: ${String(v)}`}
+                  sx={{ maxWidth: 320 }}
+                />
+              ))}
+            </Stack>
+          </Card>
+        )}
+
+        {professions.length > 0 && (
+          <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#ffffff", p: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
+              Registered professions ({professions.length})
+            </Typography>
+            <Stack spacing={1.5}>
+              {professions.map((p) => (
+                <Box
+                  key={`${p.registration_id}-${p.profession_id || p.profession_name}`}
+                  sx={{
+                    p: 2,
+                    borderRadius: "10px",
+                    border: "1px solid #e2e8f0",
+                    bgcolor: "#f8fafc",
+                  }}
+                >
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, color: "#0f172a" }}>{p.profession_name}</Typography>
+                      <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.8rem" }}>
+                        {p.category_name}
+                        {p.group_name ? ` • ${p.group_name}` : ""} • Ref {p.reference_id}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      size="small"
+                      label={formatProfessionalStatusLabel(p.status)}
+                      color={p.status === "approved" ? "success" : p.status === "rejected" ? "error" : "warning"}
+                      sx={{ fontWeight: 700, alignSelf: { xs: "flex-start", sm: "center" } }}
+                    />
+                  </Stack>
+                  {p.profession_field_values && Object.keys(p.profession_field_values).length > 0 && (
+                    <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5, mt: 1.5 }}>
+                      {Object.entries(p.profession_field_values)
+                        .slice(0, 6)
+                        .map(([k, v]) => (
+                          <Chip
+                            key={k}
+                            size="small"
+                            variant="outlined"
+                            label={`${k.replace(/_/g, " ")}: ${String(v)}`}
+                            sx={{ fontSize: "0.68rem", maxWidth: 280 }}
+                          />
+                        ))}
+                    </Stack>
+                  )}
+                </Box>
+              ))}
+            </Stack>
+          </Card>
+        )}
 
         {/* Stats Grid */}
         <Grid container spacing={2.5}>
@@ -347,7 +484,11 @@ export default function ProfessionalDashboardPage() {
                   { label: "Account Holder", value: name },
                   { label: "Registered Email", value: email || "—" },
                   { label: "Primary Role", value: "Registered Professional" },
-                  { label: "Platform Privileges", value: "Directory & Practice Area Access" },
+                  {
+                    label: "Platform Privileges",
+                    value: approved ? "Directory & Practice Area Access" : "Profile & password only (pending approval)",
+                  },
+                  { label: "Verification Status", value: statusLabel },
                 ].map((row) => (
                   <Stack
                     key={row.label}

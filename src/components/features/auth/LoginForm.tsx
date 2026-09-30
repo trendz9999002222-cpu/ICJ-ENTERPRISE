@@ -23,6 +23,7 @@ import DeliveryChannelSelector from "@/components/features/auth/DeliveryChannelS
 import { ApiError } from "@/lib/api/client";
 import { authService } from "@/services/auth.service";
 import type { DeliveryChannel } from "@/types/auth";
+import { normalizePlatformRole } from "@/lib/roles";
 import { getDashboardRoute } from "@/types/api";
 
 export default function LoginForm() {
@@ -48,10 +49,11 @@ export default function LoginForm() {
       localStorage.setItem("icj_delivery_channel", deliveryChannel);
       if (tokens.requires_password_change) {
         localStorage.setItem("icj_password_change_required", "1");
-        router.push("/login/change-password");
+        const role = normalizePlatformRole(tokens.user?.role) ?? "member";
+        router.push(getDashboardRoute(role));
       } else {
         localStorage.removeItem("icj_password_change_required");
-        const role = tokens.user?.role ?? "client";
+        const role = normalizePlatformRole(tokens.user?.role) ?? "professional";
         router.push(getDashboardRoute(role));
       }
     } catch (err) {
@@ -78,7 +80,7 @@ export default function LoginForm() {
                 : err.status === 422
                   ? "Please check the entered details."
                   : err.status === 0
-                    ? "Backend server is not reachable."
+                    ? err.message
                     : "Login failed. Please try again.");
     
         setError(detail);

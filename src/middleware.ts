@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const ADMIN_ROLES = ["super_admin", "admin"];
-const ADVOCATE_ROLE = "advocate";
-const MEMBER_ROLE = "member";
 
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
