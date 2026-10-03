@@ -107,54 +107,21 @@ export const professionalService = {
       });
 
       const apiResults = (res.data?.results || []).map(mapBackendToPublicProfessional);
-      if (apiResults.length > 0) {
-        return {
-          count: res.data.count,
-          next: res.data.next,
-          previous: res.data.previous,
-          results: apiResults,
-        };
-      }
-    } catch {
-      // fallback to mock data
+      return {
+        count: res.data?.count || 0,
+        next: res.data?.next || null,
+        previous: res.data?.previous || null,
+        results: apiResults,
+      };
+    } catch (error) {
+      console.error("Failed to fetch professionals from API:", error);
+      return {
+        count: 0,
+        next: null,
+        previous: null,
+        results: [],
+      };
     }
-
-    let filtered = [...mockProfessionals];
-
-    if (params.profession && params.profession !== "all") {
-      filtered = filtered.filter(
-        (p) => p.profession.toLowerCase() === params.profession?.toLowerCase()
-      );
-    }
-
-    if (params.state && params.state !== "all" && params.state !== "All States") {
-      filtered = filtered.filter((p) => p.state.toLowerCase() === params.state?.toLowerCase());
-    }
-
-    if (params.specialisation && params.specialisation !== "all") {
-      filtered = filtered.filter((p) =>
-        p.specialisations.some(
-          (sp) => sp.toLowerCase() === params.specialisation?.toLowerCase()
-        )
-      );
-    }
-
-    if (params.search) {
-      const q = params.search.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.fullName.toLowerCase().includes(q) ||
-          p.city.toLowerCase().includes(q) ||
-          p.state.toLowerCase().includes(q) ||
-          p.specialisations.some((s) => s.toLowerCase().includes(q))
-      );
-    }
-
-    const page = paginateArray(filtered, params.page ?? 1, params.pageSize ?? 8);
-    return {
-      ...page,
-      results: page.results.map(maskPublicProfessional),
-    };
   },
 
   getProfessionalById: async (id: string): Promise<PublicProfessional | null> => {
@@ -164,12 +131,26 @@ export const professionalService = {
       if (res?.data) {
         return mapBackendToPublicProfessional(res.data);
       }
-    } catch {
-      // fallback to mock
+    } catch (error) {
+      console.error("Failed to fetch professional by ID from API:", error);
+      return null;
     }
+  },
 
-    const found = mockProfessionals.find((p) => p.id === id) ?? null;
-    return found ? maskPublicProfessional(found) : null;
+  getProfessionalsFilters: async (): Promise<{ professions: { label: string; value: string }[]; states: string[] }> => {
+    try {
+      const path = `${API_ENDPOINTS.professionalOnboardingPublic.publicProfessionals}filters/`;
+      const res = await apiClient<{ success: boolean; data: { professions: { label: string; value: string }[]; states: string[] } }>(path, { suppressErrorLog: true });
+      if (res?.data) {
+        return res.data;
+      }
+    } catch (error) {
+      console.error("Failed to fetch professional filters from API:", error);
+    }
+    return {
+      professions: [{ label: "All Practitioners", value: "all" }],
+      states: ["All States"],
+    };
   },
 };
 
