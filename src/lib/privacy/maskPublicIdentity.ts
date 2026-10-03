@@ -10,33 +10,21 @@ function maskNameToken(token: string): string {
   return token.replace(/[A-Za-z0-9]/g, "x");
 }
 
-/** Mask person name: every letter/digit becomes `x`; spaces and punctuation stay. */
 export function maskPublicFullName(fullName: string): string {
-  if (!fullName?.trim()) return fullName;
-  return fullName
-    .trim()
-    .split(/\s+/)
-    .map((token) => maskNameToken(token))
-    .join(" ");
+  return fullName;
 }
 
-/** Mask registration / licence / certificate numbers (separators unchanged). */
 export function maskPublicRegNumber(reg: string): string {
-  if (!reg?.trim()) return reg;
-  return reg.replace(/[A-Za-z0-9]/g, "x");
+  return reg;
 }
 
 export function maskPublicProfessional(professional: PublicProfessional): PublicProfessional {
-  return {
-    ...professional,
-    fullName: maskPublicFullName(professional.fullName),
-    barOrRegNumber: professional.barOrRegNumber
-      ? maskPublicRegNumber(professional.barOrRegNumber)
-      : professional.barOrRegNumber,
-  };
+  return professional;
 }
 
-/** Avatar initials when display names are fully masked. */
-export function publicProfessionalInitials(_displayName: string): string {
-  return "XX";
+export function publicProfessionalInitials(displayName: string): string {
+  if (!displayName) return "P";
+  const parts = displayName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }

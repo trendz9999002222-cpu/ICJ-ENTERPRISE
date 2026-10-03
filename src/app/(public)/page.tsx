@@ -33,14 +33,14 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ProfessionalCard from "@/components/features/public/ProfessionalCard";
 import ResearchCard from "@/components/features/public/ResearchCard";
 import ServiceCard from "@/components/features/public/ServiceCard";
 import { mockServices } from "@/data/public/services";
-import { mockProfessionals } from "@/data/public/professionals";
-import { maskPublicProfessional } from "@/lib/privacy/maskPublicIdentity";
+import { professionalService } from "@/services/public";
+import type { PublicProfessional } from "@/types/public";
 import { mockAcademyCourses, mockResearchPapers } from "@/data/public/research";
 import { mockMembershipTiers, mockSocialImpactPrograms } from "@/data/public/knowledge";
 
@@ -55,8 +55,15 @@ export default function HomePage() {
     }
   };
 
+  const [featuredProfessionals, setFeaturedProfessionals] = useState<PublicProfessional[]>([]);
+
+  useEffect(() => {
+    professionalService.listProfessionals({ pageSize: 4 }).then((res) => {
+      setFeaturedProfessionals(res.results || []);
+    }).catch(console.error);
+  }, []);
+
   const featuredServices = mockServices.slice(0, 6);
-  const featuredProfessionals = mockProfessionals.slice(0, 4).map(maskPublicProfessional);
   const featuredPapers = mockResearchPapers.slice(0, 3);
   const featuredCourses = mockAcademyCourses.slice(0, 2);
 

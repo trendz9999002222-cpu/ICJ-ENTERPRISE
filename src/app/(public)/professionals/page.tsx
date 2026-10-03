@@ -34,27 +34,6 @@ import ProfessionalCard from "@/components/features/public/ProfessionalCard";
 import { professionalService } from "@/services/public";
 import type { PublicProfessional } from "@/types/public";
 
-const PROFESSIONS = [
-  { label: "All Practitioners", value: "all" },
-  { label: "Advocates", value: "Advocate" },
-  { label: "Chartered Accountants", value: "Chartered Accountant" },
-  { label: "Company Secretaries", value: "Company Secretary" },
-  { label: "Mediators", value: "Mediator" },
-  { label: "Arbitrators", value: "Arbitrator" },
-  { label: "Legal Researchers", value: "Legal Researcher" },
-];
-
-const STATES = [
-  "All States",
-  "Delhi",
-  "Maharashtra",
-  "Karnataka",
-  "Tamil Nadu",
-  "Uttar Pradesh",
-  "West Bengal",
-  "Gujarat",
-];
-
 export default function ProfessionalsDirectoryPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -67,6 +46,23 @@ export default function ProfessionalsDirectoryPage() {
   const [selectedState, setSelectedState] = useState("All States");
   const [loading, setLoading] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  const [availableProfessions, setAvailableProfessions] = useState<{label: string, value: string}[]>([{label: "All Practitioners", value: "all"}]);
+  const [availableStates, setAvailableStates] = useState<string[]>(["All States"]);
+
+  const loadFilters = async () => {
+    try {
+      const filters = await professionalService.getProfessionalsFilters();
+      if (filters.professions && filters.professions.length > 0) {
+        setAvailableProfessions(filters.professions);
+      }
+      if (filters.states && filters.states.length > 0) {
+        setAvailableStates(filters.states);
+      }
+    } catch (error) {
+      console.error("Failed to load filters", error);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -87,6 +83,10 @@ export default function ProfessionalsDirectoryPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadFilters();
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -139,7 +139,7 @@ export default function ProfessionalsDirectoryPage() {
                 },
               }}
             >
-              {PROFESSIONS.map((p) => (
+              {availableProfessions.map((p) => (
                 <Tab key={p.value} label={p.label} value={p.value} />
               ))}
             </Tabs>
@@ -155,7 +155,7 @@ export default function ProfessionalsDirectoryPage() {
                   }}
                   sx={{ borderRadius: 2, fontSize: "0.85rem", bgcolor: "#f8fafc" }}
                 >
-                  {STATES.map((s) => (
+                  {availableStates.map((s) => (
                     <MenuItem key={s} value={s}>
                       {s}
                     </MenuItem>
@@ -257,7 +257,7 @@ export default function ProfessionalsDirectoryPage() {
                 setPage(1);
               }}
             >
-              {STATES.map((s) => (
+              {availableStates.map((s) => (
                 <MenuItem key={s} value={s}>
                   {s}
                 </MenuItem>
