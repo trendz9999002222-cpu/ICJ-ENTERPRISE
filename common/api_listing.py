@@ -15,10 +15,10 @@ def list_params(request: Request) -> dict:
     }
 
 
-def paginated_success(request: Request, queryset, serializer_class, message: str = "OK"):
+def paginated_success(request: Request, queryset, serializer_class, message: str = "OK", **kwargs):
     paginator = StandardResultsPagination()
     page = paginator.paginate_queryset(queryset, request)
-    serializer = serializer_class(page, many=True)
+    serializer = serializer_class(page, many=True, **kwargs)
     return api_success(
         message=message,
         data={

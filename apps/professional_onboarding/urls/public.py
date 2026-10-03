@@ -11,6 +11,7 @@ from apps.professional_onboarding.views.public import (
 from apps.professional_onboarding.views.public_professionals import (
     PublicProfessionalDetailAPIView,
     PublicProfessionalsListAPIView,
+    PublicProfessionalsFiltersAPIView,
 )
 
 urlpatterns = [
@@ -33,6 +34,7 @@ urlpatterns = [
     path("submissions/", PublicSubmissionCreateAPIView.as_view(), name="public-onboarding-submissions"),
     path("register/", PublicProfessionalRegisterAPIView.as_view(), name="public-onboarding-register"),
     path("public-professionals/", PublicProfessionalsListAPIView.as_view(), name="public-professionals-list"),
+    path("public-professionals/filters/", PublicProfessionalsFiltersAPIView.as_view(), name="public-professionals-filters"),
     path(
         "public-professionals/<str:identifier>/",
         PublicProfessionalDetailAPIView.as_view(),
