@@ -26,6 +26,10 @@ urlpatterns = [
         "api/v1/membership-onboarding/",
         include("apps.membership_onboarding.urls.public"),
     ),
+    path(
+        "api/v1/honorable-advisory/",
+        include("apps.honorable_advisory.urls"),
+    ),
 ]
 
 if settings.DEBUG or True:
