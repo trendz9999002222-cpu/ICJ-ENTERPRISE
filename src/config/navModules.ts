@@ -35,7 +35,7 @@ export const NAV_MODULES: NavModule[] = [
     activePaths: ["/about"],
     items: [
       { label: "Overview & Mission", href: "/about", description: "Founding charter, history & mission" },
-      { label: "Governing Council", href: "/about#governance", description: "Senior jurists & executive board" },
+      { label: "Honorable Advisory Board", href: "/about#governance", description: "Senior jurists & executive board" },
       { label: "International Advisory Board", href: "/about#advisory", description: "Global scholars & jurists" },
       { label: "Founding Charter", href: "/about#history", description: "Institutional history and mandate" },
     ],
