@@ -35,11 +35,9 @@ import type { HonorableFormField } from "@/services/public/honorableAdvisory.ser
 const ADMIN_BASE = "/honorable-advisory/admin";
 
 type AdminField = HonorableFormField & { id?: string; is_active?: boolean };
-type AdminApplication = { id: string; reference_id: string; status: string; submitted_at?: string };
 
 export default function AdminHonorableAdvisoryPage() {
   const [fields, setFields] = useState<AdminField[]>([]);
-  const [applications, setApplications] = useState<AdminApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -63,8 +61,6 @@ export default function AdminHonorableAdvisoryPage() {
 
   const [fieldPage, setFieldPage] = useState(0);
   const [fieldRowsPerPage, setFieldRowsPerPage] = useState(10);
-  const [appPage, setAppPage] = useState(0);
-  const [appRowsPerPage, setAppRowsPerPage] = useState(10);
 
   const token = () => readAccessTokenFromCookie();
 
@@ -79,14 +75,6 @@ export default function AdminHonorableAdvisoryPage() {
       setFields(res.data.results);
     } catch {
       setError("Could not load form fields.");
-    }
-    try {
-      const apps = await apiClient<{ success: boolean; data: { results: AdminApplication[] } }>(
-        `${ADMIN_BASE}/applications/`, { headers: { Authorization: `Bearer ${t}` } }
-      );
-      setApplications(apps.data.results);
-    } catch {
-      // Optional
     } finally {
       setLoading(false);
     }
@@ -103,7 +91,7 @@ export default function AdminHonorableAdvisoryPage() {
     try {
       const fd = new FormData();
       const fieldValuesOnly: Record<string, any> = {};
-      
+
       for (const [key, value] of Object.entries(memberForm)) {
         if (key === "display_order") {
           fd.set(key, value);
@@ -113,9 +101,9 @@ export default function AdminHonorableAdvisoryPage() {
           fieldValuesOnly[key] = value;
         }
       }
-      
+
       fd.set("field_values", JSON.stringify(fieldValuesOnly));
-      
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${t}` },
@@ -179,17 +167,6 @@ export default function AdminHonorableAdvisoryPage() {
     }
   };
 
-  const approve = async (id: string) => {
-    const t = token();
-    if (!t) return;
-    await apiClient(`${ADMIN_BASE}/applications/${id}/approve/`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${t}` },
-      body: {},
-    });
-    load();
-  };
-
   const fieldColumns: AdminTableColumn<AdminField>[] = [
     {
       key: "display_order",
@@ -240,54 +217,8 @@ export default function AdminHonorableAdvisoryPage() {
     },
   ];
 
-  const appColumns: AdminTableColumn<AdminApplication>[] = [
-    {
-      key: "reference_id",
-      label: "Reference",
-      minWidth: 140,
-      render: (a) => <Typography sx={{ fontWeight: 700, color: "#2563eb", fontFamily: "monospace", fontSize: "0.825rem" }}>{a.reference_id}</Typography>,
-    },
-    {
-      key: "status",
-      label: "Status",
-      minWidth: 120,
-      render: (a) => (
-        <Chip
-          size="small"
-          label={a.status.replace("_", " ")}
-          color={a.status === "pending" ? "warning" : a.status === "approved" ? "success" : "default"}
-          sx={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "capitalize", borderRadius: 1.5 }}
-        />
-      ),
-    },
-    {
-      key: "submitted_at",
-      label: "Submitted",
-      minWidth: 130,
-      render: (a) => (
-        <Typography sx={{ fontSize: "0.8125rem", color: "#64748b", fontWeight: 500 }}>
-          {a.submitted_at ? new Date(a.submitted_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}
-        </Typography>
-      ),
-    },
-    {
-      key: "actions",
-      label: "Actions",
-      minWidth: 100,
-      align: "right",
-      render: (a) => (
-        <Box>
-          {a.status === "pending" && (
-            <Button size="small" onClick={() => approve(a.id)}>Approve</Button>
-          )}
-        </Box>
-      ),
-    },
-  ];
-
   const activePreviewFields = fields.filter((f) => f.is_active !== false);
   const paginatedFields = fields.slice(fieldPage * fieldRowsPerPage, fieldPage * fieldRowsPerPage + fieldRowsPerPage);
-  const paginatedApps = applications.slice(appPage * appRowsPerPage, appPage * appRowsPerPage + appRowsPerPage);
 
   return (
     <AdminPageShell
@@ -342,27 +273,7 @@ export default function AdminHonorableAdvisoryPage() {
             }}
           />
         </Box>
-      </Paper>
-
-      <Paper sx={{ p: 3, border: "1px solid #e2e8f0" }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Pending applications</Typography>
-        <Box sx={{ mt: 2 }}>
-          <AdminDataTable
-            columns={appColumns}
-            rows={paginatedApps}
-            loading={loading}
-            getRowKey={(a) => a.id}
-            emptyMessage="No applications."
-            pagination={{
-              page: appPage,
-              rowsPerPage: appRowsPerPage,
-              totalCount: applications.length,
-              onPageChange: setAppPage,
-              onRowsPerPageChange: (v) => { setAppRowsPerPage(v); setAppPage(0); }
-            }}
-          />
-        </Box>
-      </Paper>
+      </Paper> 
 
       <Dialog open={memberOpen} onClose={() => setMemberOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800 }}>Onboard advisory board member</DialogTitle>
