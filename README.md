@@ -9,6 +9,7 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
+python manage.py makemigrations honorable_advisory
 python manage.py migrate
 python manage.py create_default_admin
 python manage.py seed_professional_onboarding
