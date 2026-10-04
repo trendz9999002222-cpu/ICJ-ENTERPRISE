@@ -14,8 +14,16 @@ import Link from "next/link";
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
 import { aboutData } from "@/data/public/about";
+import { useEffect, useState } from "react";
+import { honorableAdvisoryService, type HonorableAdvisoryMember } from "@/services/public/honorableAdvisory.service";
 
 export default function AboutPage() {
+  const [members, setMembers] = useState<HonorableAdvisoryMember[]>([]);
+
+  useEffect(() => {
+    honorableAdvisoryService.fetchMembers().then(setMembers).catch(console.error);
+  }, []);
+
   return (
     <Box sx={{ width: "100%", bgcolor: "#f8fafc", pb: 8 }}>
       <PageHeader
@@ -23,8 +31,8 @@ export default function AboutPage() {
         title="International Consortium of Jurists"
         subtitle="An independent global alliance of jurists, advocates, academics, and dispute resolution specialists dedicated to the rule of law, legal literacy, and universal access to justice."
         breadcrumbs={[{ label: "About ICJ" }]}
-        primaryAction={{ label: "Join the Consortium", href: "/membership" }}
-        secondaryAction={{ label: "View Governance Council", href: "#governance" }}
+        primaryAction={{ label: "Join the Consortium to get Membership", href: "/membership" }}
+        secondaryAction={{ label: "View Honorable Advisory Board", href: "#governance" }}
       />
 
       <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 }, pt: 5 }}>
@@ -136,20 +144,22 @@ export default function AboutPage() {
           </Grid>
         </Box>
 
-        {/* Governance Council Section */}
+        {/* Honorable Advisory Board Section */}
         <Box id="governance" sx={{ mb: 8, scrollMarginTop: 100 }}>
-          <Box sx={{ textAlign: "center", maxWidth: 640, mx: "auto", mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
-              Governance & Leadership Council
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
-              Distinguished jurists and practitioners stewarding ICJ policies and ethical standards.
-            </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", mb: 4, gap: 2 }}>
+            <Box sx={{ maxWidth: 640 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em" }}>
+                Honorable Advisory Board
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
+                Distinguished jurists and practitioners stewarding ICJ policies and ethical standards.
+              </Typography>
+            </Box>
           </Box>
 
           <Grid container spacing={3}>
-            {aboutData.governanceCouncil.map((member, idx) => (
-              <Grid key={idx} size={{ xs: 12, sm: 6 }}>
+            {members.map((member) => (
+              <Grid key={member.id} size={{ xs: 12, sm: 6 }}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -161,8 +171,8 @@ export default function AboutPage() {
                   }}
                 >
                   <Stack direction="row" spacing={2} sx={{ alignItems: "flex-start", mb: 2 }}>
-                    <Avatar sx={{ width: 56, height: 56, bgcolor: "#2563eb", fontWeight: 800, fontSize: "1.2rem" }}>
-                      {member.name
+                    <Avatar src={member.photo_url || undefined} sx={{ width: 56, height: 56, bgcolor: "#2563eb", fontWeight: 800, fontSize: "1.2rem" }}>
+                      {!member.photo_url && member.name
                         .replace(/^Hon'ble\s*|^Justice\s*|\(Retd\.\)\s*|^Prof\.\s*|^Dr\.\s*|^Adv\.\s*/gi, "")
                         .trim()
                         .slice(0, 2)
@@ -186,10 +196,18 @@ export default function AboutPage() {
                 </Paper>
               </Grid>
             ))}
+            {members.length === 0 && (
+              <Grid size={{ xs: 12 }}>
+                <Paper elevation={0} sx={{ p: 4, textAlign: "center", border: "1px solid #e2e8f0", borderRadius: 3, bgcolor: "#fff" }}>
+                  <Typography variant="body1" color="text.secondary">
+                    No active members currently displayed.
+                  </Typography>
+                </Paper>
+              </Grid>
+            )}
           </Grid>
         </Box>
 
-        {/* Milestones & Timeline */}
         <Box sx={{ mb: 6 }}>
           <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a", mb: 3 }}>
             Institutional Milestones

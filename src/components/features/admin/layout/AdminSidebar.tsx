@@ -53,6 +53,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
   { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
   { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
+  { label: "Honorable Advisory", href: "/admin/honorable-advisory-members", icon: <PeopleAltIcon fontSize="small" /> },
   { label: "Cases", href: "/admin/cases", icon: <FolderOpenIcon fontSize="small" />, section: "Legal" },
   { label: "Assistance", href: "/admin/assistance", icon: <SupportAgentIcon fontSize="small" /> },
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" /> },
@@ -66,6 +67,11 @@ const NAV_ITEMS: NavItem[] = [
   {
     label: "Membership Onboarding",
     href: "/admin/memberships/form-builder",
+    icon: <BallotOutlinedIcon fontSize="small" />,
+  },
+  {
+    label: "Honorable Advisory Onboarding",
+    href: "/admin/honorable-advisory",
     icon: <BallotOutlinedIcon fontSize="small" />,
   },
   { label: "Content", href: "/admin/content", icon: <CampaignIcon fontSize="small" />, section: "Platform" },
@@ -87,6 +93,12 @@ function isNavItemActive(pathname: string, href: string): boolean {
       pathname === "/admin/memberships" ||
       pathname.startsWith("/admin/memberships/applications")
     );
+  }
+  if (href === "/admin/honorable-advisory") {
+    return pathname === "/admin/honorable-advisory";
+  }
+  if (href === "/admin/honorable-advisory-members") {
+    return pathname.startsWith("/admin/honorable-advisory-members");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
