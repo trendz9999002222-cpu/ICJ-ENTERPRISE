@@ -4,7 +4,7 @@ from typing import Any
 from apps.professional_onboarding.models.common_field import CommonField
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-PHONE_RE = re.compile(r"^\+?[\d\s\-()]{7,20}$")
+PHONE_RE = re.compile(r"^[6-9]\d{9}$")
 
 
 def _is_empty(value: Any) -> bool:
@@ -28,8 +28,9 @@ def validate_configured_field_value(field_type: str, value: Any, options: list[d
         if not isinstance(value, str) or not EMAIL_RE.match(value.strip()):
             return "Enter a valid email address."
     elif field_type == CommonField.FieldType.PHONE:
-        if not isinstance(value, str) or not PHONE_RE.match(value.strip()):
-            return "Enter a valid phone number."
+        val = str(value).replace(" ", "").replace("-", "")
+        if not PHONE_RE.match(val):
+            return "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9."
     elif field_type == CommonField.FieldType.NUMBER:
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             return "Enter a valid number."

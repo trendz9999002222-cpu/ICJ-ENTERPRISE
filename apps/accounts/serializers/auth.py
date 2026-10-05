@@ -126,6 +126,7 @@ class UserSerializer(serializers.ModelSerializer):
                     "membership_type": app.membership_type.name if app.membership_type else "Standard",
                     "status": app.status,
                     "is_approved": app.status == "approved",
+                    "field_values": app.field_values,
                 }
         except Exception:
             pass

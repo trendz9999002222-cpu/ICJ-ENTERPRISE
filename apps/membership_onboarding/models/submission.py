@@ -4,7 +4,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from apps.membership_onboarding.models.type_and_form import MembershipForm, MembershipType
+from .type_and_form import MembershipForm, MembershipType
+# pyrefly: ignore [missing-import]
 from apps.person.models import Person
 
 
@@ -35,6 +36,12 @@ class MembershipApplication(models.Model):
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
         CANCELLED = "cancelled", "Cancelled"
+
+    class FeePaymentStatus(models.TextChoices):
+        UNPAID = "unpaid", "Unpaid"
+        PAID = "paid", "Paid"
+        WAIVED = "waived", "Waived"
+        FAILED = "failed", "Failed"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_id = models.CharField(max_length=32, unique=True, db_index=True)
@@ -71,6 +78,9 @@ class MembershipApplication(models.Model):
     declaration_accepted = models.BooleanField(default=False)
     declaration_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    fee_payment_status = models.CharField(
+        max_length=20, choices=FeePaymentStatus.choices, default=FeePaymentStatus.UNPAID
+    )
     submitted_at = models.DateTimeField(null=True, blank=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     reviewed_by = models.ForeignKey(
