@@ -36,6 +36,14 @@ export function validateField(field: FormField, values: Record<string, unknown>)
     return "Enter a valid email address";
   }
 
+  if (field.type === "tel" && text) {
+    // 10 digit number starting with 6, 7, 8 or 9
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(text.replace(/[\s\-]/g, ""))) {
+      return "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9";
+    }
+  }
+
   if (field.pattern && text && !new RegExp(field.pattern).test(text)) {
     return field.patternMessage ?? `${field.label} is not valid`;
   }
