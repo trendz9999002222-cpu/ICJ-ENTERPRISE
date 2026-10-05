@@ -84,8 +84,11 @@ def admin_members(request):
             field_values = json.loads(field_values)
             
         name = field_values.get('name') or request.data.get('name')
+        
+        # We will collect errors dynamically
+        errors = {}
         if not name:
-            return Response({'error': 'Name is required'}, status=400)
+            errors['name'] = ['Name is required']
             
         photo_url = handle_file_upload(request.FILES.get('photo'), 'honorable_advisory/members/')
         if not photo_url and 'profile_picture' in request.FILES:
@@ -98,6 +101,23 @@ def admin_members(request):
                 f_url = handle_file_upload(file, 'honorable_advisory/members/')
                 if f_url:
                     field_values[field_key] = f_url
+                    
+        # Backend validation for dynamic fields
+        from apps.professional_onboarding.services.field_validation import validate_configured_field_value
+        active_fields = HonorableFormField.objects.filter(is_active=True)
+        for f in active_fields:
+            val = field_values.get(f.field_key)
+            # Support fallback for files directly handled above or text values
+            if f.required and not val:
+                errors.setdefault(f.field_key, []).append(f"{f.label} is required.")
+            elif val:
+                msg = validate_configured_field_value(f.field_type, val, f.options)
+                if msg:
+                    errors.setdefault(f.field_key, []).append(msg)
+                    
+        if errors:
+            return Response({'message': 'Validation failed.', 'errors': errors}, status=400)
+            
             
         m = HonorableAdvisoryMember.objects.create(
             name=name,
@@ -124,9 +144,93 @@ def admin_members(request):
             'photo_url': request.build_absolute_uri(m.photo_url) if m.photo_url else None,
             'display_order': m.display_order,
             'is_active': m.is_active,
+            'field_values': m.field_values,
             'created_at': m.created_at.isoformat()
         })
     return Response({'success': True, 'data': {'results': data}})
+
+@api_view(['GET', 'PUT'])
+@permission_classes([permissions.IsAdminUser])
+def admin_member_detail(request, pk):
+    try:
+        member = HonorableAdvisoryMember.objects.get(pk=pk)
+    except HonorableAdvisoryMember.DoesNotExist:
+        return Response({'error': 'Not found'}, status=404)
+
+    if request.method == 'GET':
+        return Response({
+            'success': True,
+            'data': {
+                'id': str(member.id),
+                'name': member.name,
+                'role': member.role,
+                'qualification': member.qualification,
+                'bio': member.bio,
+                'photo_url': request.build_absolute_uri(member.photo_url) if member.photo_url else None,
+                'display_order': member.display_order,
+                'is_active': member.is_active,
+                'field_values': member.field_values,
+                'created_at': member.created_at.isoformat()
+            }
+        })
+
+    if request.method == 'PUT':
+        import json
+        field_values = request.data.get('field_values', '{}')
+        if isinstance(field_values, str):
+            field_values = json.loads(field_values)
+
+        # Merge new field values with existing ones
+        current_field_values = dict(member.field_values or {})
+        
+        name = field_values.get('name') or request.data.get('name', member.name)
+        
+        errors = {}
+        if not name:
+            errors['name'] = ['Name is required']
+
+        photo_url = handle_file_upload(request.FILES.get('photo'), 'honorable_advisory/members/')
+        if not photo_url and 'profile_picture' in request.FILES:
+            photo_url = handle_file_upload(request.FILES.get('profile_picture'), 'honorable_advisory/members/')
+        if not photo_url:
+            photo_url = member.photo_url # keep existing
+
+        for key, file in request.FILES.items():
+            if key.startswith('file__'):
+                field_key = key.split('__', 1)[1]
+                f_url = handle_file_upload(file, 'honorable_advisory/members/')
+                if f_url:
+                    current_field_values[field_key] = f_url
+
+        # Update text field values
+        for k, v in field_values.items():
+            current_field_values[k] = v
+
+        from apps.professional_onboarding.services.field_validation import validate_configured_field_value
+        active_fields = HonorableFormField.objects.filter(is_active=True)
+        for f in active_fields:
+            val = current_field_values.get(f.field_key)
+            if f.required and not val:
+                errors.setdefault(f.field_key, []).append(f"{f.label} is required.")
+            elif val:
+                msg = validate_configured_field_value(f.field_type, val, f.options)
+                if msg:
+                    errors.setdefault(f.field_key, []).append(msg)
+
+        if errors:
+            return Response({'message': 'Validation failed.', 'errors': errors}, status=400)
+
+        member.name = name
+        member.role = current_field_values.get('role', request.data.get('role', member.role))
+        member.qualification = current_field_values.get('qualification', request.data.get('qualification', member.qualification))
+        member.bio = current_field_values.get('bio', request.data.get('bio', member.bio))
+        member.display_order = int(request.data.get('display_order', member.display_order))
+        member.photo_url = photo_url
+        member.field_values = current_field_values
+        member.save()
+
+        return Response({'success': True, 'id': str(member.id)})
+
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAdminUser])

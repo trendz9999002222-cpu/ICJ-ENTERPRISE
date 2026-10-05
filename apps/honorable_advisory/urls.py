@@ -6,6 +6,7 @@ urlpatterns = [
     path('public/form/', views.public_form_fields),
     path('public/apply/', views.public_apply),
     path('admin/members/', views.admin_members),
+    path('admin/members/<uuid:pk>/', views.admin_member_detail),
     path('admin/members/<uuid:pk>/toggle-status/', views.admin_member_toggle_status),
     path('admin/applications/', views.admin_applications),
     path('admin/applications/<uuid:pk>/approve/', views.admin_approve),

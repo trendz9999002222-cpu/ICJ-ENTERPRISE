@@ -194,6 +194,18 @@ class MeView(APIView):
         serializer = UpdateProfileSerializer(request.user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+
+        # Handle updating membership form fields if provided
+        membership_field_values = request.data.get("membership_field_values")
+        if membership_field_values and isinstance(membership_field_values, dict):
+            app = request.user.membership_applications.order_by("-created_at").first()
+            if app:
+                # Merge new values with existing values
+                current_values = dict(app.field_values or {})
+                current_values.update(membership_field_values)
+                app.field_values = current_values
+                app.save(update_fields=["field_values"])
+
         request.user.refresh_from_db()
         return api_success(
             data=UserSerializer(request.user, context={"request": request}).data,
