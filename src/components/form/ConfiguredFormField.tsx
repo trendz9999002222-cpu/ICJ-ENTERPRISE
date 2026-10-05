@@ -101,14 +101,17 @@ export default function ConfiguredFormField({ field, value, error, disabled, onC
         />
       );
     case "file":
-      const fileVal = value as File | null;
+      const isString = typeof value === "string";
+      const fileVal = !isString ? (value as File | null) : null;
+      const fileName = fileVal?.name || (isString && value ? "Existing file (click to replace)" : "Choose file...");
+      
       return (
         <FormControl error={!!error} disabled={disabled} fullWidth>
           <FormLabel sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#334155", mb: 0.5 }}>
             {labelWithFlag}
           </FormLabel>
           <Button variant="outlined" component="label" size="small" sx={{ alignSelf: "flex-start", textTransform: "none" }}>
-            {fileVal?.name || "Choose file..."}
+            {fileName}
             <input
               type="file"
               hidden

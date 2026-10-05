@@ -60,9 +60,9 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [membershipFields, setMembershipFields] = useState<Record<string, any>>({});
   const [feedback, setFeedback] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
     open: false,
     message: "",
@@ -83,9 +83,11 @@ export default function UserProfilePage() {
         const data = json.data || json;
         setProfile(data);
         setFirstName(data.first_name || "");
-        setLastName(data.last_name || "");
         setPhoneNumber(data.phone_number || data.mobile || "");
         setProfilePictureUrl(data.profile_picture_url ?? null);
+        if (data.membership?.field_values) {
+          setMembershipFields(data.membership.field_values);
+        }
       }
     } catch (err) {
       console.error("Failed to load profile:", err);
@@ -111,8 +113,8 @@ export default function UserProfilePage() {
         },
         body: JSON.stringify({
           first_name: firstName,
-          last_name: lastName,
           phone_number: phoneNumber,
+          membership_field_values: membershipFields,
         }),
       });
       if (res.ok) {
@@ -325,26 +327,13 @@ export default function UserProfilePage() {
 
               <Box component="form" onSubmit={handleSave}>
                 <Grid container spacing={2.5}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 12 }}>
                     <TextField
-                      label="First Name"
+                      label="Full Name"
                       fullWidth
                       size="small"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      slotProps={{
-                        input: { sx: { borderRadius: "8px", fontSize: "0.875rem" } },
-                        inputLabel: { sx: { fontSize: "0.875rem" } },
-                      }}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <TextField
-                      label="Last Name"
-                      fullWidth
-                      size="small"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
                       slotProps={{
                         input: { sx: { borderRadius: "8px", fontSize: "0.875rem" } },
                         inputLabel: { sx: { fontSize: "0.875rem" } },
@@ -384,6 +373,25 @@ export default function UserProfilePage() {
                       }}
                     />
                   </Grid>
+
+                  {/* Render dynamic membership fields */}
+                  {Object.entries(membershipFields).map(([key, val]) => (
+                    <Grid size={{ xs: 12, sm: 6 }} key={key}>
+                      <TextField
+                        label={formatKeyLabel(key)}
+                        fullWidth
+                        size="small"
+                        value={val || ""}
+                        onChange={(e) =>
+                          setMembershipFields((prev) => ({ ...prev, [key]: e.target.value }))
+                        }
+                        slotProps={{
+                          input: { sx: { borderRadius: "8px", fontSize: "0.875rem" } },
+                          inputLabel: { sx: { fontSize: "0.875rem" } },
+                        }}
+                      />
+                    </Grid>
+                  ))}
                 </Grid>
 
                 <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>

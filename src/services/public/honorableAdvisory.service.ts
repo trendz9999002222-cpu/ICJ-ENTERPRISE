@@ -11,6 +11,7 @@ export type HonorableAdvisoryMember = {
   photo_url?: string | null;
   display_order: number;
   is_active?: boolean;
+  field_values?: Record<string, any>;
 };
 
 export type HonorableFormField = {

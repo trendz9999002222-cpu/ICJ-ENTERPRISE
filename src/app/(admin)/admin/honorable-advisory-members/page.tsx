@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { Alert, Avatar, Box, Chip, Stack, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import EditIcon from "@mui/icons-material/Edit";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import AdminDataTable, { type AdminTableColumn } from "@/components/features/admin/shared/AdminDataTable";
 import ConfiguredFormField from "@/components/form/ConfiguredFormField";
+import { validateConfiguredFieldList } from "@/lib/form/configuredFieldValidation";
 import { apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import type { HonorableAdvisoryMember, HonorableFormField } from "@/services/public/honorableAdvisory.service";
 
@@ -66,13 +68,33 @@ export default function AdminHonorableAdvisoryMembersPage() {
 
   const [memberOpen, setMemberOpen] = useState(false);
   const [memberForm, setMemberForm] = useState<Record<string, any>>({ display_order: "0" });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [memberSaving, setMemberSaving] = useState(false);
+  const [editMemberId, setEditMemberId] = useState<string | null>(null);
   
   const activePreviewFields = fields.filter((f) => f.is_active !== false);
+
+  const openEditModal = (m: HonorableAdvisoryMember) => {
+    // Flatten field_values for the form
+    const form = { display_order: String(m.display_order), ...(m.field_values || {}) };
+    setMemberForm(form);
+    setEditMemberId(m.id!);
+    setMemberOpen(true);
+  };
 
   const createMember = async () => {
     const t = readAccessTokenFromCookie();
     if (!t) return;
+    
+    // Only validate required fields if we are creating or if the field is empty on edit
+    // Wait, the dynamic validation will check everything. That's fine.
+    const errors = validateConfiguredFieldList(activePreviewFields, memberForm);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+    
     setMemberSaving(true);
     try {
       const fd = new FormData();
@@ -90,19 +112,25 @@ export default function AdminHonorableAdvisoryMembersPage() {
       
       fd.set("field_values", JSON.stringify(fieldValuesOnly));
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/`, {
-        method: "POST",
+      const method = editMemberId ? "PUT" : "POST";
+      const url = editMemberId 
+        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/${editMemberId}/`
+        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/`;
+
+      const res = await fetch(url, {
+        method,
         headers: { Authorization: `Bearer ${t}` },
         body: fd,
       });
 
-      if (!res.ok) throw new Error("Failed to create");
+      if (!res.ok) throw new Error("Failed to save");
 
       setMemberOpen(false);
+      setEditMemberId(null);
       setMemberForm({ display_order: "0" });
       load();
     } catch {
-      setError("Could not onboard member.");
+      setError(editMemberId ? "Could not update member." : "Could not onboard member.");
     } finally {
       setMemberSaving(false);
     }
@@ -209,20 +237,36 @@ export default function AdminHonorableAdvisoryMembersPage() {
       minWidth: 80,
       align: "right",
       render: (m) => (
-        <Tooltip title="View member details">
-          <IconButton
-            size="small"
-            onClick={() => setViewMember(m)}
-            sx={{
-              color: "#2563eb",
-              bgcolor: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              "&:hover": { bgcolor: "#dbeafe" },
-            }}
-          >
-            <VisibilityIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+          <Tooltip title="View member details">
+            <IconButton
+              size="small"
+              onClick={() => setViewMember(m)}
+              sx={{
+                color: "#2563eb",
+                bgcolor: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                "&:hover": { bgcolor: "#dbeafe" },
+              }}
+            >
+              <VisibilityIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Edit member">
+            <IconButton
+              size="small"
+              onClick={() => openEditModal(m)}
+              sx={{
+                color: "#16a34a",
+                bgcolor: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                "&:hover": { bgcolor: "#dcfce7" },
+              }}
+            >
+              <EditIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       ),
     },
   ];
@@ -279,8 +323,10 @@ export default function AdminHonorableAdvisoryMembersPage() {
         }}
       />
 
-      <Dialog open={memberOpen} onClose={() => setMemberOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800 }}>Onboard advisory board member</DialogTitle>
+      <Dialog open={memberOpen} onClose={() => { setMemberOpen(false); setEditMemberId(null); }} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          {editMemberId ? "Edit Advisory Board Member" : "Onboard Advisory Board Member"}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1, pb: 1 }}>
             {activePreviewFields.map((field) => (
@@ -288,6 +334,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
                 key={field.field_key}
                 field={field as any}
                 value={memberForm[field.field_key] || ""}
+                error={formErrors[field.field_key]}
                 onChange={(val) => setMemberForm((p) => ({ ...p, [field.field_key]: val }))}
               />
             ))}
@@ -305,9 +352,9 @@ export default function AdminHonorableAdvisoryMembersPage() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setMemberOpen(false)}>Cancel</Button>
+          <Button onClick={() => { setMemberOpen(false); setEditMemberId(null); }}>Cancel</Button>
           <Button variant="contained" disabled={memberSaving || activePreviewFields.length === 0} onClick={createMember}>
-            {memberSaving ? "Saving…" : "Publish member"}
+            {memberSaving ? "Saving…" : editMemberId ? "Save Changes" : "Publish member"}
           </Button>
         </DialogActions>
       </Dialog>
