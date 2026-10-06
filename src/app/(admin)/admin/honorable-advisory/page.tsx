@@ -373,6 +373,7 @@ export default function AdminHonorableAdvisoryPage() {
                 key={field.field_key}
                 field={field as any}
                 value={memberForm[field.field_key] || ""}
+                values={memberForm}
                 onChange={(val) => setMemberForm((p) => ({ ...p, [field.field_key]: val }))}
               />
             ))}
@@ -422,6 +423,9 @@ export default function AdminHonorableAdvisoryPage() {
                 <MenuItem value="date">Date</MenuItem>
                 <MenuItem value="file">File Upload</MenuItem>
                 <MenuItem value="phone">Phone</MenuItem>
+                <MenuItem value="country">Country</MenuItem>
+                <MenuItem value="state">State</MenuItem>
+                <MenuItem value="city">City / District</MenuItem>
               </Select>
             </FormControl>
             <TextField

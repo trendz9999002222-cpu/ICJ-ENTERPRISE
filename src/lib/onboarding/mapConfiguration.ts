@@ -29,6 +29,9 @@ function mapFieldType(field: PublicOnboardingField): FormField["type"] {
   if (fieldType === "select") return "select";
   if (fieldType === "radio") return "radio";
   if (fieldType === "checkbox") return "checkbox";
+  if (fieldType === "country") return "country";
+  if (fieldType === "state") return "state";
+  if (fieldType === "city") return "city";
   return "text";
 }
 

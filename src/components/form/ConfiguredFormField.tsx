@@ -10,6 +10,7 @@ import {
   FormHelperText,
   Button,
 } from "@mui/material";
+import { Country, State, City } from "country-state-city";
 
 // Using any to avoid circular dependency since the type can be HonorableFormField or HonoraryFormField
 type Props = {
@@ -17,10 +18,11 @@ type Props = {
   value: unknown;
   error?: string;
   disabled?: boolean;
+  values?: Record<string, any>;
   onChange: (value: unknown) => void;
 };
 
-export default function ConfiguredFormField({ field, value, error, disabled, onChange }: Props) {
+export default function ConfiguredFormField({ field, value, error, disabled, values = {}, onChange }: Props) {
   const labelWithFlag = field.required ? `${field.label} *` : field.label;
 
   switch (field.field_type) {
@@ -47,6 +49,88 @@ export default function ConfiguredFormField({ field, value, error, disabled, onC
           ))}
         </TextField>
       );
+    case "country": {
+      const countries = Country.getAllCountries().map((c) => ({ value: c.name, label: c.name }));
+      return (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label={labelWithFlag}
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          error={!!error}
+          helperText={error ?? field.help_text}
+          disabled={disabled}
+        >
+          <MenuItem value="">
+            <em>Select Country</em>
+          </MenuItem>
+          {countries.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
+    case "state": {
+      const selectedCountryName = values.country || "India";
+      const countryObj = Country.getAllCountries().find((c) => c.name === selectedCountryName);
+      const states = countryObj ? State.getStatesOfCountry(countryObj.isoCode).map((s) => ({ value: s.name, label: s.name })) : [];
+      return (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label={labelWithFlag}
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          error={!!error}
+          helperText={error ?? field.help_text}
+          disabled={disabled || !countryObj}
+        >
+          <MenuItem value="">
+            <em>Select State</em>
+          </MenuItem>
+          {states.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
+    case "city":
+    case "district": {
+      const selectedCountryName = values.country || "India";
+      const selectedStateName = values.state || "";
+      const countryObj = Country.getAllCountries().find((c) => c.name === selectedCountryName);
+      const stateObj = countryObj ? State.getStatesOfCountry(countryObj.isoCode).find((s) => s.name === selectedStateName) : null;
+      const cities = countryObj && stateObj ? City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode).map((c) => ({ value: c.name, label: c.name })) : [];
+      return (
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label={labelWithFlag}
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+          error={!!error}
+          helperText={error ?? field.help_text}
+          disabled={disabled || !stateObj}
+        >
+          <MenuItem value="">
+            <em>Select City / District</em>
+          </MenuItem>
+          {cities.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
     case "radio":
       return (
         <FormControl error={!!error} disabled={disabled} fullWidth>

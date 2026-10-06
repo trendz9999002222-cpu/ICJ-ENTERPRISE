@@ -334,6 +334,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
                 key={field.field_key}
                 field={field as any}
                 value={memberForm[field.field_key] || ""}
+                values={memberForm}
                 error={formErrors[field.field_key]}
                 onChange={(val) => setMemberForm((p) => ({ ...p, [field.field_key]: val }))}
               />
