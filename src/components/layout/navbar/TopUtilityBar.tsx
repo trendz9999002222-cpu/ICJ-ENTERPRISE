@@ -31,6 +31,9 @@ export default function TopUtilityBar() {
         fontSize: "0.75rem",
         color: "#475569",
         width: "100%",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        "&::-webkit-scrollbar": { display: "none" },
       }}
     >
       <Container maxWidth="xl" sx={{ px: { xs: 1.5, sm: 3, md: 4 } }}>
@@ -39,6 +42,8 @@ export default function TopUtilityBar() {
           sx={{
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 2,
+            minWidth: "max-content",
           }}
         >
           {/* Left Side: Contact Information & Accessibility */}
@@ -47,7 +52,8 @@ export default function TopUtilityBar() {
             spacing={{ xs: 1, sm: 2, md: 2.5 }}
             sx={{
               alignItems: "center",
-              flexWrap: "wrap",
+              flexWrap: "nowrap",
+              whiteSpace: "nowrap",
             }}
           >
             {/* Direct Helpline */}
@@ -62,6 +68,7 @@ export default function TopUtilityBar() {
                 fontWeight: 700,
                 textDecoration: "none",
                 fontSize: { xs: "0.75rem", sm: "0.8125rem" },
+                whiteSpace: "nowrap",
                 "&:hover": { color: "#2563eb" },
               }}
             >
@@ -85,6 +92,7 @@ export default function TopUtilityBar() {
                 color: "#475569",
                 textDecoration: "none",
                 fontSize: "0.8125rem",
+                whiteSpace: "nowrap",
                 "&:hover": { color: "#2563eb" },
               }}
             >
@@ -105,6 +113,7 @@ export default function TopUtilityBar() {
                 color: "#475569",
                 textDecoration: "none",
                 fontSize: "0.8125rem",
+                whiteSpace: "nowrap",
                 "&:hover": {
                   color: "#2563eb",
                 },
@@ -122,6 +131,7 @@ export default function TopUtilityBar() {
                 gap: 0.6,
                 color: "#64748b",
                 fontSize: "0.75rem",
+                whiteSpace: "nowrap",
               }}
             >
               <AccessTimeIcon sx={{ fontSize: 13 }} />
@@ -142,14 +152,14 @@ export default function TopUtilityBar() {
             >
               <Link
                 href="/grievance"
-                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
+                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" }}
               >
                 Citizen Helpdesk
               </Link>
               <Divider orientation="vertical" flexItem sx={{ height: 12, my: "auto" }} />
               <Link
                 href="/terms#rti"
-                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600 }}
+                style={{ color: "#475569", textDecoration: "none", fontSize: "0.75rem", fontWeight: 600, whiteSpace: "nowrap" }}
               >
                 RTI & Transparency
               </Link>

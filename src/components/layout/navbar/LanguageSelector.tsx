@@ -61,6 +61,8 @@ export default function LanguageSelector({ compact = false, textColor = "#334155
           fontWeight: 600,
           fontSize: compact ? "0.75rem" : "0.8125rem",
           textTransform: "none",
+          whiteSpace: "nowrap",
+          minWidth: "max-content",
           py: compact ? 0.25 : 0.5,
           px: compact ? 1 : 1.25,
           borderRadius: 1.5,
