@@ -18,6 +18,7 @@ import {
 import { buildYearOptions, getOptions } from "@/lib/registrationClient";
 import { isFieldVisible } from "@/lib/validation";
 import type { FormField, FormSchema, Theme } from "@/types/registration";
+import { Country, State, City } from "country-state-city";
 
 import { RADIUS, resolveIcon } from "./iconMap";
 
@@ -65,6 +66,93 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
     );
 
     switch (field.type) {
+      case "country": {
+        const countries = Country.getAllCountries().map((c) => ({ value: c.name, label: c.name }));
+        return wrap(
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label={labelWithFlag(field)}
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            error={!!error}
+            helperText={error ?? field.helper}
+            sx={inputSx}
+          >
+            <MenuItem value="">
+              <em>Select Country</em>
+            </MenuItem>
+            {countries.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      }
+
+      case "state": {
+        const selectedCountryName = (values.country as string) || "India";
+        const country = Country.getAllCountries().find((c) => c.name === selectedCountryName);
+        const states = country ? State.getStatesOfCountry(country.isoCode).map((s) => ({ value: s.name, label: s.name })) : [];
+        return wrap(
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label={labelWithFlag(field)}
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            error={!!error}
+            helperText={error ?? field.helper}
+            sx={inputSx}
+            disabled={!country}
+          >
+            <MenuItem value="">
+              <em>Select State</em>
+            </MenuItem>
+            {states.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      }
+
+      case "city": {
+        const selectedCountryName = (values.country as string) || "India";
+        const selectedStateName = (values.state as string) || "";
+        const country = Country.getAllCountries().find((c) => c.name === selectedCountryName);
+        const stateObj = country ? State.getStatesOfCountry(country.isoCode).find((s) => s.name === selectedStateName) : null;
+        const cities = country && stateObj ? City.getCitiesOfState(country.isoCode, stateObj.isoCode).map((c) => ({ value: c.name, label: c.name })) : [];
+        
+        return wrap(
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label={labelWithFlag(field)}
+            value={(value as string) ?? ""}
+            onChange={(e) => onChange(field.name, e.target.value)}
+            error={!!error}
+            helperText={error ?? field.helper}
+            sx={inputSx}
+            disabled={!stateObj}
+          >
+            <MenuItem value="">
+              <em>Select City / District</em>
+            </MenuItem>
+            {cities.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        );
+      }
+
       case "select":
       case "year": {
         const options =

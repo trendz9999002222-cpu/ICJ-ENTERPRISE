@@ -8,7 +8,10 @@ export type FieldType =
   | "select"
   | "radio"
   | "checkbox"
-  | "file";
+  | "file"
+  | "country"
+  | "state"
+  | "city";
 
 export type OnboardingCategory = {
   id: string;

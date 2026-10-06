@@ -54,7 +54,10 @@ export type FieldType =
   | "select"
   | "radio"
   | "checkbox"
-  | "checkboxGroup";
+  | "checkboxGroup"
+  | "country"
+  | "state"
+  | "city";
 
 export type VisibleWhen = { field: string; equals?: string; oneOf?: string[] };
 
