@@ -73,10 +73,11 @@ def create_membership_form_and_fields():
         (step1, "mobile", "Mobile Number", "phone", True, 5),
         (step1, "email", "Email Address", "email", True, 6),
         (step1, "address", "Permanent Address", "textarea", True, 7),
-        (step1, "state", "State", "text", True, 8),
-        (step1, "city", "City/District", "text", True, 9),
-        (step1, "pincode", "PIN Code", "text", True, 10),
-        (step1, "profile_picture", "Profile Picture", "image", False, 11),
+        (step1, "country", "Country", "country", True, 8),
+        (step1, "state", "State", "state", True, 9),
+        (step1, "city", "City/District", "city", True, 10),
+        (step1, "pincode", "PIN Code", "text", True, 11),
+        (step1, "profile_picture", "Profile Picture", "image", False, 12),
         
         # Step 2: Professional Details
         (step2, "occupation", "Occupation", "text", True, 1),
