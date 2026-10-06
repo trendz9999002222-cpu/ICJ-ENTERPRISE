@@ -70,7 +70,7 @@ export default function TopUtilityBar() {
                 <Box component="span" sx={{ display: { xs: "none", md: "inline" }, color: "#475569", fontWeight: 500 }}>
                   24x7 Legal Helpline:{" "}
                 </Box>
-                +91-9999002222
+                +91-9999002222  | +91-9717166436
               </span>
             </Box>
 

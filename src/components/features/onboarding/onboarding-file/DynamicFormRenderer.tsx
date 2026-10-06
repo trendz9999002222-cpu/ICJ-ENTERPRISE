@@ -226,14 +226,22 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             label={labelWithFlag(field)}
             placeholder={field.placeholder}
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(field.name, e.target.value)}
+            onChange={(e) => {
+              let val = e.target.value;
+              if (field.type === "tel") {
+                val = val.replace(/\D/g, "");
+                if (val.length > 10) return;
+              }
+              onChange(field.name, val);
+            }}
             error={!!error}
             helperText={error ?? field.helper}
-            slotProps={
-              field.prefix
-                ? { input: { startAdornment: <InputAdornment position="start">{field.prefix}</InputAdornment> } }
+            slotProps={{
+              htmlInput: field.type === "tel" ? { maxLength: 10 } : undefined,
+              input: field.prefix
+                ? { startAdornment: <InputAdornment position="start">{field.prefix}</InputAdornment> }
                 : undefined
-            }
+            }}
             sx={inputSx}
           />
         );

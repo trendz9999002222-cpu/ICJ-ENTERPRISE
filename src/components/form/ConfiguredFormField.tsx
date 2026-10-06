@@ -136,10 +136,20 @@ export default function ConfiguredFormField({ field, value, error, disabled, onC
           label={labelWithFlag}
           placeholder={field.placeholder}
           value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            let val = e.target.value;
+            if (inputType === "tel") {
+              val = val.replace(/\D/g, "");
+              if (val.length > 10) return;
+            }
+            onChange(val);
+          }}
           error={!!error}
           helperText={error ?? field.help_text}
           disabled={disabled}
+          slotProps={{
+            htmlInput: inputType === "tel" ? { maxLength: 10 } : undefined,
+          }}
         />
       );
   }
