@@ -19,38 +19,92 @@ import type {
 // Justice Services Service
 // =============================================================================
 
+/** Maps Django snake_case response to frontend camelCase JusticeService type */
+function mapBackendService(s: any): JusticeService {
+  return {
+    id: s.id,
+    slug: s.slug,
+    title: s.title,
+    shortDescription: s.short_description ?? s.shortDescription ?? "",
+    category: s.category?.value ?? s.category ?? "",
+    categoryLabel: s.category_label ?? s.categoryLabel ?? "",
+    iconName: s.icon_name ?? s.iconName ?? "",
+    whoItIsFor: s.who_it_is_for ?? s.whoItIsFor ?? [],
+    howIcjHelps: s.how_icj_helps ?? s.howIcjHelps ?? [],
+    availableAssistance: s.available_assistance ?? s.availableAssistance ?? [],
+    nextSteps: s.next_steps ?? s.nextSteps ?? [],
+    relatedProfessionals: s.related_professionals ?? s.relatedProfessionals ?? [],
+    featured: s.is_featured ?? s.featured ?? false,
+  };
+}
+
 export const serviceService = {
   listServices: async (
     params: PublicPaginationParams = {}
   ): Promise<PublicPaginatedResponse<JusticeService>> => {
-    await new Promise((r) => setTimeout(r, 100));
-    let filtered = [...mockServices];
+    try {
+      const q = new URLSearchParams();
+      if (params.page) q.set("page", String(params.page));
+      if (params.pageSize) q.set("page_size", String(params.pageSize));
+      if (params.search) q.set("search", params.search);
+      if (params.category && params.category !== "all") q.set("category", params.category);
 
-    if (params.category && params.category !== "all") {
-      filtered = filtered.filter((s) => s.category === params.category);
+      const qs = q.toString();
+      const path = `${API_ENDPOINTS.publicServices.list}${qs ? `?${qs}` : ""}`;
+      const res = await apiClient<{ data: { results: any[]; count: number; next: string | null; previous: string | null } }>(path, {
+        suppressErrorLog: true,
+      });
+      return {
+        count: res.data.count,
+        next: res.data.next,
+        previous: res.data.previous,
+        results: res.data.results.map(mapBackendService),
+      };
+    } catch (error) {
+      console.error("Failed to fetch services:", error);
+      return { count: 0, next: null, previous: null, results: [] };
     }
-
-    if (params.search) {
-      const q = params.search.toLowerCase();
-      filtered = filtered.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          s.shortDescription.toLowerCase().includes(q) ||
-          s.availableAssistance.some((a) => a.toLowerCase().includes(q))
-      );
-    }
-
-    return paginateArray(filtered, params.page ?? 1, params.pageSize ?? 9);
   },
 
   getServiceBySlug: async (slug: string): Promise<JusticeService | null> => {
-    await new Promise((r) => setTimeout(r, 50));
-    return mockServices.find((s) => s.slug === slug) ?? null;
+    try {
+      const path = API_ENDPOINTS.publicServices.detail(slug);
+      const res = await apiClient<{ data: any }>(path, { suppressErrorLog: true });
+      return mapBackendService(res.data);
+    } catch (error) {
+      console.error("Failed to fetch service by slug:", error);
+      return null;
+    }
   },
 
   getFeaturedServices: async (): Promise<JusticeService[]> => {
-    return mockServices.filter((s) => s.featured);
+    try {
+      const path = API_ENDPOINTS.publicServices.featured;
+      const res = await apiClient<{ data: any[] }>(path, { suppressErrorLog: true });
+      return res.data.map(mapBackendService);
+    } catch (error) {
+      console.error("Failed to fetch featured services:", error);
+      return [];
+    }
   },
+  
+  getCategories: async (): Promise<{ label: string; value: string }[]> => {
+    try {
+      const path = API_ENDPOINTS.publicServices.categories;
+      const res = await apiClient<{ data: any[] }>(path, { suppressErrorLog: true });
+      return [{ label: "All Services", value: "all" }, ...res.data.map((c) => ({ label: c.name, value: c.value }))];
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      return [
+        { label: "All Services", value: "all" },
+        { label: "Specialized Law", value: "specialized_law" },
+        { label: "Citizen Assistance", value: "assistance" },
+        { label: "Dispute Resolution", value: "dispute_resolution" },
+        { label: "Governance & Schemes", value: "governance_schemes" },
+        { label: "Legal Information", value: "legal_information" },
+      ];
+    }
+  }
 };
 
 // =============================================================================
@@ -63,6 +117,8 @@ function mapBackendToPublicProfessional(p: any): PublicProfessional {
     fullName: p.full_name,
     profession: p.profession_name || "Advocate",
     categoryName: p.category_name,
+    registeredCategories: p.registered_categories || [],
+    registeredProfessions: p.registered_professions || [],
     photoUrl: p.photo_url || null,
     barOrRegNumber: p.enrollment_number || p.reference_id,
     stateBarCouncil: p.bar_council || p.state,
@@ -86,8 +142,10 @@ export const professionalService = {
       group?: string;
       profession?: string;
       state?: string;
+      city?: string;
       specialisation?: string;
       experienceMin?: number;
+      is_verified?: boolean;
     } = {}
   ): Promise<PublicPaginatedResponse<PublicProfessional>> => {
     try {
@@ -99,6 +157,9 @@ export const professionalService = {
       if (params.group && params.group !== "all") q.set("group", params.group);
       if (params.profession && params.profession !== "all") q.set("profession", params.profession);
       if (params.state && params.state !== "all" && params.state !== "All States") q.set("state", params.state);
+      if (params.city && params.city !== "all" && params.city !== "All Cities") q.set("city", params.city);
+      if (params.experienceMin !== undefined) q.set("experience_min", String(params.experienceMin));
+      if (params.is_verified !== undefined) q.set("is_verified", params.is_verified ? "true" : "false");
 
       const qs = q.toString();
       const path = `${API_ENDPOINTS.professionalOnboardingPublic.publicProfessionals}${qs ? `?${qs}` : ""}`;
@@ -138,10 +199,23 @@ export const professionalService = {
     }
   },
 
-  getProfessionalsFilters: async (): Promise<{ professions: { label: string; value: string }[]; states: string[] }> => {
+  getProfessionalsFilters: async (): Promise<{
+    professions: { label: string; value: string }[];
+    categories: { label: string; value: string }[];
+    states: string[];
+    cities: string[];
+  }> => {
     try {
       const path = `${API_ENDPOINTS.professionalOnboardingPublic.publicProfessionals}filters/`;
-      const res = await apiClient<{ success: boolean; data: { professions: { label: string; value: string }[]; states: string[] } }>(path, { suppressErrorLog: true });
+      const res = await apiClient<{
+        success: boolean;
+        data: {
+          professions: { label: string; value: string }[];
+          categories: { label: string; value: string }[];
+          states: string[];
+          cities: string[];
+        };
+      }>(path, { suppressErrorLog: true });
       if (res?.data) {
         return res.data;
       }
@@ -150,7 +224,9 @@ export const professionalService = {
     }
     return {
       professions: [{ label: "All Practitioners", value: "all" }],
+      categories: [{ label: "All Categories", value: "all" }],
       states: ["All States"],
+      cities: ["All Cities"],
     };
   },
 };
