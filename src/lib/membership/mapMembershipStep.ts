@@ -14,7 +14,8 @@ function mapFieldType(field: MembershipOnboardingField): FormField["type"] {
   if (field.field_type === "checkbox") return "checkbox";
   if (field.field_type === "country") return "country";
   if (field.field_type === "state") return "state";
-  if (field.field_type === "city" || field.field_type === "district") return "city";
+  if (field.field_type === "city") return "city";
+  if (field.field_type === "district") return "district";
   return "text";
 }
 

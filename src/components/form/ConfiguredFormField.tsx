@@ -9,9 +9,10 @@ import {
   Typography,
   FormHelperText,
   Button,
+  InputAdornment,
 } from "@mui/material";
-import { Country, State, City } from "country-state-city";
-
+import { useLocationData } from "@/hooks/useLocationData";
+import { getCountryCallingCode, isValidPhoneNumber } from "libphonenumber-js/max";
 // Using any to avoid circular dependency since the type can be HonorableFormField or HonoraryFormField
 type Props = {
   field: any;
@@ -23,6 +24,10 @@ type Props = {
 };
 
 export default function ConfiguredFormField({ field, value, error, disabled, values = {}, onChange }: Props) {
+  const selectedCountryName = values.country || "India";
+  const selectedStateName = values.state || "";
+  const { countries, states, districts, loading, levels } = useLocationData(selectedCountryName, selectedStateName);
+
   const labelWithFlag = field.required ? `${field.label} *` : field.label;
 
   switch (field.field_type) {
@@ -50,7 +55,6 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
         </TextField>
       );
     case "country": {
-      const countries = Country.getAllCountries().map((c) => ({ value: c.name, label: c.name }));
       return (
         <TextField
           select
@@ -58,10 +62,13 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           size="small"
           label={labelWithFlag}
           value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            onChange(e.target.value);
+            // Parent should ideally handle clearing but we only have onChange for this field
+          }}
           error={!!error}
           helperText={error ?? field.help_text}
-          disabled={disabled}
+          disabled={disabled || loading}
         >
           <MenuItem value="">
             <em>Select Country</em>
@@ -75,23 +82,20 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
       );
     }
     case "state": {
-      const selectedCountryName = values.country || "India";
-      const countryObj = Country.getAllCountries().find((c) => c.name === selectedCountryName);
-      const states = countryObj ? State.getStatesOfCountry(countryObj.isoCode).map((s) => ({ value: s.name, label: s.name })) : [];
       return (
         <TextField
           select
           fullWidth
           size="small"
-          label={labelWithFlag}
+          label={labelWithFlag === "State *" ? `${levels.l1} *` : labelWithFlag === "State" ? levels.l1 : labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
           error={!!error}
           helperText={error ?? field.help_text}
-          disabled={disabled || !countryObj}
+          disabled={disabled || loading || !states.length}
         >
           <MenuItem value="">
-            <em>Select State</em>
+            <em>{`Select ${levels.l1}`}</em>
           </MenuItem>
           {states.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
@@ -101,29 +105,23 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
         </TextField>
       );
     }
-    case "city":
     case "district": {
-      const selectedCountryName = values.country || "India";
-      const selectedStateName = values.state || "";
-      const countryObj = Country.getAllCountries().find((c) => c.name === selectedCountryName);
-      const stateObj = countryObj ? State.getStatesOfCountry(countryObj.isoCode).find((s) => s.name === selectedStateName) : null;
-      const cities = countryObj && stateObj ? City.getCitiesOfState(countryObj.isoCode, stateObj.isoCode).map((c) => ({ value: c.name, label: c.name })) : [];
       return (
         <TextField
           select
           fullWidth
           size="small"
-          label={labelWithFlag}
+          label={labelWithFlag === "District *" ? `${levels.l2} *` : labelWithFlag === "District" ? levels.l2 : labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
           error={!!error}
           helperText={error ?? field.help_text}
-          disabled={disabled || !stateObj}
+          disabled={disabled || loading || !districts.length}
         >
           <MenuItem value="">
-            <em>Select City / District</em>
+            <em>{`Select ${levels.l2}`}</em>
           </MenuItem>
-          {cities.map((opt) => (
+          {districts.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
             </MenuItem>
@@ -206,11 +204,54 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           {(error || field.help_text) && <FormHelperText>{error ?? field.help_text}</FormHelperText>}
         </FormControl>
       );
+    case "phone": {
+      const countryCode = (countries.find(c => c.value === selectedCountryName)?.code?.toUpperCase() || "IN") as any;
+      let callingCode = "";
+      try {
+        callingCode = `+${getCountryCallingCode(countryCode)}`;
+      } catch(e) {}
+
+      const rawValue = (value as string) || "";
+      const displayValue = rawValue.startsWith(callingCode) ? rawValue.slice(callingCode.length) : rawValue;
+
+      let phoneError = error;
+      if (rawValue) {
+         try {
+           if (!isValidPhoneNumber(rawValue, countryCode)) {
+              phoneError = `Enter a valid mobile number for ${selectedCountryName}`;
+           }
+         } catch(e) {
+           phoneError = `Enter a valid mobile number for ${selectedCountryName}`;
+         }
+      }
+
+      return (
+        <TextField
+          fullWidth
+          size="small"
+          type="tel"
+          label={labelWithFlag}
+          placeholder={field.placeholder}
+          value={displayValue}
+          onChange={(e) => {
+            let val = e.target.value;
+            if (val.startsWith(callingCode)) val = val.slice(callingCode.length);
+            val = val.replace(/\D/g, "");
+            onChange(val ? `${callingCode}${val}` : "");
+          }}
+          error={!!phoneError}
+          helperText={phoneError ?? field.help_text}
+          disabled={disabled}
+          slotProps={{
+            input: callingCode ? { startAdornment: <InputAdornment position="start">{callingCode}</InputAdornment> } : undefined
+          }}
+        />
+      );
+    }
     default:
       let inputType = "text";
       if (field.field_type === "number") inputType = "number";
       else if (field.field_type === "email") inputType = "email";
-      else if (field.field_type === "phone") inputType = "tel";
 
       return (
         <TextField
@@ -220,20 +261,10 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           label={labelWithFlag}
           placeholder={field.placeholder}
           value={(value as string) ?? ""}
-          onChange={(e) => {
-            let val = e.target.value;
-            if (inputType === "tel") {
-              val = val.replace(/\D/g, "");
-              if (val.length > 10) return;
-            }
-            onChange(val);
-          }}
+          onChange={(e) => onChange(e.target.value)}
           error={!!error}
           helperText={error ?? field.help_text}
           disabled={disabled}
-          slotProps={{
-            htmlInput: inputType === "tel" ? { maxLength: 10 } : undefined,
-          }}
         />
       );
   }

@@ -11,6 +11,7 @@ export type FieldType =
   | "file"
   | "country"
   | "state"
+  | "district"
   | "city";
 
 export type OnboardingCategory = {

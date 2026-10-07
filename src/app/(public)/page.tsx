@@ -301,7 +301,7 @@ export default function HomePage() {
           <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
             <Grid container>
               {[
-                { value: "1,200+", label: "Empaneled Advocates" },
+                { value: "200+", label: "Empaneled Advocates" },
                 { value: "18+", label: "Legal Service Categories" },
                 { value: "28", label: "States Covered" },
                 { value: "50,000+", label: "Citizens Assisted" },

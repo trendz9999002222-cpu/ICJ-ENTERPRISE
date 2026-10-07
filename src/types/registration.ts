@@ -57,6 +57,7 @@ export type FieldType =
   | "checkboxGroup"
   | "country"
   | "state"
+  | "district"
   | "city";
 
 export type VisibleWhen = { field: string; equals?: string; oneOf?: string[] };
