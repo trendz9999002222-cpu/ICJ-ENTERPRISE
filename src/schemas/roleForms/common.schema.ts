@@ -1,6 +1,6 @@
 import type { AddressContactData, PersonalInfoData } from "@/types/onboarding-form";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 
-export const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PINCODE_REGEX = /^[1-9][0-9]{5}$/;
 
@@ -21,11 +21,11 @@ export function validatePersonal(data: PersonalInfoData): Record<string, string>
     errors.dateOfBirth = "जन्म तिथि अनिवार्य है (Date of Birth is required).";
   }
 
-  const cleanMobile = (data.mobile || "").replace(/\D/g, "");
+  const cleanMobile = data.mobile ? String(data.mobile).trim() : "";
   if (!cleanMobile) {
     errors.mobile = "मोबाइल नंबर दर्ज करना अनिवार्य है (Mobile number is required).";
-  } else if (!INDIAN_PHONE_REGEX.test(cleanMobile)) {
-    errors.mobile = "कृपया 10 अंकों का मान्य भारतीय मोबाइल नंबर दर्ज करें (Valid 10-digit mobile number required).";
+  } else if (!isValidPhoneNumber(cleanMobile.startsWith("+") ? cleanMobile : `+91${cleanMobile.replace(/\D/g, "")}`, "IN")) {
+    errors.mobile = "कृपया मान्य मोबाइल नंबर दर्ज करें (Valid mobile number required).";
   }
 
   if (data.email && data.email.trim()) {
@@ -63,10 +63,10 @@ export function validateAddress(data: AddressContactData): Record<string, string
     errors.pincode = "कृपया 6 अंकों का मान्य भारतीय पिनकोड दर्ज करें (Valid 6-digit Indian pincode required).";
   }
 
-  if (data.alternateMobile && data.alternateMobile.trim()) {
-    const cleanAlt = data.alternateMobile.replace(/\D/g, "");
-    if (!INDIAN_PHONE_REGEX.test(cleanAlt)) {
-      errors.alternateMobile = "कृपया 10 अंकों का मान्य मोबाइल नंबर दर्ज करें (Valid 10-digit number required).";
+  if (data.alternateMobile && String(data.alternateMobile).trim()) {
+    const cleanAlt = String(data.alternateMobile).trim();
+    if (!isValidPhoneNumber(cleanAlt.startsWith("+") ? cleanAlt : `+91${cleanAlt.replace(/\D/g, "")}`, "IN")) {
+      errors.alternateMobile = "कृपया मान्य मोबाइल नंबर दर्ज करें (Valid mobile number required).";
     }
   }
 

@@ -1,4 +1,5 @@
 import type { DocumentField, FormField, FormSection, VisibleWhen } from "@/types/registration";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 
 export type Errors = Record<string, string>;
 
@@ -37,10 +38,8 @@ export function validateField(field: FormField, values: Record<string, unknown>)
   }
 
   if (field.type === "tel" && text) {
-    // 10 digit number starting with 6, 7, 8 or 9
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(text.replace(/[\s\-]/g, ""))) {
-      return "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9";
+    if (!text.startsWith("+") || !isValidPhoneNumber(text)) {
+      return "Enter a valid mobile number";
     }
   }
 
