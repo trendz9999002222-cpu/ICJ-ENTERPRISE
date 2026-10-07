@@ -30,6 +30,14 @@ urlpatterns = [
         "api/v1/honorable-advisory/",
         include("apps.honorable_advisory.urls"),
     ),
+    path(
+        "api/v1/admin/services/",
+        include("apps.services.urls.admin"),
+    ),
+    path(
+        "api/v1/services/",
+        include("apps.services.urls.public"),
+    ),
 ]
 
 if settings.DEBUG or True:

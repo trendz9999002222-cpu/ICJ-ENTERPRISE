@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "apps.membership_onboarding.apps.MembershipOnboardingConfig",
     "apps.person.apps.PersonConfig",
     "apps.honorable_advisory.apps.HonorableAdvisoryConfig",
+    "apps.services.apps.ServicesConfig",
 ]
 
 MIDDLEWARE = [
