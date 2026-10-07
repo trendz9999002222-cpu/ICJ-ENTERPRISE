@@ -71,6 +71,8 @@ export type PublicProfessional = {
   fullName: string;
   profession: ProfessionType | string;
   categoryName?: string;
+  registeredCategories?: string[];
+  registeredProfessions?: string[];
   photoUrl?: string | null;
   barOrRegNumber?: string;
   stateBarCouncil?: string;

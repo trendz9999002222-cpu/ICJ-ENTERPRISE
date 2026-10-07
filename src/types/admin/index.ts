@@ -391,3 +391,38 @@ export type RecentActivity = {
   metadata: Record<string, unknown>;
 };
 
+// ---------------------------------------------------------------------------
+// Services & Categories
+// ---------------------------------------------------------------------------
+
+export type AdminServiceCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  value: string;
+  is_active: boolean;
+  display_order: number;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+
+export type AdminJusticeService = {
+  id: string;
+  slug: string;
+  title: string;
+  short_description: string;
+  category: string;
+  category_label: string;
+  icon_name: string;
+  who_it_is_for: string[];
+  how_icj_helps: string[];
+  available_assistance: string[];
+  next_steps: string[];
+  related_professionals: string[];
+  is_featured: boolean;
+  is_active: boolean;
+  display_order: number;
+  created_at: ISODateString;
+  updated_at: ISODateString;
+};
+

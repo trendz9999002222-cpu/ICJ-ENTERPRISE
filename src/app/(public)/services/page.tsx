@@ -24,15 +24,6 @@ import ServiceCard from "@/components/features/public/ServiceCard";
 import { serviceService } from "@/services/public";
 import type { JusticeService } from "@/types/public";
 
-const CATEGORIES = [
-  { label: "All Services", value: "all" },
-  { label: "Specialized Law", value: "specialized_law" },
-  { label: "Citizen Assistance", value: "assistance" },
-  { label: "Dispute Resolution", value: "dispute_resolution" },
-  { label: "Governance & Schemes", value: "governance_schemes" },
-  { label: "Legal Information", value: "legal_information" },
-];
-
 export default function ServicesCatalogPage() {
   const [services, setServices] = useState<JusticeService[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -40,6 +31,9 @@ export default function ServicesCatalogPage() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<{ label: string; value: string }[]>([
+    { label: "All Services", value: "all" },
+  ]);
 
   const loadData = async () => {
     setLoading(true);
@@ -59,6 +53,10 @@ export default function ServicesCatalogPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    serviceService.getCategories().then(setCategories);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -111,7 +109,7 @@ export default function ServicesCatalogPage() {
                 },
               }}
             >
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <Tab key={c.value} label={c.label} value={c.value} />
               ))}
             </Tabs>

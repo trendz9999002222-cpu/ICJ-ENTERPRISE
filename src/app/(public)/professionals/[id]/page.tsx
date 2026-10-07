@@ -7,7 +7,9 @@ import GavelIcon from "@mui/icons-material/Gavel";
 import LanguageIcon from "@mui/icons-material/Language";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SchoolIcon from "@mui/icons-material/School";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import WorkHistoryIcon from "@mui/icons-material/WorkHistory";
+import CategoryIcon from "@mui/icons-material/Category";
 import {
   Alert,
   Avatar,
@@ -133,24 +135,79 @@ export default function ProfessionalProfilePage() {
                     {initials}
                   </Avatar>
 
-                  <Box>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 0.5 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 0.5, flexWrap: "wrap", gap: 0.5 }}>
                       <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
                         {professional.fullName}
                       </Typography>
-                      {professional.isVerified && (
-                        <CheckCircleIcon sx={{ fontSize: 20, color: "#16a34a" }} />
+                      {professional.isVerified ? (
+                        <Chip
+                          label="Verified"
+                          size="small"
+                          icon={<CheckCircleIcon fontSize="small" />}
+                          sx={{
+                            bgcolor: "#dcfce7",
+                            color: "#166534",
+                            fontWeight: 700,
+                            fontSize: "0.7rem",
+                            height: 22,
+                            "& .MuiChip-icon": { color: "#16a34a", fontSize: "0.85rem" },
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          label="Unverified"
+                          size="small"
+                          icon={<WarningAmberIcon fontSize="small" />}
+                          sx={{
+                            bgcolor: "#fef9c3",
+                            color: "#854d0e",
+                            fontWeight: 700,
+                            fontSize: "0.7rem",
+                            height: 22,
+                            "& .MuiChip-icon": { color: "#ca8a04", fontSize: "0.85rem" },
+                          }}
+                        />
                       )}
                     </Stack>
 
-                    <Typography variant="subtitle2" sx={{ color: "#2563eb", fontWeight: 700, mb: 1 }}>
-                      {professional.profession}
-                    </Typography>
+                    {/* All registered professions */}
+                    {professional.registeredProfessions && professional.registeredProfessions.length > 0 ? (
+                      <Stack direction="row" spacing={0.5} sx={{ mb: 1, flexWrap: "wrap", gap: 0.5 }}>
+                        {professional.registeredProfessions.map((p) => (
+                          <Chip
+                            key={p}
+                            label={p}
+                            size="small"
+                            sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 700, fontSize: "0.75rem" }}
+                          />
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Typography variant="subtitle2" sx={{ color: "#2563eb", fontWeight: 700, mb: 1 }}>
+                        {professional.profession}
+                      </Typography>
+                    )}
+
+                    {/* All registered categories */}
+                    {professional.registeredCategories && professional.registeredCategories.length > 0 && (
+                      <Stack direction="row" spacing={0.5} sx={{ mb: 1.5, flexWrap: "wrap", gap: 0.5, alignItems: "center" }}>
+                        <CategoryIcon sx={{ fontSize: 14, color: "#64748b" }} />
+                        {professional.registeredCategories.map((c) => (
+                          <Chip
+                            key={c}
+                            label={c}
+                            size="small"
+                            sx={{ bgcolor: "#f0fdf4", color: "#166534", fontWeight: 600, fontSize: "0.7rem", height: 20 }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
 
                     <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", gap: 1 }}>
                       <Chip
                         icon={<LocationOnIcon sx={{ fontSize: 14 }} />}
-                        label={`${professional.city}, ${professional.state}`}
+                        label={[professional.city, professional.state].filter(Boolean).join(", ") || "India"}
                         size="small"
                         sx={{ bgcolor: "#f1f5f9", fontWeight: 600 }}
                       />

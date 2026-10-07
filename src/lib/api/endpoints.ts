@@ -84,4 +84,17 @@ export const API_ENDPOINTS = {
     deactivate: (id: number) => `/admin/users/${id}/deactivate/`,
     resetPassword: (id: number) => `/admin/users/${id}/reset-password/`,
   },
+  adminServices: {
+    list: "/admin/services/",
+    detail: (id: string) => `/admin/services/${id}/`,
+    categoriesList: "/admin/services/categories/",
+    categoryDetail: (id: string) => `/admin/services/categories/${id}/`,
+  },
+  publicServices: {
+    list: "/services/",
+    detail: (slug: string) => `/services/${slug}/`,
+    categories: "/services/categories/",
+    featured: "/services/featured/",
+  },
 } as const;
+

@@ -3,7 +3,8 @@
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import WorkHistoryOutlinedIcon from "@mui/icons-material/WorkHistoryOutlined";
-import { Avatar, Box, Button, Chip, Paper, Stack, Typography } from "@mui/material";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import { Avatar, Box, Button, Chip, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import Link from "next/link";
 
 import {
@@ -15,6 +16,13 @@ import type { PublicProfessional } from "@/types/public";
 export default function ProfessionalCard({ professional }: { professional: PublicProfessional }) {
   const display = maskPublicProfessional(professional);
   const initials = publicProfessionalInitials(display.fullName);
+
+  // Show at most 2 professions cleanly in the subtitle
+  const professions = professional.registeredProfessions && professional.registeredProfessions.length > 0
+    ? professional.registeredProfessions
+    : [professional.profession];
+  const professionLabel = professions.slice(0, 2).join(" / ");
+  const hasMoreProfessions = professions.length > 2;
 
   return (
     <Paper
@@ -48,13 +56,14 @@ export default function ProfessionalCard({ professional }: { professional: Publi
               fontSize: "1.1rem",
               fontWeight: 800,
               color: "#ffffff",
+              flexShrink: 0,
             }}
           >
             {initials}
           </Avatar>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.5 }}>
               <Typography
                 component="h3"
                 variant="subtitle1"
@@ -68,14 +77,57 @@ export default function ProfessionalCard({ professional }: { professional: Publi
               >
                 {display.fullName}
               </Typography>
-              {professional.isVerified && (
-                <CheckCircleIcon sx={{ fontSize: 16, color: "#16a34a", flexShrink: 0 }} />
+              {professional.isVerified ? (
+                <Chip
+                  label="Verified"
+                  size="small"
+                  icon={<CheckCircleIcon fontSize="small" />}
+                  sx={{
+                    bgcolor: "#dcfce7",
+                    color: "#166534",
+                    fontWeight: 700,
+                    fontSize: "0.65rem",
+                    height: 20,
+                    "& .MuiChip-icon": { color: "#16a34a", fontSize: "0.8rem" },
+                  }}
+                />
+              ) : (
+                <Chip
+                  label="Unverified"
+                  size="small"
+                  icon={<WarningAmberIcon fontSize="small" />}
+                  sx={{
+                    bgcolor: "#fef9c3",
+                    color: "#854d0e",
+                    fontWeight: 700,
+                    fontSize: "0.65rem",
+                    height: 20,
+                    "& .MuiChip-icon": { color: "#ca8a04", fontSize: "0.8rem" },
+                  }}
+                />
               )}
             </Stack>
 
-            <Typography variant="body2" sx={{ color: "#2563eb", fontWeight: 600, fontSize: "0.8rem" }}>
-              {professional.profession}
-            </Typography>
+            {/* Primary profession / first two professions */}
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "#2563eb", fontWeight: 600, fontSize: "0.8rem" }}
+                noWrap
+              >
+                {professionLabel}
+              </Typography>
+              {hasMoreProfessions && (
+                <Tooltip title={professions.slice(2).join(", ")} arrow>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#64748b", fontWeight: 600, cursor: "help", flexShrink: 0 }}
+                  >
+                    +{professions.length - 2}
+                  </Typography>
+                </Tooltip>
+              )}
+            </Stack>
 
             {display.barOrRegNumber && (
               <Typography variant="caption" sx={{ color: "#94a3b8", display: "block" }}>
@@ -90,7 +142,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             <LocationOnOutlinedIcon sx={{ fontSize: 15, color: "#94a3b8" }} />
             <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 500 }}>
-              {professional.city}, {professional.state}
+              {[professional.city, professional.state].filter(Boolean).join(", ") || "India"}
             </Typography>
           </Stack>
 
@@ -105,7 +157,7 @@ export default function ProfessionalCard({ professional }: { professional: Publi
         {/* Specialisation tags */}
         <Box sx={{ mb: 2 }}>
           <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.5 }}>
-            {professional.specialisations.slice(0, 3).map((spec) => (
+            {professional.specialisations.slice(0, 2).map((spec) => (
               <Chip
                 key={spec}
                 label={spec}
@@ -119,9 +171,9 @@ export default function ProfessionalCard({ professional }: { professional: Publi
                 }}
               />
             ))}
-            {professional.specialisations.length > 3 && (
+            {professional.specialisations.length > 2 && (
               <Chip
-                label={`+${professional.specialisations.length - 3}`}
+                label={`+${professional.specialisations.length - 2}`}
                 size="small"
                 sx={{
                   bgcolor: "#f1f5f9",
