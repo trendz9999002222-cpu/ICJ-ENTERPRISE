@@ -12,7 +12,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useLocationData } from "@/hooks/useLocationData";
-import { getCountryCallingCode, isValidPhoneNumber } from "libphonenumber-js/max";
+import { getCountryCallingCode, isValidPhoneNumber, validatePhoneNumberLength } from "libphonenumber-js/max";
 // Using any to avoid circular dependency since the type can be HonorableFormField or HonoraryFormField
 type Props = {
   field: any;
@@ -215,14 +215,23 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
       const displayValue = rawValue.startsWith(callingCode) ? rawValue.slice(callingCode.length) : rawValue;
 
       let phoneError = error;
-      if (rawValue) {
-         try {
-           if (!isValidPhoneNumber(rawValue, countryCode)) {
+      if (displayValue) {
+        if (countryCode === "IN") {
+          if (!/^[6-9]/.test(displayValue)) {
+            phoneError = "Mobile number must start with 6, 7, 8, or 9";
+          } else if (displayValue.length !== 10) {
+            phoneError = "Mobile number must be exactly 10 digits";
+          }
+        }
+        if (!phoneError) {
+          try {
+            if (!isValidPhoneNumber(displayValue, countryCode)) {
               phoneError = `Enter a valid mobile number for ${selectedCountryName}`;
-           }
-         } catch(e) {
-           phoneError = `Enter a valid mobile number for ${selectedCountryName}`;
-         }
+            }
+          } catch(e) {
+            phoneError = `Enter a valid mobile number for ${selectedCountryName}`;
+          }
+        }
       }
 
       return (
@@ -234,10 +243,28 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           placeholder={field.placeholder}
           value={displayValue}
           onChange={(e) => {
-            let val = e.target.value;
-            if (val.startsWith(callingCode)) val = val.slice(callingCode.length);
-            val = val.replace(/\D/g, "");
-            onChange(val ? `${callingCode}${val}` : "");
+            let digits = e.target.value;
+            if (digits.startsWith(callingCode)) digits = digits.slice(callingCode.length);
+            digits = digits.replace(/\D/g, "");
+
+            if (countryCode === "IN") {
+              if (digits.length > 10) {
+                digits = digits.slice(0, 10);
+              }
+            } else {
+              if (digits.length > 0) {
+                let validDigits = digits;
+                while (
+                  validDigits.length > 0 &&
+                  validatePhoneNumberLength(validDigits, countryCode) === "TOO_LONG"
+                ) {
+                  validDigits = validDigits.slice(0, -1);
+                }
+                digits = validDigits;
+              }
+            }
+            
+            onChange(digits ? `${callingCode}${digits}` : "");
           }}
           error={!!phoneError}
           helperText={phoneError ?? field.help_text}
@@ -248,9 +275,12 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
         />
       );
     }
-    default:
+    default: {
+      const isPincode = (field.label || field.field_key || "").toLowerCase().includes("pincode");
+      const isNumber = field.field_type === "number";
+      
       let inputType = "text";
-      if (field.field_type === "number") inputType = "number";
+      if (isNumber && !isPincode) inputType = "number";
       else if (field.field_type === "email") inputType = "email";
 
       return (
@@ -261,11 +291,19 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           label={labelWithFlag}
           placeholder={field.placeholder}
           value={(value as string) ?? ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            let val = e.target.value;
+            if (isPincode) {
+              val = val.replace(/\D/g, "");
+              if (val.length > 6) val = val.slice(0, 6);
+            }
+            onChange(val);
+          }}
           error={!!error}
           helperText={error ?? field.help_text}
           disabled={disabled}
         />
       );
+    }
   }
 }
