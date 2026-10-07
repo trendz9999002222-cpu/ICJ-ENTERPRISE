@@ -1,10 +1,11 @@
 import re
 from typing import Any
 
+import phonenumbers
+
 from apps.professional_onboarding.models.common_field import CommonField
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-PHONE_RE = re.compile(r"^[6-9]\d{9}$")
 
 
 def _is_empty(value: Any) -> bool:
@@ -17,7 +18,7 @@ def _is_empty(value: Any) -> bool:
     return False
 
 
-def validate_configured_field_value(field_type: str, value: Any, options: list[dict] | None) -> str | None:
+def validate_configured_field_value(field_type: str, value: Any, options: list[dict] | None, country_name: str | None = None) -> str | None:
     """Return an error message if invalid, else None."""
     if _is_empty(value):
         return None
@@ -29,8 +30,15 @@ def validate_configured_field_value(field_type: str, value: Any, options: list[d
             return "Enter a valid email address."
     elif field_type == CommonField.FieldType.PHONE:
         val = str(value).replace(" ", "").replace("-", "")
-        if not PHONE_RE.match(val):
-            return "Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9."
+        # fallback to IN if no country provided and no + prefix
+        region = "IN" if not val.startswith("+") else None
+        
+        try:
+            parsed = phonenumbers.parse(val, region)
+            if not phonenumbers.is_valid_number(parsed):
+                return f"Enter a valid mobile number for {country_name or 'the selected country'}."
+        except phonenumbers.NumberParseException:
+            return f"Enter a valid mobile number for {country_name or 'the selected country'}."
     elif field_type == CommonField.FieldType.NUMBER:
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             return "Enter a valid number."
