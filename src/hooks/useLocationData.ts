@@ -55,8 +55,8 @@ export function useLocationData(countryName?: string, stateName?: string) {
       return;
     }
 
+    const code = countryObj.code;
     async function fetchCountryData() {
-      const code = countryObj.code;
       if (CACHE[code]) {
         setCountryData(CACHE[code]);
         return;
