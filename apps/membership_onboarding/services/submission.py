@@ -123,7 +123,7 @@ class MembershipApplicationService:
                 errors.setdefault(key, []).append(f"{field.label} is required.")
             else:
                 ftype = _normalize_field_type(field.field_type)
-                msg = validate_configured_field_value(ftype, value, options)
+                msg = validate_configured_field_value(ftype, value, options, field_values.get("country"))
                 if msg:
                     errors.setdefault(key, []).append(msg)
 

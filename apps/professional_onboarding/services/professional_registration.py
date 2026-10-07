@@ -253,7 +253,7 @@ class ProfessionalRegistrationSubmissionService:
             if meta["is_required"] and not value:
                 errors.setdefault(key, []).append(f"{meta['label']} is required.")
             else:
-                msg = validate_configured_field_value(meta["field_type"], value, meta.get("options"))
+                msg = validate_configured_field_value(meta["field_type"], value, meta.get("options"), common_field_values.get("country"))
                 if msg:
                     errors.setdefault(key, []).append(msg)
 

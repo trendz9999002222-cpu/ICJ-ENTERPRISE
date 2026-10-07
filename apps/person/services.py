@@ -4,10 +4,14 @@ from typing import Any
 
 from django.db import transaction
 
-from django.contrib.auth import get_user_model
+from typing import TYPE_CHECKING
 
-User = get_user_model()
-from apps.person.models import Person
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractBaseUser as User
+else:
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+from .models import Person
 
 
 def _pick(values: dict[str, Any], *keys: str) -> str:
