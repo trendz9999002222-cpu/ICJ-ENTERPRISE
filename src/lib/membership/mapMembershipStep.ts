@@ -60,5 +60,6 @@ export function stepToFormSchema(step: MembershipOnboardingStep): FormSchema {
     accept: ".pdf,.jpg,.jpeg,.png",
   }));
 
+
   return { sections, documents };
 }
