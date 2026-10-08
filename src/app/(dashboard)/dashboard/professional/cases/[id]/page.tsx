@@ -111,9 +111,9 @@ export default function ProfessionalCaseDetailPage() {
         {/* Header Summary */}
         <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px" }}>
           <CardContent>
-            <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: "center" }} spacing={2}>
               <Box>
-                <Stack direction="row" spacing={2} alignItems="center">
+                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
                     {caseData.case_id}
                   </Typography>
@@ -162,7 +162,7 @@ export default function ProfessionalCaseDetailPage() {
         {/* Details Grid */}
         <Grid container spacing={3}>
           {/* Left Column - Request Details */}
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", height: "100%" }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "#1e293b", mb: 2 }}>
@@ -176,25 +176,25 @@ export default function ProfessionalCaseDetailPage() {
                   Additional Details
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Financial Status</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: "#0f172a" }}>
                       {client?.financial_status || "Not provided"}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Employment Status</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: "#0f172a" }}>
                       {client?.employment_status || "Not provided"}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Vulnerable Group</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: "#0f172a" }}>
                       {client?.vulnerable_group || "None"}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Approved Budget</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600, color: "#16a34a" }}>
                       ₹{budget}
@@ -206,7 +206,7 @@ export default function ProfessionalCaseDetailPage() {
           </Grid>
 
           {/* Right Column - Client Info */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", height: "100%" }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: "#1e293b", mb: 2 }}>
@@ -214,7 +214,7 @@ export default function ProfessionalCaseDetailPage() {
                 </Typography>
 
                 <Stack spacing={2.5}>
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                     <Box sx={{ width: 40, height: 40, borderRadius: "50%", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
                       <PersonIcon sx={{ color: "#2563eb" }} />
                     </Box>
@@ -227,7 +227,7 @@ export default function ProfessionalCaseDetailPage() {
                   </Stack>
                   <Divider />
 
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                     <Box sx={{ width: 40, height: 40, borderRadius: "50%", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
                       <PhoneIcon sx={{ color: "#2563eb" }} />
                     </Box>
@@ -246,7 +246,7 @@ export default function ProfessionalCaseDetailPage() {
                   </Stack>
                   <Divider />
 
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                     <Box sx={{ width: 40, height: 40, borderRadius: "50%", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
                       <EmailIcon sx={{ color: "#2563eb" }} />
                     </Box>
@@ -265,7 +265,7 @@ export default function ProfessionalCaseDetailPage() {
                   </Stack>
                   <Divider />
 
-                  <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
                     <Box sx={{ width: 40, height: 40, borderRadius: "50%", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
                       <HomeIcon sx={{ color: "#2563eb" }} />
                     </Box>
