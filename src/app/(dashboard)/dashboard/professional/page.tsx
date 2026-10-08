@@ -8,6 +8,9 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import SearchIcon from "@mui/icons-material/Search";
+import GavelIcon from "@mui/icons-material/Gavel";
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
@@ -18,11 +21,20 @@ import {
   Card,
   CardContent,
   Chip,
+  Divider,
   Grid,
   Stack,
   Step,
   StepLabel,
   Stepper,
+  Tab,
+  Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
@@ -37,6 +49,7 @@ import {
   statusToActiveStep,
 } from "@/lib/professionalDashboard";
 import type { UserProfessionInfo } from "@/types/api";
+import { professionalCasesService } from "@/services/professional/professionalCases.service";
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -57,6 +70,10 @@ export default function ProfessionalDashboardPage() {
   const [name, setName] = useState("Professional");
   const [email, setEmail] = useState("");
   const [professions, setProfessions] = useState<UserProfessionInfo[]>([]);
+  const [casesTab, setCasesTab] = useState(0);
+  const [availableCases, setAvailableCases] = useState<any[]>([]);
+  const [myCases, setMyCases] = useState<any[]>([]);
+  const [casesLoading, setCasesLoading] = useState(false);
 
   useEffect(() => {
     const token = readCookie("icj_access_token");
@@ -79,6 +96,19 @@ export default function ProfessionalDashboardPage() {
         }
       })
       .catch(() => {});
+
+    // Load cases
+    setCasesLoading(true);
+    Promise.all([
+      professionalCasesService.getAvailableCases({ page_size: 50 }),
+      professionalCasesService.getMyCases({ page_size: 50 }),
+    ])
+      .then(([avail, mine]) => {
+        setAvailableCases(avail.results || []);
+        setMyCases(mine.results || []);
+      })
+      .catch(() => {})
+      .finally(() => setCasesLoading(false));
   }, []);
 
   const primary = getPrimaryProfession(professions);
@@ -508,6 +538,150 @@ export default function ProfessionalDashboardPage() {
           </Grid>
         </Grid>
       </Stack>
+
+      {/* ── Legal Cases ───────────────────────────────────────────── */}
+      {approved && (
+        <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#fff" }}>
+          <CardContent sx={{ p: 0 }}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", px: 3, pt: 2.5, pb: 1.5 }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: "8px", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
+                <GavelIcon sx={{ color: "#2563eb", fontSize: 18 }} />
+              </Box>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a" }}>Legal Cases</Typography>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>Cases from ICJ assigned to your professional group</Typography>
+              </Box>
+            </Stack>
+            <Divider />
+            <Box sx={{ px: 3, pt: 1 }}>
+              <Tabs value={casesTab} onChange={(_, v) => setCasesTab(v)} sx={{ mb: 2 }}>
+                <Tab label={`Available (${availableCases.length})`} id="tab-available" />
+                <Tab label={`My Cases (${myCases.length})`} id="tab-my" />
+              </Tabs>
+
+              {casesTab === 0 && (
+                casesLoading ? (
+                  <Typography color="text.secondary" sx={{ py: 2 }}>Loading available cases...</Typography>
+                ) : availableCases.length === 0 ? (
+                  <Box sx={{ py: 3, textAlign: "center" }}>
+                    <FolderOpenIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">No new cases available for your group right now.</Typography>
+                  </Box>
+                ) : (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Case ID</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Client</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Category</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Urgency</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Budget</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {availableCases.map((c) => (
+                          <TableRow key={c.id} hover>
+                            <TableCell>
+                              <Link href={`/dashboard/professional/cases/${c.id}`} target="_blank" style={{ textDecoration: 'none' }}>
+                                <strong style={{ color: "#2563eb", cursor: "pointer" }}>{c.case_id}</strong>
+                              </Link>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ fontWeight: 600, fontSize: "0.82rem" }}>{c.assistance_request_details?.full_name}</Box>
+                              <Box sx={{ fontSize: "0.72rem", color: "#64748b" }}>{c.assistance_request_details?.category}</Box>
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "0.82rem" }}>{c.assistance_request_details?.category || "—"}</TableCell>
+                            <TableCell sx={{ fontSize: "0.82rem" }}>{c.assistance_request_details?.urgency || "—"}</TableCell>
+                            <TableCell sx={{ fontSize: "0.82rem" }}>₹{c.budget}</TableCell>
+                            <TableCell>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                startIcon={<AssignmentTurnedInIcon />}
+                                onClick={async () => {
+                                  try {
+                                    await professionalCasesService.takeCase(c.id);
+                                    setAvailableCases((prev) => prev.filter((x) => x.id !== c.id));
+                                    const mine = await professionalCasesService.getMyCases({ page_size: 50 });
+                                    setMyCases(mine.results || []);
+                                    setCasesTab(1);
+                                  } catch (e: any) {
+                                    alert("Could not take case. It may have already been taken.");
+                                  }
+                                }}
+                                sx={{ fontWeight: 700, textTransform: "none", fontSize: "0.78rem", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
+                              >
+                                Accept Case
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )
+              )}
+
+              {casesTab === 1 && (
+                casesLoading ? (
+                  <Typography color="text.secondary" sx={{ py: 2 }}>Loading...</Typography>
+                ) : myCases.length === 0 ? (
+                  <Box sx={{ py: 3, textAlign: "center" }}>
+                    <AssignmentTurnedInIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">You haven't taken any cases yet.</Typography>
+                  </Box>
+                ) : (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Case ID</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Client</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Problem</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Budget</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Status</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {myCases.map((c) => (
+                          <TableRow key={c.id} hover>
+                            <TableCell>
+                              <Link href={`/dashboard/professional/cases/${c.id}`} target="_blank" style={{ textDecoration: 'none' }}>
+                                <strong style={{ color: "#2563eb", cursor: "pointer" }}>{c.case_id}</strong>
+                              </Link>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ fontWeight: 600, fontSize: "0.82rem" }}>{c.assistance_request_details?.full_name}</Box>
+                              <Box sx={{ fontSize: "0.72rem", color: "#64748b" }}>{c.assistance_request_details?.mobile}</Box>
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "0.82rem", maxWidth: 200 }}>
+                              <Box sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {c.assistance_request_details?.problem_description?.substring(0, 60)}...
+                              </Box>
+                            </TableCell>
+                            <TableCell sx={{ fontSize: "0.82rem" }}>₹{c.budget}</TableCell>
+                            <TableCell>
+                              <Chip
+                                label={c.status.replace("_", " ").toUpperCase()}
+                                size="small"
+                                color={c.status === "assigned" ? "primary" : c.status === "in_progress" ? "warning" : c.status === "closed" ? "success" : "default"}
+                                sx={{ fontWeight: 700, fontSize: "0.68rem" }}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )
+              )}
+            </Box>
+            <Box sx={{ height: 16 }} />
+          </CardContent>
+        </Card>
+      )}
     </PortalPageShell>
   );
 }

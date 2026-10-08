@@ -28,6 +28,7 @@ import { useState } from "react";
 
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
+import { serviceService } from "@/services/public/publicServices";
 
 const CATEGORIES = [
   "Property & Land Disputes",
@@ -63,14 +64,27 @@ export default function SeekAssistancePage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      const generated = `ICJ-REQ-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-      setSubmittedRefId(generated);
-    }, 700);
+    const data = {
+      full_name: fullName,
+      email: email,
+      mobile: mobile,
+      preferred_contact: preferredContact,
+      state_name: stateName,
+      city_name: cityName,
+      category: category,
+      urgency: urgency,
+      problem_description: problemDescription,
+    };
+    const res = await serviceService.submitSeekAssistance(data);
+    setSubmitting(false);
+    if (res.success && res.data?.reference_id) {
+      setSubmittedRefId(res.data.reference_id);
+    } else {
+      alert("Failed to submit request. Please try again.");
+    }
   };
 
   return (

@@ -7,7 +7,6 @@ import {
   IconButton,
   MenuItem,
   Select,
-  Stack,
   Tooltip,
 } from "@mui/material";
 import Link from "next/link";
@@ -19,24 +18,14 @@ import AdminDataTable, {
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import { adminCasesService } from "@/services/admin/adminCases.service";
-import type { AdminCase } from "@/types/admin";
 
 // ---------------------------------------------------------------------------
 
-const STATUS_COLOR: Record<AdminCase["status"], "default" | "info" | "warning" | "success" | "error"> = {
+const STATUS_COLOR: Record<string, "default" | "info" | "warning" | "success" | "error"> = {
   open: "info",
+  assigned: "warning",
   in_progress: "warning",
-  pending_hearing: "warning",
   closed: "success",
-  dismissed: "default",
-  settled: "success",
-};
-
-const PRIORITY_COLOR: Record<AdminCase["priority"], "default" | "info" | "warning" | "error"> = {
-  low: "default",
-  medium: "info",
-  high: "warning",
-  urgent: "error",
 };
 
 const PAGE_SIZE = 10;
@@ -44,7 +33,7 @@ const PAGE_SIZE = 10;
 // ---------------------------------------------------------------------------
 
 export default function CasesPage() {
-  const [rows, setRows] = useState<AdminCase[]>([]);
+  const [rows, setRows] = useState<any[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE);
@@ -63,8 +52,8 @@ export default function CasesPage() {
         page: page + 1,
         page_size: rowsPerPage,
       });
-      setRows(res.results);
-      setTotalCount(res.count);
+      setRows(res.results || []);
+      setTotalCount(res.count || 0);
     } catch {
       setError("Failed to load cases. Please try again.");
     } finally {
@@ -74,54 +63,44 @@ export default function CasesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const columns: AdminTableColumn<AdminCase>[] = [
+  const columns: AdminTableColumn<any>[] = [
     {
       key: "number",
-      label: "Case #",
+      label: "Case ID",
       minWidth: 120,
       render: (c) => (
         <span style={{ fontWeight: 700, color: "#2563eb", whiteSpace: "nowrap" }}>
-          {c.case_number}
+          {c.case_id}
         </span>
       ),
     },
     {
-      key: "title",
-      label: "Title",
-      minWidth: 200,
-      render: (c) => (
-        <Box sx={{ fontWeight: 600, whiteSpace: "nowrap", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis" }}>
-          {c.title}
-        </Box>
-      ),
-    },
-    {
       key: "client",
-      label: "Client",
-      minWidth: 150,
+      label: "Client Details",
+      minWidth: 180,
       render: (c) => (
         <Box>
-          <Box sx={{ fontWeight: 600, fontSize: "0.8rem" }}>{c.client_name}</Box>
-          <Box sx={{ fontSize: "0.7rem", color: "#94a3b8" }}>{c.client_email}</Box>
+          <Box sx={{ fontWeight: 600 }}>{c.assistance_request_details?.full_name}</Box>
+          <Box sx={{ fontSize: "0.8rem", color: "#64748b" }}>{c.assistance_request_details?.category}</Box>
         </Box>
       ),
     },
     {
       key: "advocate",
-      label: "Advocate",
+      label: "Professional / Group",
       minWidth: 150,
       render: (c) => (
         <Box>
-          <Box sx={{ fontWeight: 600, fontSize: "0.8rem" }}>{c.advocate_name}</Box>
-          <Box sx={{ fontSize: "0.7rem", color: "#94a3b8" }}>{c.advocate_email}</Box>
+          <Box sx={{ fontWeight: 600, fontSize: "0.8rem" }}>{c.professional_name || "Unassigned"}</Box>
+          <Box sx={{ fontSize: "0.7rem", color: "#94a3b8" }}>{c.professional_group_name || c.group_type}</Box>
         </Box>
       ),
     },
     {
-      key: "area",
-      label: "Practice Area",
-      minWidth: 140,
-      render: (c) => c.practice_area,
+      key: "budget",
+      label: "Budget",
+      minWidth: 100,
+      render: (c) => `₹${c.budget}`,
     },
     {
       key: "status",
@@ -131,38 +110,18 @@ export default function CasesPage() {
         <Chip
           size="small"
           label={c.status.replace("_", " ")}
-          color={STATUS_COLOR[c.status]}
+          color={STATUS_COLOR[c.status] || "default"}
           sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
         />
       ),
     },
     {
-      key: "priority",
-      label: "Priority",
-      minWidth: 100,
-      render: (c) => (
-        <Chip
-          size="small"
-          label={c.priority}
-          color={PRIORITY_COLOR[c.priority]}
-          variant="outlined"
-          sx={{ fontWeight: 700, fontSize: "0.68rem", textTransform: "capitalize" }}
-        />
-      ),
-    },
-    {
-      key: "court",
-      label: "Court",
-      minWidth: 160,
-      render: (c) => c.court_name || "—",
-    },
-    {
-      key: "hearing",
-      label: "Next Hearing",
+      key: "date",
+      label: "Created",
       minWidth: 130,
       render: (c) =>
-        c.next_hearing_date
-          ? new Date(c.next_hearing_date).toLocaleDateString("en-IN", { dateStyle: "medium" })
+        c.created_at
+          ? new Date(c.created_at).toLocaleDateString("en-IN", { dateStyle: "medium" })
           : "—",
     },
     {
@@ -205,7 +164,7 @@ export default function CasesPage() {
         loading={loading}
         error={error}
         searchValue={search}
-        searchPlaceholder="Search case number, title, client, or advocate…"
+        searchPlaceholder="Search case ID or client name..."
         onSearchChange={(v) => { setSearch(v); setPage(0); }}
         filterSlot={
           <Select
@@ -217,11 +176,9 @@ export default function CasesPage() {
           >
             <MenuItem value="">All Statuses</MenuItem>
             <MenuItem value="open">Open</MenuItem>
+            <MenuItem value="assigned">Assigned</MenuItem>
             <MenuItem value="in_progress">In Progress</MenuItem>
-            <MenuItem value="pending_hearing">Pending Hearing</MenuItem>
             <MenuItem value="closed">Closed</MenuItem>
-            <MenuItem value="settled">Settled</MenuItem>
-            <MenuItem value="dismissed">Dismissed</MenuItem>
           </Select>
         }
         getRowKey={(c) => c.id}

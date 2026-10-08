@@ -117,4 +117,46 @@ export const adminServicesService = {
       headers: authHeaders(),
     });
   },
+
+  // ── Assistance Requests ──────────────────────────────────────────────────
+
+  listAssistanceRequests: async (params: AdminListParams & { status?: string } = {}): Promise<PaginatedResponse<any>> => {
+    const q = new URLSearchParams();
+    if (params.page) q.set("page", String(params.page));
+    if (params.page_size) q.set("page_size", String(params.page_size));
+    if (params.search) q.set("search", params.search);
+    if (params.status && params.status !== "all") q.set("status", params.status);
+
+    const qs = q.toString();
+    const path = `${API_ENDPOINTS.adminServices.assistanceRequests}${qs ? `?${qs}` : ""}`;
+    const res = await apiClient<ApiEnvelope<PaginatedResponse<any>>>(path, {
+      headers: authHeaders(),
+    });
+    return res.data;
+  },
+
+  getAssistanceRequest: async (id: string): Promise<any> => {
+    const res = await apiClient<ApiEnvelope<any>>(API_ENDPOINTS.adminServices.assistanceRequestDetail(id), {
+      headers: authHeaders(),
+    });
+    return res.data;
+  },
+
+  updateAssistanceRequestStatus: async (id: string, status: string): Promise<any> => {
+    const res = await apiClient<ApiEnvelope<any>>(API_ENDPOINTS.adminServices.assistanceRequestDetail(id), {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: { status },
+    });
+    return res.data;
+  },
+
+  assignProfessionalToRequest: async (id: string, budget: number, professionalGroupId: string): Promise<any> => {
+    const res = await apiClient<ApiEnvelope<any>>(`${API_ENDPOINTS.adminServices.assistanceRequestDetail(id)}assign/`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: { budget, professional_group_id: professionalGroupId },
+    });
+    return res.data;
+  },
 };

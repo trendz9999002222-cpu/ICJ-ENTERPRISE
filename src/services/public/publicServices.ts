@@ -104,6 +104,20 @@ export const serviceService = {
         { label: "Legal Information", value: "legal_information" },
       ];
     }
+  },
+  submitSeekAssistance: async (data: any): Promise<{ success: boolean; data?: any; error?: any }> => {
+    try {
+      const path = API_ENDPOINTS.publicServices.seekAssistance;
+      const res = await apiClient<{ success: boolean; data: any; message?: string }>(path, {
+        method: "POST",
+        body: data,
+        suppressErrorLog: true,
+      });
+      return { success: true, data: res.data };
+    } catch (error) {
+      console.error("Failed to submit assistance request:", error);
+      return { success: false, error };
+    }
   }
 };
 
