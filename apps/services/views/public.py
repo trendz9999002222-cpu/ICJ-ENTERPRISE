@@ -67,3 +67,27 @@ class PublicFeaturedServicesAPIView(APIView):
             data=JusticeServiceSerializer(qs, many=True).data,
             message="Featured services retrieved."
         )
+
+
+import random
+from django.utils import timezone
+from apps.services.models import AssistanceRequest
+from apps.services.serializers import AssistanceRequestSerializer
+
+class PublicAssistanceRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AssistanceRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            # generate reference_id like ICJ-REQ-YYYY-XXXXX
+            year = timezone.now().year
+            ref_id = f"ICJ-REQ-{year}-{random.randint(10000, 99999)}"
+            # ensure uniqueness
+            while AssistanceRequest.objects.filter(reference_id=ref_id).exists():
+                ref_id = f"ICJ-REQ-{year}-{random.randint(10000, 99999)}"
+                
+            serializer.save(reference_id=ref_id)
+            return api_success(data=serializer.data, message="Assistance request submitted successfully.", status_code=201)
+        return api_success(data=serializer.errors, message="Validation failed.", status_code=400, success=False)
+
