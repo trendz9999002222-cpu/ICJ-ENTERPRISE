@@ -89,12 +89,23 @@ export const API_ENDPOINTS = {
     detail: (id: string) => `/admin/services/${id}/`,
     categoriesList: "/admin/services/categories/",
     categoryDetail: (id: string) => `/admin/services/categories/${id}/`,
+    assistanceRequests: "/admin/services/assistance-requests/",
+    assistanceRequestDetail: (id: string) => `/admin/services/assistance-requests/${id}/`,
+    cases: "/admin/services/cases/",
+    caseDetail: (id: string) => `/admin/services/cases/${id}/`,
   },
   publicServices: {
     list: "/services/",
     detail: (slug: string) => `/services/${slug}/`,
     categories: "/services/categories/",
     featured: "/services/featured/",
+    seekAssistance: "/services/seek-assistance/",
+  },
+  professionalServices: {
+    availableCases: "/professional/services/cases/available/",
+    myCases: "/professional/services/cases/my/",
+    takeCase: (id: string) => `/professional/services/cases/${id}/take/`,
+    caseDetail: (id: string) => `/professional/services/cases/${id}/`,
   },
 } as const;
 
