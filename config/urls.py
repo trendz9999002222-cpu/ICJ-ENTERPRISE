@@ -38,6 +38,10 @@ urlpatterns = [
         "api/v1/services/",
         include("apps.services.urls.public"),
     ),
+    path(
+        "api/v1/professional/services/",
+        include("apps.services.urls.professional"),
+    ),
 ]
 
 if settings.DEBUG or True:
