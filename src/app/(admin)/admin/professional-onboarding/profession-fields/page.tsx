@@ -32,14 +32,14 @@ import CategoryGroupProfessionSelect, {
   type CascadeValue,
 } from "@/components/features/admin/professional-onboarding/CategoryGroupProfessionSelect";
 import ConfirmDeleteDialog from "@/components/features/admin/professional-onboarding/ConfirmDeleteDialog";
-import FieldFormFields, {
-  emptyFieldForm,
+import {
   type FieldFormState,
-} from "@/components/features/admin/professional-onboarding/FieldFormFields";
-import { OPTION_FIELD_TYPES } from "@/components/features/admin/professional-onboarding/constants";
+} from "@/components/features/admin/shared/FieldFormFields";
+import { OPTION_FIELD_TYPES } from "@/components/features/admin/shared/constants";
 import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
+import AdditionalFieldsManager from "@/components/features/admin/shared/AdditionalFieldsManager";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import {
   getOnboardingApiErrorMessage,
@@ -65,12 +65,12 @@ function ProfessionFieldsPageContent() {
   });
   const [fieldRows, setFieldRows] = useState<ProfessionField[]>([]);
   const [docRows, setDocRows] = useState<ProfessionDocument[]>([]);
+  const [docPage, setDocPage] = useState(0);
+  const [docRowsPerPage, setDocRowsPerPage] = useState(10);
   const [catalogDocs, setCatalogDocs] = useState<OnboardingDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [fieldDialog, setFieldDialog] = useState(false);
-  const [editingField, setEditingField] = useState<ProfessionField | null>(null);
-  const [fieldForm, setFieldForm] = useState<FieldFormState>(emptyFieldForm);
+
   const [docDialog, setDocDialog] = useState(false);
   const [editingDoc, setEditingDoc] = useState<ProfessionDocument | null>(null);
   const [docForm, setDocForm] = useState({
@@ -130,6 +130,22 @@ function ProfessionFieldsPageContent() {
     loadProfessionContext();
   }, [loadProfessionContext]);
 
+  const handleSaveField = async (id: string | null, form: FieldFormState) => {
+    if (!cascade.professionId) return;
+    try {
+      const payload = { ...form, profession: cascade.professionId };
+      if (id) {
+        await professionalOnboardingService.updateProfessionField(id, payload);
+      } else {
+        await professionalOnboardingService.createProfessionField(payload);
+      }
+      setToastMsg("Field saved.");
+      loadProfessionContext();
+    } catch (err) {
+      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to save field."));
+    }
+  };
+
   const loadOptions = async (field: ProfessionField) => {
     const res = await professionalOnboardingService.listFieldOptions({
       profession_field: field.id,
@@ -149,53 +165,7 @@ function ProfessionFieldsPageContent() {
     }
   };
 
-  const fieldColumns: AdminTableColumn<ProfessionField>[] = [
-    { key: "label", label: "Label", minWidth: 140, render: (r) => <strong>{r.label}</strong> },
-    { key: "key", label: "Key", minWidth: 120, render: (r) => r.field_key },
-    { key: "type", label: "Type", width: 100, render: (r) => <Chip size="small" label={r.field_type} /> },
-    { key: "req", label: "Required", width: 90, render: (r) => (r.is_required ? "Yes" : "No") },
-    { key: "status", label: "Status", width: 100, render: (r) => <ActiveStatusChip active={r.is_active} /> },
-    {
-      key: "actions",
-      label: "",
-      width: 140,
-      align: "right",
-      render: (r) => (
-        <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-          {OPTION_FIELD_TYPES.includes(r.field_type) && (
-            <Button size="small" onClick={() => openOptions(r)}>
-              Options
-            </Button>
-          )}
-          <IconButton
-            size="small"
-            onClick={() => {
-              setEditingField(r);
-              setFieldForm({
-                name: r.name,
-                field_key: r.field_key,
-                field_type: r.field_type,
-                label: r.label,
-                placeholder: r.placeholder,
-                help_text: r.help_text,
-                description: r.description,
-                is_required: r.is_required,
-                is_active: r.is_active,
-                display_order: r.display_order,
-                options: r.options || [],
-              });
-              setFieldDialog(true);
-            }}
-          >
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" color="error" onClick={() => setDeleteField(r)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Stack>
-      ),
-    },
-  ];
+
 
   const docColumns: AdminTableColumn<ProfessionDocument>[] = [
     { key: "name", label: "Document", minWidth: 160, render: (r) => <strong>{r.document_name}</strong> },
@@ -262,26 +232,24 @@ function ProfessionFieldsPageContent() {
 
           {tab === 0 && (
             <>
-              <Stack direction="row" sx={{ justifyContent: "flex-end", mb: 2 }}>
-                <Button
-                  startIcon={<AddIcon />}
-                  variant="contained"
-                  onClick={() => {
-                    setEditingField(null);
-                    setFieldForm(emptyFieldForm);
-                    setFieldDialog(true);
-                  }}
-                >
-                  Add field
-                </Button>
-              </Stack>
-              <AdminDataTable
-                columns={fieldColumns}
-                rows={fieldRows}
+              <AdditionalFieldsManager
+                title=""
+                fields={fieldRows.map(r => ({
+                  id: r.id!,
+                  label: r.label,
+                  name: r.name,
+                  field_key: r.field_key,
+                  field_type: r.field_type,
+                  is_required: r.is_required,
+                  is_active: r.is_active,
+                  display_order: r.display_order,
+                  options: r.options || [],
+                  original: r
+                }))}
                 loading={loading}
-                error={error}
-                getRowKey={(r) => r.id}
-                emptyMessage="No profession-specific fields for this profession."
+                onSaveField={handleSaveField}
+                onDeleteField={async (r) => { setDeleteField(r.original); }}
+                onOptions={(r) => openOptions(r.original)}
               />
             </>
           )}
@@ -309,49 +277,28 @@ function ProfessionFieldsPageContent() {
               </Stack>
               <AdminDataTable
                 columns={docColumns}
-                rows={docRows}
+                rows={docRows.slice(docPage * docRowsPerPage, docPage * docRowsPerPage + docRowsPerPage)}
                 loading={loading}
                 error={error}
                 getRowKey={(r) => r.id}
                 emptyMessage="No documents assigned to this profession."
+                pagination={{
+                  page: docPage,
+                  totalCount: docRows.length,
+                  rowsPerPage: docRowsPerPage,
+                  onPageChange: setDocPage,
+                  onRowsPerPageChange: (n) => {
+                    setDocRowsPerPage(n);
+                    setDocPage(0);
+                  },
+                }}
               />
             </>
           )}
         </Box>
       )}
 
-      <Dialog open={fieldDialog} onClose={() => setFieldDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          {editingField ? "Edit profession field" : "Add profession field"}
-        </DialogTitle>
-        <DialogContent>
-          <FieldFormFields form={fieldForm} onChange={setFieldForm} />
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setFieldDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (!cascade.professionId) return;
-              try {
-                const payload = { ...fieldForm, profession: cascade.professionId };
-                if (editingField) {
-                  await professionalOnboardingService.updateProfessionField(editingField.id, payload);
-                } else {
-                  await professionalOnboardingService.createProfessionField(payload);
-                }
-                setFieldDialog(false);
-                setToastMsg("Field saved.");
-                loadProfessionContext();
-              } catch (err) {
-                setToastMsg(getOnboardingApiErrorMessage(err, "Failed to save field."));
-              }
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+
 
       <Dialog open={optionsOpen} onClose={() => setOptionsOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800 }}>

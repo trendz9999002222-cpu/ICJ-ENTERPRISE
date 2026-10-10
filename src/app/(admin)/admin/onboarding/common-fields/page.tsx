@@ -11,13 +11,9 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  MenuItem,
   Snackbar,
   Stack,
-  TextField,
-  Typography,
 } from "@mui/material";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import ActiveStatusChip from "@/components/features/admin/professional-onboarding/ActiveStatusChip";
@@ -25,17 +21,16 @@ import ConfirmDeleteDialog from "@/components/features/admin/professional-onboar
 import FieldFormFields, {
   emptyFieldForm,
   type FieldFormState,
-} from "@/components/features/admin/professional-onboarding/FieldFormFields";
-import { OPTION_FIELD_TYPES } from "@/components/features/admin/professional-onboarding/constants";
+} from "@/components/features/admin/shared/FieldFormFields";
 import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import {
-  getOnboardingApiErrorMessage,
-  professionalOnboardingService,
-} from "@/services/admin/professionalOnboarding.service";
-import type { CommonField, FieldOption } from "@/types/admin/professionalOnboarding";
+  coreOnboardingService,
+  getCoreApiErrorMessage,
+} from "@/services/admin/coreOnboarding.service";
+import type { CommonField } from "@/types/admin/coreOnboarding";
 
 const PAGE_SIZE = 10;
 
@@ -53,25 +48,21 @@ export default function CommonFieldsPage() {
   const [saving, setSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<CommonField | null>(null);
-  const [optionsOpen, setOptionsOpen] = useState(false);
-  const [optionsField, setOptionsField] = useState<CommonField | null>(null);
-  const [options, setOptions] = useState<FieldOption[]>([]);
-  const [optionForm, setOptionForm] = useState({ value: "", label: "", display_order: 0 });
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await professionalOnboardingService.listCommonFields({
+      const res = await coreOnboardingService.listCommonFields({
         search,
         page: page + 1,
         page_size: rowsPerPage,
-        ordering: "display_order",
+        ordering: "name",
       });
       setRows(res.results);
       setTotalCount(res.count);
     } catch (err) {
-      setError(getOnboardingApiErrorMessage(err, "Failed to load common fields."));
+      setError(getCoreApiErrorMessage(err, "Failed to load common fields."));
     } finally {
       setLoading(false);
     }
@@ -81,39 +72,36 @@ export default function CommonFieldsPage() {
     load();
   }, [load]);
 
-  const loadOptions = async (field: CommonField) => {
-    const res = await professionalOnboardingService.listFieldOptions({
-      common_field: field.id,
-      page_size: 100,
-      ordering: "display_order",
-    });
-    setOptions(res.results);
-  };
-
-  const openOptions = async (field: CommonField) => {
-    setOptionsField(field);
-    setOptionsOpen(true);
-    try {
-      await loadOptions(field);
-    } catch (err) {
-      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to load options."));
-    }
-  };
-
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload: Partial<CommonField> = {
+        name: form.name,
+        field_key: form.field_key,
+        field_type: form.field_type,
+        label: form.label,
+        placeholder: form.placeholder,
+        help_text: form.help_text,
+        description: form.description,
+        is_active: form.is_active,
+        options: form.options?.map((opt, index) => ({
+          ...opt,
+          display_order: opt.display_order ?? index,
+          is_active: opt.is_active ?? true,
+        })),
+      };
+
       if (editing) {
-        await professionalOnboardingService.updateCommonField(editing.id, form);
+        await coreOnboardingService.updateCommonField(editing.id, payload);
         setToastMsg("Field updated.");
       } else {
-        await professionalOnboardingService.createCommonField(form);
+        await coreOnboardingService.createCommonField(payload);
         setToastMsg("Field created.");
       }
       setDialogOpen(false);
       load();
     } catch (err) {
-      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to save field."));
+      setToastMsg(getCoreApiErrorMessage(err, "Failed to save field."));
     } finally {
       setSaving(false);
     }
@@ -129,56 +117,48 @@ export default function CommonFieldsPage() {
       render: (r) => <Chip size="small" label={r.field_type} />,
     },
     {
-      key: "required",
-      label: "Required",
-      width: 90,
-      render: (r) => (r.is_required ? "Yes" : "No"),
-    },
-    {
       key: "status",
       label: "Status",
       width: 100,
       render: (r) => <ActiveStatusChip active={r.is_active} />,
     },
     {
-      key: "order",
-      label: "Order",
-      width: 70,
-      render: (r) => r.display_order,
+      key: "system",
+      label: "System",
+      width: 100,
+      render: (r) => (r.is_system_field ? <Chip size="small" color="primary" label="Yes" /> : "No"),
     },
     {
       key: "actions",
       label: "",
-      width: 130,
+      width: 100,
       align: "right",
       render: (r) => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-          {OPTION_FIELD_TYPES.includes(r.field_type) && (
-            <Button size="small" onClick={() => openOptions(r)}>Options</Button>
-          )}
           <IconButton size="small" onClick={() => {
             setEditing(r);
             setForm({
               name: r.name,
               field_key: r.field_key,
-              field_type: r.field_type,
+              field_type: r.field_type as any,
               label: r.label,
               placeholder: r.placeholder,
               help_text: r.help_text,
               description: r.description,
-              is_required: r.is_required,
+              is_required: false,
               is_active: r.is_active,
-              display_order: r.display_order,
+              display_order: 0,
               options: r.options || [],
             });
             setDialogOpen(true);
-
           }}>
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
-          <IconButton size="small" color="error" onClick={() => setDeleteTarget(r)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
+          {!r.is_system_field && (
+            <IconButton size="small" color="error" onClick={() => setDeleteTarget(r)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          )}
         </Stack>
       ),
     },
@@ -190,9 +170,6 @@ export default function CommonFieldsPage() {
       subtitle="Centrally managed fields reused across all professions"
       actions={
         <Stack direction="row" spacing={1}>
-          <Button component={Link} href="/admin/practice-areas" variant="outlined" size="small">
-            Back
-          </Button>
           <Button
             startIcon={<AddIcon />}
             variant="contained"
@@ -250,70 +227,6 @@ export default function CommonFieldsPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={optionsOpen} onClose={() => setOptionsOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          Options — {optionsField?.label}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2}>
-            {options.map((o) => (
-              <Stack key={o.id} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Typography variant="body2" sx={{ flex: 1 }}>
-                  {o.label} ({o.value})
-                </Typography>
-                <IconButton
-                  size="small"
-                  color="error"
-                  onClick={async () => {
-                    try {
-                      await professionalOnboardingService.deleteFieldOption(o.id);
-                      if (optionsField) await loadOptions(optionsField);
-                    } catch (err) {
-                      setToastMsg(getOnboardingApiErrorMessage(err, "Failed to delete option."));
-                    }
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Stack>
-            ))}
-            <TextField
-              label="Value"
-              size="small"
-              value={optionForm.value}
-              onChange={(e) => setOptionForm((f) => ({ ...f, value: e.target.value }))}
-            />
-            <TextField
-              label="Label"
-              size="small"
-              value={optionForm.label}
-              onChange={(e) => setOptionForm((f) => ({ ...f, label: e.target.value }))}
-            />
-            <Button
-              variant="outlined"
-              onClick={async () => {
-                if (!optionsField) return;
-                try {
-                  await professionalOnboardingService.createFieldOption({
-                    common_field: optionsField.id,
-                    value: optionForm.value,
-                    label: optionForm.label || optionForm.value,
-                    display_order: optionForm.display_order,
-                    is_active: true,
-                  });
-                  setOptionForm({ value: "", label: "", display_order: 0 });
-                  await loadOptions(optionsField);
-                } catch (err) {
-                  setToastMsg(getOnboardingApiErrorMessage(err, "Failed to add option."));
-                }
-              }}
-            >
-              Add option
-            </Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-
       <ConfirmDeleteDialog
         open={!!deleteTarget}
         title="Delete common field?"
@@ -322,12 +235,12 @@ export default function CommonFieldsPage() {
         onConfirm={async () => {
           if (!deleteTarget) return;
           try {
-            await professionalOnboardingService.deleteCommonField(deleteTarget.id);
+            await coreOnboardingService.deleteCommonField(deleteTarget.id);
             setToastMsg("Field deleted.");
             setDeleteTarget(null);
             load();
           } catch (err) {
-            setToastMsg(getOnboardingApiErrorMessage(err, "Failed to delete field."));
+            setToastMsg(getCoreApiErrorMessage(err, "Failed to delete field."));
           }
         }}
       />
@@ -336,3 +249,4 @@ export default function CommonFieldsPage() {
     </AdminPageShell>
   );
 }
+

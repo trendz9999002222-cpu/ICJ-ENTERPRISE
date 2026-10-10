@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import ActiveStatusChip from "@/components/features/admin/professional-onboarding/ActiveStatusChip";
 import ConfirmDeleteDialog from "@/components/features/admin/professional-onboarding/ConfirmDeleteDialog";
-import { fieldKeyFromName } from "@/components/features/admin/professional-onboarding/constants";
+import { fieldKeyFromName } from "@/components/features/admin/shared/constants";
 import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";

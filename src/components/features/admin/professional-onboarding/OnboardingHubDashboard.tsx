@@ -32,7 +32,7 @@ const CARDS: HubCard[] = [
   {
     label: "Categories",
     description: "Main professional legal & allied domains",
-    href: "/admin/practice-areas/categories",
+    href: "/admin/professional-onboarding/categories",
     countKey: "categories",
     icon: <CategoryIcon fontSize="medium" />,
     color: "#2563eb",
@@ -41,7 +41,7 @@ const CARDS: HubCard[] = [
   {
     label: "Groups",
     description: "Professional sub-groups under categories",
-    href: "/admin/practice-areas/groups",
+    href: "/admin/professional-onboarding/groups",
     countKey: "groups",
     icon: <GroupsIcon fontSize="medium" />,
     color: "#7c3aed",
@@ -50,25 +50,17 @@ const CARDS: HubCard[] = [
   {
     label: "Professions",
     description: "Individual professional designations",
-    href: "/admin/practice-areas/professions",
+    href: "/admin/professional-onboarding/professions",
     countKey: "professions",
     icon: <WorkIcon fontSize="medium" />,
     color: "#0891b2",
     bg: "#ecfeff",
   },
-  {
-    label: "Common Fields",
-    description: "Centrally reused onboarding fields",
-    href: "/admin/practice-areas/common-fields",
-    countKey: "commonFields",
-    icon: <InputIcon fontSize="medium" />,
-    color: "#16a34a",
-    bg: "#f0fdf4",
-  },
+
   {
     label: "Profession Fields",
     description: "Role-specific dynamic form fields",
-    href: "/admin/practice-areas/profession-fields",
+    href: "/admin/professional-onboarding/profession-fields",
     countKey: "professionFields",
     icon: <AccountTreeIcon fontSize="medium" />,
     color: "#d97706",
@@ -77,7 +69,7 @@ const CARDS: HubCard[] = [
   {
     label: "Documents",
     description: "Verification document catalog",
-    href: "/admin/practice-areas/documents",
+    href: "/admin/professional-onboarding/documents",
     countKey: "documents",
     icon: <DescriptionIcon fontSize="medium" />,
     color: "#dc2626",
@@ -265,7 +257,7 @@ export default function OnboardingHubDashboard() {
         {/* Onboarding Form Preview Card */}
         <Paper
           component={Link}
-          href="/admin/practice-areas/preview"
+          href="/admin/professional-onboarding/preview"
           elevation={0}
           sx={{
             p: 3,

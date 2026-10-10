@@ -105,6 +105,19 @@ export default function UserProfilePage() {
     setSaving(true);
     try {
       const token = readCookie("icj_access_token");
+      // Sync duplicate fields so the membership application data stays in sync with the core user data
+      const updatedMembershipFields = { ...membershipFields };
+      
+      // Update Name
+      if (updatedMembershipFields.full_name !== undefined) updatedMembershipFields.full_name = firstName;
+      else if (updatedMembershipFields.name !== undefined) updatedMembershipFields.name = firstName;
+      else if (updatedMembershipFields.first_name !== undefined) updatedMembershipFields.first_name = firstName;
+      
+      // Update Phone
+      if (updatedMembershipFields.mobile_number !== undefined) updatedMembershipFields.mobile_number = phoneNumber;
+      else if (updatedMembershipFields.mobile !== undefined) updatedMembershipFields.mobile = phoneNumber;
+      else if (updatedMembershipFields.phone_number !== undefined) updatedMembershipFields.phone_number = phoneNumber;
+
       const res = await fetch(`${env.apiUrl}/auth/me/`, {
         method: "PATCH",
         headers: {
@@ -114,7 +127,7 @@ export default function UserProfilePage() {
         body: JSON.stringify({
           first_name: firstName,
           phone_number: phoneNumber,
-          membership_field_values: membershipFields,
+          membership_field_values: updatedMembershipFields,
         }),
       });
       if (res.ok) {
@@ -374,8 +387,10 @@ export default function UserProfilePage() {
                     />
                   </Grid>
 
-                  {/* Render dynamic membership fields */}
-                  {Object.entries(membershipFields).map(([key, val]) => (
+                  {/* Render dynamic membership fields (excluding core fields to avoid duplicates) */}
+                  {Object.entries(membershipFields)
+                    .filter(([key]) => !["full_name", "name", "first_name", "last_name", "email", "email_address", "mobile", "mobile_number", "phone", "phone_number"].includes(key))
+                    .map(([key, val]) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={key}>
                       <TextField
                         label={formatKeyLabel(key)}

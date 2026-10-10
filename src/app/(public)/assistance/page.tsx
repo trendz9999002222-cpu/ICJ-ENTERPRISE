@@ -263,7 +263,7 @@ export default function SeekAssistancePage() {
                       </Grid>
                       <Grid size={{ xs: 12, sm: 6 }}>
                         <TextField
-                          label="City / District *"
+                          label="District *"
                           fullWidth
                           size="small"
                           required

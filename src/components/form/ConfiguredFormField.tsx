@@ -24,8 +24,12 @@ type Props = {
 };
 
 export default function ConfiguredFormField({ field, value, error, disabled, values = {}, onChange }: Props) {
-  const selectedCountryName = values.country || "India";
-  const selectedStateName = values.state || "";
+  // Dynamically find country and state fields in case field keys aren't exact matches
+  const countryKey = Object.keys(values).find(k => k.toLowerCase().includes("country")) || "country";
+  const stateKey = Object.keys(values).find(k => k.toLowerCase().includes("state")) || "state";
+  
+  const selectedCountryName = values[countryKey] || "India";
+  const selectedStateName = values[stateKey] || "";
   const { countries, states, districts, loading, levels } = useLocationData(selectedCountryName, selectedStateName);
 
   const labelWithFlag = field.required ? `${field.label} *` : field.label;
@@ -105,6 +109,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
         </TextField>
       );
     }
+    case "city":
     case "district": {
       return (
         <TextField

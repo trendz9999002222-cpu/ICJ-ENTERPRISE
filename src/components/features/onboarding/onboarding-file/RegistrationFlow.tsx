@@ -113,6 +113,44 @@ export default function RegistrationFlow() {
   const [loadingConfiguration, setLoadingConfiguration] = useState(false);
   const [loadError, setLoadError] = useState("");
 
+  const [currentUser, setCurrentUser] = useState<{ email: string; first_name?: string; last_name?: string; phone_number?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { readAccessTokenFromCookie } = await import("@/lib/api/client");
+      const { authService } = await import("@/services/auth.service");
+      const token = readAccessTokenFromCookie();
+      if (token) {
+        try {
+          const res = await authService.me(token);
+          if (res.success && res.data) {
+            setCurrentUser(res.data);
+            setState(prev => ({
+              ...prev,
+              values: {
+                ...prev.values,
+                email: res.data.email,
+                email_address: res.data.email,
+                email_id: res.data.email,
+                full_name: `${res.data.first_name || ""} ${res.data.last_name || ""}`.trim(),
+                name: `${res.data.first_name || ""} ${res.data.last_name || ""}`.trim(),
+                first_name: res.data.first_name || "",
+                last_name: res.data.last_name || "",
+                mobile: res.data.phone_number || "",
+                mobile_number: res.data.phone_number || "",
+                phone_number: res.data.phone_number || "",
+                phone: res.data.phone_number || "",
+              }
+            }));
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    };
+    fetchUser();
+  }, []);
+
   const [categoryPick, setCategoryPick] = useState<string[]>([]);
   const [groupPick, setGroupPick] = useState<string[]>([]);
   const [professionPick, setProfessionPick] = useState<string[]>([]);
@@ -254,6 +292,23 @@ export default function RegistrationFlow() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
+  const getBaseValues = () => {
+    if (!currentUser) return {};
+    return {
+      email: currentUser.email,
+      email_address: currentUser.email,
+      email_id: currentUser.email,
+      full_name: `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim(),
+      name: `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim(),
+      first_name: currentUser.first_name || "",
+      last_name: currentUser.last_name || "",
+      mobile: currentUser.phone_number || "",
+      mobile_number: currentUser.phone_number || "",
+      phone_number: currentUser.phone_number || "",
+      phone: currentUser.phone_number || "",
+    };
+  };
+
   const commitSelectionStep = (): boolean => {
     if (currentStep === "category") {
       if (!categoryPick.length) {
@@ -267,7 +322,7 @@ export default function RegistrationFlow() {
           categoryIds: categoryPick,
           groupIds: same ? prev.groupIds : [],
           professionIds: same ? prev.professionIds : [],
-          values: same ? prev.values : {},
+          values: same ? prev.values : getBaseValues(),
           files: same ? prev.files : {},
         };
       });
@@ -289,7 +344,7 @@ export default function RegistrationFlow() {
           ...prev,
           groupIds: groupPick,
           professionIds: same ? prev.professionIds : [],
-          values: same ? prev.values : {},
+          values: same ? prev.values : getBaseValues(),
           files: same ? prev.files : {},
         };
       });
@@ -318,7 +373,7 @@ export default function RegistrationFlow() {
         return {
           ...prev,
           professionIds: professionPick,
-          values: same ? prev.values : {},
+          values: same ? prev.values : getBaseValues(),
           files: same ? prev.files : {},
         };
       });
@@ -378,15 +433,17 @@ export default function RegistrationFlow() {
       stepErrors = validateDocuments(schema.documents, state.files);
     }
     if (currentStep === "review") {
-      if (!state.password.trim()) {
-        stepErrors.password = "Password is required";
-      } else if (state.password.length < 12) {
-        stepErrors.password = "Use at least 12 characters";
-      }
-      if (!state.confirmPassword.trim()) {
-        stepErrors.confirmPassword = "Please confirm your password";
-      } else if (state.password !== state.confirmPassword) {
-        stepErrors.confirmPassword = "Passwords do not match";
+      if (!currentUser) {
+        if (!state.password.trim()) {
+          stepErrors.password = "Password is required";
+        } else if (state.password.length < 12) {
+          stepErrors.password = "Use at least 12 characters";
+        }
+        if (!state.confirmPassword.trim()) {
+          stepErrors.confirmPassword = "Please confirm your password";
+        } else if (state.password !== state.confirmPassword) {
+          stepErrors.confirmPassword = "Passwords do not match";
+        }
       }
       if (!state.declarationAgreed) {
         stepErrors.declaration = "Please accept the declaration to submit";
@@ -647,13 +704,20 @@ export default function RegistrationFlow() {
           );
         }
         return schema.sections.length ? (
-          <DynamicFormRenderer
-            schema={schema}
-            values={state.values}
-            errors={errors}
-            theme={theme}
-            onChange={handleFieldChange}
-          />
+          <Box>
+            {currentUser && (
+              <Alert severity="success" sx={{ mb: 3 }}>
+                You are logged in as <strong>{currentUser.first_name} {currentUser.last_name}</strong> ({currentUser.email}). Your basic details have been pre-filled.
+              </Alert>
+            )}
+            <DynamicFormRenderer
+              schema={schema}
+              values={state.values}
+              errors={errors}
+              theme={theme}
+              onChange={handleFieldChange}
+            />
+          </Box>
         ) : (
           <Alert severity="info">No additional details are required. Continue to documents.</Alert>
         );
@@ -707,47 +771,49 @@ export default function RegistrationFlow() {
               onEditDetails={() => jumpToStep("details")}
               onEditDocuments={() => jumpToStep("documents")}
             />
-            <Box
-              data-field="password"
-              sx={{
-                mt: 2,
-                p: 2,
-                borderRadius: RADIUS.sm,
-                border: "1px solid #e2e8f0",
-                bgcolor: "#fff",
-              }}
-            >
-              <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", mb: 1.5 }}>
-                Account password
-              </Typography>
-              <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 2 }}>
-                Create the password you will use to log in after your application is approved.
-              </Typography>
-              <Stack spacing={2}>
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={state.password}
-                  onChange={(e) => setState((prev) => ({ ...prev, password: e.target.value }))}
-                  required
-                  fullWidth
-                  autoComplete="new-password"
-                  error={Boolean(errors.password)}
-                  helperText={errors.password || "At least 12 characters"}
-                />
-                <TextField
-                  label="Confirm password"
-                  type="password"
-                  value={state.confirmPassword}
-                  onChange={(e) => setState((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                  required
-                  fullWidth
-                  autoComplete="new-password"
-                  error={Boolean(errors.confirmPassword)}
-                  helperText={errors.confirmPassword}
-                />
-              </Stack>
-            </Box>
+            {!currentUser && (
+              <Box
+                data-field="password"
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  borderRadius: RADIUS.sm,
+                  border: "1px solid #e2e8f0",
+                  bgcolor: "#fff",
+                }}
+              >
+                <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a", mb: 1.5 }}>
+                  Account password
+                </Typography>
+                <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 2 }}>
+                  Create the password you will use to log in after your application is approved.
+                </Typography>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Password"
+                    type="password"
+                    value={state.password}
+                    onChange={(e) => setState((prev) => ({ ...prev, password: e.target.value }))}
+                    required
+                    fullWidth
+                    autoComplete="new-password"
+                    error={Boolean(errors.password)}
+                    helperText={errors.password || "At least 12 characters"}
+                  />
+                  <TextField
+                    label="Confirm password"
+                    type="password"
+                    value={state.confirmPassword}
+                    onChange={(e) => setState((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    required
+                    fullWidth
+                    autoComplete="new-password"
+                    error={Boolean(errors.confirmPassword)}
+                    helperText={errors.confirmPassword}
+                  />
+                </Stack>
+              </Box>
+            )}
             <Box data-field="declaration" sx={{ mt: 2 }}>
               <FormControlLabel
                 control={

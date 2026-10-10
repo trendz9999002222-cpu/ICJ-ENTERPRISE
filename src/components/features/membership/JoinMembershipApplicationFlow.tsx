@@ -14,7 +14,11 @@ import {
   Container,
   FormControlLabel,
   Stack,
+  TextField,
   Typography,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 
 import DocumentsUpload from "@/components/features/onboarding/onboarding-file/DocumentsUpload";
@@ -31,6 +35,7 @@ import {
 import type {
   MembershipOnboardingConfiguration,
   MembershipOnboardingDocument,
+  MembershipOnboardingStep,
 } from "@/types/public/membershipOnboarding";
 import type { DocumentField, Theme } from "@/types/registration";
 import { scrollToFirstError, validateDocuments, validateSections } from "@/lib/validation";
@@ -51,11 +56,7 @@ function documentsToFields(docs: MembershipOnboardingDocument[]): DocumentField[
   }));
 }
 
-function initialPhase(cfg: MembershipOnboardingConfiguration): FlowPhase {
-  if (cfg.steps.length) return "steps";
-  if (cfg.documents.length) return "documents";
-  return "review";
-}
+
 
 export default function JoinMembershipApplicationFlow() {
   const [config, setConfig] = useState<MembershipOnboardingConfiguration | null>(null);
@@ -81,18 +82,58 @@ export default function JoinMembershipApplicationFlow() {
       membershipOnboardingPublicService.fetchPaymentSettings().catch(() => null),
     ])
       .then(([cfg, pay]) => {
+        const filteredSteps = (cfg?.steps ?? []).filter(s => s.step_fields.length > 0);
         setConfig(cfg);
         setPaymentSettings(pay);
-        setPhase(initialPhase(cfg));
+        
+        let initPhase: FlowPhase = "review";
+        if (filteredSteps.length > 0) initPhase = "steps";
+        else if (cfg?.documents?.length > 0) initPhase = "documents";
+        
+        setPhase(initPhase);
       })
       .catch(() => setLoadError("Unable to load membership form. Please try again later."))
       .finally(() => setLoading(false));
   }, []);
 
-  const steps = config?.steps ?? [];
+  const steps = (config?.steps ?? [])
+    .filter((s) => s.step_fields.length > 0)
+    .map((s) => (s.title === "Professional Details" ? { ...s, title: "Personal Details" } : s));
   const currentStep = steps[stepIndex];
   const stepSchema = useMemo(() => (currentStep ? stepToFormSchema(currentStep) : null), [currentStep]);
   const formDocuments = useMemo(() => documentsToFields(config?.documents ?? []), [config?.documents]);
+
+  const [currentUser, setCurrentUser] = useState<{ email: string; first_name?: string; last_name?: string; phone_number?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { readAccessTokenFromCookie } = await import("@/lib/api/client");
+      const token = readAccessTokenFromCookie();
+      if (token) {
+        try {
+          const res = await authService.me(token);
+          if (res.success && res.data) {
+            setCurrentUser(res.data);
+            setValues(prev => ({
+              ...prev,
+              email: res.data.email,
+              email_address: res.data.email,
+              full_name: `${res.data.first_name || ""} ${res.data.last_name || ""}`.trim(),
+              name: `${res.data.first_name || ""} ${res.data.last_name || ""}`.trim(),
+              first_name: res.data.first_name || "",
+              last_name: res.data.last_name || "",
+              mobile: res.data.phone_number || "",
+              phone_number: res.data.phone_number || "",
+              phone: res.data.phone_number || "",
+            }));
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+    };
+    fetchUser();
+  }, []);
 
   const onChange = useCallback((name: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -313,118 +354,182 @@ export default function JoinMembershipApplicationFlow() {
     );
   }
 
-  if (loadError || !config?.form) {
+  if (loadError) {
     return (
       <Alert severity="warning">
-        {loadError ?? "Membership application form is not configured yet. Please check back soon."}
+        {loadError}
       </Alert>
     );
   }
 
-  const formTitle = config.form?.title ?? "Membership application";
+  const formTitle = config?.form?.title ?? "Membership application";
+
+  const availableTabs = steps.map((s, i) => ({
+    label: s.title,
+    phase: "steps",
+    stepIndex: i,
+  }));
+  
+  if (formDocuments.length > 0) availableTabs.push({ label: "Documents", phase: "documents", stepIndex: -1 });
+  availableTabs.push({ label: "Review & Submit", phase: "review", stepIndex: -1 });
+  if (paymentRequired) availableTabs.push({ label: "Payment", phase: "payment", stepIndex: -1 });
+
+  const currentTabIndex = availableTabs.findIndex(
+    (t) => t.phase === phase && (t.phase !== "steps" || t.stepIndex === stepIndex)
+  );
 
   return (
-    <Box sx={{ bgcolor: "#fff", border: "1px solid #e2e8f0", borderRadius: 3, overflow: "hidden" }}>
-      <Box sx={{ px: 3, py: 2, borderBottom: "1px solid #e2e8f0", bgcolor: "#f8fafc" }}>
-        <Typography sx={{ fontWeight: 800 }}>Apply for Membership</Typography>
-        <Typography variant="body2" sx={{ color: "#64748b" }}>
-          {formTitle}
-          {config.form?.version ? ` · Version ${config.form.version}` : ""}
-        </Typography>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh", bgcolor: "#f8fafc" }}>
+      <Box sx={{ bgcolor: "#fff", borderBottom: "1px solid #e2e8f0" }}>
+        <Container maxWidth="lg" sx={{ pt: 3 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: "1.5rem", color: "#0f172a" }}>Apply for Membership</Typography>
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 3 }}>
+            {formTitle}
+            {config?.form?.version ? ` · Version ${config?.form?.version}` : ""}
+          </Typography>
+          
+          <Box sx={{ width: "100%", overflowX: "auto", pb: 2 }}>
+            <Stepper
+              activeStep={currentTabIndex >= 0 ? currentTabIndex : 0}
+              alternativeLabel
+              sx={{
+                minWidth: 600,
+                "& .MuiStepLabel-label": { fontWeight: 600, color: "#64748b" },
+                "& .MuiStepLabel-label.Mui-active": { color: "#2563eb" },
+                "& .MuiStepLabel-label.Mui-completed": { color: "#10b981" },
+                "& .MuiStepIcon-root.Mui-active": { color: "#2563eb" },
+                "& .MuiStepIcon-root.Mui-completed": { color: "#10b981" },
+              }}
+            >
+              {availableTabs.map((tab, idx) => (
+                <Step key={idx} completed={currentTabIndex > idx}>
+                  <StepLabel>{tab.label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+        </Container>
       </Box>
 
-      <Container maxWidth="md" sx={{ py: 3 }}>
-        {errors.submit && <Alert severity="error" sx={{ mb: 2 }}>{errors.submit}</Alert>}
+      <Box sx={{ flex: 1, py: 4 }}>
+        <Container maxWidth="md">
+          {errors.submit && <Alert severity="error" sx={{ mb: 3 }}>{errors.submit}</Alert>}
+          {currentUser && (
+            <Alert severity="success" sx={{ mb: 3 }}>
+              You are logged in as <strong>{currentUser.first_name} {currentUser.last_name}</strong> ({currentUser.email}). Your basic details have been pre-filled.
+            </Alert>
+          )}
 
-        {phase === "steps" && stepSchema && currentStep && (
-          <>
-            <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{currentStep.title}</Typography>
-            {currentStep.subtitle && (
-              <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>{currentStep.subtitle}</Typography>
-            )}
-            <DynamicFormRenderer schema={stepSchema} values={values} errors={errors} theme={THEME} onChange={onChange} />
-          </>
-        )}
+          {phase === "steps" && (
+            <Box sx={{ bgcolor: "#transparent", p: { xs: 0 }, borderRadius: 0, border: "none" }}>
+              {!currentStep || !stepSchema ? (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  No fields have been configured for this form yet.
+                </Alert>
+              ) : (
+                <>
+                  {currentStep.step_fields.length === 0 ? (
+                    <Alert severity="info">No fields are configured for this step.</Alert>
+                  ) : (
+                    <DynamicFormRenderer schema={stepSchema} values={values} errors={errors} theme={THEME} onChange={onChange} />
+                  )}
+                </>
+              )}
+            </Box>
+          )}
 
-        {phase === "documents" && formDocuments.length > 0 && (
-          <>
-            <Typography sx={{ fontWeight: 700, mb: 2 }}>Upload Documents</Typography>
-            <DocumentsUpload
-              documents={formDocuments}
-              files={files}
-              errors={errors}
-              theme={THEME}
-              onChange={(name, file) => setFiles((prev) => ({ ...prev, [name]: file }))}
-            />
-          </>
-        )}
+          {phase === "documents" && formDocuments.length > 0 && (
+            <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0" }}>
+              <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", mb: 3, color: "#0f172a" }}>Upload Documents</Typography>
+              <DocumentsUpload
+                documents={formDocuments}
+                files={files}
+                errors={errors}
+                theme={THEME}
+                onChange={(name, file) => setFiles((prev) => ({ ...prev, [name]: file }))}
+              />
+            </Box>
+          )}
 
-        {phase === "payment" && paymentSettings && (
-          <Stack spacing={2}>
-            <Typography sx={{ fontWeight: 700 }}>Membership fee (Razorpay test)</Typography>
-            <Typography variant="body2" sx={{ color: "#64748b" }}>
-              Pay ₹{paymentSettings.amount_inr.toFixed(2)} to submit your application. Use Razorpay test cards in test mode.
-            </Typography>
-          </Stack>
-        )}
+          {phase === "payment" && paymentSettings && (
+            <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0" }}>
+              <Stack spacing={2}>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", color: "#0f172a" }}>Membership fee (Razorpay test)</Typography>
+                <Typography variant="body2" sx={{ color: "#64748b" }}>
+                  Pay ₹{paymentSettings.amount_inr.toFixed(2)} to submit your application. Use Razorpay test cards in test mode.
+                </Typography>
+              </Stack>
+            </Box>
+          )}
 
-        {phase === "review" && (
-          <Stack spacing={2}>
-            <Typography sx={{ fontWeight: 700 }}>Review & Submit</Typography>
-            {steps.map((step) =>
-              step.step_fields.map((f) => (
-                <Box key={f.id} sx={{ display: "flex", justifyContent: "space-between", gap: 2, py: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: "#64748b" }}>{f.label}</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "right" }}>
-                    {String(values[f.field_key] ?? "—")}
-                  </Typography>
+          {phase === "review" && (
+            <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0" }}>
+              <Stack spacing={2.5}>
+                <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", color: "#0f172a", mb: 1 }}>Review & Submit</Typography>
+                {steps.map((step) =>
+                  step.step_fields.length > 0 && (
+                    <Box key={step.id}>
+                      <Typography sx={{ fontWeight: 700, color: "#334155", mb: 1.5, fontSize: "0.95rem" }}>{step.title}</Typography>
+                      {step.step_fields.map((f) => (
+                        <Box key={f.id} sx={{ display: "flex", justifyContent: "space-between", gap: 2, py: 0.75, borderBottom: "1px solid #f1f5f9" }}>
+                          <Typography variant="body2" sx={{ color: "#64748b" }}>{f.label}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "right", color: "#0f172a" }}>
+                            {String(values[f.field_key] ?? "—")}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  )
+                )}
+                
+                <Box sx={{ mt: 3, pt: 3, borderTop: "1px solid #e2e8f0" }}>
+                  <FormControlLabel
+                    control={<Checkbox checked={declarationAccepted} onChange={(e) => setDeclarationAccepted(e.target.checked)} />}
+                    label={<Typography variant="body2" sx={{ fontWeight: 600 }}>I declare that the information provided is true and complete.</Typography>}
+                  />
+                  {errors.declaration && (
+                    <Typography variant="caption" color="error" sx={{ display: "block", mt: 0.5 }}>{errors.declaration}</Typography>
+                  )}
                 </Box>
-              )),
-            )}
-            <FormControlLabel
-              control={<Checkbox checked={declarationAccepted} onChange={(e) => setDeclarationAccepted(e.target.checked)} />}
-              label="I declare that the information provided is true and complete."
-            />
-            {errors.declaration && (
-              <Typography variant="caption" color="error">{errors.declaration}</Typography>
-            )}
-          </Stack>
-        )}
+              </Stack>
+            </Box>
+          )}
 
-        <Stack direction="row" sx={{ mt: 4, justifyContent: "space-between" }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={goBack}
-            disabled={phase === "steps" && stepIndex === 0}
-            sx={{ textTransform: "none" }}
-          >
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            endIcon={phase === "review" || phase === "payment" ? undefined : <ArrowForwardIcon />}
-            disabled={submitting}
-            onClick={
-              phase === "payment"
-                ? handlePayAndSubmit
-                : phase === "review"
-                  ? handleReviewContinue
-                  : goNext
-            }
-            sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 3 }}
-          >
-            {submitting
-              ? "Please wait…"
-              : phase === "payment"
-                ? "Pay & submit application"
-                : phase === "review"
-                  ? paymentRequired
-                    ? "Continue to payment"
-                    : "Submit application"
-                  : "Continue"}
-          </Button>
-        </Stack>
-      </Container>
+          <Stack direction="row" sx={{ mt: 4, justifyContent: "space-between" }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={goBack}
+              disabled={phase === "steps" && stepIndex === 0}
+              sx={{ textTransform: "none", color: "#64748b" }}
+            >
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              endIcon={phase === "review" || phase === "payment" ? undefined : <ArrowForwardIcon />}
+              disabled={submitting}
+              onClick={
+                phase === "payment"
+                  ? handlePayAndSubmit
+                  : phase === "review"
+                    ? handleReviewContinue
+                    : goNext
+              }
+              sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 4, py: 1 }}
+            >
+              {submitting
+                ? "Please wait…"
+                : phase === "payment"
+                  ? "Pay & submit application"
+                  : phase === "review"
+                    ? paymentRequired
+                      ? "Continue to payment"
+                      : "Submit application"
+                    : "Continue"}
+            </Button>
+          </Stack>
+        </Container>
+      </Box>
     </Box>
   );
 }

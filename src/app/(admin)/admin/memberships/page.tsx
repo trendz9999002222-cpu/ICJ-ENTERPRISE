@@ -1,15 +1,11 @@
-﻿"use client";
+"use client";
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Avatar,
   Box,
   Chip,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   Stack,
   Tooltip,
   Typography,
@@ -22,63 +18,65 @@ import AdminDataTable, {
   type AdminTableColumn,
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
-import {
-  membershipOnboardingAdminService,
-  type AdminMembershipApplication,
-} from "@/services/admin/membershipOnboarding.service";
+import { membershipOnboardingAdminService } from "@/services/admin/membershipOnboarding.service";
+import type { AdminMembershipApplication } from "@/services/admin/membershipOnboarding.service";
 
-const STATUS_COLOR: Record<string, "success" | "warning" | "error" | "default"> = {
+// ---------------------------------------------------------------------------
+
+const STATUS_COLOR: Record<string, "success" | "warning" | "error" | "default" | "info"> = {
   approved: "success",
   pending: "warning",
   rejected: "error",
-  under_review: "default",
+  under_review: "info",
   draft: "default",
-  cancelled: "default",
 };
 
 const PAGE_SIZE = 10;
 
+// ---------------------------------------------------------------------------
+
 export default function AdminMembershipsPage() {
   const [rows, setRows] = useState<AdminMembershipApplication[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(PAGE_SIZE);
+
+  // -------------------------------------------------------------------------
 
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await membershipOnboardingAdminService.listApplications({
-        search,
-        status: statusFilter || undefined,
+      const res = await membershipOnboardingAdminService.listApplications({
         page: page + 1,
         page_size: rowsPerPage,
       });
-      setRows(data.results ?? []);
-      setTotalCount(data.count ?? 0);
+      setRows(res?.results ?? []);
+      setTotalCount(res?.count ?? 0);
     } catch {
-      setError("Failed to load membership applications. Please try again.");
-      setRows([]);
-      setTotalCount(0);
+      setError("Failed to load memberships. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, page, rowsPerPage]);
+  }, [page, rowsPerPage]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  // -------------------------------------------------------------------------
+  // Columns
+  // -------------------------------------------------------------------------
+
   const columns: AdminTableColumn<AdminMembershipApplication>[] = [
     {
-      key: "member",
-      label: "Member",
+      key: "name",
+      label: "Applicant",
       minWidth: 240,
-      render: (row) => (
+      render: (a) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
             sx={{
@@ -92,12 +90,9 @@ export default function AdminMembershipsPage() {
               border: "2px solid #dbeafe",
             }}
           >
-            {(row.person_name || "?")
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase()}
+            {a.person_name
+              ? a.person_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+              : "?"}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography
@@ -111,7 +106,7 @@ export default function AdminMembershipsPage() {
                 maxWidth: 220,
               }}
             >
-              {row.person_name || "—"}
+              {a.person_name || "Unknown"}
             </Typography>
             <Typography
               sx={{
@@ -123,17 +118,27 @@ export default function AdminMembershipsPage() {
                 maxWidth: 220,
               }}
             >
-              {row.email || "—"}
+              {a.email || "No email"}
             </Typography>
           </Box>
         </Stack>
       ),
     },
     {
+      key: "role",
+      label: "Role",
+      render: (a) => (
+        <Chip
+          label={a.membership_type_name || "Unknown"}
+          size="small"
+          sx={{ fontWeight: 600, fontSize: "0.75rem", borderRadius: "6px" }}
+        />
+      ),
+    },
+    {
       key: "reference_id",
-      label: "Application ID",
-      minWidth: 140,
-      render: (row) => (
+      label: "Reference ID",
+      render: (a) => (
         <Typography
           sx={{
             fontWeight: 700,
@@ -142,70 +147,32 @@ export default function AdminMembershipsPage() {
             fontSize: "0.825rem",
           }}
         >
-          {row.reference_id}
-        </Typography>
-      ),
-    },
-    {
-      key: "membership_id",
-      label: "Membership ID",
-      minWidth: 140,
-      render: (row) => (
-        <Typography
-          sx={{
-            fontWeight: 700,
-            color: row.membership_id ? "#059669" : "#94a3b8",
-            fontFamily: "monospace",
-            fontSize: "0.825rem",
-          }}
-        >
-          {row.membership_id || "—"}
+          {a.reference_id || "-"}
         </Typography>
       ),
     },
     {
       key: "mobile",
-      label: "Mobile",
-      minWidth: 130,
-      render: (row) => (
-        <Typography sx={{ fontSize: "0.825rem", color: "#334155", fontWeight: 500 }}>
-          {row.mobile || "—"}
+      label: "Phone",
+      render: (a) => (
+        <Typography variant="body2" sx={{ color: "#475569", fontSize: "0.825rem" }}>
+          {a.mobile || "-"}
         </Typography>
       ),
     },
     {
-      key: "submitted_at",
-      label: "Submitted Date",
-      minWidth: 130,
-      render: (row) => {
-        const date = row.submitted_at || row.created_at;
-        return (
-          <Typography sx={{ fontSize: "0.8125rem", color: "#64748b", fontWeight: 500 }}>
-            {date
-              ? new Date(date).toLocaleDateString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })
-              : "—"}
-          </Typography>
-        );
-      },
-    },
-    {
       key: "status",
       label: "Status",
-      minWidth: 120,
-      render: (row) => (
+      render: (a) => (
         <Chip
+          label={a.status.replace("_", " ").toUpperCase()}
           size="small"
-          label={row.status.replace("_", " ")}
-          color={STATUS_COLOR[row.status] ?? "default"}
+          color={STATUS_COLOR[a.status] || "default"}
           sx={{
             fontWeight: 700,
             fontSize: "0.7rem",
-            textTransform: "capitalize",
-            borderRadius: 1.5,
+            px: 0.5,
+            height: 22,
           }}
         />
       ),
@@ -213,107 +180,47 @@ export default function AdminMembershipsPage() {
     {
       key: "actions",
       label: "Actions",
-      minWidth: 80,
       align: "right",
-      render: (row) => (
-        <Tooltip title="View application details">
-          <IconButton
-            size="small"
-            component={Link}
-            href={`/admin/memberships/applications/${row.id}`}
-            sx={{
-              color: "#2563eb",
-              bgcolor: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              "&:hover": { bgcolor: "#dbeafe" },
-            }}
-          >
-            <VisibilityIcon sx={{ fontSize: 18 }} />
-          </IconButton>
-        </Tooltip>
+      render: (a) => (
+        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+          <Tooltip title="View Application">
+            <IconButton
+              component={Link}
+              href={`/admin/membership-onboarding/${a.id}`}
+              size="small"
+              sx={{ color: "#3b82f6", bgcolor: "#eff6ff" }}
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
       ),
     },
   ];
 
   const pagination: AdminPaginationConfig = {
     page,
-    totalCount,
     rowsPerPage,
-    onPageChange: (p) => setPage(p),
-    onRowsPerPageChange: (r) => {
-      setRowsPerPage(r);
+    totalCount,
+    onPageChange: (newPage) => setPage(newPage),
+    onRowsPerPageChange: (newSize) => {
+      setRowsPerPage(newSize);
       setPage(0);
     },
-    rowsPerPageOptions: [10, 25, 50],
   };
-
-  const filterSlot = (
-    <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ flexWrap: "wrap", alignItems: "center" }}>
-      <FormControl size="small" sx={{ minWidth: 140 }}>
-        <InputLabel sx={{ fontSize: "0.85rem" }}>Status</InputLabel>
-        <Select
-          label="Status"
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(0);
-          }}
-          sx={{ bgcolor: "#fff", borderRadius: 2, fontSize: "0.85rem" }}
-        >
-          <MenuItem value="">All Statuses</MenuItem>
-          <MenuItem value="pending">Pending</MenuItem>
-          <MenuItem value="under_review">Under Review</MenuItem>
-          <MenuItem value="approved">Approved</MenuItem>
-          <MenuItem value="rejected">Rejected</MenuItem>
-        </Select>
-      </FormControl>
-      {(statusFilter || search) && (
-        <Chip
-          label="Clear Filters"
-          onDelete={() => {
-            setStatusFilter("");
-            setSearch("");
-            setPage(0);
-          }}
-          onClick={() => {
-            setStatusFilter("");
-            setSearch("");
-            setPage(0);
-          }}
-          size="medium"
-          sx={{
-            fontWeight: 700,
-            bgcolor: "#fee2e2",
-            color: "#b91c1c",
-            borderRadius: 2,
-            "&:hover": { bgcolor: "#fecaca" },
-            cursor: "pointer",
-          }}
-        />
-      )}
-    </Stack>
-  );
 
   return (
     <AdminPageShell
-      title="Memberships Directory"
-      subtitle="Review and manage membership applications submitted through the public form."
+      title="Memberships"
+      subtitle="View all registered memberships"
     >
       <AdminDataTable
-        columns={columns}
         rows={rows}
+        columns={columns}
         loading={loading}
         error={error}
-        searchValue={search}
-        searchPlaceholder="Search by reference, name, email, mobile…"
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(0);
-        }}
-        filterSlot={filterSlot}
-        getRowKey={(row) => row.id}
-        emptyMessage="No membership applications found matching the selected criteria."
         pagination={pagination}
+        getRowKey={(row) => row.id}
         showSerialNumber
       />
     </AdminPageShell>
