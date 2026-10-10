@@ -86,18 +86,20 @@ class MembershipApplicationService:
                 return existing, None, False
 
         form = get_active_membership_form()
-        if not form:
-            raise ServiceError("No active membership form.", {"form": ["Not configured."]})
-
+        
         try:
             membership_type = MembershipType.objects.get(pk=membership_type_id, is_active=True)
         except MembershipType.DoesNotExist:
+            membership_type = form.membership_type if form else None
+            if not membership_type:
+                from apps.membership_onboarding.services.public_config import ensure_default_membership_type
+                membership_type = ensure_default_membership_type()
+
+        if form and str(membership_type.id) != str(form.membership_type_id):
             membership_type = form.membership_type
 
-        if str(membership_type.id) != str(form.membership_type_id):
-            membership_type = form.membership_type
-
-        config = build_configuration_for_form(form)
+        from apps.membership_onboarding.services.public_config import _prefetch_form_configuration
+        config = _prefetch_form_configuration(form)
 
         errors: dict[str, list[str]] = {}
         field_meta: dict[str, MembershipStepField] = {}

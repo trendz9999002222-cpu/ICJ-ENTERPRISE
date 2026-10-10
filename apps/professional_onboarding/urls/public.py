@@ -7,6 +7,7 @@ from apps.professional_onboarding.views.public import (
     PublicProfessionConfigurationAPIView,
     PublicProfessionalRegisterAPIView,
     PublicSubmissionCreateAPIView,
+    PublicCommonFieldsAPIView,
 )
 from apps.professional_onboarding.views.public_professionals import (
     PublicProfessionalDetailAPIView,
@@ -15,6 +16,7 @@ from apps.professional_onboarding.views.public_professionals import (
 )
 
 urlpatterns = [
+    path("common-fields/", PublicCommonFieldsAPIView.as_view(), name="public-onboarding-common-fields"),
     path("categories/", PublicCategoryListAPIView.as_view(), name="public-onboarding-categories"),
     path(
         "categories/<uuid:category_id>/groups/",

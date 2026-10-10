@@ -20,7 +20,7 @@ class CommonField(models.Model):
         FILE = "file", "File"
         COUNTRY = "country", "Country"
         STATE = "state", "State"
-        CITY = "city", "City / District"
+        CITY = "city", "District"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120, help_text="Human-readable name for admin.")

@@ -23,6 +23,18 @@ from apps.professional_onboarding.services.professional_registration import (
     ProfessionalRegistrationSubmissionService,
     parse_id_list_from_request,
 )
+from apps.professional_onboarding.models import CommonField
+
+
+class PublicCommonFieldsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        qs = CommonField.objects.filter(is_active=True).prefetch_related("options").order_by("display_order", "name")
+        return api_success(
+            data={"results": PublicCommonFieldSerializer(qs, many=True).data},
+            message="Common fields retrieved.",
+        )
 
 
 class PublicCategoryListAPIView(APIView):

@@ -11,6 +11,7 @@ from apps.professional_onboarding.models import (
 )
 from apps.professional_onboarding.services.theme import resolve_profession_theme
 
+from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig
 
 def build_profession_configuration(profession: Profession) -> dict:
     profession = (
@@ -24,16 +25,14 @@ def build_profession_configuration(profession: Profession) -> dict:
         .get(pk=profession.pk)
     )
 
-    common_option_prefetch = Prefetch(
-        "options",
-        queryset=FieldOption.objects.filter(is_active=True).order_by("display_order", "label"),
-        to_attr="active_options",
-    )
-
     common_fields = (
-        CommonField.objects.filter(is_active=True)
-        .prefetch_related(common_option_prefetch)
-        .order_by("display_order", "name")
+        FormFieldConfig.objects.filter(
+            form__form_code=AdditionalOnboardingFormfields.FormCode.PROFESSIONAL,
+            is_visible=True,
+            common_field__is_active=True,
+        )
+        .select_related("common_field")
+        .order_by("display_order", "common_field__name")
     )
 
     profession_fields = (
