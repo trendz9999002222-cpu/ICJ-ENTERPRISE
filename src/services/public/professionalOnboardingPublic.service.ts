@@ -2,6 +2,7 @@ import { apiClient, apiClientFormData } from "@/lib/api/client";
 import type {
   ProfessionConfiguration,
   PublicSelectable,
+  PublicOnboardingField,
 } from "@/types/public/professionalOnboardingPublic";
 
 type ApiEnvelope<T> = {
@@ -20,6 +21,11 @@ async function getData<T>(path: string): Promise<T> {
 export const professionalOnboardingPublicService = {
   async fetchCategories(): Promise<PublicSelectable[]> {
     const data = await getData<{ results: PublicSelectable[] }>(`${BASE}/categories/`);
+    return data.results;
+  },
+
+  async fetchCommonFields(): Promise<PublicOnboardingField[]> {
+    const data = await getData<{ results: PublicOnboardingField[] }>(`${BASE}/common-fields/`);
     return data.results;
   },
 
@@ -69,11 +75,19 @@ export const professionalOnboardingPublicService = {
     formData.set("new_password", payload.password);
     formData.set("confirm_password", payload.confirmPassword);
 
+    const { readAccessTokenFromCookie } = await import("@/lib/api/client");
+    const token = readAccessTokenFromCookie();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await apiClientFormData<
       ApiEnvelope<{ reference_id: string; status: string; submitted_at?: string }>
     >(`${BASE}/register/`, {
       method: "POST",
       formData,
+      headers,
     });
 
     return { referenceId: res.data.reference_id, status: res.data.status };

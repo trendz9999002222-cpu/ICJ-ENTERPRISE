@@ -60,18 +60,24 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Appointments", href: "/admin/appointments", icon: <CalendarMonthIcon fontSize="small" />, section: "Operations" },
   { label: "Services", href: "/admin/services", icon: <HandshakeIcon fontSize="small" /> },
   {
+    label: "Common Form Fields",
+    href: "/admin/onboarding/common-fields",
+    icon: <DescriptionIcon fontSize="small" />,
+    section: "Onboarding",
+  },
+  {
     label: "Professional Onboarding",
-    href: "/admin/practice-areas",
+    href: "/admin/professional-onboarding/common-fields",
     icon: <LibraryBooksIcon fontSize="small" />,
   },
   {
     label: "Membership Onboarding",
-    href: "/admin/memberships/form-builder",
+    href: "/admin/membership-onboarding/common-fields",
     icon: <BallotOutlinedIcon fontSize="small" />,
   },
   {
     label: "Honorable Advisory Onboarding",
-    href: "/admin/honorable-advisory",
+    href: "/admin/honorable-advisory-onboarding/common-fields",
     icon: <BallotOutlinedIcon fontSize="small" />,
   },
   { label: "Content", href: "/admin/content", icon: <CampaignIcon fontSize="small" />, section: "Platform" },
@@ -85,20 +91,20 @@ const NAV_ITEMS: NavItem[] = [
 
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/admin/dashboard") return pathname === href;
-  if (href === "/admin/memberships/form-builder") {
-    return pathname.startsWith("/admin/memberships/form-builder");
+  if (href === "/admin/membership-onboarding/common-fields") {
+    return pathname.startsWith("/admin/membership-onboarding");
   }
   if (href === "/admin/memberships") {
-    return (
-      pathname === "/admin/memberships" ||
-      pathname.startsWith("/admin/memberships/applications")
-    );
+    return pathname === "/admin/memberships";
   }
-  if (href === "/admin/honorable-advisory") {
-    return pathname === "/admin/honorable-advisory";
+  if (href === "/admin/honorable-advisory-onboarding/common-fields") {
+    return pathname.startsWith("/admin/honorable-advisory-onboarding");
   }
   if (href === "/admin/honorable-advisory-members") {
     return pathname.startsWith("/admin/honorable-advisory-members");
+  }
+  if (href === "/admin/professional-onboarding/common-fields") {
+    return pathname.startsWith("/admin/professional-onboarding");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

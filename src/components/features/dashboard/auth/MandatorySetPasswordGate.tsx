@@ -51,7 +51,7 @@ export default function MandatorySetPasswordGate({ children }: Props) {
       return;
     }
 
-    let required = readPasswordChangeRequiredFromToken();
+    let required = readPasswordChangeRequiredFromToken() || localStorage.getItem("icj_password_change_required") === "1";
     try {
       const res = await fetch(`${env.apiUrl}/auth/me/`, {
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
@@ -102,6 +102,28 @@ export default function MandatorySetPasswordGate({ children }: Props) {
       setNewPassword("");
       setConfirmPassword("");
       setMustSetPassword(false);
+
+      // Send EmailJS notification
+      try {
+        const decoded = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: "service_rypannl",
+            template_id: "template_pmntrjf", // Replace with actual Template ID from EmailJS
+            user_id: "_afNcmKvmFJoVdlI9",      // Replace with actual Public Key from EmailJS Account
+            template_params: {
+              title: "Account Setup Successful",
+              email: decoded?.email || "",
+              name: decoded?.first_name || "Member",
+              message: "Your password has been successfully set. Welcome to the ICJ Member Dashboard!"
+            }
+          })
+        });
+      } catch (emailErr) {
+        console.error("Failed to send email notification", emailErr);
+      }
     } catch (err) {
       if (err instanceof ApiError && err.body && typeof err.body === "object") {
         const body = err.body as { message?: string; errors?: Record<string, string[]> };

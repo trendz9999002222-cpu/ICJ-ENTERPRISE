@@ -28,7 +28,7 @@ import CategoryGroupProfessionSelect, {
   type CascadeValue,
 } from "@/components/features/admin/professional-onboarding/CategoryGroupProfessionSelect";
 import ConfirmDeleteDialog from "@/components/features/admin/professional-onboarding/ConfirmDeleteDialog";
-import { slugFromName } from "@/components/features/admin/professional-onboarding/constants";
+import { slugFromName } from "@/components/features/admin/shared/constants";
 import ColorThemeEditor from "@/components/features/admin/professional-onboarding/theme/ColorThemeEditor";
 import {
   apiPayloadToEditorState,

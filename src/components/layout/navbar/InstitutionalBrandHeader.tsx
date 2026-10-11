@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import GavelIcon from "@mui/icons-material/Gavel";
@@ -8,6 +9,14 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function InstitutionalBrandHeader() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    import("@/lib/api/client").then(({ readAccessTokenFromCookie }) => {
+      setIsLoggedIn(!!readAccessTokenFromCookie());
+    });
+  }, []);
+
   return (
     <Box
       sx={{
@@ -157,7 +166,7 @@ export default function InstitutionalBrandHeader() {
             {/* Member Login — navy outline */}
             <Button
               component={Link}
-              href="/login"
+              href={isLoggedIn ? "/dashboard" : "/login"}
               variant="outlined"
               startIcon={<AccountCircleOutlinedIcon sx={{ fontSize: 18 }} />}
               sx={{
@@ -173,32 +182,34 @@ export default function InstitutionalBrandHeader() {
                 "&:hover": { borderColor: "#1e3a5f", bgcolor: "#f0f4f8", color: "#1e3a5f" },
               }}
             >
-              Login
+              {isLoggedIn ? "Dashboard" : "Login"}
             </Button>
 
             {/* Seek Legal Assistance — primary CTA */}
-            <Button
-              component={Link}
-              href="/join"
-              variant="contained"
-              startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                bgcolor: "#0f2942",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: "0.875rem",
-                textTransform: "none",
-                px: 2.5,
-                py: 1,
-                borderRadius: 2,
-                boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
-                whiteSpace: "nowrap",
-                borderBottom: "3px solid #b45309",
-                "&:hover": { bgcolor: "#1e3a5f" },
-              }}
-            >
-              Register as Professional
-            </Button>
+            {!isLoggedIn && (
+              <Button
+                component={Link}
+                href="/join"
+                variant="contained"
+                startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
+                sx={{
+                  bgcolor: "#0f2942",
+                  color: "#ffffff",
+                  fontWeight: 800,
+                  fontSize: "0.875rem",
+                  textTransform: "none",
+                  px: 2.5,
+                  py: 1,
+                  borderRadius: 2,
+                  boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
+                  whiteSpace: "nowrap",
+                  borderBottom: "3px solid #b45309",
+                  "&:hover": { bgcolor: "#1e3a5f" },
+                }}
+              >
+                Register as Professional
+              </Button>
+            )}
 
             {/* <Button
               component={Link}

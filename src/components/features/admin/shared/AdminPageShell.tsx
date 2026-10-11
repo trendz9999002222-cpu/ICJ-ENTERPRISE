@@ -8,6 +8,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import OnboardingTabs from "./OnboardingTabs";
 
 // =============================================================================
 // AdminPageShell
@@ -21,6 +23,8 @@ type Props = {
   subtitle?: string;
   /** Primary action button(s) rendered top-right */
   actions?: ReactNode;
+  /** Optional Tabs component rendered below header */
+  tabs?: ReactNode;
   children: ReactNode;
 };
 
@@ -28,13 +32,27 @@ export default function AdminPageShell({
   title,
   subtitle,
   actions,
+  tabs,
   children,
 }: Props) {
   // Subtitle is client-only so SSR HTML matches first client paint (avoids hydration drift after HMR / copy changes).
   const [showSubtitle, setShowSubtitle] = useState(false);
+  const pathname = usePathname();
+  
   useEffect(() => {
     setShowSubtitle(true);
   }, []);
+
+  let autoTabs = tabs;
+  if (!autoTabs) {
+    if (pathname.startsWith("/admin/professional-onboarding")) {
+      autoTabs = <OnboardingTabs type="professional" />;
+    } else if (pathname.startsWith("/admin/membership-onboarding")) {
+      autoTabs = <OnboardingTabs type="membership" />;
+    } else if (pathname.startsWith("/admin/honorable-advisory-onboarding")) {
+      autoTabs = <OnboardingTabs type="honorable" />;
+    }
+  }
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -63,6 +81,12 @@ export default function AdminPageShell({
         </Box>
         {actions && <Box sx={{ flexShrink: 0 }}>{actions}</Box>}
       </Stack>
+
+      {autoTabs && (
+        <Box sx={{ mt: 1, mb: -3 }}>
+          {autoTabs}
+        </Box>
+      )}
 
       <Divider sx={{ borderColor: "#e2e8f0" }} />
 

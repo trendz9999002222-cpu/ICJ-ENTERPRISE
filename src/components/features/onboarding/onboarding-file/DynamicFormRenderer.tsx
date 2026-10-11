@@ -21,7 +21,8 @@ import { getCountryCallingCode, isValidPhoneNumber, validatePhoneNumberLength, C
 import { useLocationData } from "@/hooks/useLocationData";
 import { RADIUS, resolveIcon } from "./iconMap";
 import { FormField, FormSchema, Theme } from "@/types/registration";
-import { Select } from "@mui/material";
+import { Select, Tabs, Tab } from "@mui/material";
+import { useState } from "react";
 
 type Props = {
   schema: FormSchema;
@@ -44,8 +45,12 @@ function resolveOptionEntries(field: FormField): { value: string; label: string 
 }
 
 export default function DynamicFormRenderer({ schema, values, errors, theme, onChange }: Props) {
-  const selectedCountryName = (values.country as string) || "India";
-  const selectedStateName = (values.state as string) || "";
+  const countryKey = Object.keys(values).find(k => k.toLowerCase().includes("country")) || "country";
+  const stateKey = Object.keys(values).find(k => k.toLowerCase().includes("state")) || "state";
+  const districtKey = Object.keys(values).find(k => k.toLowerCase().includes("district") || k.toLowerCase().includes("city")) || "district";
+  
+  const selectedCountryName = (values[countryKey] as string) || "India";
+  const selectedStateName = (values[stateKey] as string) || "";
   const { countries, states, districts, loading, levels } = useLocationData(selectedCountryName, selectedStateName);
 
   const inputSx = {
@@ -82,8 +87,8 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             onChange={(e) => {
               onChange(field.name, e.target.value);
               // clear dependent fields
-              onChange("state", "");
-              onChange("district", "");
+              onChange(stateKey, "");
+              onChange(districtKey, "");
             }}
             error={!!error}
             helperText={error ?? field.helper}
@@ -115,7 +120,7 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             onChange={(e) => {
               onChange(field.name, e.target.value);
               // clear dependent fields
-              onChange("district", "");
+              onChange(districtKey, "");
             }}
             error={!!error}
             helperText={error ?? field.helper}
@@ -134,6 +139,7 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
         );
       }
 
+      case "city":
       case "district": {
         const lbl = labelWithFlag(field);
         const resolvedLabel = lbl === "District *" ? `${levels.l2} *` : lbl === "District" ? levels.l2 : lbl;
@@ -502,51 +508,112 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
     }
   };
 
+  const [activeTabId, setActiveTabId] = useState<string>(
+    schema.sections.find(s => s.id !== "common")?.id || ""
+  );
+
+  const commonSection = schema.sections.find(s => s.id === "common");
+  const tabSections = schema.sections.filter(s => s.id !== "common");
+
+  // Ensure active tab is valid
+  if (tabSections.length > 0 && !tabSections.find(s => s.id === activeTabId)) {
+    setActiveTabId(tabSections[0].id);
+  }
+
+  const renderSection = (section: any) => {
+    const SectionIcon = resolveIcon(section.icon);
+    return (
+      <Box
+        key={section.id}
+        sx={{
+          border: "1px solid #e2e8f0",
+          borderRadius: RADIUS.md,
+          overflow: "hidden",
+          bgcolor: "#fff",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            px: 2,
+            py: 1.25,
+            bgcolor: theme.bg,
+            borderBottom: `1px solid ${theme.border}`,
+          }}
+        >
+          <SectionIcon sx={{ color: theme.color, fontSize: 20 }} />
+          <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#0f172a" }}>
+            {section.title}
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            p: 2,
+            display: "grid",
+            gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+            columnGap: 2,
+            rowGap: 2.5,
+          }}
+        >
+          {section.fields.map(renderField)}
+        </Box>
+      </Box>
+    );
+  };
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-      {schema.sections.map((section) => {
-        const SectionIcon = resolveIcon(section.icon);
-        return (
-          <Box
-            key={section.id}
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {commonSection && renderSection(commonSection)}
+      
+      {tabSections.length === 1 && !commonSection && renderSection(tabSections[0])}
+      
+      {(tabSections.length > 1 || (tabSections.length === 1 && commonSection)) && (
+        <Box sx={{ border: "1px solid #e2e8f0", borderRadius: RADIUS.md, bgcolor: "#fff", overflow: "hidden" }}>
+          <Tabs
+            value={activeTabId}
+            onChange={(e, val) => setActiveTabId(val)}
+            variant="scrollable"
+            scrollButtons="auto"
             sx={{
-              border: "1px solid #e2e8f0",
-              borderRadius: RADIUS.md,
-              overflow: "hidden",
-              bgcolor: "#fff",
+              bgcolor: theme.bg,
+              borderBottom: `1px solid ${theme.border}`,
+              "& .MuiTab-root": { textTransform: "none", fontWeight: 600, color: "#64748b", minHeight: 48 },
+              "& .Mui-selected": { color: `${theme.color} !important` },
+              "& .MuiTabs-indicator": { backgroundColor: theme.color },
             }}
           >
+            {tabSections.map(section => (
+              <Tab key={section.id} value={section.id} label={section.title} />
+            ))}
+          </Tabs>
+          
+          {tabSections.map(section => (
             <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.25,
-                px: 2,
-                py: 1.25,
-                bgcolor: theme.bg,
-                borderBottom: `1px solid ${theme.border}`,
-              }}
+              key={section.id}
+              role="tabpanel"
+              hidden={activeTabId !== section.id}
+              sx={{ display: activeTabId === section.id ? "block" : "none" }}
             >
-              <SectionIcon sx={{ color: theme.color, fontSize: 20 }} />
-              <Typography sx={{ fontWeight: 700, fontSize: "0.95rem", color: "#0f172a" }}>
-                {section.title}
-              </Typography>
+              {activeTabId === section.id && (
+                <Box
+                  sx={{
+                    p: 2,
+                    display: "grid",
+                    gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+                    columnGap: 2,
+                    rowGap: 2.5,
+                  }}
+                >
+                  {section.fields.map(renderField)}
+                </Box>
+              )}
             </Box>
-
-            <Box
-              sx={{
-                p: 2,
-                display: "grid",
-                gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-                columnGap: 2,
-                rowGap: 2.5,
-              }}
-            >
-              {section.fields.map(renderField)}
-            </Box>
-          </Box>
-        );
-      })}
+          ))}
+        </Box>
+      )}
     </Box>
   );
 }

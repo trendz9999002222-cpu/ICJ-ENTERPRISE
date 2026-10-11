@@ -94,6 +94,13 @@ export const membershipOnboardingPublicService = {
       formData.set("payment_id", payload.paymentId);
     }
 
+    const { readAccessTokenFromCookie } = await import("@/lib/api/client");
+    const token = readAccessTokenFromCookie();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await apiClientFormData<
       ApiEnvelope<{
         reference_id: string;
@@ -105,7 +112,7 @@ export const membershipOnboardingPublicService = {
         refresh?: string;
         requires_password_change?: boolean;
       }
-    >(`${BASE}/register/`, { method: "POST", formData });
+    >(`${BASE}/register/`, { method: "POST", formData, headers });
 
     return {
       referenceId: res.data.reference_id,

@@ -1,5 +1,6 @@
 "use client";
 
+import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -7,6 +8,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import GavelIcon from "@mui/icons-material/Gavel";
+import GroupsIcon from "@mui/icons-material/Groups";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import SearchIcon from "@mui/icons-material/Search";
@@ -76,7 +78,7 @@ export function getPortalNavItems(
     });
     items.push({
       label: "Change Password",
-      href: "/login/change-password",
+      href: "/dashboard/change-password",
       icon: <LockOutlinedIcon fontSize="small" />,
     });
     return items;
@@ -96,7 +98,7 @@ export function getPortalNavItems(
     });
     items.push({
       label: "Change Password",
-      href: MEMBER_CHANGE_PASSWORD_QUERY,
+      href: "/dashboard/change-password",
       icon: <LockOutlinedIcon fontSize="small" />,
     });
     return items;
@@ -104,19 +106,24 @@ export function getPortalNavItems(
 
   items.push({ label: "Dashboard", href: "/dashboard", icon: <DashboardIcon fontSize="small" /> });
 
-  // Section: Practice / Membership
+  // Section: Cases & Practice
   if (hasPro) {
     items.push({
-      label: "Professional Practice",
-      href: "/dashboard/professional",
+      label: "Register New Practice",
+      href: "/dashboard/professional/register",
       icon: <WorkspacePremiumIcon fontSize="small" />,
       section: "Practice",
-      badge: "Pro",
     });
     items.push({
-      label: "Application Status",
-      href: "/dashboard/professional/application",
-      icon: <DescriptionIcon fontSize="small" />,
+      label: "Available Cases",
+      href: "/dashboard/professional/cases",
+      icon: <GavelIcon fontSize="small" />,
+      section: "Cases",
+    });
+    items.push({
+      label: "My Cases",
+      href: "/dashboard/professional/my-cases",
+      icon: <AssignmentTurnedInIcon fontSize="small" />,
     });
   }
 
@@ -135,13 +142,15 @@ export function getPortalNavItems(
     });
   }
 
-  // Section: Vault & Documents
-  items.push({
-    label: "Documents & Vault",
-    href: hasPro ? "/dashboard/advocate/documents" : "/dashboard/member/documents",
-    icon: <FolderOpenIcon fontSize="small" />,
-    section: "Documents",
-  });
+  if (hasMember) {
+    // Section: Vault & Documents
+    items.push({
+      label: "Documents & Vault",
+      href: "/dashboard/member/documents",
+      icon: <FolderOpenIcon fontSize="small" />,
+      section: "Documents",
+    });
+  }
 
   // Section: Account & Security
   items.push({
@@ -153,14 +162,17 @@ export function getPortalNavItems(
   });
   items.push({
     label: "Change Password",
-    href: hasMember ? MEMBER_CHANGE_PASSWORD_QUERY : "/login/change-password",
+    href: "/dashboard/change-password",
     icon: <LockOutlinedIcon fontSize="small" />,
   });
-  items.push({
-    label: "Support Desk",
-    href: hasPro ? "/dashboard/advocate/support" : "/dashboard/member/support",
-    icon: <SupportAgentIcon fontSize="small" />,
-  });
+
+  if (hasMember && !hasPro) {
+    items.push({
+      label: "Support Desk",
+      href: "/dashboard/member/support",
+      icon: <SupportAgentIcon fontSize="small" />,
+    });
+  }
 
   return items;
 }

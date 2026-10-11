@@ -1,41 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Alert, Avatar, Box, Chip, Stack, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Divider, TextField } from "@mui/material";
+import { Alert, Avatar, Box, Chip, Stack, Typography, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions, Button, Divider } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import EditIcon from "@mui/icons-material/Edit";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import AdminDataTable, { type AdminTableColumn } from "@/components/features/admin/shared/AdminDataTable";
-import ConfiguredFormField from "@/components/form/ConfiguredFormField";
-import { validateConfiguredFieldList } from "@/lib/form/configuredFieldValidation";
 import { apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
-import type { HonorableAdvisoryMember, HonorableFormField } from "@/services/public/honorableAdvisory.service";
+import type { HonorableAdvisoryMember } from "@/services/public/honorableAdvisory.service";
+import HonorableAdvisoryActions from "@/app/(admin)/admin/honorable-advisory-onboarding/HonorableAdvisoryActions";
 
 const ADMIN_BASE = "/honorable-advisory/admin";
-type AdminField = HonorableFormField & { id?: string; is_active?: boolean };
 
 export default function AdminHonorableAdvisoryMembersPage() {
   const [members, setMembers] = useState<HonorableAdvisoryMember[]>([]);
-  const [fields, setFields] = useState<AdminField[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [viewMember, setViewMember] = useState<HonorableAdvisoryMember | null>(null);
+  const [editMember, setEditMember] = useState<{ id: string; display_order: number; field_values: Record<string, any> } | null>(null);
 
   const load = async () => {
     setLoading(true);
     const t = readAccessTokenFromCookie();
     if (!t) return;
-    
-    try {
-      const fieldRes = await apiClient<{ success: boolean; data: { results: AdminField[] } }>(
-        `${ADMIN_BASE}/form-fields/`, { headers: { Authorization: `Bearer ${t}` } }
-      );
-      setFields(fieldRes.data.results);
-    } catch {
-      // Ignore field error
-    }
 
     try {
       const res = await apiClient<{
@@ -58,81 +46,10 @@ export default function AdminHonorableAdvisoryMembersPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${t}` }
       });
-      // Update local state for immediate feedback
       setMembers(prev => prev.map(m => m.id === id ? { ...m, is_active: !m.is_active } : m));
       setViewMember(prev => prev && prev.id === id ? { ...prev, is_active: !prev.is_active } : prev);
     } catch {
       setError("Could not update member status.");
-    }
-  };
-
-  const [memberOpen, setMemberOpen] = useState(false);
-  const [memberForm, setMemberForm] = useState<Record<string, any>>({ display_order: "0" });
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [memberSaving, setMemberSaving] = useState(false);
-  const [editMemberId, setEditMemberId] = useState<string | null>(null);
-  
-  const activePreviewFields = fields.filter((f) => f.is_active !== false);
-
-  const openEditModal = (m: HonorableAdvisoryMember) => {
-    // Flatten field_values for the form
-    const form = { display_order: String(m.display_order), ...(m.field_values || {}) };
-    setMemberForm(form);
-    setEditMemberId(m.id!);
-    setMemberOpen(true);
-  };
-
-  const createMember = async () => {
-    const t = readAccessTokenFromCookie();
-    if (!t) return;
-    
-    // Only validate required fields if we are creating or if the field is empty on edit
-    // Wait, the dynamic validation will check everything. That's fine.
-    const errors = validateConfiguredFieldList(activePreviewFields, memberForm);
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-    setFormErrors({});
-    
-    setMemberSaving(true);
-    try {
-      const fd = new FormData();
-      const fieldValuesOnly: Record<string, any> = {};
-      
-      for (const [key, value] of Object.entries(memberForm)) {
-        if (key === "display_order") {
-          fd.set(key, value);
-        } else if (value instanceof File) {
-          fd.set(`file__${key}`, value);
-        } else {
-          fieldValuesOnly[key] = value;
-        }
-      }
-      
-      fd.set("field_values", JSON.stringify(fieldValuesOnly));
-
-      const method = editMemberId ? "PUT" : "POST";
-      const url = editMemberId 
-        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/${editMemberId}/`
-        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}${ADMIN_BASE}/members/`;
-
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${t}` },
-        body: fd,
-      });
-
-      if (!res.ok) throw new Error("Failed to save");
-
-      setMemberOpen(false);
-      setEditMemberId(null);
-      setMemberForm({ display_order: "0" });
-      load();
-    } catch {
-      setError(editMemberId ? "Could not update member." : "Could not onboard member.");
-    } finally {
-      setMemberSaving(false);
     }
   };
 
@@ -255,7 +172,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
           <Tooltip title="Edit member">
             <IconButton
               size="small"
-              onClick={() => openEditModal(m)}
+              onClick={() => setEditMember({ id: m.id!, display_order: m.display_order, field_values: m.field_values || {} })}
               sx={{
                 color: "#16a34a",
                 bgcolor: "#f0fdf4",
@@ -286,16 +203,11 @@ export default function AdminHonorableAdvisoryMembersPage() {
       title="Honorable Advisory Members"
       subtitle="View all registered members of the Honorable Advisory Board"
       actions={
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            onClick={() => setMemberOpen(true)}
-            sx={{ textTransform: "none", fontWeight: 700 }}
-          >
-            Add Honorable Advisory Board Member
-          </Button>
-        </Stack>
+        <HonorableAdvisoryActions
+          onSuccess={load}
+          editMember={editMember}
+          onEditClose={() => setEditMember(null)}
+        />
       }
     >
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -323,43 +235,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
         }}
       />
 
-      <Dialog open={memberOpen} onClose={() => { setMemberOpen(false); setEditMemberId(null); }} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          {editMemberId ? "Edit Advisory Board Member" : "Onboard Advisory Board Member"}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1, pb: 1 }}>
-            {activePreviewFields.map((field) => (
-              <ConfiguredFormField
-                key={field.field_key}
-                field={field as any}
-                value={memberForm[field.field_key] || ""}
-                values={memberForm}
-                error={formErrors[field.field_key]}
-                onChange={(val) => setMemberForm((p) => ({ ...p, [field.field_key]: val }))}
-              />
-            ))}
-            {activePreviewFields.length === 0 && (
-              <Typography color="text.secondary">No fields configured. Please add fields first.</Typography>
-            )}
-            <Divider sx={{ my: 1 }} />
-            <TextField
-              label="Display order"
-              type="number"
-              fullWidth
-              value={memberForm.display_order || "0"}
-              onChange={(e) => setMemberForm((p) => ({ ...p, display_order: e.target.value }))}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => { setMemberOpen(false); setEditMemberId(null); }}>Cancel</Button>
-          <Button variant="contained" disabled={memberSaving || activePreviewFields.length === 0} onClick={createMember}>
-            {memberSaving ? "Saving…" : editMemberId ? "Save Changes" : "Publish member"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
+      {/* View Member Dialog */}
       <Dialog open={!!viewMember} onClose={() => setViewMember(null)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, borderBottom: "1px solid #e2e8f0" }}>
           Member Details
@@ -403,8 +279,30 @@ export default function AdminHonorableAdvisoryMembersPage() {
                 </Box>
               </Stack>
 
-              <Divider sx={{ my: 1 }} />
+              {/* Show all field_values dynamically */}
+              {viewMember.field_values && Object.keys(viewMember.field_values).length > 0 && (
+                <>
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700 }}>
+                    Additional Information
+                  </Typography>
+                  {Object.entries(viewMember.field_values).map(([key, value]) => {
+                    if (key === "name" || key === "role" || key === "qualification" || !value) return null;
+                    return (
+                      <Stack key={key} direction="row" spacing={2}>
+                        <Typography sx={{ width: 120, fontWeight: 700, color: "#64748b", flexShrink: 0, textTransform: "capitalize" }}>
+                          {key.replace(/_/g, " ")}:
+                        </Typography>
+                        <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+                          {String(value)}
+                        </Typography>
+                      </Stack>
+                    );
+                  })}
+                </>
+              )}
 
+              <Divider sx={{ my: 1 }} />
               <Box>
                 <Typography sx={{ fontWeight: 700, color: "#64748b", mb: 0.5 }}>Bio:</Typography>
                 <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>

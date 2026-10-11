@@ -13,7 +13,7 @@ export const FIELD_TYPE_OPTIONS: { value: FieldType; label: string }[] = [
   { value: "file", label: "File" },
   { value: "country", label: "Country" },
   { value: "state", label: "State" },
-  { value: "city", label: "City / District" },
+  { value: "city", label: "District" },
 ];
 
 export const OPTION_FIELD_TYPES: FieldType[] = ["select", "radio", "checkbox"];

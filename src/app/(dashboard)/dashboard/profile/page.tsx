@@ -105,6 +105,19 @@ export default function UserProfilePage() {
     setSaving(true);
     try {
       const token = readCookie("icj_access_token");
+      // Sync duplicate fields so the membership application data stays in sync with the core user data
+      const updatedMembershipFields = { ...membershipFields };
+      
+      // Update Name
+      if (updatedMembershipFields.full_name !== undefined) updatedMembershipFields.full_name = firstName;
+      else if (updatedMembershipFields.name !== undefined) updatedMembershipFields.name = firstName;
+      else if (updatedMembershipFields.first_name !== undefined) updatedMembershipFields.first_name = firstName;
+      
+      // Update Phone
+      if (updatedMembershipFields.mobile_number !== undefined) updatedMembershipFields.mobile_number = phoneNumber;
+      else if (updatedMembershipFields.mobile !== undefined) updatedMembershipFields.mobile = phoneNumber;
+      else if (updatedMembershipFields.phone_number !== undefined) updatedMembershipFields.phone_number = phoneNumber;
+
       const res = await fetch(`${env.apiUrl}/auth/me/`, {
         method: "PATCH",
         headers: {
@@ -114,7 +127,7 @@ export default function UserProfilePage() {
         body: JSON.stringify({
           first_name: firstName,
           phone_number: phoneNumber,
-          membership_field_values: membershipFields,
+          membership_field_values: updatedMembershipFields,
         }),
       });
       if (res.ok) {
@@ -173,9 +186,6 @@ export default function UserProfilePage() {
   }, [professions]);
   const membership = profile?.membership;
   const allRoles: string[] = profile?.roles || (profile?.role ? [profile.role] : ["professional"]);
-  const changePasswordHref = normalizePlatformRoles(allRoles).includes("member")
-    ? MEMBER_CHANGE_PASSWORD_QUERY
-    : "/login/change-password";
   const isMember = normalizePlatformRoles(allRoles).includes("member");
 
   // Gather all uploaded files across submissions
@@ -194,7 +204,7 @@ export default function UserProfilePage() {
         <Stack direction="row" spacing={1.5}>
           <Button
             component={Link}
-            href={changePasswordHref}
+            href="/dashboard/change-password"
             variant="outlined"
             size="small"
             startIcon={<LockOutlinedIcon />}
@@ -374,8 +384,10 @@ export default function UserProfilePage() {
                     />
                   </Grid>
 
-                  {/* Render dynamic membership fields */}
-                  {Object.entries(membershipFields).map(([key, val]) => (
+                  {/* Render dynamic membership fields (excluding core fields to avoid duplicates) */}
+                  {Object.entries(membershipFields)
+                    .filter(([key]) => !["full_name", "name", "first_name", "last_name", "email", "email_address", "mobile", "mobile_number", "phone", "phone_number"].includes(key))
+                    .map(([key, val]) => (
                     <Grid size={{ xs: 12, sm: 6 }} key={key}>
                       <TextField
                         label={formatKeyLabel(key)}
@@ -438,7 +450,7 @@ export default function UserProfilePage() {
               </Box>
               <Button
                 component={Link}
-                href="/join"
+                href="/dashboard/professional/register"
                 variant="outlined"
                 size="small"
                 sx={{
