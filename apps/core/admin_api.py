@@ -6,11 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from common.api_listing import list_params, paginated_success
 from common.responses import api_error, api_success
 
-from apps.core.models.common_field import CommonField
-from apps.core.models.form_field_config import FormFieldConfig
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
-from apps.core.serializers.common_field import CommonFieldSerializer
-from apps.core.serializers.form_field_config import FormFieldConfigSerializer
+from apps.core.models import CommonField, FormFieldConfig, AdditionalOnboardingFormfields
+from apps.core.serializers import CommonFieldSerializer, FormFieldConfigSerializer
 
 
 class CommonFieldListCreateAPIView(APIView):
@@ -68,7 +65,17 @@ class FormFieldConfigListCreateAPIView(APIView):
         
         form_code = request.query_params.get("form_code")
         if form_code:
-            qs = qs.filter(form__form_code=form_code)
+            form_code_clean = form_code.strip()
+            valid_codes = dict(AdditionalOnboardingFormfields.FormCode.choices)
+            if form_code_clean in valid_codes:
+                AdditionalOnboardingFormfields.objects.get_or_create(
+                    form_code=form_code_clean,
+                    defaults={
+                        "form_name": valid_codes[form_code_clean],
+                        "description": f"Onboarding flow for {valid_codes[form_code_clean]}."
+                    }
+                )
+            qs = qs.filter(form__form_code=form_code_clean)
             
         ordering = params.get("ordering", "display_order")
         if ordering:
@@ -77,6 +84,23 @@ class FormFieldConfigListCreateAPIView(APIView):
         return paginated_success(request, qs, FormFieldConfigSerializer, message="Form field configs retrieved.")
 
     def post(self, request):
+        form_code = request.data.get("form")
+        common_field_id = request.data.get("common_field")
+        
+        if form_code and common_field_id:
+            try:
+                existing = FormFieldConfig.objects.filter(
+                    form__form_code=str(form_code).strip(),
+                    common_field_id=common_field_id
+                ).first()
+                if existing:
+                    serializer = FormFieldConfigSerializer(existing, data=request.data, partial=True)
+                    serializer.is_valid(raise_exception=True)
+                    serializer.save()
+                    return api_success(data=serializer.data, message="Form field config updated.", status_code=status.HTTP_200_OK)
+            except Exception:
+                pass
+
         serializer = FormFieldConfigSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()

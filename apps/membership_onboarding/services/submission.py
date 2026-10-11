@@ -117,10 +117,14 @@ class MembershipApplicationService:
             if field.field_type in (MembershipStepField.FieldType.FILE, MembershipStepField.FieldType.IMAGE):
                 continue
             value = field_values.get(key)
-            options = [
-                {"value": o.value, "label": o.label}
-                for o in field.options.filter(is_active=True).order_by("display_order", "label")
-            ]
+            opts = getattr(field, "active_options", None)
+            if opts is not None:
+                options = [{"value": o.value, "label": o.label} for o in opts]
+            else:
+                options = [
+                    {"value": o.value, "label": o.label}
+                    for o in field.options.filter(is_active=True).order_by("display_order", "label")
+                ]
             if field.is_required and (value is None or (isinstance(value, str) and not value.strip())):
                 errors.setdefault(key, []).append(f"{field.label} is required.")
             else:

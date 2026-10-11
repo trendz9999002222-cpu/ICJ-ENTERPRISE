@@ -1,8 +1,8 @@
 import uuid
 from django.db import models
 
-from apps.core.models.common_field import CommonField
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
+from .common_field import CommonField
+from .additional_onboarding_formfields import AdditionalOnboardingFormfields
 
 class FormFieldConfig(models.Model):
     """

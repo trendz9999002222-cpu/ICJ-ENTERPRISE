@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
+from apps.core.models import AdditionalOnboardingFormfields
 
 class Command(BaseCommand):
     help = "Initializes the basic onboarding forms."
@@ -20,6 +20,11 @@ class Command(BaseCommand):
                 "form_code": AdditionalOnboardingFormfields.FormCode.SEEKER_ASSISTANT,
                 "form_name": "Seeker Assistant",
                 "description": "Application flow for Client Seekers and Lead Generation.",
+            },
+            {
+                "form_code": AdditionalOnboardingFormfields.FormCode.HONORABLE_ADVISORY,
+                "form_name": "Honorable Advisory Onboarding",
+                "description": "Application flow for Honorable Advisory Board members.",
             },
         ]
 

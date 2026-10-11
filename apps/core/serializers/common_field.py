@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.core.models.common_field import CommonField
+from apps.core.models import CommonField
 
 
 class CommonFieldSerializer(serializers.ModelSerializer):

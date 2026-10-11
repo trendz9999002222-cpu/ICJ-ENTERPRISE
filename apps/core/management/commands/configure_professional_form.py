@@ -1,7 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
-from apps.core.models.common_field import CommonField
-from apps.core.models.form_field_config import FormFieldConfig
+from apps.core.models import AdditionalOnboardingFormfields, CommonField, FormFieldConfig
 
 class Command(BaseCommand):
     help = "Configures the Professional Onboarding form by mapping common fields."
