@@ -37,8 +37,27 @@ def public_members(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_form_fields(request):
-    fields = HonorableFormField.objects.filter(is_active=True).order_by('display_order')
+    from apps.professional_onboarding.models import CommonField
+    
     data = []
+    
+    # Prepend Common Fields
+    common_fields = CommonField.objects.filter(is_active=True).prefetch_related("options").order_by("display_order", "label")
+    for cf in common_fields:
+        opts = []
+        for o in cf.options.filter(is_active=True).order_by("display_order", "label"):
+            opts.append({"label": o.label, "value": o.value})
+            
+        data.append({
+            'field_key': cf.field_key,
+            'label': cf.label,
+            'field_type': cf.field_type,
+            'required': cf.is_required,
+            'options': opts if opts else None,
+        })
+        
+    # Append Custom Honorable Fields
+    fields = HonorableFormField.objects.filter(is_active=True).order_by('display_order')
     for f in fields:
         data.append({
             'field_key': f.field_key,
@@ -104,14 +123,23 @@ def admin_members(request):
                     
         # Backend validation for dynamic fields
         from apps.professional_onboarding.services.field_validation import validate_configured_field_value
-        active_fields = HonorableFormField.objects.filter(is_active=True)
-        for f in active_fields:
+        from apps.professional_onboarding.models import CommonField
+        
+        all_active_fields = list(CommonField.objects.filter(is_active=True)) + list(HonorableFormField.objects.filter(is_active=True))
+        
+        for f in all_active_fields:
             val = field_values.get(f.field_key)
-            # Support fallback for files directly handled above or text values
-            if f.required and not val:
+            is_req = getattr(f, 'is_required', getattr(f, 'required', False))
+            options = getattr(f, 'options', None)
+            if hasattr(options, 'all'): # For CommonField options which is a queryset manager
+                opts = [{'label': o.label, 'value': o.value} for o in options.filter(is_active=True)]
+            else:
+                opts = options
+                
+            if is_req and not val:
                 errors.setdefault(f.field_key, []).append(f"{f.label} is required.")
             elif val:
-                msg = validate_configured_field_value(f.field_type, val, f.options)
+                msg = validate_configured_field_value(f.field_type, val, opts)
                 if msg:
                     errors.setdefault(f.field_key, []).append(msg)
                     
@@ -290,6 +318,8 @@ def admin_form_fields(request):
         f.required = str(request.data.get('required', f.required)).lower() == 'true'
         f.display_order = int(request.data.get('display_order', f.display_order))
         f.is_active = str(request.data.get('is_active', f.is_active)).lower() == 'true'
+        if 'options' in request.data:
+            f.options = request.data.get('options')
         f.save()
         return Response({'success': True})
 
@@ -318,7 +348,8 @@ def admin_form_fields(request):
             field_type=field_type,
             required=required,
             display_order=display_order,
-            is_active=True
+            is_active=True,
+            options=request.data.get('options')
         )
         return Response({'success': True, 'id': str(f.id)})
 

@@ -72,9 +72,15 @@ class PublicFieldOptionSerializer(serializers.ModelSerializer):
 
 class PublicCommonFieldSerializer(serializers.ModelSerializer):
     options = serializers.SerializerMethodField()
+    field_key = serializers.CharField(source="common_field.field_key")
+    field_type = serializers.CharField(source="common_field.field_type")
+    label = serializers.SerializerMethodField()
+    placeholder = serializers.SerializerMethodField()
+    help_text = serializers.SerializerMethodField()
 
     class Meta:
-        model = CommonField
+        from apps.core.models import FormFieldConfig
+        model = FormFieldConfig
         fields = (
             "id",
             "field_key",
@@ -87,13 +93,20 @@ class PublicCommonFieldSerializer(serializers.ModelSerializer):
             "options",
         )
 
+    def get_label(self, obj):
+        return obj.label_override or obj.common_field.label
+
+    def get_placeholder(self, obj):
+        return obj.placeholder_override or obj.common_field.placeholder
+
+    def get_help_text(self, obj):
+        return obj.help_text_override or obj.common_field.help_text
+
     def get_options(self, obj):
-        if obj.field_type not in ("select", "radio", "checkbox"):
+        if obj.common_field.field_type not in ("select", "radio", "checkbox"):
             return []
-        opts = getattr(obj, "active_options", None)
-        if opts is None:
-            opts = FieldOption.objects.filter(common_field=obj, is_active=True).order_by("display_order", "label")
-        return PublicFieldOptionSerializer(opts, many=True).data
+        # Return JSON options directly from the new common_field structure
+        return obj.common_field.options
 
 
 class PublicProfessionFieldSerializer(serializers.ModelSerializer):

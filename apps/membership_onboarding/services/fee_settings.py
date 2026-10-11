@@ -8,12 +8,7 @@ def get_membership_fee_settings() -> MembershipFeeSettings:
 
 
 def payment_required_for_submission() -> bool:
-    settings = get_membership_fee_settings()
-    if not settings.is_payment_enabled:
-        return False
-    if settings.amount_paise <= 0:
-        return False
-    return razorpay_configured()
+    return False
 
 
 def public_payment_payload() -> dict:

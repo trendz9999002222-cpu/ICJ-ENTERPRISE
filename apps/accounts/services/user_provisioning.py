@@ -1,6 +1,6 @@
 import secrets
 import string
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -9,7 +9,10 @@ from django.db import transaction
 
 from apps.professional_onboarding.services.crud import ServiceError
 
-User = get_user_model()
+if TYPE_CHECKING:
+    from apps.accounts.models import User
+else:
+    User = get_user_model()
 
 
 def _professional_identity_from_submission(submission):
@@ -254,6 +257,8 @@ def provision_user_for_membership(application) -> Tuple[User, None, bool]:
             user.last_name = last_name
         if mobile and not user.phone_number:
             user.phone_number = mobile
+        
+        user.password_change_required = True
         user.save()
 
     application.user = user
