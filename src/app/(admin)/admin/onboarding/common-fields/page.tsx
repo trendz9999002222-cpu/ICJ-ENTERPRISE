@@ -4,6 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import {
+  Alert,
   Button,
   Chip,
   Dialog,
@@ -213,7 +214,10 @@ export default function CommonFieldsPage() {
           {editing ? "Edit common field" : "Add common field"}
         </DialogTitle>
         <DialogContent>
-          <FieldFormFields form={form} onChange={setForm} />
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <strong>Note:</strong> Field <strong>Display Order</strong> and <strong>Required</strong> status are configured per onboarding flow under <em>Professional Onboarding &gt; Common Fields</em>, <em>Membership Onboarding &gt; Common Fields</em>, etc.
+          </Alert>
+          <FieldFormFields form={form} onChange={setForm} hideDisplayOrder hideRequired />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>
