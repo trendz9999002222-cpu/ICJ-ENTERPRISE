@@ -96,9 +96,7 @@ export default function JoinMembershipApplicationFlow() {
       .finally(() => setLoading(false));
   }, []);
 
-  const steps = (config?.steps ?? [])
-    .filter((s) => s.step_fields.length > 0)
-    .map((s) => (s.title === "Professional Details" ? { ...s, title: "Personal Details" } : s));
+  const steps = (config?.steps ?? []).filter((s) => s.step_fields.length > 0);
   const currentStep = steps[stepIndex];
   const stepSchema = useMemo(() => (currentStep ? stepToFormSchema(currentStep) : null), [currentStep]);
   const formDocuments = useMemo(() => documentsToFields(config?.documents ?? []), [config?.documents]);

@@ -29,6 +29,51 @@ type CombinedRow = {
   config: FormFieldConfig | null;
 };
 
+function OrderInputCell({
+  displayOrder,
+  disabled,
+  onSave,
+}: {
+  displayOrder: number | undefined;
+  disabled: boolean;
+  onSave: (val: number) => void;
+}) {
+  const currentVal = displayOrder !== undefined ? String(displayOrder) : "0";
+  const [val, setVal] = useState<string>(currentVal);
+
+  useEffect(() => {
+    setVal(displayOrder !== undefined ? String(displayOrder) : "0");
+  }, [displayOrder]);
+
+  const handleCommit = () => {
+    const num = parseInt(val, 10);
+    const existingNum = displayOrder !== undefined ? displayOrder : 0;
+    if (!isNaN(num) && (displayOrder === undefined || num !== displayOrder)) {
+      onSave(num);
+    } else if (isNaN(num)) {
+      setVal(String(existingNum));
+    }
+  };
+
+  return (
+    <TextField
+      size="small"
+      type="number"
+      sx={{ width: 85 }}
+      value={val}
+      placeholder="0"
+      disabled={disabled}
+      onChange={(e) => setVal(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+      onBlur={handleCommit}
+    />
+  );
+}
+
 export default function MappedCommonFieldsPage({ formCode, title, subtitle, actions }: Props) {
   const [globalFields, setGlobalFields] = useState<CommonField[]>([]);
   const [configs, setConfigs] = useState<FormFieldConfig[]>([]);
@@ -126,19 +171,10 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
       key: "order",
       label: "Order",
       render: (r) => (
-        <TextField
-          size="small"
-          type="number"
-          sx={{ width: 80 }}
-          value={r.config?.display_order ?? ""}
-          placeholder="N/A"
-          disabled={savingId === r.globalField.id || !r.config?.is_visible}
-          onBlur={(e) => {
-            const val = parseInt(e.target.value, 10);
-            if (!isNaN(val) && r.config && val !== r.config.display_order) {
-              handleUpdateConfig(r, { display_order: val });
-            }
-          }}
+        <OrderInputCell
+          displayOrder={r.config?.display_order}
+          disabled={savingId === r.globalField.id || !(r.config ? r.config.is_visible : r.globalField.is_active)}
+          onSave={(newOrder) => handleUpdateConfig(r, { display_order: newOrder })}
         />
       ),
     },

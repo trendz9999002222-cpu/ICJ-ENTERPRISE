@@ -59,9 +59,16 @@ export const emptyFieldForm: FieldFormState = {
 type Props = {
   form: FieldFormState;
   onChange: (next: FieldFormState) => void;
+  hideDisplayOrder?: boolean;
+  hideRequired?: boolean;
 };
 
-export default function FieldFormFields({ form, onChange }: Props) {
+export default function FieldFormFields({
+  form,
+  onChange,
+  hideDisplayOrder = false,
+  hideRequired = false,
+}: Props) {
   const [newOptionValue, setNewOptionValue] = useState("");
   const [newOptionLabel, setNewOptionLabel] = useState("");
 
@@ -284,24 +291,28 @@ export default function FieldFormFields({ form, onChange }: Props) {
         value={form.description}
         onChange={(e) => onChange({ ...form, description: e.target.value })}
       />
-      <TextField
-        label="Display order"
-        type="number"
-        fullWidth
-        value={form.display_order}
-        onChange={(e) =>
-          onChange({ ...form, display_order: Number(e.target.value) || 0 })
-        }
-      />
-      <FormControlLabel
-        control={
-          <Switch
-            checked={form.is_required}
-            onChange={(e) => onChange({ ...form, is_required: e.target.checked })}
-          />
-        }
-        label="Required"
-      />
+      {!hideDisplayOrder && (
+        <TextField
+          label="Display order"
+          type="number"
+          fullWidth
+          value={form.display_order}
+          onChange={(e) =>
+            onChange({ ...form, display_order: Number(e.target.value) || 0 })
+          }
+        />
+      )}
+      {!hideRequired && (
+        <FormControlLabel
+          control={
+            <Switch
+              checked={form.is_required}
+              onChange={(e) => onChange({ ...form, is_required: e.target.checked })}
+            />
+          }
+          label="Required"
+        />
+      )}
       <FormControlLabel
         control={
           <Switch
