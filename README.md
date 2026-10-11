@@ -1,5 +1,4 @@
 ## ICJ Frontend
-
 Next.js enterprise frontend for the ICJ platform.
 
 ## Stack
