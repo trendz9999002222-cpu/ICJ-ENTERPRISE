@@ -2,7 +2,7 @@ import { apiClient, apiClientFormData } from "@/lib/api/client";
 import type {
   ProfessionConfiguration,
   PublicSelectable,
-  PublicCommonField,
+  PublicOnboardingField,
 } from "@/types/public/professionalOnboardingPublic";
 
 type ApiEnvelope<T> = {
@@ -24,8 +24,8 @@ export const professionalOnboardingPublicService = {
     return data.results;
   },
 
-  async fetchCommonFields(): Promise<PublicCommonField[]> {
-    const data = await getData<{ results: PublicCommonField[] }>(`${BASE}/common-fields/`);
+  async fetchCommonFields(): Promise<PublicOnboardingField[]> {
+    const data = await getData<{ results: PublicOnboardingField[] }>(`${BASE}/common-fields/`);
     return data.results;
   },
 

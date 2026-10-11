@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 export default function OnboardingTabs({ type }: { type: "professional" | "membership" | "honorable" }) {
   const pathname = usePathname();
 
-  let tabs = [];
+  let tabs: Array<{label: string; href: string}> = [];
   if (type === "professional") {
     tabs = [
       { label: "Common Fields", href: "/admin/professional-onboarding/common-fields" },
