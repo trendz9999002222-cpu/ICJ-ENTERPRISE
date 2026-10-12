@@ -7,7 +7,7 @@ from common.api_listing import list_params, paginated_success
 from common.listing import apply_search, apply_ordering
 
 from apps.accounts.permissions import PasswordChangeCompleted
-from apps.professional_onboarding.models.submission import ProfessionalRegistrationSubmission
+from apps.professional_onboarding.models import ProfessionalRegistrationSubmission
 from apps.services.models import LegalCase
 from apps.services.serializers import LegalCaseSerializer
 

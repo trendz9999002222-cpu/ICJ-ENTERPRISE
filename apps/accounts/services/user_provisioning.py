@@ -72,8 +72,8 @@ def provision_professional_user_at_registration(submission, new_password: str, c
     if not user and submission.user_id:
         user = submission.user
 
-    if user and user.has_usable_password() and not user.password_change_required:
-        if user.email.lower() != email:
+    if user:
+        if not submission.user_id or submission.user_id != user.id:
             raise ServiceError(
                 "An account with this email already exists. Please log in or use a different email.",
                 {"email": ["Email already registered."]},
@@ -93,6 +93,12 @@ def provision_professional_user_at_registration(submission, new_password: str, c
         )
 
     if not user:
+        if mobile:
+            from apps.accounts.services.identity_checks import check_duplicate_phone
+            perr = check_duplicate_phone(mobile, current_user=None, check_applications=False)
+            if perr:
+                raise ServiceError(perr, {"mobile": [perr], "phone_number": [perr]})
+
         username = email
         if User.objects.filter(username__iexact=username).exists():
             username = f"{email.split('@')[0]}_{submission.reference_id.lower().replace('-', '')}"
@@ -227,7 +233,19 @@ def provision_user_for_membership(application) -> Tuple[User, None, bool]:
     if not user and application.user:
         user = application.user
 
+    if user and (not application.user_id or application.user_id != user.id):
+        raise ServiceError(
+            "An account with this email already exists. Please log in before applying.",
+            {"email": ["Email already registered."]},
+        )
+
     if not user:
+        if mobile:
+            from apps.accounts.services.identity_checks import check_duplicate_phone
+            perr = check_duplicate_phone(mobile, current_user=None, check_applications=False)
+            if perr:
+                raise ServiceError(perr, {"mobile_number": [perr], "mobile": [perr]})
+
         is_new = True
         username = email
         if User.objects.filter(username__iexact=username).exists():

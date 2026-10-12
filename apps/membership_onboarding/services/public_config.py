@@ -26,12 +26,17 @@ def ensure_default_membership_type() -> MembershipType:
 
 
 def get_active_membership_form() -> MembershipForm | None:
-    return (
+    active_forms = list(
         MembershipForm.objects.filter(is_active=True)
         .select_related("membership_type")
         .order_by("-version", "-updated_at")
-        .first()
     )
+    if not active_forms:
+        return None
+    for f in active_forms:
+        if f.steps.filter(is_active=True).exists():
+            return f
+    return active_forms[0]
 
 
 def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
@@ -90,8 +95,8 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
     if common_fields_data:
         common_step = MembershipStep(
             id=uuid.uuid4(),
-            slug="personal-details",
-            title="Personal Details",
+            slug="common-fields",
+            title="Common Fields",
             subtitle="Personal details required for membership",
             display_order=0,
             is_required=True,
@@ -154,16 +159,34 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
             .prefetch_related(field_prefetch)
             .order_by("display_order", "name")
         )
+
+        common_keys = {c["field_key"] for c in common_fields_data} | {
+            "full_name", "first_name", "last_name", "email", "email_address", "mobile", "mobile_number", "phone", "phone_number"
+        }
+        additional_fields = []
         for s in steps:
-            # Ignore legacy hardcoded duplicate steps (from old seed scripts)
-            if s.slug in ("personal_details", "personal-details", "common-details", "professional_details"):
+            if s.slug in ("declaration", "review", "personal", "contact", "personal_details", "personal-details", "common-details", "common-fields"):
                 continue
             active_fields = getattr(s, "active_fields", None)
             if active_fields is None:
                 active_fields = list(s.fields.filter(is_active=True))
-            if active_fields:
-                s.active_fields = active_fields
-                steps_list.append(s)
+            for f in active_fields:
+                if f.field_key in common_keys or f.field_key in ("declaration_accepted",):
+                    continue
+                additional_fields.append(f)
+
+        if additional_fields:
+            additional_step = MembershipStep(
+                id=uuid.uuid4(),
+                slug="additional-fields",
+                title="Additional Fields",
+                subtitle="Additional details for membership application",
+                display_order=1,
+                is_required=False,
+                is_active=True,
+            )
+            additional_step.active_fields = additional_fields
+            steps_list.append(additional_step)
 
         documents = list(MembershipDocument.objects.filter(form=form, is_active=True).order_by("display_order", "name"))
 

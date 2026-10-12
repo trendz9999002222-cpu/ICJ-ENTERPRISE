@@ -47,7 +47,9 @@ def allocate_membership_id() -> str:
 
 
 def _normalize_field_type(field_type: str) -> str:
-    if field_type in ("searchable_dropdown", "multi_select", "country", "state", "district", "city", "pincode"):
+    if field_type in ("country", "state", "district", "city", "pincode"):
+        return "text"
+    if field_type in ("searchable_dropdown", "multi_select"):
         return "select" if field_type != "multi_select" else "checkbox"
     if field_type == "image":
         return "file"
@@ -109,14 +111,20 @@ class MembershipApplicationService:
 
         doc_meta = {d.document_key: d for d in config["documents"]}
 
-        for key in field_values:
-            if key not in field_meta:
-                errors.setdefault(key, []).append("Unknown field.")
-
         for key, field in field_meta.items():
             if field.field_type in (MembershipStepField.FieldType.FILE, MembershipStepField.FieldType.IMAGE):
                 continue
             value = field_values.get(key)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                if key in ("mobile_number", "mobile"):
+                    value = field_values.get("mobile_number") or field_values.get("mobile") or field_values.get("phone_number") or field_values.get("phone")
+                elif key in ("full_name", "name"):
+                    value = field_values.get("full_name") or field_values.get("name")
+                elif key in ("email", "email_address"):
+                    value = field_values.get("email") or field_values.get("email_address")
+                if value is not None:
+                    field_values[key] = value
+
             opts = getattr(field, "active_options", None)
             if opts is not None:
                 options = [{"value": o.value, "label": o.label} for o in opts]
@@ -127,7 +135,7 @@ class MembershipApplicationService:
                 ]
             if field.is_required and (value is None or (isinstance(value, str) and not value.strip())):
                 errors.setdefault(key, []).append(f"{field.label} is required.")
-            else:
+            elif value:
                 ftype = _normalize_field_type(field.field_type)
                 msg = validate_configured_field_value(ftype, value, options, field_values.get("country"))
                 if msg:
@@ -143,6 +151,34 @@ class MembershipApplicationService:
                 continue
             if file.size <= 0:
                 errors.setdefault(key, []).append("Empty file is not allowed.")
+
+        # Check duplicate email and mobile number across users and applications
+        from apps.accounts.services.identity_checks import check_duplicate_email, check_duplicate_phone
+
+        email_val = (
+            field_values.get("email")
+            or field_values.get("email_address")
+            or field_values.get("email_id")
+            or ""
+        )
+        if email_val:
+            email_err = check_duplicate_email(email_val, current_user=user, check_applications=True)
+            if email_err:
+                errors.setdefault("email", []).append(email_err)
+                errors.setdefault("email_address", []).append(email_err)
+
+        phone_val = (
+            field_values.get("mobile_number")
+            or field_values.get("mobile")
+            or field_values.get("phone_number")
+            or field_values.get("phone")
+            or ""
+        )
+        if phone_val:
+            phone_err = check_duplicate_phone(phone_val, current_user=user, check_applications=True)
+            if phone_err:
+                errors.setdefault("mobile_number", []).append(phone_err)
+                errors.setdefault("mobile", []).append(phone_err)
 
         if errors:
             raise ServiceError("Validation failed.", errors)

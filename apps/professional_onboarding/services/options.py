@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from apps.professional_onboarding.models.common_field import CommonField
-from apps.professional_onboarding.models.field_option import FieldOption
-from apps.professional_onboarding.models.profession_field import ProfessionField
+from apps.professional_onboarding.models import CommonField, FieldOption, ProfessionField
 
 
 def sync_field_options(

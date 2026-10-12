@@ -179,3 +179,12 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Use a JPG, PNG, or WebP image.")
         return value
 
+    def validate_phone_number(self, value):
+        if value:
+            from apps.accounts.services.identity_checks import check_duplicate_phone
+            user = self.instance
+            err = check_duplicate_phone(value, current_user=user, check_applications=False)
+            if err:
+                raise serializers.ValidationError(err)
+        return value
+

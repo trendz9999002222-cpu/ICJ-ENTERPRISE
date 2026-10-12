@@ -3,8 +3,8 @@ import uuid
 from django.core.validators import RegexValidator
 from django.db import models
 
-from apps.professional_onboarding.models.common_field import CommonField
-from apps.professional_onboarding.models.profession import Profession
+from .common_field import CommonField
+from .profession import Profession
 
 FIELD_KEY_VALIDATOR = RegexValidator(
     regex=r"^[a-z][a-z0-9_]*$",
@@ -14,6 +14,8 @@ FIELD_KEY_VALIDATOR = RegexValidator(
 
 class ProfessionField(models.Model):
     """Profession-specific onboarding fields (separate from the CommonField catalog)."""
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profession = models.ForeignKey(

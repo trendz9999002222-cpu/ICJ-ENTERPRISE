@@ -4,9 +4,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
-from apps.professional_onboarding.models.category import Category
-from apps.professional_onboarding.models.group import Group
-from apps.professional_onboarding.models.profession import Profession
+from .category import Category
+from .group import Group
+from .profession import Profession
 
 HEX_COLOR_VALIDATOR = RegexValidator(
     regex=r"^#[0-9A-Fa-f]{6}$",
@@ -16,6 +16,8 @@ HEX_COLOR_VALIDATOR = RegexValidator(
 
 class VisualTheme(models.Model):
     """Reusable visual theme attached to exactly one Category, Group, or Profession."""
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.OneToOneField(

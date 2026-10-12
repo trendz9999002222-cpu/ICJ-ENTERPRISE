@@ -53,6 +53,9 @@ def resolve_person_for_application(
     if not person and mobile:
         person = Person.objects.filter(mobile=mobile).first()
 
+    if person and person.user_id and (not user or not user.is_authenticated or person.user_id != user.id):
+        person = None
+
     if person:
         if full_name and not person.full_name:
             person.full_name = full_name

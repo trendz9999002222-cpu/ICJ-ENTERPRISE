@@ -13,6 +13,8 @@ DOCUMENT_KEY_VALIDATOR = RegexValidator(
 class Document(models.Model):
     """Central catalog of uploadable document types (reused across professions via ProfessionDocument)."""
 
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120)
     document_key = models.CharField(

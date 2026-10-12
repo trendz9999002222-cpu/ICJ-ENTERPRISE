@@ -2,10 +2,12 @@ import uuid
 
 from django.db import models
 
-from apps.professional_onboarding.models.category import Category
+from .category import Category
 
 
 class Group(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.ForeignKey(
         Category,

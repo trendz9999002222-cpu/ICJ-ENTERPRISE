@@ -282,6 +282,34 @@ class ProfessionalRegistrationSubmissionService:
             if not (confirm_password or "").strip():
                 errors.setdefault("confirm_password", []).append("Please confirm your password.")
 
+        # Check duplicate email and phone across users and registrations
+        from apps.accounts.services.identity_checks import check_duplicate_email, check_duplicate_phone
+
+        pro_email = (
+            common_field_values.get("email")
+            or common_field_values.get("email_address")
+            or common_field_values.get("email_id")
+            or ""
+        )
+        if pro_email:
+            email_err = check_duplicate_email(pro_email, current_user=user, check_applications=True)
+            if email_err:
+                errors.setdefault("email", []).append(email_err)
+                errors.setdefault("email_address", []).append(email_err)
+
+        pro_phone = (
+            common_field_values.get("mobile")
+            or common_field_values.get("phone")
+            or common_field_values.get("mobile_number")
+            or common_field_values.get("phone_number")
+            or ""
+        )
+        if pro_phone:
+            phone_err = check_duplicate_phone(pro_phone, current_user=user, check_applications=True)
+            if phone_err:
+                errors.setdefault("mobile", []).append(phone_err)
+                errors.setdefault("mobile_number", []).append(phone_err)
+
         if errors:
             raise ServiceError("Validation failed.", errors)
 

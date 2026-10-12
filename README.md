@@ -12,8 +12,18 @@ cp .env.example .env
 python manage.py makemigrations honorable_advisory
 python manage.py migrate
 python manage.py create_default_admin
+
+# 1. Seed Core Onboarding Forms & Master Common Fields
+python manage.py init_onboarding_forms
+python manage.py seed_common_fields
+python manage.py configure_professional_form
+python manage.py configure_membership_form
+
+# 2. Seed App-Specific Flows & Catalogs
 python manage.py seed_professional_onboarding
 python manage.py seed_membership_onboarding
+python manage.py seed_services
+
 python manage.py runserver 8000
 ```
 

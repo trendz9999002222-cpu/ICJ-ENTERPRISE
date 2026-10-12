@@ -2,10 +2,12 @@ import uuid
 
 from django.db import models
 
-from apps.professional_onboarding.models.group import Group
+from .group import Group
 
 
 class Profession(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     group = models.ForeignKey(
         Group,

@@ -4,9 +4,9 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from apps.professional_onboarding.models.category import Category
-from apps.professional_onboarding.models.group import Group
-from apps.professional_onboarding.models.profession import Profession
+from .category import Category
+from .group import Group
+from .profession import Profession
 
 
 def submission_file_upload_to(instance: "ProfessionalRegistrationSubmissionFile", filename: str) -> str:
@@ -25,6 +25,8 @@ class ProfessionalRegistrationSubmission(models.Model):
         UNDER_REVIEW = "under_review", "Under review"
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_id = models.CharField(max_length=32, unique=True, db_index=True)
@@ -69,6 +71,8 @@ class ProfessionalRegistrationSubmission(models.Model):
 
 
 class ProfessionalRegistrationSubmissionFile(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission = models.ForeignKey(
         ProfessionalRegistrationSubmission,
