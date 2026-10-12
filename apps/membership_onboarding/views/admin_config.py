@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import status
 
 from common.responses import api_error, api_success
@@ -26,6 +27,18 @@ from apps.professional_onboarding.services.crud import ServiceError, create_mode
 
 def _handle(exc: ServiceError):
     return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
+
+
+def _touch_form_for_step(step: MembershipStep):
+    if step and step.form:
+        step.form.updated_at = timezone.now()
+        step.form.save(update_fields=["updated_at"])
+
+
+def _touch_form_for_field(field: MembershipStepField):
+    if field and field.step and field.step.form:
+        field.step.form.updated_at = timezone.now()
+        field.step.form.save(update_fields=["updated_at"])
 
 
 class MembershipTypeListCreateAPIView(AdminMembershipConfigAPIView):
@@ -57,7 +70,7 @@ class MembershipTypeDetailAPIView(AdminMembershipConfigAPIView):
 
 class MembershipFormListCreateAPIView(AdminMembershipConfigAPIView):
     def get(self, request):
-        qs = MembershipForm.objects.select_related("membership_type").order_by("-version")
+        qs = MembershipForm.objects.select_related("membership_type").order_by("-version", "-updated_at")
         type_id = request.query_params.get("membership_type_id")
         if type_id:
             qs = qs.filter(membership_type_id=type_id)
@@ -110,6 +123,7 @@ class MembershipStepListCreateAPIView(AdminMembershipConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = create_model(MembershipStep, serializer.validated_data)
+            _touch_form_for_step(obj)
         except ServiceError as exc:
             return _handle(exc)
         return api_success(data=MembershipStepSerializer(obj).data, message="Step created.", status_code=status.HTTP_201_CREATED)
@@ -122,12 +136,14 @@ class MembershipStepDetailAPIView(AdminMembershipConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = update_model(obj, serializer.validated_data)
+            _touch_form_for_step(obj)
         except ServiceError as exc:
             return _handle(exc)
         return api_success(data=MembershipStepSerializer(obj).data, message="Step updated.")
 
     def delete(self, request, pk):
         obj = get_object_or_404(MembershipStep, pk=pk)
+        _touch_form_for_step(obj)
         if MembershipStepField.objects.filter(step=obj).exists() and obj.form and obj.form.applications.exists():
             obj.is_active = False
             obj.save(update_fields=["is_active"])
@@ -152,6 +168,7 @@ class MembershipStepFieldListCreateAPIView(AdminMembershipConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = create_model(MembershipStepField, serializer.validated_data)
+            _touch_form_for_field(obj)
         except ServiceError as exc:
             return _handle(exc)
         return api_success(data=MembershipStepFieldSerializer(obj).data, message="Field created.", status_code=status.HTTP_201_CREATED)
@@ -164,6 +181,7 @@ class MembershipStepFieldDetailAPIView(AdminMembershipConfigAPIView):
         serializer.is_valid(raise_exception=True)
         try:
             obj = update_model(obj, serializer.validated_data)
+            _touch_form_for_field(obj)
         except ServiceError as exc:
             return _handle(exc)
         return api_success(data=MembershipStepFieldSerializer(obj).data, message="Field updated.")
@@ -172,6 +190,7 @@ class MembershipStepFieldDetailAPIView(AdminMembershipConfigAPIView):
         obj = get_object_or_404(MembershipStepField, pk=pk)
         obj.is_active = False
         obj.save(update_fields=["is_active"])
+        _touch_form_for_field(obj)
         return api_success(message="Field deactivated.")
 
 

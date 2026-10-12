@@ -2,12 +2,14 @@ import uuid
 
 from django.db import models
 
-from apps.professional_onboarding.models.document import Document
-from apps.professional_onboarding.models.profession import Profession
+from .document import Document
+from .profession import Profession
 
 
 class ProfessionDocument(models.Model):
     """Links a catalog Document to a Profession with requirement and display settings."""
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     profession = models.ForeignKey(
