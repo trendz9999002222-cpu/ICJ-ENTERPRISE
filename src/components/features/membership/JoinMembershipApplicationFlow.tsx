@@ -43,7 +43,7 @@ import { scrollToFirstError, validateDocuments, validateSections } from "@/lib/v
 const THEME: Theme = { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" };
 const MEMBER_DASHBOARD = "/dashboard/member";
 
-type FlowPhase = "steps" | "documents" | "review" | "payment" | "done";
+type FlowPhase = "steps" | "review";
 
 function documentsToFields(docs: MembershipOnboardingDocument[]): DocumentField[] {
   return docs.map((d) => ({
@@ -82,15 +82,9 @@ export default function JoinMembershipApplicationFlow() {
       membershipOnboardingPublicService.fetchPaymentSettings().catch(() => null),
     ])
       .then(([cfg, pay]) => {
-        const filteredSteps = (cfg?.steps ?? []).filter(s => s.step_fields.length > 0);
         setConfig(cfg);
         setPaymentSettings(pay);
-        
-        let initPhase: FlowPhase = "review";
-        if (filteredSteps.length > 0) initPhase = "steps";
-        else if (cfg?.documents?.length > 0) initPhase = "documents";
-        
-        setPhase(initPhase);
+        setPhase("steps");
       })
       .catch(() => setLoadError("Unable to load membership form. Please try again later."))
       .finally(() => setLoading(false));
@@ -121,6 +115,7 @@ export default function JoinMembershipApplicationFlow() {
               first_name: res.data.first_name || "",
               last_name: res.data.last_name || "",
               mobile: res.data.phone_number || "",
+              mobile_number: res.data.phone_number || "",
               phone_number: res.data.phone_number || "",
               phone: res.data.phone_number || "",
             }));
@@ -144,9 +139,9 @@ export default function JoinMembershipApplicationFlow() {
       if (stepSchema.documents.length) {
         stepErrors = { ...stepErrors, ...validateDocuments(stepSchema.documents, files) };
       }
-    }
-    if (phase === "documents" && formDocuments.length) {
-      stepErrors = validateDocuments(formDocuments, files);
+      if (formDocuments.length && stepIndex === steps.length - 1) {
+        stepErrors = { ...stepErrors, ...validateDocuments(formDocuments, files) };
+      }
     }
     if (phase === "review" && !declarationAccepted) {
       stepErrors.declaration = "Please accept the declaration to submit.";
@@ -163,37 +158,28 @@ export default function JoinMembershipApplicationFlow() {
   const goNext = () => {
     if (!validateCurrent()) return;
     if (phase === "steps") {
-      if (stepIndex < steps.length - 1) setStepIndex((i) => i + 1);
-      else if (formDocuments.length) setPhase("documents");
-      else setPhase("review");
-      return;
+      if (stepIndex < steps.length - 1) {
+        setStepIndex((i) => i + 1);
+      } else {
+        setPhase("review");
+      }
     }
-    if (phase === "documents") setPhase("review");
   };
 
-  const paymentRequired = paymentSettings?.payment_required ?? false;
-
   const goBack = () => {
-    if (phase === "payment") {
-      setPhase("review");
-      return;
-    }
     if (phase === "review") {
-      setPhase(formDocuments.length ? "documents" : "steps");
-      return;
-    }
-    if (phase === "documents") {
       setPhase("steps");
       setStepIndex(steps.length - 1);
       return;
     }
-    if (stepIndex > 0) setStepIndex((i) => i - 1);
+    if (stepIndex > 0) {
+      setStepIndex((i) => i - 1);
+    }
   };
 
   const handleReviewContinue = () => {
     if (!validateCurrent()) return;
-    if (paymentRequired) setPhase("payment");
-    else handleSubmit();
+    handleSubmit();
   };
 
   const applySessionAndGoToMemberArea = (access: string, refresh: string) => {
@@ -262,12 +248,22 @@ export default function JoinMembershipApplicationFlow() {
       await signInAndRedirectToMemberDashboard(result);
     } catch (err) {
       let message = "Submission failed.";
+      const fieldErrs: Record<string, string> = {};
       if (err instanceof ApiError && err.body && typeof err.body === "object") {
-        const body = err.body as { message?: string; errors?: Record<string, string[]> };
+        const body = err.body as { message?: string; errors?: Record<string, string[] | string> };
+        if (body.errors && typeof body.errors === "object") {
+          for (const [k, v] of Object.entries(body.errors)) {
+            fieldErrs[k] = Array.isArray(v) ? v[0] : String(v);
+          }
+        }
         const parts = [body.message, ...(body.errors ? Object.values(body.errors).flat() : [])].filter(Boolean);
         if (parts.length) message = parts.join(" ");
       }
-      setErrors({ submit: message });
+      setErrors({ submit: message, ...fieldErrs });
+      if (fieldErrs.email || fieldErrs.email_address || fieldErrs.mobile || fieldErrs.mobile_number) {
+        setPhase("steps");
+        setStepIndex(0);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -362,15 +358,12 @@ export default function JoinMembershipApplicationFlow() {
 
   const formTitle = config?.form?.title ?? "Membership application";
 
-  const availableTabs = steps.map((s, i) => ({
-    label: s.title,
+  const availableTabs: Array<{ label: string; phase: FlowPhase; stepIndex: number }> = steps.map((s, i) => ({
+    label: s.title || (i === 0 ? "Common Fields" : "Additional Fields"),
     phase: "steps",
     stepIndex: i,
   }));
-  
-  if (formDocuments.length > 0) availableTabs.push({ label: "Documents", phase: "documents", stepIndex: -1 });
   availableTabs.push({ label: "Review & Submit", phase: "review", stepIndex: -1 });
-  if (paymentRequired) availableTabs.push({ label: "Payment", phase: "payment", stepIndex: -1 });
 
   const currentTabIndex = availableTabs.findIndex(
     (t) => t.phase === phase && (t.phase !== "steps" || t.stepIndex === stepIndex)
@@ -391,7 +384,7 @@ export default function JoinMembershipApplicationFlow() {
               activeStep={currentTabIndex >= 0 ? currentTabIndex : 0}
               alternativeLabel
               sx={{
-                minWidth: 600,
+                minWidth: 400,
                 "& .MuiStepLabel-label": { fontWeight: 600, color: "#64748b" },
                 "& .MuiStepLabel-label.Mui-active": { color: "#2563eb" },
                 "& .MuiStepLabel-label.Mui-completed": { color: "#10b981" },
@@ -431,32 +424,20 @@ export default function JoinMembershipApplicationFlow() {
                   ) : (
                     <DynamicFormRenderer schema={stepSchema} values={values} errors={errors} theme={THEME} onChange={onChange} />
                   )}
+                  {formDocuments.length > 0 && stepIndex === steps.length - 1 && (
+                    <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0", mt: 3 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: "1.1rem", mb: 2, color: "#0f172a" }}>Upload Documents</Typography>
+                      <DocumentsUpload
+                        documents={formDocuments}
+                        files={files}
+                        errors={errors}
+                        theme={THEME}
+                        onChange={(name, file) => setFiles((prev) => ({ ...prev, [name]: file }))}
+                      />
+                    </Box>
+                  )}
                 </>
               )}
-            </Box>
-          )}
-
-          {phase === "documents" && formDocuments.length > 0 && (
-            <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0" }}>
-              <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", mb: 3, color: "#0f172a" }}>Upload Documents</Typography>
-              <DocumentsUpload
-                documents={formDocuments}
-                files={files}
-                errors={errors}
-                theme={THEME}
-                onChange={(name, file) => setFiles((prev) => ({ ...prev, [name]: file }))}
-              />
-            </Box>
-          )}
-
-          {phase === "payment" && paymentSettings && (
-            <Box sx={{ bgcolor: "#fff", p: { xs: 2, md: 4 }, borderRadius: 3, border: "1px solid #e2e8f0" }}>
-              <Stack spacing={2}>
-                <Typography sx={{ fontWeight: 700, fontSize: "1.2rem", color: "#0f172a" }}>Membership fee (Razorpay test)</Typography>
-                <Typography variant="body2" sx={{ color: "#64748b" }}>
-                  Pay ₹{paymentSettings.amount_inr.toFixed(2)} to submit your application. Use Razorpay test cards in test mode.
-                </Typography>
-              </Stack>
             </Box>
           )}
 
@@ -472,7 +453,13 @@ export default function JoinMembershipApplicationFlow() {
                         <Box key={f.id} sx={{ display: "flex", justifyContent: "space-between", gap: 2, py: 0.75, borderBottom: "1px solid #f1f5f9" }}>
                           <Typography variant="body2" sx={{ color: "#64748b" }}>{f.label}</Typography>
                           <Typography variant="body2" sx={{ fontWeight: 600, textAlign: "right", color: "#0f172a" }}>
-                            {String(values[f.field_key] ?? "—")}
+                            {String(
+                              values[f.field_key] ||
+                              (f.field_key === "mobile_number" ? values.mobile : undefined) ||
+                              (f.field_key === "mobile" ? values.mobile_number : undefined) ||
+                              (f.field_key === "full_name" ? values.name : undefined) ||
+                              "—"
+                            )}
                           </Typography>
                         </Box>
                       ))}
@@ -504,26 +491,16 @@ export default function JoinMembershipApplicationFlow() {
             </Button>
             <Button
               variant="contained"
-              endIcon={phase === "review" || phase === "payment" ? undefined : <ArrowForwardIcon />}
+              endIcon={phase === "review" ? undefined : <ArrowForwardIcon />}
               disabled={submitting}
-              onClick={
-                phase === "payment"
-                  ? handlePayAndSubmit
-                  : phase === "review"
-                    ? handleReviewContinue
-                    : goNext
-              }
+              onClick={phase === "review" ? handleReviewContinue : goNext}
               sx={{ textTransform: "none", fontWeight: 700, bgcolor: "#2563eb", borderRadius: RADIUS.sm, px: 4, py: 1 }}
             >
               {submitting
                 ? "Please wait…"
-                : phase === "payment"
-                  ? "Pay & submit application"
-                  : phase === "review"
-                    ? paymentRequired
-                      ? "Continue to payment"
-                      : "Submit application"
-                    : "Continue"}
+                : phase === "review"
+                  ? "Submit application"
+                  : "Continue"}
             </Button>
           </Stack>
         </Container>
