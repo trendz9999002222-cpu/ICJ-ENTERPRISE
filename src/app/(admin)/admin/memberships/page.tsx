@@ -184,14 +184,14 @@ export default function AdminMembershipsPage() {
       render: (a) => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
           <Tooltip title="View Application">
-            <Link href={`/admin/membership-onboarding/${a.id}`}>
-              <IconButton
-                size="small"
-                sx={{ color: "#3b82f6", bgcolor: "#eff6ff" }}
-              >
-                <VisibilityIcon fontSize="small" />
-              </IconButton>
-            </Link>
+            <IconButton
+              component={Link}
+              href={`/admin/memberships/${a.id}`}
+              size="small"
+              sx={{ color: "#3b82f6", bgcolor: "#eff6ff" }}
+            >
+              <VisibilityIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
         </Stack>
       ),

@@ -534,13 +534,18 @@ export default function RegistrationFlow() {
       } else if (err instanceof ApiError && err.body && typeof err.body === "object") {
         const body = err.body as { message?: string; errors?: Record<string, string[]> };
         const parts: string[] = [];
-        if (body.message && body.message !== "API request failed") parts.push(body.message);
+        const fieldErrs: Record<string, string> = {};
         if (body.errors) {
+          for (const [k, v] of Object.entries(body.errors)) {
+            fieldErrs[k] = Array.isArray(v) ? v[0] : String(v);
+          }
           parts.push(...Object.values(body.errors).flat());
         }
         if (parts.length) message = parts.join(" ");
+        setErrors({ submit: message, ...fieldErrs });
+      } else {
+        setErrors({ submit: message });
       }
-      setErrors({ submit: message });
     } finally {
       setSubmitting(false);
     }

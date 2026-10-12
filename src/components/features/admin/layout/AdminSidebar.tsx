@@ -91,20 +91,48 @@ const NAV_ITEMS: NavItem[] = [
 
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/admin/dashboard") return pathname === href;
+  if (href === "/admin/memberships") {
+    return (
+      pathname === "/admin/memberships" ||
+      pathname.startsWith("/admin/memberships/") ||
+      pathname.startsWith("/admin/membership-onboarding/applications") ||
+      Boolean(pathname.match(/^\/admin\/membership-onboarding\/[0-9a-f-]{36}/i))
+    );
+  }
   if (href === "/admin/membership-onboarding/common-fields") {
+    if (
+      pathname.startsWith("/admin/membership-onboarding/applications") ||
+      Boolean(pathname.match(/^\/admin\/membership-onboarding\/[0-9a-f-]{36}/i))
+    ) {
+      return false;
+    }
     return pathname.startsWith("/admin/membership-onboarding");
   }
-  if (href === "/admin/memberships") {
-    return pathname === "/admin/memberships";
+  if (href === "/admin/professionals") {
+    return (
+      pathname === "/admin/professionals" ||
+      pathname.startsWith("/admin/professionals/") ||
+      pathname.startsWith("/admin/professional-onboarding/registrations") ||
+      Boolean(pathname.match(/^\/admin\/professional-onboarding\/[0-9a-f-]{36}/i))
+    );
+  }
+  if (href === "/admin/professional-onboarding/common-fields") {
+    if (
+      pathname.startsWith("/admin/professional-onboarding/registrations") ||
+      Boolean(pathname.match(/^\/admin\/professional-onboarding\/[0-9a-f-]{36}/i))
+    ) {
+      return false;
+    }
+    return pathname.startsWith("/admin/professional-onboarding");
+  }
+  if (href === "/admin/honorable-advisory-members") {
+    return (
+      pathname === "/admin/honorable-advisory-members" ||
+      pathname.startsWith("/admin/honorable-advisory-members/")
+    );
   }
   if (href === "/admin/honorable-advisory-onboarding/common-fields") {
     return pathname.startsWith("/admin/honorable-advisory-onboarding");
-  }
-  if (href === "/admin/honorable-advisory-members") {
-    return pathname.startsWith("/admin/honorable-advisory-members");
-  }
-  if (href === "/admin/professional-onboarding/common-fields") {
-    return pathname.startsWith("/admin/professional-onboarding");
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

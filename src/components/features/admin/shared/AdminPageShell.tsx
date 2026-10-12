@@ -45,12 +45,19 @@ export default function AdminPageShell({
 
   let autoTabs = tabs;
   if (!autoTabs) {
-    if (pathname.startsWith("/admin/professional-onboarding")) {
-      autoTabs = <OnboardingTabs type="professional" />;
-    } else if (pathname.startsWith("/admin/membership-onboarding")) {
-      autoTabs = <OnboardingTabs type="membership" />;
-    } else if (pathname.startsWith("/admin/honorable-advisory-onboarding")) {
-      autoTabs = <OnboardingTabs type="honorable" />;
+    const isApplicationDetail =
+      pathname.includes("/applications/") ||
+      pathname.includes("/registrations/") ||
+      Boolean(pathname.match(/\/admin\/(membership-onboarding|professional-onboarding)\/[0-9a-f-]{36}/i));
+
+    if (!isApplicationDetail) {
+      if (pathname.startsWith("/admin/professional-onboarding")) {
+        autoTabs = <OnboardingTabs type="professional" />;
+      } else if (pathname.startsWith("/admin/membership-onboarding")) {
+        autoTabs = <OnboardingTabs type="membership" />;
+      } else if (pathname.startsWith("/admin/honorable-advisory-onboarding")) {
+        autoTabs = <OnboardingTabs type="honorable" />;
+      }
     }
   }
 

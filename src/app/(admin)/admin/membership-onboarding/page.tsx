@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
@@ -220,7 +220,7 @@ export default function AdminMembershipsPage() {
           <IconButton
             size="small"
             component={Link}
-            href={`/admin/memberships/applications/${row.id}`}
+            href={`/admin/membership-onboarding/applications/${row.id}`}
             sx={{
               color: "#2563eb",
               bgcolor: "#eff6ff",
