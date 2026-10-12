@@ -186,9 +186,6 @@ export default function UserProfilePage() {
   }, [professions]);
   const membership = profile?.membership;
   const allRoles: string[] = profile?.roles || (profile?.role ? [profile.role] : ["professional"]);
-  const changePasswordHref = normalizePlatformRoles(allRoles).includes("member")
-    ? MEMBER_CHANGE_PASSWORD_QUERY
-    : "/login/change-password";
   const isMember = normalizePlatformRoles(allRoles).includes("member");
 
   // Gather all uploaded files across submissions
@@ -207,7 +204,7 @@ export default function UserProfilePage() {
         <Stack direction="row" spacing={1.5}>
           <Button
             component={Link}
-            href={changePasswordHref}
+            href="/dashboard/change-password"
             variant="outlined"
             size="small"
             startIcon={<LockOutlinedIcon />}
@@ -453,7 +450,7 @@ export default function UserProfilePage() {
               </Box>
               <Button
                 component={Link}
-                href="/join"
+                href="/dashboard/professional/register"
                 variant="outlined"
                 size="small"
                 sx={{

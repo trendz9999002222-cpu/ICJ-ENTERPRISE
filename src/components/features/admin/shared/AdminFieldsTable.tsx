@@ -113,7 +113,7 @@ export default function AdminFieldsTable({
       align: "right",
       render: (f) => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: "flex-end" }}>
-          {onOptions && OPTION_FIELD_TYPES.includes(f.field_type) && (
+          {onOptions && OPTION_FIELD_TYPES.includes(f.field_type as any) && (
             <IconButton size="small" onClick={() => onOptions(f)}>
               <SettingsIcon fontSize="small" />
             </IconButton>

@@ -3,15 +3,11 @@
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DescriptionIcon from "@mui/icons-material/Description";
+import GroupsIcon from "@mui/icons-material/Groups";
 import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PersonIcon from "@mui/icons-material/Person";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import SearchIcon from "@mui/icons-material/Search";
-import GavelIcon from "@mui/icons-material/Gavel";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import FolderOpenIcon from "@mui/icons-material/FolderOpen";
-
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import {
@@ -19,26 +15,18 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   Chip,
   Divider,
   Grid,
   Stack,
-  Step,
-  StepLabel,
-  Stepper,
-  Tab,
-  Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+
+import StatCard from "@/components/ui/StatCard";
+import SectionCard from "@/components/ui/SectionCard";
+import StatusProgressBar from "@/components/ui/StatusProgressBar";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import { env } from "@/config/env";
 import {
@@ -49,7 +37,6 @@ import {
   statusToActiveStep,
 } from "@/lib/professionalDashboard";
 import type { UserProfessionInfo } from "@/types/api";
-import { professionalCasesService } from "@/services/professional/professionalCases.service";
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -70,10 +57,6 @@ export default function ProfessionalDashboardPage() {
   const [name, setName] = useState("Professional");
   const [email, setEmail] = useState("");
   const [professions, setProfessions] = useState<UserProfessionInfo[]>([]);
-  const [casesTab, setCasesTab] = useState(0);
-  const [availableCases, setAvailableCases] = useState<any[]>([]);
-  const [myCases, setMyCases] = useState<any[]>([]);
-  const [casesLoading, setCasesLoading] = useState(false);
 
   useEffect(() => {
     const token = readCookie("icj_access_token");
@@ -96,19 +79,6 @@ export default function ProfessionalDashboardPage() {
         }
       })
       .catch(() => {});
-
-    // Load cases
-    setCasesLoading(true);
-    Promise.all([
-      professionalCasesService.getAvailableCases({ page_size: 50 }),
-      professionalCasesService.getMyCases({ page_size: 50 }),
-    ])
-      .then(([avail, mine]) => {
-        setAvailableCases(avail.results || []);
-        setMyCases(mine.results || []);
-      })
-      .catch(() => {})
-      .finally(() => setCasesLoading(false));
   }, []);
 
   const primary = getPrimaryProfession(professions);
@@ -142,6 +112,7 @@ export default function ProfessionalDashboardPage() {
   const proActions = useMemo(() => {
     const base = [
       { label: "View & Edit My Profile", href: "/dashboard/profile", icon: <PersonIcon fontSize="small" /> },
+      { label: "My Groups & Registrations", href: "/dashboard/professional/groups", icon: <GroupsIcon fontSize="small" /> },
       { label: "Change Account Password", href: "/login/change-password", icon: <LockOutlinedIcon fontSize="small" /> },
     ];
     if (approved) {
@@ -150,11 +121,10 @@ export default function ProfessionalDashboardPage() {
     return base;
   }, [approved]);
 
-
   return (
     <PortalPageShell
       title="Professional Practice Workspace"
-      subtitle="Manage your practice areas, approved applications, professional credentials, and client engagements."
+      subtitle="Manage your practice areas, approved applications, and professional credentials."
       actions={
         <Stack direction="row" spacing={1.5}>
           <Button
@@ -163,7 +133,6 @@ export default function ProfessionalDashboardPage() {
             variant="contained"
             size="small"
             startIcon={<PersonIcon />}
-
             sx={{
               bgcolor: "#2563eb",
               fontWeight: 700,
@@ -255,89 +224,28 @@ export default function ProfessionalDashboardPage() {
         </Card>
 
         {/* Application Status Stepper */}
-        <Card
-          elevation={0}
-          sx={{
-            border: "1px solid #e2e8f0",
-            borderRadius: "12px",
-            bgcolor: "#ffffff",
-            p: 3,
-          }}
+        <SectionCard
+          title="Professional Onboarding & Verification Status"
+          subtitle="Your application progress through the verification pipeline"
         >
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 3 }}>
-            Professional Onboarding & Verification Status
-          </Typography>
-          <Stepper activeStep={activeStep} alternativeLabel>
-            {PROFESSIONAL_ONBOARDING_STEPS.map((label, i) => (
-              <Step key={label} completed={i < activeStep}>
-                <StepLabel
-                  icon={
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "50%",
-                        bgcolor: i <= activeStep ? "#2563eb" : "#e2e8f0",
-                        display: "grid",
-                        placeItems: "center",
-                        color: "#ffffff",
-                      }}
-                    >
-                      {i < activeStep ? (
-                        <CheckCircleIcon sx={{ fontSize: 20 }} />
-                      ) : i === activeStep ? (
-                        <CheckCircleIcon sx={{ fontSize: 20 }} />
-                      ) : (
-                        <RadioButtonUncheckedIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
-                      )}
-                    </Box>
-                  }
-                >
-                  <Typography variant="caption" sx={{ fontWeight: i <= activeStep ? 700 : 500, color: "#0f172a" }}>
-                    {label}
-                  </Typography>
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          <Box
-            sx={{
-              mt: 3,
-              p: 2,
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 1.5,
-              bgcolor: approved ? "#f0fdf4" : status === "rejected" ? "#fef2f2" : "#fffbeb",
-              border: approved ? "1px solid #bbf7d0" : status === "rejected" ? "1px solid #fecaca" : "1px solid #fde68a",
-            }}
-          >
-            {approved ? (
-              <CheckCircleIcon sx={{ color: "#16a34a", fontSize: 20, mt: 0.2 }} />
-            ) : (
-              <HourglassTopIcon sx={{ color: "#d97706", fontSize: 20, mt: 0.2 }} />
-            )}
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 700,
-                color: approved ? "#166534" : status === "rejected" ? "#991b1b" : "#92400e",
-              }}
-            >
-              {approved
+          <StatusProgressBar
+            steps={PROFESSIONAL_ONBOARDING_STEPS}
+            activeStep={activeStep}
+            approved={approved}
+            status={status}
+            message={
+              approved
                 ? "Your professional application has been approved. You have full access to your workspace and directory listing."
                 : status === "rejected"
                   ? "Your application was not approved. Contact support or update your profile if you were asked to resubmit."
-                  : `Your application is ${statusLabel.toLowerCase()}${primary?.reference_id ? ` (Ref: ${primary.reference_id})` : ""}. You can use this dashboard, edit your profile, and change your password until admin approval unlocks all services.`}
-            </Typography>
-          </Box>
-        </Card>
+                  : `Your application is ${statusLabel.toLowerCase()}${primary?.reference_id ? ` (Ref: ${primary.reference_id})` : ""}. You can use this dashboard, edit your profile, and change your password until admin approval unlocks all services.`
+            }
+          />
+        </SectionCard>
 
+        {/* Shared Common Fields */}
         {Object.keys(sharedCommonFields).length > 0 && (
-          <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#ffffff", p: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-              Shared personal information
-            </Typography>
+          <SectionCard title="Shared Personal Information">
             <Stack direction="row" spacing={0.75} sx={{ flexWrap: "wrap", gap: 0.75 }}>
               {Object.entries(sharedCommonFields).map(([k, v]) => (
                 <Chip
@@ -349,14 +257,26 @@ export default function ProfessionalDashboardPage() {
                 />
               ))}
             </Stack>
-          </Card>
+          </SectionCard>
         )}
 
+        {/* Registered Professions */}
         {professions.length > 0 && (
-          <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#ffffff", p: 3 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-              Registered professions ({professions.length})
-            </Typography>
+          <SectionCard
+            title={`Registered Professions (${professions.length})`}
+            action={
+              <Button
+                component={Link}
+                href="/dashboard/professional/groups"
+                variant="outlined"
+                size="small"
+                endIcon={<ArrowForwardIcon fontSize="small" />}
+                sx={{ fontWeight: 700, textTransform: "none", fontSize: "0.78rem" }}
+              >
+                Manage Groups
+              </Button>
+            }
+          >
             <Stack spacing={1.5}>
               {professions.map((p) => (
                 <Box
@@ -401,67 +321,28 @@ export default function ProfessionalDashboardPage() {
                 </Box>
               ))}
             </Stack>
-          </Card>
+          </SectionCard>
         )}
 
         {/* Stats Grid */}
         <Grid container spacing={2.5}>
           {proStats.map((s) => (
             <Grid size={{ xs: 12, sm: 4 }} key={s.label}>
-              <Card
-                elevation={0}
-                sx={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "12px",
-                  bgcolor: "#ffffff",
-                  p: 2.5,
-                }}
-              >
-                <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-                  <Box
-                    sx={{
-                      p: 1.2,
-                      borderRadius: "10px",
-                      bgcolor: s.bg,
-                      color: s.color,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {s.icon}
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700, textTransform: "uppercase" }}>
-                      {s.label}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a", lineHeight: 1.2 }}>
-                      {s.value}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Card>
+              <StatCard
+                label={s.label}
+                value={s.value}
+                icon={s.icon}
+                color={s.color}
+                bgColor={s.bg}
+              />
             </Grid>
           ))}
         </Grid>
 
-        {/* Quick Actions & Workspace Info */}
+        {/* Quick Actions & Account Overview */}
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <Card
-              elevation={0}
-              sx={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                bgcolor: "#ffffff",
-                p: 3,
-                height: "100%",
-                boxSizing: "border-box",
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-                Quick Actions
-              </Typography>
+            <SectionCard title="Quick Actions">
               <Stack spacing={1.5}>
                 {proActions.map((a) => (
                   <Button
@@ -491,24 +372,11 @@ export default function ProfessionalDashboardPage() {
                   </Button>
                 ))}
               </Stack>
-            </Card>
+            </SectionCard>
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
-            <Card
-              elevation={0}
-              sx={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                bgcolor: "#ffffff",
-                p: 3,
-                height: "100%",
-                boxSizing: "border-box",
-              }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a", mb: 2 }}>
-                Account & Role Overview
-              </Typography>
+            <SectionCard title="Account & Role Overview">
               <Stack spacing={2}>
                 {[
                   { label: "Account Holder", value: name },
@@ -534,154 +402,10 @@ export default function ProfessionalDashboardPage() {
                   </Stack>
                 ))}
               </Stack>
-            </Card>
+            </SectionCard>
           </Grid>
         </Grid>
       </Stack>
-
-      {/* ── Legal Cases ───────────────────────────────────────────── */}
-      {approved && (
-        <Card elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: "12px", bgcolor: "#fff" }}>
-          <CardContent sx={{ p: 0 }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", px: 3, pt: 2.5, pb: 1.5 }}>
-              <Box sx={{ width: 36, height: 36, borderRadius: "8px", bgcolor: "#eff6ff", display: "grid", placeItems: "center" }}>
-                <GavelIcon sx={{ color: "#2563eb", fontSize: 18 }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a" }}>Legal Cases</Typography>
-                <Typography variant="caption" sx={{ color: "#64748b" }}>Cases from ICJ assigned to your professional group</Typography>
-              </Box>
-            </Stack>
-            <Divider />
-            <Box sx={{ px: 3, pt: 1 }}>
-              <Tabs value={casesTab} onChange={(_, v) => setCasesTab(v)} sx={{ mb: 2 }}>
-                <Tab label={`Available (${availableCases.length})`} id="tab-available" />
-                <Tab label={`My Cases (${myCases.length})`} id="tab-my" />
-              </Tabs>
-
-              {casesTab === 0 && (
-                casesLoading ? (
-                  <Typography color="text.secondary" sx={{ py: 2 }}>Loading available cases...</Typography>
-                ) : availableCases.length === 0 ? (
-                  <Box sx={{ py: 3, textAlign: "center" }}>
-                    <FolderOpenIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
-                    <Typography variant="body2" color="text.secondary">No new cases available for your group right now.</Typography>
-                  </Box>
-                ) : (
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Case ID</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Client</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Category</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Urgency</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Budget</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Action</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {availableCases.map((c) => (
-                          <TableRow key={c.id} hover>
-                            <TableCell>
-                              <Link href={`/dashboard/professional/cases/${c.id}`} target="_blank" style={{ textDecoration: 'none' }}>
-                                <strong style={{ color: "#2563eb", cursor: "pointer" }}>{c.case_id}</strong>
-                              </Link>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ fontWeight: 600, fontSize: "0.82rem" }}>{c.assistance_request_details?.full_name}</Box>
-                              <Box sx={{ fontSize: "0.72rem", color: "#64748b" }}>{c.assistance_request_details?.category}</Box>
-                            </TableCell>
-                            <TableCell sx={{ fontSize: "0.82rem" }}>{c.assistance_request_details?.category || "—"}</TableCell>
-                            <TableCell sx={{ fontSize: "0.82rem" }}>{c.assistance_request_details?.urgency || "—"}</TableCell>
-                            <TableCell sx={{ fontSize: "0.82rem" }}>₹{c.budget}</TableCell>
-                            <TableCell>
-                              <Button
-                                size="small"
-                                variant="contained"
-                                startIcon={<AssignmentTurnedInIcon />}
-                                onClick={async () => {
-                                  try {
-                                    await professionalCasesService.takeCase(c.id);
-                                    setAvailableCases((prev) => prev.filter((x) => x.id !== c.id));
-                                    const mine = await professionalCasesService.getMyCases({ page_size: 50 });
-                                    setMyCases(mine.results || []);
-                                    setCasesTab(1);
-                                  } catch (e: any) {
-                                    alert("Could not take case. It may have already been taken.");
-                                  }
-                                }}
-                                sx={{ fontWeight: 700, textTransform: "none", fontSize: "0.78rem", bgcolor: "#2563eb", "&:hover": { bgcolor: "#1d4ed8" } }}
-                              >
-                                Accept Case
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )
-              )}
-
-              {casesTab === 1 && (
-                casesLoading ? (
-                  <Typography color="text.secondary" sx={{ py: 2 }}>Loading...</Typography>
-                ) : myCases.length === 0 ? (
-                  <Box sx={{ py: 3, textAlign: "center" }}>
-                    <AssignmentTurnedInIcon sx={{ fontSize: 40, color: "#cbd5e1", mb: 1 }} />
-                    <Typography variant="body2" color="text.secondary">You haven't taken any cases yet.</Typography>
-                  </Box>
-                ) : (
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Case ID</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Client</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Problem</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Budget</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {myCases.map((c) => (
-                          <TableRow key={c.id} hover>
-                            <TableCell>
-                              <Link href={`/dashboard/professional/cases/${c.id}`} target="_blank" style={{ textDecoration: 'none' }}>
-                                <strong style={{ color: "#2563eb", cursor: "pointer" }}>{c.case_id}</strong>
-                              </Link>
-                            </TableCell>
-                            <TableCell>
-                              <Box sx={{ fontWeight: 600, fontSize: "0.82rem" }}>{c.assistance_request_details?.full_name}</Box>
-                              <Box sx={{ fontSize: "0.72rem", color: "#64748b" }}>{c.assistance_request_details?.mobile}</Box>
-                            </TableCell>
-                            <TableCell sx={{ fontSize: "0.82rem", maxWidth: 200 }}>
-                              <Box sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {c.assistance_request_details?.problem_description?.substring(0, 60)}...
-                              </Box>
-                            </TableCell>
-                            <TableCell sx={{ fontSize: "0.82rem" }}>₹{c.budget}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={c.status.replace("_", " ").toUpperCase()}
-                                size="small"
-                                color={c.status === "assigned" ? "primary" : c.status === "in_progress" ? "warning" : c.status === "closed" ? "success" : "default"}
-                                sx={{ fontWeight: 700, fontSize: "0.68rem" }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )
-              )}
-            </Box>
-            <Box sx={{ height: 16 }} />
-          </CardContent>
-        </Card>
-      )}
     </PortalPageShell>
   );
 }
