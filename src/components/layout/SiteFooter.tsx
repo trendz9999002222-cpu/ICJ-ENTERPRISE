@@ -1,10 +1,10 @@
 "use client";
- 
+
 import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Container, Divider, Grid, Stack, Typography } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
- 
+
 export default function SiteFooter() {
   return (
     <Box
@@ -56,17 +56,17 @@ export default function SiteFooter() {
                 </Typography>
               </Box>
             </Stack>
- 
+
             <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.825rem", lineHeight: 1.6, mb: 2 }}>
               A premier global institution of jurists, advocates, and dispute resolution specialists dedicated to
               democratizing access to justice, advancing legal scholarship, and upholding constitutional values.
             </Typography>
- 
+
             <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", display: "block" }}>
               Justice • Knowledge • Service • Integrity
             </Typography>
           </Grid>
- 
+
           {/* Col 2: Justice Services */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
@@ -97,7 +97,7 @@ export default function SiteFooter() {
               ))}
             </Stack>
           </Grid>
- 
+
           {/* Col 3: Professionals */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
@@ -128,7 +128,7 @@ export default function SiteFooter() {
               ))}
             </Stack>
           </Grid>
- 
+
           {/* Col 4: Research & Academy */}
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
@@ -158,7 +158,7 @@ export default function SiteFooter() {
               ))}
             </Stack>
           </Grid>
- 
+
           {/* Col 5: Social Impact */}
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
             <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
@@ -188,7 +188,7 @@ export default function SiteFooter() {
               ))}
             </Stack>
           </Grid>
- 
+
           {/* Col 6: Governance & Audit */}
           <Grid size={{ xs: 12, sm: 4, md: 1.5 }}>
             <Typography component="h2" variant="subtitle2" sx={{ fontWeight: 700, color: "#fbbf24", mb: 2, fontSize: "0.875rem", letterSpacing: "0.02em" }}>
@@ -219,9 +219,9 @@ export default function SiteFooter() {
             </Stack>
           </Grid>
         </Grid>
- 
+
         <Divider sx={{ my: 4, borderColor: "rgba(255,255,255,0.12)" }} />
- 
+
         {/* Regulatory & Institutional Caveat */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.55)", fontSize: "0.725rem", lineHeight: 1.6, display: "block" }}>
@@ -232,7 +232,7 @@ export default function SiteFooter() {
             credit mechanism and is not a currency, cryptocurrency, deposit, or financial investment.
           </Typography>
         </Box>
- 
+
         {/* Copyright & Bottom Links */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
@@ -242,14 +242,14 @@ export default function SiteFooter() {
           <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.6)" }}>
             © {new Date().getFullYear()} International Consortium of Jurists (ICJ). All rights reserved.
           </Typography>
- 
+
           <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", gap: 1 }}>
             {[
               { label: "Terms of Use", href: "/terms" },
               { label: "Privacy Policy", href: "/terms#privacy" },
               { label: "Pro Bono Policy", href: "/social-justice" },
               { label: "Accessibility", href: "/about#accessibility" },
-              { label: "Admin Login", href: "/login" },
+              // { label: "Admin Login", href: "/login" },
             ].map((link) => (
               <Link
                 key={link.label}

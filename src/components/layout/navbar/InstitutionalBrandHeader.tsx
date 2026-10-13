@@ -60,7 +60,7 @@ export default function InstitutionalBrandHeader() {
             >
               <Image
                 src="/images/icj-logo.png"
-                alt="International Consortium of Jurists — Official Emblem"
+                alt="ICJ Logo"
                 width={82}
                 height={82}
                 priority

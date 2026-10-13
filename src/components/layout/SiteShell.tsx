@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 
 import { Navbar } from "@/components/layout/navbar";
 import FloatingJoinUsWidget from "@/components/layout/FloatingJoinUsWidget";
+import FloatingWhatsAppButton from "@/components/layout/FloatingWhatsAppButton";
 import PlatformDevelopmentNotice from "@/components/layout/PlatformDevelopmentNotice";
 import SiteFooter from "@/components/layout/SiteFooter";
 
@@ -37,6 +38,7 @@ export default function SiteShell({ children }: Props) {
       <SiteFooter />
       <PlatformDevelopmentNotice />
       <FloatingJoinUsWidget />
+      <FloatingWhatsAppButton />
     </Box>
   );
 }
