@@ -1,4 +1,3 @@
-import { mockServices } from "@/data/public/services";
 import { mockProfessionals } from "@/data/public/professionals";
 import { mockAcademyCourses, mockResearchPapers, mockTrainingEvents } from "@/data/public/research";
 import { apiClient } from "@/lib/api/client";
@@ -20,6 +19,12 @@ import type {
 // =============================================================================
 
 /** Maps Django snake_case response to frontend camelCase JusticeService type */
+function toArray(val: any): string[] {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string" && val.trim()) return [val];
+  return [];
+}
+
 function mapBackendService(s: any): JusticeService {
   return {
     id: s.id,
@@ -29,18 +34,18 @@ function mapBackendService(s: any): JusticeService {
     category: s.category?.value ?? s.category ?? "",
     categoryLabel: s.category_label ?? s.categoryLabel ?? "",
     iconName: s.icon_name ?? s.iconName ?? "",
-    whoItIsFor: s.who_it_is_for ?? s.whoItIsFor ?? [],
-    howIcjHelps: s.how_icj_helps ?? s.howIcjHelps ?? [],
-    availableAssistance: s.available_assistance ?? s.availableAssistance ?? [],
-    nextSteps: s.next_steps ?? s.nextSteps ?? [],
-    relatedProfessionals: s.related_professionals ?? s.relatedProfessionals ?? [],
+    whoItIsFor: toArray(s.who_it_is_for ?? s.whoItIsFor),
+    howIcjHelps: toArray(s.how_icj_helps ?? s.howIcjHelps),
+    availableAssistance: toArray(s.available_assistance ?? s.availableAssistance),
+    nextSteps: toArray(s.next_steps ?? s.nextSteps),
+    relatedProfessionals: toArray(s.related_professionals ?? s.relatedProfessionals),
     featured: s.is_featured ?? s.featured ?? false,
   };
 }
 
 export const serviceService = {
   listServices: async (
-    params: PublicPaginationParams = {}
+    params: PublicPaginationParams & { featured?: boolean } = {}
   ): Promise<PublicPaginatedResponse<JusticeService>> => {
     try {
       const q = new URLSearchParams();
@@ -48,6 +53,7 @@ export const serviceService = {
       if (params.pageSize) q.set("page_size", String(params.pageSize));
       if (params.search) q.set("search", params.search);
       if (params.category && params.category !== "all") q.set("category", params.category);
+      if (params.featured !== undefined) q.set("featured", String(params.featured));
 
       const qs = q.toString();
       const path = `${API_ENDPOINTS.publicServices.list}${qs ? `?${qs}` : ""}`;

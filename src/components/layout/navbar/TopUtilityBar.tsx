@@ -135,7 +135,7 @@ export default function TopUtilityBar() {
               }}
             >
               <AccessTimeIcon sx={{ fontSize: 13 }} />
-              <span>Mon–Sat: 11:00 AM – 6:00 PM IST</span>
+              <span>24x7 emergency / office hours</span>
             </Box>
           </Stack>
 

@@ -52,7 +52,7 @@ export const CONTACT_DATA: ContactData = {
     {
       iconKey: "time",
       label: "Office Hours",
-      value: "Mon – Sat: 11:00 AM – 6:00 PM",
+      value: "24x7 emergency / office hours ",
     },
   ],
   formTitle: "Send Us a Message",
