@@ -8,11 +8,11 @@ import {
   mockSocialImpactPrograms,
   mockVolunteerPrograms,
 } from "@/data/public/knowledge";
-import { mockServices } from "@/data/public/services";
 import { mockProfessionals } from "@/data/public/professionals";
 import { maskPublicFullName } from "@/lib/privacy/maskPublicIdentity";
 import { mockResearchPapers } from "@/data/public/research";
 import { paginateArray } from "@/services/public/paginate";
+import { serviceService } from "@/services/public/publicServices";
 import type {
   CertificateVerification,
   ChapterInfo,
@@ -154,14 +154,14 @@ export const searchService = {
     page = 1,
     pageSize = 10
   ): Promise<PublicPaginatedResponse<UniversalSearchResult>> => {
-    await new Promise((r) => setTimeout(r, 150));
     const q = (query || "").trim().toLowerCase();
     const results: UniversalSearchResult[] = [];
 
-    // Search Services
+    // Search Services via real DB service
     if (filterCategory === "all" || filterCategory === "services") {
-      mockServices.forEach((s) => {
-        if (!q || s.title.toLowerCase().includes(q) || s.shortDescription.toLowerCase().includes(q)) {
+      try {
+        const sRes = await serviceService.listServices({ search: q || undefined, pageSize: 20 });
+        sRes.results.forEach((s) => {
           results.push({
             id: `s-${s.id}`,
             type: "Service",
@@ -170,8 +170,10 @@ export const searchService = {
             url: `/services/${s.slug}`,
             metadataTag: s.categoryLabel,
           });
-        }
-      });
+        });
+      } catch (err) {
+        console.error("Failed searching services:", err);
+      }
     }
 
     // Search Professionals

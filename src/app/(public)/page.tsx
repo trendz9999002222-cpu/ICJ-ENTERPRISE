@@ -26,6 +26,7 @@ import {
   Divider,
   Grid,
   Paper,
+  Skeleton,
   Stack,
   TextField,
   Typography,
@@ -38,9 +39,8 @@ import { useEffect, useState } from "react";
 import ProfessionalCard from "@/components/features/public/ProfessionalCard";
 import ResearchCard from "@/components/features/public/ResearchCard";
 import ServiceCard from "@/components/features/public/ServiceCard";
-import { mockServices } from "@/data/public/services";
-import { professionalService } from "@/services/public";
-import type { PublicProfessional } from "@/types/public";
+import { professionalService, serviceService } from "@/services/public";
+import type { JusticeService, PublicProfessional } from "@/types/public";
 import { mockAcademyCourses, mockResearchPapers } from "@/data/public/research";
 import { mockMembershipTiers, mockSocialImpactPrograms } from "@/data/public/knowledge";
 
@@ -56,6 +56,12 @@ export default function HomePage() {
   };
 
   const [featuredProfessionals, setFeaturedProfessionals] = useState<PublicProfessional[]>([]);
+  const [featuredServices, setFeaturedServices] = useState<JusticeService[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [selectedServiceCategory, setSelectedServiceCategory] = useState("all");
+  const [serviceCategories, setServiceCategories] = useState<{ label: string; value: string }[]>([
+    { label: "All Services", value: "all" },
+  ]);
 
   useEffect(() => {
     professionalService.listProfessionals({ pageSize: 4 }).then((res) => {
@@ -63,7 +69,28 @@ export default function HomePage() {
     }).catch(console.error);
   }, []);
 
-  const featuredServices = mockServices.slice(0, 6);
+  useEffect(() => {
+    serviceService.getCategories().then((cats) => {
+      setServiceCategories(cats);
+    }).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    setServicesLoading(true);
+    serviceService
+      .listServices({
+        pageSize: 6,
+        category: selectedServiceCategory !== "all" ? selectedServiceCategory : undefined,
+      })
+      .then((res) => {
+        setFeaturedServices(res.results || []);
+      })
+      .catch(console.error)
+      .finally(() => {
+        setServicesLoading(false);
+      });
+  }, [selectedServiceCategory]);
+
   const featuredPapers = mockResearchPapers.slice(0, 3);
   const featuredCourses = mockAcademyCourses.slice(0, 2);
 
@@ -411,17 +438,89 @@ export default function HomePage() {
               endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
               sx={{ color: "#2563eb", fontWeight: 700, textTransform: "none" }}
             >
-              Explore All 18+ Services
+              Explore All Services
             </Button>
           </Stack>
 
-          <Grid container spacing={3}>
-            {featuredServices.map((service) => (
-              <Grid key={service.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <ServiceCard service={service} />
-              </Grid>
-            ))}
-          </Grid>
+          {/* Interactive Category Filter Chips */}
+          {serviceCategories.length > 1 && (
+            <Box sx={{ mb: 4, overflowX: "auto", pb: 0.5 }}>
+              <Stack direction="row" spacing={1} sx={{ flexWrap: { xs: "nowrap", md: "wrap" }, minWidth: "max-content" }}>
+                {serviceCategories.map((cat) => {
+                  const isSelected = selectedServiceCategory === cat.value;
+                  return (
+                    <Chip
+                      key={cat.value}
+                      label={cat.label}
+                      onClick={() => setSelectedServiceCategory(cat.value)}
+                      variant={isSelected ? "filled" : "outlined"}
+                      sx={{
+                        cursor: "pointer",
+                        fontWeight: isSelected ? 700 : 500,
+                        fontSize: "0.825rem",
+                        py: 2,
+                        px: 0.5,
+                        bgcolor: isSelected ? "#2563eb" : "#ffffff",
+                        color: isSelected ? "#ffffff" : "#475569",
+                        borderColor: isSelected ? "#2563eb" : "#cbd5e1",
+                        "&:hover": {
+                          bgcolor: isSelected ? "#1d4ed8" : "#f1f5f9",
+                        },
+                        transition: "all 0.2s ease-in-out",
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+            </Box>
+          )}
+
+          {servicesLoading ? (
+            <Grid container spacing={3}>
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <Grid key={n} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      border: "1px solid #e2e8f0",
+                      bgcolor: "#ffffff",
+                      height: 220,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Box>
+                      <Stack direction="row" sx={{ justifyContent: "space-between", mb: 2 }}>
+                        <Skeleton variant="rounded" width={46} height={46} sx={{ borderRadius: 2 }} />
+                        <Skeleton variant="rounded" width={80} height={24} sx={{ borderRadius: 1 }} />
+                      </Stack>
+                      <Skeleton variant="text" width="75%" height={28} sx={{ mb: 1 }} />
+                      <Skeleton variant="text" width="100%" height={20} />
+                      <Skeleton variant="text" width="90%" height={20} />
+                    </Box>
+                    <Skeleton variant="text" width={130} height={24} />
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          ) : featuredServices.length > 0 ? (
+            <Grid container spacing={3}>
+              {featuredServices.map((service) => (
+                <Grid key={service.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <ServiceCard service={service} />
+                </Grid>
+              ))}
+            </Grid>
+          ) : (
+            <Box sx={{ textAlign: "center", py: 6, bgcolor: "#f8fafc", borderRadius: 2, border: "1px dashed #cbd5e1" }}>
+              <Typography variant="body1" sx={{ color: "#64748b", fontWeight: 500 }}>
+                No services found for this category.
+              </Typography>
+            </Box>
+          )}
         </Container>
       </Box>
 
