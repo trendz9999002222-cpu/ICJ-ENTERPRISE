@@ -17,6 +17,11 @@ def _filter_public_services(qs, params: dict):
     category = params.get("category")
     if category and category != "all":
         qs = qs.filter(category__value=category)
+    featured = params.get("featured")
+    if featured in ("true", "1", "True", True):
+        qs = qs.filter(is_featured=True)
+    elif featured in ("false", "0", "False", False):
+        qs = qs.filter(is_featured=False)
     return qs
 
 
@@ -37,6 +42,7 @@ class PublicJusticeServiceListAPIView(APIView):
     def get(self, request):
         params = list_params(request)
         params["category"] = request.query_params.get("category")
+        params["featured"] = request.query_params.get("featured")
         qs = _filter_public_services(
             JusticeService.objects.select_related("category").filter(is_active=True), 
             params
