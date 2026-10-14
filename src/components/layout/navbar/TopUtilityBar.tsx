@@ -134,8 +134,8 @@ export default function TopUtilityBar() {
                 whiteSpace: "nowrap",
               }}
             >
-              <AccessTimeIcon sx={{ fontSize: 13 }} />
-              <span>24x7 emergency / office hours</span>
+              {/* <AccessTimeIcon sx={{ fontSize: 13 }} /> */}
+              {/* <span>24x7 emergency / office hours</span> */}
             </Box>
           </Stack>
 
