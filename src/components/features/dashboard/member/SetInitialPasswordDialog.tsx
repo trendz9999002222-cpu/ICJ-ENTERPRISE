@@ -132,14 +132,15 @@ export default function SetInitialPasswordDialog({ open, onClose, onSuccess }: P
         // Mandatory password creation: only allow programmatic close on success
         if (successMsg) handleClose();
       }}
-      disableEscapeKeyDown
       maxWidth="sm"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 3,
-          p: { xs: 1, sm: 2 },
-          boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.2)",
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            p: { xs: 1, sm: 2 },
+            boxShadow: "0 20px 45px -10px rgba(15, 23, 42, 0.2)",
+          },
         },
       }}
     >
@@ -212,19 +213,21 @@ export default function SetInitialPasswordDialog({ open, onClose, onSuccess }: P
             size="small"
             autoComplete="new-password"
             placeholder="At least 8 characters"
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    edge="end"
-                    aria-label="toggle password visibility"
-                  >
-                    {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      edge="end"
+                      aria-label="toggle password visibility"
+                    >
+                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
@@ -242,19 +245,21 @@ export default function SetInitialPasswordDialog({ open, onClose, onSuccess }: P
             helperText={
               confirmPassword && newPassword !== confirmPassword ? "Passwords do not match" : ""
             }
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    edge="end"
-                    aria-label="toggle password visibility"
-                  >
-                    {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      edge="end"
+                      aria-label="toggle password visibility"
+                    >
+                      {showConfirmPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
