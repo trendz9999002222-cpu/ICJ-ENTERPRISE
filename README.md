@@ -22,6 +22,7 @@ python manage.py configure_membership_form
 # 2. Seed App-Specific Flows & Catalogs
 python manage.py seed_professional_onboarding
 python manage.py seed_membership_onboarding
+python manage.py test apps.leads
 python manage.py seed_services
 
 python manage.py runserver 8000
