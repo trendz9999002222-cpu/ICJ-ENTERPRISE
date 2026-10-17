@@ -14,6 +14,7 @@ python manage.py migrate
 python manage.py create_default_admin
 python manage.py seed_professional_onboarding
 python manage.py seed_membership_onboarding
+python manage.py test apps.leads
 python manage.py runserver 8000
 ```
 

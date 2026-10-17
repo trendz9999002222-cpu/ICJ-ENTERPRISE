@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.person.apps.PersonConfig",
     "apps.honorable_advisory.apps.HonorableAdvisoryConfig",
     "apps.services.apps.ServicesConfig",
+    "apps.leads.apps.LeadsConfig",
 ]
 
 MIDDLEWARE = [
@@ -157,3 +158,8 @@ FRONTEND_PASSWORD_RESET_URL = os.getenv(
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
+
+# Lead Marketplace Compliance Setting
+PAID_ADVOCATE_LEAD_UNLOCK_ENABLED = os.getenv(
+    "PAID_ADVOCATE_LEAD_UNLOCK_ENABLED", "false"
+).lower() in ("true", "1", "yes")

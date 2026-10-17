@@ -43,6 +43,18 @@ urlpatterns = [
         "api/v1/professional/services/",
         include("apps.services.urls.professional"),
     ),
+    path(
+        "api/v1/professional/",
+        include("apps.leads.urls.professional"),
+    ),
+    path(
+        "api/v1/admin/",
+        include("apps.leads.urls.admin"),
+    ),
+    path(
+        "api/v1/payments/",
+        include("apps.leads.urls.public"),
+    ),
 ]
 
 if settings.DEBUG or True:
