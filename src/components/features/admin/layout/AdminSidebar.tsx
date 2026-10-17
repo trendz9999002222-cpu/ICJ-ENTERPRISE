@@ -22,7 +22,6 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import {
