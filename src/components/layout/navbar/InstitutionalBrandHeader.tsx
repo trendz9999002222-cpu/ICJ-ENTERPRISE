@@ -189,7 +189,7 @@ export default function InstitutionalBrandHeader() {
             {!isLoggedIn && (
               <Button
                 component={Link}
-                href="/join"
+                href="/join-professional"
                 variant="contained"
                 startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
                 sx={{

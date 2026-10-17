@@ -26,6 +26,9 @@ export type UserMembershipInfo = {
   membership_type: string;
   status: string;
   is_approved?: boolean;
+  fee_payment_status?: "paid" | "unpaid" | "waived" | "failed" | string;
+  is_paid?: boolean;
+  payment_id?: string | null;
 };
 
 export type User = {

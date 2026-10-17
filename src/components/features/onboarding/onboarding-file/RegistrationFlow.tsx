@@ -54,6 +54,11 @@ import InfoSidebar from "./InfoSidebar";
 import ReviewSummary from "./ReviewSummary";
 import SelectionGrid, { GroupedSelectionGrid, type SelectionItem } from "./SelectionGrid";
 import { RADIUS } from "./iconMap";
+import PasswordStrengthIndicator from "@/components/ui/PasswordStrengthIndicator";
+import { emailVerificationService } from "@/services/emailVerification.service";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { IconButton, InputAdornment } from "@mui/material";
 
 const NEUTRAL_THEME: Theme = { color: "#2563eb", bg: "#eff6ff", border: "#bfdbfe" };
 const SIDEBAR_STEPS: StepId[] = ["details", "documents", "review"];
@@ -428,6 +433,12 @@ export default function RegistrationFlow() {
 
     if (currentStep === "details" && schema) {
       stepErrors = validateSections(schema.sections, state.values);
+      if (!currentUser) {
+        const emailVal = ((state.values.email || state.values.email_address) as string) || "";
+        if (emailVal && !emailVerificationService.isEmailVerified(emailVal)) {
+          stepErrors.email = "Please verify your email address to proceed.";
+        }
+      }
     }
     if (currentStep === "documents" && schema) {
       stepErrors = validateDocuments(schema.documents, state.files);
@@ -436,8 +447,16 @@ export default function RegistrationFlow() {
       if (!currentUser) {
         if (!state.password.trim()) {
           stepErrors.password = "Password is required";
-        } else if (state.password.length < 12) {
-          stepErrors.password = "Use at least 12 characters";
+        } else if (state.password.length < 8) {
+          stepErrors.password = "Use at least 8 characters";
+        } else if (
+          !/[A-Z]/.test(state.password) ||
+          !/[a-z]/.test(state.password) ||
+          !/[0-9]/.test(state.password) ||
+          !/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/;]/.test(state.password)
+        ) {
+          stepErrors.password =
+            "Password must include uppercase, lowercase, number, and special character";
         }
         if (!state.confirmPassword.trim()) {
           stepErrors.confirmPassword = "Please confirm your password";
@@ -721,6 +740,7 @@ export default function RegistrationFlow() {
               errors={errors}
               theme={theme}
               onChange={handleFieldChange}
+              isEmailPreVerified={Boolean(currentUser)}
             />
           </Box>
         ) : (
@@ -793,7 +813,20 @@ export default function RegistrationFlow() {
                 <Typography sx={{ fontSize: "0.8rem", color: "#64748b", mb: 2 }}>
                   Create the password you will use to log in after your application is approved.
                 </Typography>
-                <Stack spacing={2}>
+
+                <PasswordStrengthIndicator
+                  password={state.password}
+                  confirmPassword={state.confirmPassword}
+                  onSuggest={(suggested) => {
+                    setState((prev) => ({
+                      ...prev,
+                      password: suggested,
+                      confirmPassword: suggested,
+                    }));
+                  }}
+                />
+
+                <Stack spacing={2} sx={{ mt: 2 }}>
                   <TextField
                     label="Password"
                     type="password"
@@ -803,7 +836,7 @@ export default function RegistrationFlow() {
                     fullWidth
                     autoComplete="new-password"
                     error={Boolean(errors.password)}
-                    helperText={errors.password || "At least 12 characters"}
+                    helperText={errors.password || "Must meet all policy requirements above"}
                   />
                   <TextField
                     label="Confirm password"

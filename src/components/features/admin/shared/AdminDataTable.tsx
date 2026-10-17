@@ -16,12 +16,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 // =============================================================================
 // AdminDataTable — generic, reusable table for all admin list views.
 // Features: loading skeleton, empty state, search, horizontal scroll,
-//           optional server-side pagination.
+//           global pagination with automatic client-side fallback.
 // =============================================================================
 
 export type AdminTableColumn<T> = {
@@ -56,8 +56,8 @@ type Props<T> = {
   filterSlot?: ReactNode;
   /** Key extractor for React list keys */
   getRowKey: (row: T) => string | number;
-  /** If provided, renders MUI TablePagination below the table */
-  pagination?: AdminPaginationConfig;
+  /** If provided, renders MUI TablePagination below the table. If undefined, built-in client pagination is used. Pass false to disable. */
+  pagination?: AdminPaginationConfig | false;
   /** Prepends a serial number column (respects pagination offset) */
   showSerialNumber?: boolean;
   serialLabel?: string;
@@ -99,7 +99,7 @@ function SkeletonRows({ cols }: { cols: number }) {
 
 export default function AdminDataTable<T>({
   columns,
-  rows,
+  rows = [],
   loading = false,
   error,
   emptyMessage = "No records found.",
@@ -112,6 +112,53 @@ export default function AdminDataTable<T>({
   showSerialNumber = false,
   serialLabel = "S.No.",
 }: Props<T>) {
+  const isControlled = typeof pagination === "object" && pagination !== null;
+  const isPaginationEnabled = pagination !== false;
+
+  const [internalPage, setInternalPage] = useState(0);
+  const [internalRowsPerPage, setInternalRowsPerPage] = useState(10);
+
+  // Reset internal page when rows length changes or search changes
+  useEffect(() => {
+    if (!isControlled) {
+      setInternalPage(0);
+    }
+  }, [rows?.length, searchValue, isControlled]);
+
+  const activePage = isControlled ? pagination.page : internalPage;
+  const activeRowsPerPage = isControlled ? pagination.rowsPerPage : internalRowsPerPage;
+  const totalCount = isControlled ? pagination.totalCount : (rows?.length ?? 0);
+  const rowsPerPageOptions = isControlled
+    ? (pagination.rowsPerPageOptions ?? [10, 25, 50])
+    : [10, 25, 50];
+
+  const handlePageChange = (newPage: number) => {
+    if (isControlled) {
+      pagination.onPageChange(newPage);
+    } else {
+      setInternalPage(newPage);
+    }
+  };
+
+  const handleRowsPerPageChange = (newRowsPerPage: number) => {
+    if (isControlled) {
+      pagination.onRowsPerPageChange?.(newRowsPerPage);
+    } else {
+      setInternalRowsPerPage(newRowsPerPage);
+      setInternalPage(0);
+    }
+  };
+
+  // If uncontrolled (client-side), slice rows according to internal pagination.
+  // If controlled, rows are already handled or controlled by parent.
+  const displayedRows =
+    isControlled || !isPaginationEnabled
+      ? (rows || [])
+      : (rows || []).slice(
+          activePage * activeRowsPerPage,
+          activePage * activeRowsPerPage + activeRowsPerPage
+        );
+
   const colCount = columns.length + (showSerialNumber ? 1 : 0);
 
   return (
@@ -216,7 +263,7 @@ export default function AdminDataTable<T>({
             <TableBody>
               {loading ? (
                 <SkeletonRows cols={colCount} />
-              ) : rows.length === 0 ? (
+              ) : (!displayedRows || displayedRows.length === 0) ? (
                 <TableRow>
                   <TableCell colSpan={colCount} sx={{ py: 6, textAlign: "center", borderBottom: 0 }}>
                     <Typography variant="body2" color="text.secondary">
@@ -225,7 +272,7 @@ export default function AdminDataTable<T>({
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((row, rowIndex) => (
+                (displayedRows || []).map((row, rowIndex) => (
                   <TableRow
                     key={getRowKey(row)}
                     hover
@@ -248,7 +295,7 @@ export default function AdminDataTable<T>({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {(pagination ? pagination.page * pagination.rowsPerPage : 0) + rowIndex + 1}
+                        {(activePage * activeRowsPerPage) + rowIndex + 1}
                       </TableCell>
                     )}
                     {columns.map((col) => (
@@ -273,19 +320,23 @@ export default function AdminDataTable<T>({
           </Table>
         </TableContainer>
 
-        {/* Pagination */}
-        {pagination && (
+        {/* Global Table Pagination */}
+        {isPaginationEnabled && (
           <Box sx={{ borderTop: "1px solid #e2e8f0" }}>
             <TablePagination
               component="div"
-              count={pagination.totalCount}
-              page={pagination.page}
-              rowsPerPage={pagination.rowsPerPage}
-              onPageChange={(_, newPage) => pagination.onPageChange(newPage)}
-              onRowsPerPageChange={(e) =>
-                pagination.onRowsPerPageChange?.(parseInt(e.target.value, 10))
+              count={totalCount}
+              page={
+                totalCount <= 0
+                  ? 0
+                  : Math.min(activePage, Math.max(0, Math.ceil(totalCount / activeRowsPerPage) - 1))
               }
-              rowsPerPageOptions={pagination.rowsPerPageOptions ?? [10, 25, 50]}
+              rowsPerPage={activeRowsPerPage}
+              onPageChange={(_, newPage) => handlePageChange(newPage)}
+              onRowsPerPageChange={(e) =>
+                handleRowsPerPageChange(parseInt(e.target.value, 10))
+              }
+              rowsPerPageOptions={rowsPerPageOptions}
               sx={{
                 ".MuiTablePagination-toolbar": { minHeight: 48 },
                 ".MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows": {
@@ -297,13 +348,6 @@ export default function AdminDataTable<T>({
           </Box>
         )}
       </Paper>
-
-      {/* Row count when no pagination */}
-      {!loading && !pagination && rows.length > 0 && (
-        <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-          Showing {rows.length} record{rows.length !== 1 ? "s" : ""}
-        </Typography>
-      )}
     </Box>
   );
 }

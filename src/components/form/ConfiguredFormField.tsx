@@ -32,7 +32,8 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
   const selectedStateName = values[stateKey] || "";
   const { countries, states, districts, loading, levels } = useLocationData(selectedCountryName, selectedStateName);
 
-  const labelWithFlag = field.required ? `${field.label} *` : field.label;
+  const isRequired = Boolean(field.required || field.is_required);
+  const labelWithFlag = isRequired ? `${field.label} *` : field.label;
 
   switch (field.field_type) {
     case "select":
@@ -41,6 +42,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           select
           fullWidth
           size="small"
+          required={isRequired}
           label={labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
@@ -64,6 +66,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           select
           fullWidth
           size="small"
+          required={isRequired}
           label={labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => {
@@ -91,6 +94,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           select
           fullWidth
           size="small"
+          required={isRequired}
           label={labelWithFlag === "State *" ? `${levels.l1} *` : labelWithFlag === "State" ? levels.l1 : labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
@@ -116,6 +120,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           select
           fullWidth
           size="small"
+          required={isRequired}
           label={labelWithFlag === "District *" ? `${levels.l2} *` : labelWithFlag === "District" ? levels.l2 : labelWithFlag}
           value={(value as string) ?? ""}
           onChange={(e) => onChange(e.target.value)}
@@ -163,6 +168,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           fullWidth
           multiline
           minRows={3}
+          required={isRequired}
           label={labelWithFlag}
           placeholder={field.placeholder}
           value={(value as string) ?? ""}
@@ -172,7 +178,20 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           disabled={disabled}
         />
       );
-    case "date":
+    case "date": {
+      const isDob =
+        field.name?.toLowerCase().includes("dob") ||
+        field.name?.toLowerCase().includes("birth") ||
+        field.label?.toLowerCase().includes("birth");
+
+      const maxDobDate = `${new Date().getFullYear() - 18}-12-31`;
+
+      const handleDateFocus = () => {
+        if (isDob && !value) {
+          onChange("2000-01-01");
+        }
+      };
+
       return (
         <TextField
           fullWidth
@@ -180,13 +199,24 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           type="date"
           label={labelWithFlag}
           value={(value as string) ?? ""}
+          onFocus={handleDateFocus}
+          onClick={handleDateFocus}
           onChange={(e) => onChange(e.target.value)}
           error={!!error}
           helperText={error ?? field.help_text}
           disabled={disabled}
-          slotProps={{ inputLabel: { shrink: true } }}
+          slotProps={{
+            inputLabel: { shrink: true },
+            htmlInput: isDob
+              ? {
+                  max: maxDobDate,
+                  min: "1940-01-01",
+                }
+              : undefined,
+          }}
         />
       );
+    }
     case "file":
       const isString = typeof value === "string";
       const fileVal = !isString ? (value as File | null) : null;
@@ -293,6 +323,7 @@ export default function ConfiguredFormField({ field, value, error, disabled, val
           fullWidth
           size="small"
           type={inputType}
+          required={isRequired}
           label={labelWithFlag}
           placeholder={field.placeholder}
           value={(value as string) ?? ""}

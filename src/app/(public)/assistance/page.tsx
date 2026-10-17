@@ -3,7 +3,6 @@
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
-import GavelIcon from "@mui/icons-material/Gavel";
 import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import {
   Alert,
@@ -13,49 +12,107 @@ import {
   CircularProgress,
   Container,
   Divider,
-  FormControl,
   Grid,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
+import ConfiguredFormField from "@/components/form/ConfiguredFormField";
 import { serviceService } from "@/services/public/publicServices";
 
-const CATEGORIES = [
-  "Property & Land Disputes",
-  "Consumer Fraud & Grievances",
-  "Family & Matrimonial Issues",
-  "Cyber Crime & Digital Fraud",
-  "Civil Recovery & Money Claims",
-  "Labour & Employment Injustice",
-  "Criminal Law Information & Bail",
-  "RTI & Public Governance",
-  "Government Scheme / Free Legal Aid",
-  "Other Legal Queries",
-];
+type DynamicConfig = {
+  citizen_fields: Array<{
+    field_key: string;
+    label: string;
+    field_type: string;
+    placeholder?: string;
+    help_text?: string;
+    is_required: boolean;
+    display_order: number;
+    options?: Array<{ label: string; value: string }>;
+  }>;
+  legal_matter_fields: Array<{
+    id: string;
+    field_key: string;
+    label: string;
+    field_type: string;
+    required: boolean;
+    options?: Array<{ label: string; value: string }>;
+    display_order: number;
+  }>;
+  documents: Array<{
+    id: string;
+    name: string;
+    document_key: string;
+    description?: string;
+    allowed_file_types: string[];
+    max_file_size_mb: number;
+    is_required: boolean;
+    display_order: number;
+  }>;
+};
 
 export default function SeekAssistancePage() {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [stateName, setStateName] = useState("");
-  const [cityName, setCityName] = useState("");
-  const [category, setCategory] = useState("");
-  const [urgency, setUrgency] = useState("Medium");
-  const [preferredContact, setPreferredContact] = useState("Phone");
-  const [problemDescription, setProblemDescription] = useState("");
+  const [config, setConfig] = useState<DynamicConfig | null>(null);
+  const [loadingConfig, setLoadingConfig] = useState(true);
+  const [formValues, setFormValues] = useState<Record<string, any>>({
+    country: "India",
+    preferred_contact: "Phone",
+    urgency: "Medium",
+  });
   const [files, setFiles] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submittedRefId, setSubmittedRefId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    serviceService
+      .getSeekAssistanceConfig()
+      .then((data) => {
+        if (data) {
+          setConfig(data);
+        }
+      })
+      .finally(() => {
+        setLoadingConfig(false);
+      });
+  }, []);
+
+  const handleFieldChange = (fieldKey: string, value: unknown) => {
+    setFormValues((prev) => {
+      const next = { ...prev, [fieldKey]: value };
+
+      // Cascading reset when Country changes
+      if (fieldKey.toLowerCase().includes("country")) {
+        Object.keys(prev).forEach((k) => {
+          if (
+            k.toLowerCase().includes("state") ||
+            k.toLowerCase().includes("district") ||
+            k.toLowerCase().includes("city")
+          ) {
+            next[k] = "";
+          }
+        });
+      }
+      // Cascading reset when State changes
+      else if (fieldKey.toLowerCase().includes("state")) {
+        Object.keys(prev).forEach((k) => {
+          if (
+            k.toLowerCase().includes("district") ||
+            k.toLowerCase().includes("city")
+          ) {
+            next[k] = "";
+          }
+        });
+      }
+      return next;
+    });
+  };
 
   const handleMockFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -67,25 +124,34 @@ export default function SeekAssistancePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const data = {
-      full_name: fullName,
-      email: email,
-      mobile: mobile,
-      preferred_contact: preferredContact,
-      state_name: stateName,
-      city_name: cityName,
-      category: category,
-      urgency: urgency,
-      problem_description: problemDescription,
+    setErrorMessage(null);
+
+    const payload = {
+      ...formValues,
+      full_name: formValues.full_name || "",
+      email: formValues.email || "",
+      mobile: formValues.mobile || formValues.mobile_number || "",
+      preferred_contact: formValues.preferred_contact || "Phone",
+      state_name: formValues.state_name || formValues.state || "",
+      city_name: formValues.city_name || formValues.district || "",
+      category: formValues.category || "",
+      urgency: formValues.urgency || "Medium",
+      problem_description: formValues.problem_description || "",
+      files,
     };
-    const res = await serviceService.submitSeekAssistance(data);
+
+    const res = await serviceService.submitSeekAssistance(payload);
     setSubmitting(false);
     if (res.success && res.data?.reference_id) {
       setSubmittedRefId(res.data.reference_id);
     } else {
-      alert("Failed to submit request. Please try again.");
+      setErrorMessage("Failed to submit request. Please check all required fields and try again.");
     }
   };
+
+  const citizenFields = config?.citizen_fields || [];
+  const legalMatterFields = config?.legal_matter_fields || [];
+  const documents = config?.documents || [];
 
   return (
     <Box sx={{ width: "100%", bgcolor: "#f8fafc", pb: 8 }}>
@@ -155,7 +221,7 @@ export default function SeekAssistancePage() {
 
             <Typography variant="body2" sx={{ color: "#64748b", maxWidth: 480, mx: "auto", mb: 4, lineHeight: 1.6 }}>
               An ICJ legal associate will review your problem statement and contact you via your preferred channel (
-              <strong>{preferredContact}</strong>) within 24 to 48 business hours.
+              <strong>{formValues.preferred_contact || "Phone"}</strong>) within 24 to 48 business hours.
             </Typography>
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: "center" }}>
@@ -197,203 +263,176 @@ export default function SeekAssistancePage() {
                   Please provide accurate information to help our legal panel assess your case.
                 </Typography>
 
-                <Box component="form" onSubmit={handleSubmit}>
-                  <Stack spacing={3}>
-                    {/* Contact details */}
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}>
-                      1. Citizen / Applicant Details
-                    </Typography>
+                {errorMessage && (
+                  <Alert severity="error" sx={{ mb: 3 }} onClose={() => setErrorMessage(null)}>
+                    {errorMessage}
+                  </Alert>
+                )}
 
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Full Name *"
-                          fullWidth
-                          size="small"
-                          required
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Email Address *"
-                          fullWidth
-                          size="small"
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Mobile / WhatsApp Number *"
-                          fullWidth
-                          size="small"
-                          required
-                          value={mobile}
-                          onChange={(e) => setMobile(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Preferred Contact Method</InputLabel>
-                          <Select
-                            label="Preferred Contact Method"
-                            value={preferredContact}
-                            onChange={(e) => setPreferredContact(e.target.value)}
+                {loadingConfig ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+                    <CircularProgress size={36} sx={{ color: "#2563eb" }} />
+                  </Box>
+                ) : (
+                  <Box component="form" onSubmit={handleSubmit}>
+                    <Stack spacing={3}>
+                      {/* 1. CITIZEN / APPLICANT DETAILS (DYNAMIC FROM ADMIN TAB 1) */}
+                      {citizenFields.length > 0 && (
+                        <>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}
                           >
-                            <MenuItem value="Phone">Phone Call</MenuItem>
-                            <MenuItem value="WhatsApp">WhatsApp</MenuItem>
-                            <MenuItem value="Email">Email</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="State *"
-                          fullWidth
-                          size="small"
-                          required
-                          placeholder="e.g. Delhi, Maharashtra"
-                          value={stateName}
-                          onChange={(e) => setStateName(e.target.value)}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="District *"
-                          fullWidth
-                          size="small"
-                          required
-                          placeholder="e.g. Mumbai, Lucknow"
-                          value={cityName}
-                          onChange={(e) => setCityName(e.target.value)}
-                        />
-                      </Grid>
-                    </Grid>
+                            1. Citizen / Applicant Details
+                          </Typography>
 
-                    <Divider />
-
-                    {/* Legal Matter Details */}
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}>
-                      2. Legal Matter Information
-                    </Typography>
-
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, sm: 8 }}>
-                        <FormControl fullWidth size="small" required>
-                          <InputLabel>Legal Subject Category *</InputLabel>
-                          <Select
-                            label="Legal Subject Category *"
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                          >
-                            {CATEGORIES.map((cat) => (
-                              <MenuItem key={cat} value={cat}>
-                                {cat}
-                              </MenuItem>
+                          <Grid container spacing={2}>
+                            {citizenFields.map((field) => (
+                              <Grid key={field.field_key} size={{ xs: 12, sm: 6 }}>
+                                <ConfiguredFormField
+                                  field={field}
+                                  value={formValues[field.field_key] ?? ""}
+                                  values={formValues}
+                                  onChange={(val) => handleFieldChange(field.field_key, val)}
+                                />
+                              </Grid>
                             ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
+                          </Grid>
 
-                      <Grid size={{ xs: 12, sm: 4 }}>
-                        <FormControl fullWidth size="small">
-                          <InputLabel>Urgency Level</InputLabel>
-                          <Select
-                            label="Urgency Level"
-                            value={urgency}
-                            onChange={(e) => setUrgency(e.target.value)}
+                          <Divider />
+                        </>
+                      )}
+
+                      {/* 2. LEGAL MATTER INFORMATION (DYNAMIC FROM ADMIN TAB 2) */}
+                      {legalMatterFields.length > 0 && (
+                        <>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}
                           >
-                            <MenuItem value="Low">Low (General Query)</MenuItem>
-                            <MenuItem value="Medium">Medium (Notice Received)</MenuItem>
-                            <MenuItem value="High">High (Court Hearing Pending)</MenuItem>
-                            <MenuItem value="Emergency">Emergency (Immediate Arrest/Eviction)</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
+                            2. Legal Matter Information
+                          </Typography>
 
-                      <Grid size={{ xs: 12 }}>
-                        <TextField
-                          label="Describe Your Legal Problem in Detail *"
-                          fullWidth
-                          multiline
-                          rows={4}
-                          required
-                          placeholder="Provide dates, parties involved, previous actions taken, and the specific relief or guidance you are seeking..."
-                          value={problemDescription}
-                          onChange={(e) => setProblemDescription(e.target.value)}
-                        />
-                      </Grid>
-                    </Grid>
+                          <Grid container spacing={2}>
+                            {legalMatterFields.map((field) => {
+                              const isTextarea = field.field_type === "textarea";
+                              const isCategory = field.field_key === "category";
+                              const isUrgency = field.field_key === "urgency";
 
-                    <Divider />
+                              const colSize = isTextarea
+                                ? { xs: 12 }
+                                : isCategory
+                                ? { xs: 12, sm: 8 }
+                                : isUrgency
+                                ? { xs: 12, sm: 4 }
+                                : { xs: 12, sm: 6 };
 
-                    {/* Document Attachments */}
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}>
-                      3. Supporting Documents (Optional)
-                    </Typography>
+                              return (
+                                <Grid key={field.field_key} size={colSize}>
+                                  <ConfiguredFormField
+                                    field={field}
+                                    value={formValues[field.field_key] ?? ""}
+                                    values={formValues}
+                                    onChange={(val) => handleFieldChange(field.field_key, val)}
+                                  />
+                                </Grid>
+                              );
+                            })}
+                          </Grid>
 
-                    <Box
-                      sx={{
-                        p: 3,
-                        border: "2px dashed #cbd5e1",
-                        borderRadius: 2.5,
-                        textAlign: "center",
-                        bgcolor: "#f8fafc",
-                      }}
-                    >
-                      <CloudUploadOutlinedIcon sx={{ fontSize: 32, color: "#94a3b8", mb: 1 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#0f172a", mb: 0.5 }}>
-                        Attach notices, agreements, FIRs, or relevant receipts
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: "#64748b", display: "block", mb: 2 }}>
-                        PDF, DOCX, JPG, PNG (Mock upload for demonstration)
-                      </Typography>
+                          <Divider />
+                        </>
+                      )}
+
+                      {/* 3. SUPPORTING DOCUMENTS (DYNAMIC FROM ADMIN TAB 3) */}
+                      {documents.length > 0 && (
+                        <>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, color: "#2563eb", textTransform: "uppercase" }}
+                          >
+                            3. Supporting Documents (Optional)
+                          </Typography>
+
+                          {documents.map((doc) => {
+                            const allowedTypes = Array.isArray(doc.allowed_file_types)
+                              ? doc.allowed_file_types.map((e) => e.toUpperCase()).join(", ")
+                              : "PDF, DOCX, JPG, PNG";
+
+                            return (
+                              <Box
+                                key={doc.id || doc.document_key}
+                                sx={{
+                                  p: 3,
+                                  border: "2px dashed #cbd5e1",
+                                  borderRadius: 2.5,
+                                  textAlign: "center",
+                                  bgcolor: "#f8fafc",
+                                }}
+                              >
+                                <CloudUploadOutlinedIcon sx={{ fontSize: 32, color: "#94a3b8", mb: 1 }} />
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: "#0f172a", mb: 0.5 }}>
+                                  {doc.name}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: "#64748b", display: "block", mb: 2 }}>
+                                  {allowedTypes} (Max {doc.max_file_size_mb || 5}MB)
+                                </Typography>
+
+                                <Button
+                                  component="label"
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<AttachFileIcon />}
+                                  sx={{ borderColor: "#cbd5e1", color: "#2563eb", textTransform: "none", fontWeight: 600 }}
+                                >
+                                  Select Files
+                                  <input type="file" hidden multiple onChange={handleMockFileUpload} />
+                                </Button>
+
+                                {files.length > 0 && (
+                                  <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{ mt: 2, flexWrap: "wrap", gap: 0.5, justifyContent: "center" }}
+                                  >
+                                    {files.map((name, idx) => (
+                                      <Chip
+                                        key={idx}
+                                        label={name}
+                                        size="small"
+                                        sx={{ bgcolor: "#e2e8f0", fontSize: "0.75rem" }}
+                                      />
+                                    ))}
+                                  </Stack>
+                                )}
+                              </Box>
+                            );
+                          })}
+                        </>
+                      )}
 
                       <Button
-                        component="label"
-                        variant="outlined"
-                        size="small"
-                        startIcon={<AttachFileIcon />}
-                        sx={{ borderColor: "#cbd5e1", color: "#2563eb", textTransform: "none", fontWeight: 600 }}
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        disabled={submitting}
+                        sx={{
+                          bgcolor: "#2563eb",
+                          color: "#ffffff",
+                          fontWeight: 800,
+                          py: 1.4,
+                          borderRadius: 2,
+                          textTransform: "none",
+                          fontSize: "1rem",
+                          boxShadow: "0 4px 14px rgba(37,99,235,0.25)",
+                          "&:hover": { bgcolor: "#1d4ed8" },
+                        }}
                       >
-                        Select Files
-                        <input type="file" hidden multiple onChange={handleMockFileUpload} />
+                        {submitting ? <CircularProgress size={22} color="inherit" /> : "Submit Assistance Request"}
                       </Button>
-
-                      {files.length > 0 && (
-                        <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: "wrap", gap: 0.5, justifyContent: "center" }}>
-                          {files.map((name, idx) => (
-                            <Chip key={idx} label={name} size="small" sx={{ bgcolor: "#e2e8f0", fontSize: "0.75rem" }} />
-                          ))}
-                        </Stack>
-                      )}
-                    </Box>
-
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={submitting}
-                      sx={{
-                        bgcolor: "#2563eb",
-                        color: "#ffffff",
-                        fontWeight: 800,
-                        py: 1.4,
-                        borderRadius: 2,
-                        textTransform: "none",
-                        fontSize: "1rem",
-                        boxShadow: "0 4px 14px rgba(37,99,235,0.25)",
-                        "&:hover": { bgcolor: "#1d4ed8" },
-                      }}
-                    >
-                      {submitting ? <CircularProgress size={22} color="inherit" /> : "Submit Assistance Request"}
-                    </Button>
-                  </Stack>
-                </Box>
+                    </Stack>
+                  </Box>
+                )}
               </Paper>
             </Grid>
 

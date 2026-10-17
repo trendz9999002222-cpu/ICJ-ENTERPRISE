@@ -111,6 +111,47 @@ export const serviceService = {
       ];
     }
   },
+  getSeekAssistanceConfig: async (): Promise<{
+    citizen_fields: Array<{
+      field_key: string;
+      label: string;
+      field_type: string;
+      placeholder?: string;
+      help_text?: string;
+      is_required: boolean;
+      display_order: number;
+      options?: Array<{ label: string; value: string }>;
+    }>;
+    legal_matter_fields: Array<{
+      id: string;
+      field_key: string;
+      label: string;
+      field_type: string;
+      required: boolean;
+      options?: Array<{ label: string; value: string }>;
+      display_order: number;
+    }>;
+    documents: Array<{
+      id: string;
+      name: string;
+      document_key: string;
+      description?: string;
+      allowed_file_types: string[];
+      max_file_size_mb: number;
+      is_required: boolean;
+      display_order: number;
+    }>;
+  } | null> => {
+    try {
+      const res = await apiClient<{ success: boolean; data: any }>("/services/seek-assistance/config/", {
+        suppressErrorLog: true,
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to fetch assistance form config:", error);
+      return null;
+    }
+  },
   submitSeekAssistance: async (data: any): Promise<{ success: boolean; data?: any; error?: any }> => {
     try {
       const path = API_ENDPOINTS.publicServices.seekAssistance;

@@ -15,6 +15,7 @@ import { useState } from "react";
 import { ApiError, apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { AuthTokens } from "@/types/api";
+import PasswordStrengthIndicator from "@/components/ui/PasswordStrengthIndicator";
 
 type Props = {
   open: boolean;
@@ -105,6 +106,14 @@ export default function ChangePasswordDialog({ open, onClose, onSuccess }: Props
             required
             fullWidth
             autoComplete="current-password"
+          />
+          <PasswordStrengthIndicator
+            password={newPassword}
+            confirmPassword={confirmPassword}
+            onSuggest={(suggested) => {
+              setNewPassword(suggested);
+              setConfirmPassword(suggested);
+            }}
           />
           <TextField
             label="New password"

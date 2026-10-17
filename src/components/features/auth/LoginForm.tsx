@@ -47,15 +47,9 @@ export default function LoginForm() {
       document.cookie = `icj_access_token=${tokens.access}; path=/; max-age=1800; SameSite=Lax`;
       document.cookie = `icj_refresh_token=${tokens.refresh}; path=/; max-age=604800; SameSite=Lax`;
       localStorage.setItem("icj_delivery_channel", deliveryChannel);
-      if (tokens.requires_password_change) {
-        localStorage.setItem("icj_password_change_required", "1");
-        const role = normalizePlatformRole(tokens.user?.role) ?? "member";
-        router.push(getDashboardRoute(role));
-      } else {
-        localStorage.removeItem("icj_password_change_required");
-        const role = normalizePlatformRole(tokens.user?.role) ?? "professional";
-        router.push(getDashboardRoute(role));
-      }
+      localStorage.removeItem("icj_password_change_required");
+      const role = normalizePlatformRole(tokens.user?.role) ?? "member";
+      router.push(getDashboardRoute(role));
     } catch (err) {
       if (err instanceof ApiError) {
         const body =
@@ -170,7 +164,7 @@ export default function LoginForm() {
       </Typography>
 
       <Paper variant="outlined" sx={{ p: 1.5, mb: 2, borderColor: "#cbd5e1", bgcolor: "#f8fafc" }}>
-        <MuiLink component={Link} href="/join" underline="hover" sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 800, color: "#2563eb" }}>
+        <MuiLink component={Link} href="/join-professional" underline="hover" sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 800, color: "#2563eb" }}>
           <PersonAddIcon fontSize="small" />
           + CREATE NEW ACCOUNT / REGISTRATION
         </MuiLink>

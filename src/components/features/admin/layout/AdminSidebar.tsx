@@ -1,5 +1,6 @@
 "use client";
 
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import BallotOutlinedIcon from "@mui/icons-material/BallotOutlined";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CampaignIcon from "@mui/icons-material/Campaign";
@@ -36,6 +37,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -57,6 +59,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
   { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
   { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
+  { label: "Subscriptions", href: "/admin/subscriptions", icon: <AccountBalanceWalletIcon fontSize="small" /> },
   { label: "Honorable Advisory", href: "/admin/honorable-advisory-members", icon: <PeopleAltIcon fontSize="small" /> },
   { label: "Cases", href: "/admin/cases", icon: <FolderOpenIcon fontSize="small" />, section: "Legal" },
   { label: "Assistance", href: "/admin/assistance", icon: <SupportAgentIcon fontSize="small" /> },
@@ -90,6 +93,11 @@ const NAV_ITEMS: NavItem[] = [
     href: "/admin/honorable-advisory-onboarding/common-fields",
     icon: <BallotOutlinedIcon fontSize="small" />,
   },
+  {
+    label: "Seek Assistance Onboarding",
+    href: "/admin/assistance-onboarding/common-fields",
+    icon: <SupportAgentIcon fontSize="small" />,
+  },
   { label: "Content", href: "/admin/content", icon: <CampaignIcon fontSize="small" />, section: "Platform" },
   { label: "Research", href: "/admin/research", icon: <LocalLibraryIcon fontSize="small" /> },
   { label: "Events", href: "/admin/events", icon: <EventIcon fontSize="small" /> },
@@ -101,6 +109,18 @@ const NAV_ITEMS: NavItem[] = [
 
 function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/admin/dashboard") return pathname === href;
+  if (href === "/admin/subscriptions") {
+    return pathname.startsWith("/admin/subscriptions");
+  }
+  if (href === "/admin/assistance") {
+    return (
+      pathname === "/admin/assistance" ||
+      (pathname.startsWith("/admin/assistance/") && !pathname.startsWith("/admin/assistance-onboarding"))
+    );
+  }
+  if (href === "/admin/assistance-onboarding/common-fields") {
+    return pathname.startsWith("/admin/assistance-onboarding");
+  }
   if (href === "/admin/memberships") {
     return (
       pathname === "/admin/memberships" ||
@@ -190,16 +210,27 @@ function SidebarContent({ open: expanded, onToggle }: { open: boolean; onToggle:
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
             <Box
               sx={{
-                width: 30,
-                height: 30,
-                borderRadius: "8px",
-                bgcolor: "#2563eb",
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                overflow: "hidden",
+                bgcolor: "#ffffff",
+                border: "1.5px solid #e2e8f0",
                 display: "grid",
                 placeItems: "center",
                 flexShrink: 0,
+                p: 0.2,
+                boxShadow: "0 2px 5px rgba(15,23,42,0.08)",
               }}
             >
-              <GavelIcon sx={{ color: "#fff", fontSize: 16 }} />
+              <Image
+                src="/images/icj-logo.png"
+                alt="ICJ Brand Logo"
+                width={30}
+                height={30}
+                priority
+                style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "50%" }}
+              />
             </Box>
             <Box>
               <Typography
@@ -218,15 +249,27 @@ function SidebarContent({ open: expanded, onToggle }: { open: boolean; onToggle:
         {collapsed && (
           <Box
             sx={{
-              width: 30,
-              height: 30,
-              borderRadius: "8px",
-              bgcolor: "#2563eb",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              overflow: "hidden",
+              bgcolor: "#ffffff",
+              border: "1.5px solid #e2e8f0",
               display: "grid",
               placeItems: "center",
+              flexShrink: 0,
+              p: 0.2,
+              boxShadow: "0 2px 5px rgba(15,23,42,0.08)",
             }}
           >
-            <GavelIcon sx={{ color: "#fff", fontSize: 16 }} />
+            <Image
+              src="/images/icj-logo.png"
+              alt="ICJ Brand Logo"
+              width={30}
+              height={30}
+              priority
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "50%" }}
+            />
           </Box>
         )}
         {!collapsed && (

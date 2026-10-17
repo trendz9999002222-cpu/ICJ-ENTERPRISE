@@ -75,12 +75,21 @@ export async function apiClient<T>(
 
   if (!response.ok) {
     if (!suppressErrorLog) {
-      logger.error("API request failed", {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        data,
-      });
+      if (response.status >= 500) {
+        logger.error("API request failed (server error)", {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+      } else {
+        logger.warn("API request failed (client error)", {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data,
+        });
+      }
     }
 
     throw new ApiError(
@@ -131,7 +140,11 @@ export async function apiClientFormData<T>(
   }
 
   if (!response.ok) {
-    logger.error("API request failed", { url, status: response.status, data });
+    if (response.status >= 500) {
+      logger.error("API request failed (server error)", { url, status: response.status, data });
+    } else {
+      logger.warn("API request failed (client error)", { url, status: response.status, data });
+    }
     throw new ApiError("API request failed", response.status, data);
   }
 

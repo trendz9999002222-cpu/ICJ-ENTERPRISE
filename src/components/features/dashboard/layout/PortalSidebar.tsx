@@ -35,6 +35,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -288,19 +289,28 @@ export default function PortalSidebar({
         >
           <Box
             sx={{
-              width: 34,
-              height: 34,
-              borderRadius: "8px",
-              bgcolor: "#2563eb",
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              overflow: "hidden",
+              bgcolor: "#ffffff",
+              border: "1.5px solid #e2e8f0",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#ffffff",
               flexShrink: 0,
-              boxShadow: "0 2px 4px rgba(37,99,235,0.3)",
+              boxShadow: "0 2px 5px rgba(15,23,42,0.08)",
+              p: 0.3,
             }}
           >
-            <GavelIcon sx={{ fontSize: 18 }} />
+            <Image
+              src="/images/icj-logo.png"
+              alt="ICJ Brand Logo"
+              width={34}
+              height={34}
+              priority
+              style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "50%" }}
+            />
           </Box>
           {!collapsed && (
             <Box sx={{ minWidth: 0 }}>
