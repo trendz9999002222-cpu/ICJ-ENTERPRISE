@@ -101,18 +101,26 @@ export default function EmailVerificationField({
 
   const handleInputChange = (newEmail: string) => {
     onChange(newEmail);
+    setOtpError("");
     // If email changes, reset verification and OTP state
     if (isVerified && newEmail.toLowerCase().trim() !== value.toLowerCase().trim()) {
       setIsVerified(false);
       setOtpSent(false);
       setOtpValue("");
-      setOtpError("");
       emailVerificationService.clearEmailVerification(value);
     } else if (otpSent) {
       // If user edits email after sending OTP, reset OTP box
       setOtpSent(false);
       setOtpValue("");
-      setOtpError("");
+    }
+  };
+
+  const handleBlur = async () => {
+    if (!isVerified && isValidEmailFormat && !otpSent && !sendingOtp) {
+      const checkRes = await emailVerificationService.checkEmailAvailability(value);
+      if (!checkRes.available) {
+        setOtpError(checkRes.error || "This email is already registered.");
+      }
     }
   };
 
@@ -192,7 +200,8 @@ export default function EmailVerificationField({
         value={value}
         disabled={isVerified}
         onChange={(e) => handleInputChange(e.target.value)}
-        error={Boolean(error)}
+        onBlur={handleBlur}
+        error={Boolean(error || otpError)}
         helperText={error ?? helperText}
         sx={{
           ...(inputSx || {}),
