@@ -96,7 +96,7 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
         common_step = MembershipStep(
             id=uuid.uuid4(),
             slug="common-fields",
-            title="Common Fields",
+            title="Personal Information",
             subtitle="Personal details required for membership",
             display_order=0,
             is_required=True,

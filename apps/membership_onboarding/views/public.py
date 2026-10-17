@@ -105,7 +105,15 @@ class PublicMembershipRegisterAPIView(APIView):
             or request.data.get("idempotency_key")
         )
 
-        membership_payment_id = request.data.get("payment_id") or request.data.get("membership_payment_id")
+        raw_payment_id = str(request.data.get("payment_id") or request.data.get("membership_payment_id") or "").strip()
+        membership_payment_id = None
+        if raw_payment_id and raw_payment_id.lower() not in ("null", "undefined", "none"):
+            try:
+                import uuid
+                uuid.UUID(raw_payment_id)
+                membership_payment_id = raw_payment_id
+            except (ValueError, TypeError):
+                membership_payment_id = None
 
         try:
             application, _, is_new_user = MembershipApplicationService.submit(
@@ -119,6 +127,10 @@ class PublicMembershipRegisterAPIView(APIView):
             )
         except ServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
+        except Exception as exc:
+            import traceback
+            traceback.print_exc()
+            return api_error(f"Submission failed: {str(exc)}", status_code=status.HTTP_400_BAD_REQUEST)
 
         payload = {
             "reference_id": application.reference_id,
@@ -157,3 +169,62 @@ class PublicMembershipApplicationStatusAPIView(APIView):
             },
             message="Application status retrieved.",
         )
+
+
+class PublicMembershipValidateIdentityAPIView(APIView):
+    """
+    Validates if an email address or mobile/phone number is already registered
+    with a User, Person, or existing active application before allowing the applicant
+    to advance to payment or further steps.
+    """
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data or {}
+        email = (
+            data.get("email")
+            or data.get("email_address")
+            or data.get("email_id")
+            or ""
+        ).strip().lower()
+
+        phone = (
+            data.get("phone")
+            or data.get("mobile")
+            or data.get("mobile_number")
+            or data.get("phone_number")
+            or ""
+        ).strip()
+
+        errors: dict[str, list[str]] = {}
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+
+        from apps.accounts.services.identity_checks import check_duplicate_email, check_duplicate_phone
+
+        if email:
+            email_err = check_duplicate_email(email, current_user=user, check_applications=True)
+            if email_err:
+                errors["email"] = [email_err]
+                errors["email_address"] = [email_err]
+
+        if phone:
+            phone_err = check_duplicate_phone(phone, current_user=user, check_applications=True)
+            if phone_err:
+                errors["mobile_number"] = [phone_err]
+                errors["mobile"] = [phone_err]
+                errors["phone"] = [phone_err]
+                errors["phone_number"] = [phone_err]
+
+        if errors:
+            return api_error(
+                message="Validation failed.",
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return api_success(
+            data={"valid": True},
+            message="Identity verified successfully.",
+        )
+

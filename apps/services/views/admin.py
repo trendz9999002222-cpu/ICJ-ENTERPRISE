@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -9,8 +10,13 @@ from common.responses import api_error, api_success
 
 from apps.accounts.permissions import IsAdminRole, PasswordChangeCompleted
 from apps.professional_onboarding.services.crud import create_model, update_model, ServiceError
-from apps.services.models import JusticeService, ServiceCategory
-from apps.services.serializers import JusticeServiceSerializer, ServiceCategorySerializer
+from apps.services.models import JusticeService, ServiceCategory, AssistanceFormField, AssistanceDocument
+from apps.services.serializers import (
+    JusticeServiceSerializer,
+    ServiceCategorySerializer,
+    AssistanceFormFieldSerializer,
+    AssistanceDocumentSerializer,
+)
 
 
 class AdminServicesBaseView(APIView):
@@ -195,4 +201,191 @@ class AdminCaseDetailAPIView(AdminServicesBaseView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return api_success(data=LegalCaseSerializer(obj).data, message="Case updated.")
+
+
+class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
+    def get(self, request):
+        qs = AssistanceFormField.objects.all().order_by("display_order", "created_at")
+        serializer = AssistanceFormFieldSerializer(qs, many=True)
+        return api_success(data={"results": serializer.data}, message="Assistance form fields retrieved.")
+
+    def post(self, request):
+        label = request.data.get("label", "").strip()
+        if not label:
+            return api_error("Field label is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        
+        field_type = request.data.get("field_type", "text")
+        required = str(request.data.get("required", request.data.get("is_required", False))).lower() == "true"
+        display_order = int(request.data.get("display_order", 0))
+        is_active = str(request.data.get("is_active", True)).lower() == "true"
+        options = request.data.get("options")
+        
+        field_key = request.data.get("field_key", "").strip()
+        if not field_key:
+            base_key = re.sub(r'[^a-z0-9]', '_', label.lower())
+            base_key = re.sub(r'_+', '_', base_key).strip('_')
+            field_key = base_key
+            counter = 1
+            while AssistanceFormField.objects.filter(field_key=field_key).exists():
+                field_key = f"{base_key}_{counter}"
+                counter += 1
+
+        field = AssistanceFormField.objects.create(
+            field_key=field_key,
+            label=label,
+            field_type=field_type,
+            required=required,
+            display_order=display_order,
+            is_active=is_active,
+            options=options,
+        )
+        return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field created.", status_code=status.HTTP_201_CREATED)
+
+    def put(self, request):
+        field_id = request.data.get("id")
+        if not field_id:
+            return api_error("Field ID is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        field = get_object_or_404(AssistanceFormField, pk=field_id)
+        
+        if "label" in request.data:
+            field.label = request.data.get("label", field.label).strip()
+        if "field_type" in request.data:
+            field.field_type = request.data.get("field_type", field.field_type)
+        if "required" in request.data or "is_required" in request.data:
+            val = request.data.get("required", request.data.get("is_required"))
+            field.required = str(val).lower() == "true"
+        if "display_order" in request.data:
+            field.display_order = int(request.data.get("display_order", field.display_order))
+        if "is_active" in request.data:
+            field.is_active = str(request.data.get("is_active")).lower() == "true"
+        if "options" in request.data:
+            field.options = request.data.get("options")
+        field.save()
+        return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field updated.")
+
+
+class AdminAssistanceFormFieldDetailAPIView(AdminServicesBaseView):
+    def get(self, request, pk):
+        field = get_object_or_404(AssistanceFormField, pk=pk)
+        return api_success(data=AssistanceFormFieldSerializer(field).data)
+
+    def put(self, request, pk):
+        field = get_object_or_404(AssistanceFormField, pk=pk)
+        if "label" in request.data:
+            field.label = request.data.get("label", field.label).strip()
+        if "field_type" in request.data:
+            field.field_type = request.data.get("field_type", field.field_type)
+        if "required" in request.data or "is_required" in request.data:
+            val = request.data.get("required", request.data.get("is_required"))
+            field.required = str(val).lower() == "true"
+        if "display_order" in request.data:
+            field.display_order = int(request.data.get("display_order", field.display_order))
+        if "is_active" in request.data:
+            field.is_active = str(request.data.get("is_active")).lower() == "true"
+        if "options" in request.data:
+            field.options = request.data.get("options")
+        field.save()
+        return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field updated.")
+
+    def delete(self, request, pk):
+        field = get_object_or_404(AssistanceFormField, pk=pk)
+        field.delete()
+        return api_success(message="Field deleted.")
+
+
+class AdminAssistanceDocumentListCreateAPIView(AdminServicesBaseView):
+    def get(self, request):
+        qs = AssistanceDocument.objects.all().order_by("display_order", "created_at")
+        serializer = AssistanceDocumentSerializer(qs, many=True)
+        return api_success(data={"results": serializer.data}, message="Assistance documents retrieved.")
+
+    def post(self, request):
+        name = request.data.get("name", "").strip()
+        if not name:
+            return api_error("Document name is required.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        document_key = request.data.get("document_key", "").strip()
+        if not document_key:
+            base_key = re.sub(r'[^a-z0-9]', '_', name.lower())
+            base_key = re.sub(r'_+', '_', base_key).strip('_')
+            document_key = base_key
+            counter = 1
+            while AssistanceDocument.objects.filter(document_key=document_key).exists():
+                document_key = f"{base_key}_{counter}"
+                counter += 1
+
+        allowed_file_types = request.data.get("allowed_file_types", ["pdf", "docx", "jpg", "png"])
+        if isinstance(allowed_file_types, str):
+            allowed_file_types = [t.strip().lstrip(".") for t in allowed_file_types.split(",") if t.strip()]
+
+        doc = AssistanceDocument.objects.create(
+            name=name,
+            document_key=document_key,
+            description=request.data.get("description", ""),
+            allowed_file_types=allowed_file_types,
+            max_file_size_mb=int(request.data.get("max_file_size_mb", 5)),
+            is_required=str(request.data.get("is_required", False)).lower() == "true",
+            is_active=str(request.data.get("is_active", True)).lower() == "true",
+            display_order=int(request.data.get("display_order", 0)),
+        )
+        return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document created.", status_code=status.HTTP_201_CREATED)
+
+    def put(self, request):
+        doc_id = request.data.get("id")
+        if not doc_id:
+            return api_error("Document ID is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        doc = get_object_or_404(AssistanceDocument, pk=doc_id)
+        if "name" in request.data:
+            doc.name = request.data.get("name", doc.name).strip()
+        if "description" in request.data:
+            doc.description = request.data.get("description", doc.description)
+        if "allowed_file_types" in request.data:
+            aft = request.data.get("allowed_file_types")
+            if isinstance(aft, str):
+                aft = [t.strip().lstrip(".") for t in aft.split(",") if t.strip()]
+            doc.allowed_file_types = aft
+        if "max_file_size_mb" in request.data:
+            doc.max_file_size_mb = int(request.data.get("max_file_size_mb", doc.max_file_size_mb))
+        if "is_required" in request.data:
+            doc.is_required = str(request.data.get("is_required")).lower() == "true"
+        if "is_active" in request.data:
+            doc.is_active = str(request.data.get("is_active")).lower() == "true"
+        if "display_order" in request.data:
+            doc.display_order = int(request.data.get("display_order", doc.display_order))
+        doc.save()
+        return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document updated.")
+
+
+class AdminAssistanceDocumentDetailAPIView(AdminServicesBaseView):
+    def get(self, request, pk):
+        doc = get_object_or_404(AssistanceDocument, pk=pk)
+        return api_success(data=AssistanceDocumentSerializer(doc).data)
+
+    def put(self, request, pk):
+        doc = get_object_or_404(AssistanceDocument, pk=pk)
+        if "name" in request.data:
+            doc.name = request.data.get("name", doc.name).strip()
+        if "description" in request.data:
+            doc.description = request.data.get("description", doc.description)
+        if "allowed_file_types" in request.data:
+            aft = request.data.get("allowed_file_types")
+            if isinstance(aft, str):
+                aft = [t.strip().lstrip(".") for t in aft.split(",") if t.strip()]
+            doc.allowed_file_types = aft
+        if "max_file_size_mb" in request.data:
+            doc.max_file_size_mb = int(request.data.get("max_file_size_mb", doc.max_file_size_mb))
+        if "is_required" in request.data:
+            doc.is_required = str(request.data.get("is_required")).lower() == "true"
+        if "is_active" in request.data:
+            doc.is_active = str(request.data.get("is_active")).lower() == "true"
+        if "display_order" in request.data:
+            doc.display_order = int(request.data.get("display_order", doc.display_order))
+        doc.save()
+        return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document updated.")
+
+    def delete(self, request, pk):
+        doc = get_object_or_404(AssistanceDocument, pk=pk)
+        doc.delete()
+        return api_success(message="Document deleted.")
+
 

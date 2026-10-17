@@ -95,7 +95,7 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -167,10 +167,17 @@ FRONTEND_PASSWORD_RESET_URL = os.getenv(
     "http://localhost:3001/login/reset-password",
 )
 
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
+# Razorpay settings (Commented out - switched to Easebuzz)
+# RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
+# RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 
-# Lead Marketplace Compliance Setting
-PAID_ADVOCATE_LEAD_UNLOCK_ENABLED = os.getenv(
-    "PAID_ADVOCATE_LEAD_UNLOCK_ENABLED", "false"
-).lower() in ("true", "1", "yes")
+# Easebuzz Payment Gateway Configuration
+EASEBUZZ_KEY = os.getenv("EASEBUZZ_KEY", "P2OTPKQ5X")
+EASEBUZZ_SALT = os.getenv("EASEBUZZ_SALT", "APYJMJTBT")
+EASEBUZZ_ENV = os.getenv("EASEBUZZ_ENV", "test")
+EASEBUZZ_SURL = os.getenv("EASEBUZZ_SURL", "http://localhost:3000/membership-application/payment-success")
+EASEBUZZ_FURL = os.getenv("EASEBUZZ_FURL", "http://localhost:3000/membership-application/payment-failure")
+
+EMAILJS_SERVICE_ID = os.getenv("EMAILJS_SERVICE_ID", "service_rypannl")
+EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "template_pmntrjf")
+EMAILJS_PUBLIC_KEY = os.getenv("EMAILJS_PUBLIC_KEY", "_afNcmKvmFJoVdlI9")

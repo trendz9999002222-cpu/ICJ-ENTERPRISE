@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from common.api_listing import list_params, paginated_success
 from common.listing import apply_ordering, apply_search
-from common.responses import api_success
+from common.responses import api_success, api_error
 
 from apps.services.models import JusticeService, ServiceCategory
 from apps.services.serializers import JusticeServiceSerializer, ServiceCategorySerializer
@@ -77,23 +77,91 @@ class PublicFeaturedServicesAPIView(APIView):
 
 import random
 from django.utils import timezone
-from apps.services.models import AssistanceRequest
-from apps.services.serializers import AssistanceRequestSerializer
+from apps.services.models import AssistanceRequest, AssistanceFormField, AssistanceDocument
+from apps.services.serializers import (
+    AssistanceRequestSerializer,
+    AssistanceFormFieldSerializer,
+    AssistanceDocumentSerializer,
+)
+from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig
+
+
+class PublicAssistanceFormConfigAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        citizen_configs = FormFieldConfig.objects.filter(
+            form__form_code=AdditionalOnboardingFormfields.FormCode.SEEKER_ASSISTANT,
+            is_visible=True,
+            common_field__is_active=True,
+        ).select_related("common_field").order_by("display_order")
+
+        citizen_fields = []
+        for c in citizen_configs:
+            cf = c.common_field
+            if not cf:
+                continue
+            citizen_fields.append({
+                "field_key": cf.field_key,
+                "label": c.label_override or cf.label or cf.name,
+                "field_type": cf.field_type,
+                "placeholder": c.placeholder_override or cf.placeholder,
+                "help_text": c.help_text_override or cf.help_text,
+                "is_required": c.is_required,
+                "display_order": c.display_order,
+                "options": cf.options or [],
+            })
+
+        legal_fields_qs = AssistanceFormField.objects.filter(is_active=True).order_by("display_order", "created_at")
+        legal_matter_fields = AssistanceFormFieldSerializer(legal_fields_qs, many=True).data
+
+        doc_qs = AssistanceDocument.objects.filter(is_active=True).order_by("display_order", "name")
+        documents = AssistanceDocumentSerializer(doc_qs, many=True).data
+
+        return api_success(
+            data={
+                "citizen_fields": citizen_fields,
+                "legal_matter_fields": legal_matter_fields,
+                "documents": documents,
+            },
+            message="Assistance form configuration retrieved."
+        )
+
 
 class PublicAssistanceRequestAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = AssistanceRequestSerializer(data=request.data)
+        payload = request.data.copy() if hasattr(request.data, "copy") else dict(request.data)
+
+        # Normalize field aliases between common fields and model columns
+        if "mobile_number" in payload and "mobile" not in payload:
+            payload["mobile"] = payload["mobile_number"]
+        if "state" in payload and "state_name" not in payload:
+            payload["state_name"] = payload["state"]
+        if "district" in payload and "city_name" not in payload:
+            payload["city_name"] = payload["district"]
+
+        standard_keys = {
+            "full_name", "email", "mobile", "preferred_contact",
+            "state_name", "city_name", "category", "urgency",
+            "problem_description", "status", "reference_id"
+        }
+        extra = {k: v for k, v in payload.items() if k not in standard_keys}
+        existing_extra = payload.get("additional_fields", {})
+        if isinstance(existing_extra, dict):
+            extra.update(existing_extra)
+        payload["additional_fields"] = extra
+
+        serializer = AssistanceRequestSerializer(data=payload)
         if serializer.is_valid():
-            # generate reference_id like ICJ-REQ-YYYY-XXXXX
             year = timezone.now().year
             ref_id = f"ICJ-REQ-{year}-{random.randint(10000, 99999)}"
-            # ensure uniqueness
             while AssistanceRequest.objects.filter(reference_id=ref_id).exists():
                 ref_id = f"ICJ-REQ-{year}-{random.randint(10000, 99999)}"
                 
             serializer.save(reference_id=ref_id)
             return api_success(data=serializer.data, message="Assistance request submitted successfully.", status_code=201)
-        return api_success(data=serializer.errors, message="Validation failed.", status_code=400, success=False)
+        return api_error(message="Validation failed.", errors=serializer.errors, status_code=400)
+
 

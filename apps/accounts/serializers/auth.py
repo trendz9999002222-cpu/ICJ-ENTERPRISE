@@ -112,13 +112,21 @@ class UserSerializer(serializers.ModelSerializer):
     def get_membership(self, user) -> dict | None:
         try:
             app = (
-                user.membership_applications.select_related("membership_type", "membership_record")
+                user.membership_applications.select_related("membership_type", "membership_record", "payment")
                 .order_by("-created_at")
                 .first()
             )
+            if not app and hasattr(user, "person") and user.person:
+                app = (
+                    user.person.membership_applications.select_related("membership_type", "membership_record", "payment")
+                    .order_by("-created_at")
+                    .first()
+                )
             if app:
                 record = getattr(app, "membership_record", None)
                 membership_id = record.membership_id if record else None
+                payment = getattr(app, "payment", None)
+                is_paid = bool(app.fee_payment_status == "paid" or (payment and payment.status == "paid"))
                 return {
                     "application_id": str(app.id),
                     "reference_id": app.reference_id,
@@ -126,6 +134,9 @@ class UserSerializer(serializers.ModelSerializer):
                     "membership_type": app.membership_type.name if app.membership_type else "Standard",
                     "status": app.status,
                     "is_approved": app.status == "approved",
+                    "fee_payment_status": "paid" if is_paid else "unpaid",
+                    "is_paid": is_paid,
+                    "payment_id": str(payment.id) if payment else None,
                     "field_values": app.field_values,
                 }
         except Exception:

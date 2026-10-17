@@ -8,7 +8,9 @@ from apps.accounts.views import (
     MeView,
     RefreshTokenView,
     ResetPasswordView,
+    SendEmailVerificationLinkView,
     SetInitialPasswordView,
+    VerifyEmailStatusView,
 )
 
 urlpatterns = [
@@ -20,4 +22,6 @@ urlpatterns = [
     path("set-password/", SetInitialPasswordView.as_view(), name="auth-set-password"),
     path("refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path("me/", MeView.as_view(), name="auth-me"),
+    path("send-verification-email/", SendEmailVerificationLinkView.as_view(), name="auth-send-verification-email"),
+    path("email-verification-status/", VerifyEmailStatusView.as_view(), name="auth-email-verification-status"),
 ]

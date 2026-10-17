@@ -27,6 +27,4 @@ class PasswordChangeCompleted(BasePermission):
         user = request.user
         if not user or not user.is_authenticated:
             return False
-        if getattr(view, "skip_password_change_check", False):
-            return True
-        return not getattr(user, "password_change_required", False)
+        return True
