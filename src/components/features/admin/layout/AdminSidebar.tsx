@@ -20,6 +20,10 @@ import ReportProblemIcon from "@mui/icons-material/ReportProblem";
 import SettingsIcon from "@mui/icons-material/Settings";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import LoyaltyIcon from "@mui/icons-material/Loyalty";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import {
   Box,
   Divider,
@@ -59,6 +63,12 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" /> },
   { label: "Appointments", href: "/admin/appointments", icon: <CalendarMonthIcon fontSize="small" />, section: "Operations" },
   { label: "Services", href: "/admin/services", icon: <HandshakeIcon fontSize="small" /> },
+  { label: "Leads Management", href: "/admin/leads", icon: <StorefrontIcon fontSize="small" />, section: "Marketplace & Finance" },
+  { label: "Professional Wallets", href: "/admin/wallets", icon: <AccountBalanceWalletIcon fontSize="small" /> },
+  { label: "Lead Credit Plans", href: "/admin/lead-plans", icon: <LoyaltyIcon fontSize="small" /> },
+  { label: "Payments & Refunds", href: "/admin/payments", icon: <ReceiptLongIcon fontSize="small" /> },
+  { label: "Marketplace Reports", href: "/admin/leads/reports", icon: <SummarizeIcon fontSize="small" /> },
+  { label: "Commercial Settings", href: "/admin/leads/settings", icon: <SettingsIcon fontSize="small" /> },
   {
     label: "Common Form Fields",
     href: "/admin/onboarding/common-fields",
