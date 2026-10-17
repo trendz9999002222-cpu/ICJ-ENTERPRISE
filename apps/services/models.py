@@ -201,3 +201,219 @@ class LegalCase(models.Model):
         
     def __str__(self):
         return self.case_id
+
+
+class ProfessionalWallet(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, related_name='professional_wallet')
+    balance_paise = models.BigIntegerField(default=0)
+    lead_credits = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def available_inr(self) -> float:
+        return round(self.balance_paise / 100.0, 2)
+
+    @property
+    def reserved_inr(self) -> float:
+        return 0.0
+
+    @property
+    def reserved_paise(self) -> int:
+        return 0
+
+    @property
+    def total_added_paise(self) -> int:
+        return (
+            self.transactions.filter(tx_type='credit').aggregate(total=models.Sum('amount_paise'))['total'] or 0
+        )
+
+    @property
+    def total_added_inr(self) -> float:
+        return round(self.total_added_paise / 100.0, 2)
+
+    @property
+    def total_spent_paise(self) -> int:
+        return (
+            self.transactions.filter(tx_type='debit').aggregate(total=models.Sum('amount_paise'))['total'] or 0
+        )
+
+    @property
+    def total_spent_inr(self) -> float:
+        return round(self.total_spent_paise / 100.0, 2)
+
+    def __str__(self):
+        return f"Wallet ({self.user.email}) - ₹{self.available_inr}"
+
+
+class WalletTransaction(models.Model):
+    class TxType(models.TextChoices):
+        CREDIT = 'credit', 'Credit / Top-up'
+        DEBIT = 'debit', 'Debit / Purchase'
+        REFUND = 'refund', 'Refund'
+        ADJUSTMENT = 'adjustment', 'Adjustment'
+        HOLD = 'hold', 'Hold'
+        HOLD_RELEASE = 'hold_release', 'Hold Release'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    wallet = models.ForeignKey(ProfessionalWallet, on_delete=models.CASCADE, related_name='transactions')
+    reference = models.CharField(max_length=100, blank=True, db_index=True)
+    tx_type = models.CharField(max_length=30, choices=TxType.choices, default=TxType.CREDIT)
+    amount_paise = models.BigIntegerField()
+    balance_after_paise = models.BigIntegerField()
+    description = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    @property
+    def amount_inr(self) -> float:
+        return round(self.amount_paise / 100.0, 2)
+
+    @property
+    def balance_after_inr(self) -> float:
+        return round(self.balance_after_paise / 100.0, 2)
+
+    def __str__(self):
+        return f"{self.tx_type.upper()} ₹{self.amount_inr} - {self.reference}"
+
+
+class LeadCreditPlan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=50, unique=True)
+    price_paise = models.BigIntegerField()
+    credits_granted = models.PositiveIntegerField()
+    validity_days = models.PositiveIntegerField(default=365)
+    description = models.TextField(blank=True)
+    is_popular = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, db_index=True)
+    display_order = models.PositiveIntegerField(default=0, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('display_order', 'price_paise')
+
+    @property
+    def price_inr(self) -> float:
+        return round(self.price_paise / 100.0, 2)
+
+    def __str__(self):
+        return f"{self.name} - {self.credits_granted} Credits (₹{self.price_inr})"
+
+
+class ProfessionalPayment(models.Model):
+    class Purpose(models.TextChoices):
+        WALLET_TOPUP = 'wallet_topup', 'Wallet Top-up'
+        LEAD_CREDIT_PLAN = 'lead_credit_plan', 'Lead Credit Plan'
+        LEAD_DIRECT_UNLOCK = 'lead_direct_unlock', 'Lead Direct Unlock'
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        SUCCESS = 'success', 'Success'
+        FAILED = 'failed', 'Failed'
+        REFUNDED = 'refunded', 'Refunded'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='professional_payments')
+    order_id = models.CharField(max_length=100, unique=True, db_index=True)
+    order_type = models.CharField(max_length=40, choices=Purpose.choices, default=Purpose.WALLET_TOPUP)
+    amount_paise = models.BigIntegerField()
+    gateway = models.CharField(max_length=30, default='easebuzz')
+    easebuzz_txnid = models.CharField(max_length=100, blank=True, db_index=True)
+    easebuzz_access_key = models.CharField(max_length=120, blank=True)
+    easepayid = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    @property
+    def amount_inr(self) -> float:
+        return round(self.amount_paise / 100.0, 2)
+
+    def __str__(self):
+        return f"{self.order_id} ({self.order_type}) - ₹{self.amount_inr} [{self.status}]"
+
+
+class MarketplaceLead(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        PENDING_REVIEW = 'pending_review', 'Pending Review'
+        PUBLISHED = 'published', 'Published'
+        RESERVED = 'reserved', 'Reserved'
+        ACCEPTED = 'accepted', 'Accepted'
+        UNAVAILABLE = 'unavailable', 'Unavailable'
+        REJECTED = 'rejected', 'Rejected'
+        CLOSED = 'closed', 'Closed'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead_id = models.CharField(max_length=50, unique=True, db_index=True)
+    assistance_request = models.OneToOneField(
+        AssistanceRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='marketplace_lead'
+    )
+    category = models.CharField(max_length=200)
+    urgency = models.CharField(max_length=50, default='medium')
+    state_name = models.CharField(max_length=100, blank=True)
+    city_name = models.CharField(max_length=100, blank=True)
+    anonymized_summary = models.TextField()
+    full_description = models.TextField(blank=True)
+    price_paise = models.BigIntegerField(default=50000)
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=18.00)
+    status = models.CharField(max_length=30, choices=Status.choices, default=Status.PUBLISHED, db_index=True)
+    is_exclusive = models.BooleanField(default=True)
+
+    # Client contact details (unlocked only upon acceptance)
+    client_name = models.CharField(max_length=255, blank=True)
+    client_email = models.EmailField(blank=True)
+    client_mobile = models.CharField(max_length=20, blank=True)
+    client_preferred_contact = models.CharField(max_length=20, blank=True)
+
+    # Acceptance details
+    accepted_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='accepted_marketplace_leads'
+    )
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    acceptance_payment_method = models.CharField(max_length=30, blank=True)
+
+    published_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+
+    @property
+    def price_inr(self) -> float:
+        return round(self.price_paise / 100.0, 2)
+
+    def __str__(self):
+        return f"{self.lead_id} - {self.category} ({self.status})"
+
+
+class LeadCommercialSettings(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    paid_unlock_enabled = models.BooleanField(default=True)
+    default_lead_price_paise = models.BigIntegerField(default=50000)
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=18.00)
+    reservation_timeout_minutes = models.PositiveIntegerField(default=15)
+    allow_wallet_payment = models.BooleanField(default=True)
+    allow_lead_credit_payment = models.BooleanField(default=True)
+    allow_direct_payment = models.BooleanField(default=True)
+    compliance_notice = models.TextField(
+        default="Verified matter inquiries are subject to ICJ Trust ethical codes."
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = "Lead Commercial Settings"
+
+    def __str__(self):
+        return f"Lead Commercial Settings (Paid: {self.paid_unlock_enabled})"
