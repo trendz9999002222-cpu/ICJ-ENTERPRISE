@@ -26,6 +26,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
+import { loadEasebuzzCheckout } from "@/lib/easebuzz/loadEasebuzz";
 import { leadMarketplaceService } from "@/services/professional/leadMarketplace.service";
 import type { LeadCreditPlanItem, ProfessionalWalletData } from "@/types/lead";
 
@@ -78,13 +79,57 @@ export default function LeadCreditPlansPage() {
 
     try {
       const res = await leadMarketplaceService.purchasePlan(selectedPlan.id, payWithWallet);
-      if (!payWithWallet && res?.gateway_order_id) {
-        // Direct gateway mock/test verify
-        await leadMarketplaceService.verifyPayment({
-          razorpay_order_id: res.gateway_order_id,
-          razorpay_payment_id: `pay_mock_${Date.now()}`,
-          razorpay_signature: `test_sig_${res.gateway_order_id}_pay_mock_${Date.now()}`,
-        });
+
+      if (!payWithWallet && res?.access_key) {
+        // Load Easebuzz checkout script
+        let easebuzzLoaded = false;
+        try {
+          await loadEasebuzzCheckout();
+          easebuzzLoaded = typeof window !== "undefined" && Boolean(window.EasebuzzCheckout);
+        } catch {
+          easebuzzLoaded = false;
+        }
+
+        if (easebuzzLoaded) {
+          await new Promise<void>((resolve, reject) => {
+            try {
+              const easebuzz = new window.EasebuzzCheckout(res.key || "P2OTPKQ5X", res.env || "test");
+              const options = {
+                access_key: res.access_key,
+                onResponse: async (response: any) => {
+                  try {
+                    const statusStr = String(response?.status || "").toLowerCase();
+                    if (statusStr === "success" || response?.status === 1) {
+                      await leadMarketplaceService.verifyPayment({
+                        txnid: response.txnid || res.gateway_order_id,
+                        easepayid: response.easepayid || "",
+                        status: "success",
+                        hash: response.hash || "",
+                        order_id: res.order_id,
+                      });
+                      resolve();
+                    } else {
+                      reject(new Error(response?.error_Message || response?.error_desc || "Payment was not successful."));
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                },
+              };
+              easebuzz.initiatePayment(options);
+            } catch (initErr) {
+              if (res.payment_url) {
+                window.location.href = res.payment_url;
+              } else {
+                reject(initErr);
+              }
+            }
+          });
+        } else if (res.payment_url) {
+          window.location.href = res.payment_url;
+        } else {
+          throw new Error("Unable to initialize Easebuzz checkout. Please try again.");
+        }
       }
 
       setPurchaseSuccess(`Plan '${selectedPlan.name}' purchased! Added ${selectedPlan.credits_granted} credits.`);
@@ -305,7 +350,7 @@ export default function LeadCreditPlansPage() {
                   <Box sx={{ textAlign: "left" }}>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>Pay Directly via Gateway</Typography>
                     <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                      UPI, Cards, NetBanking via Razorpay
+                      UPI, Cards, NetBanking via Easebuzz
                     </Typography>
                   </Box>
                 </Button>

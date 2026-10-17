@@ -122,11 +122,20 @@ export default function PortalHeader({
     .slice(0, 2)
     .toUpperCase() || "U";
 
-  // Determine current active display label & icon
-  let activeDisplayLabel = "Professional Practice";
-  let activeDisplayIcon = <WorkspacePremiumIcon fontSize="small" sx={{ color: "#d97706" }} />;
+  const isMemberRoute = pathname.startsWith("/dashboard/member");
 
-  if (activeProfession?.profession_name) {
+  // Determine current active display label & icon
+  let activeDisplayLabel = isMemberRoute || activeRole === "member" ? "ICJ Member" : "Professional Practice";
+  let activeDisplayIcon = isMemberRoute || activeRole === "member" ? (
+    <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />
+  ) : (
+    <WorkspacePremiumIcon fontSize="small" sx={{ color: "#d97706" }} />
+  );
+
+  if (isMemberRoute || activeRole === "member") {
+    activeDisplayLabel = "ICJ Member";
+    activeDisplayIcon = <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />;
+  } else if (activeProfession?.profession_name) {
     activeDisplayLabel = activeProfession.profession_name;
     if (activeProfession.is_advocate || activeProfession.profession_name.toLowerCase().includes("advocate") || activeProfession.profession_name.toLowerCase().includes("lawyer")) {
       activeDisplayIcon = <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />;
@@ -136,12 +145,10 @@ export default function PortalHeader({
   } else if (activeRole === "professional" || activeRole === "advocate") {
     activeDisplayLabel = "Professional";
     activeDisplayIcon = <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />;
-  } else if (activeRole === "member") {
-    activeDisplayLabel = "ICJ Member";
-    activeDisplayIcon = <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />;
   }
 
-  const hasMultipleOptions = professions.length > 0 || membership !== null || roles.length > 1;
+  // Switcher dropdown is only active when user has registered professions to switch between
+  const hasMultipleOptions = professions.length > 0;
 
   return (
     <AppBar
@@ -168,53 +175,92 @@ export default function PortalHeader({
           </IconButton>
         </Tooltip>
 
-        {/* Dynamic Breadcrumbs */}
-        <Breadcrumbs
-          aria-label="breadcrumb"
-          sx={{
-            flex: 1,
-            "& .MuiBreadcrumbs-ol": { flexWrap: "nowrap" },
-            "& .MuiBreadcrumbs-separator": {
-              color: "#cbd5e1",
-              fontSize: "0.8rem",
-            },
-          }}
-        >
-          {crumbs.map((crumb, index) => {
-            const isLast = index === crumbs.length - 1;
-            return isLast ? (
-              <Typography
-                key={crumb.href}
-                sx={{
-                  fontSize: "0.875rem",
-                  fontWeight: 700,
-                  color: "#0f172a",
-                  lineHeight: 1.2,
-                }}
-              >
-                {crumb.label}
-              </Typography>
-            ) : (
-              <MuiLink
-                key={crumb.href}
-                component={Link}
-                href={crumb.href}
-                underline="hover"
-                sx={{
-                  fontSize: "0.875rem",
-                  color: "#64748b",
-                  fontWeight: 500,
-                  "&:hover": { color: "#2563eb" },
-                }}
-              >
-                {crumb.label}
-              </MuiLink>
-            );
-          })}
-        </Breadcrumbs>
+        {/* Dynamic Breadcrumbs / Mobile Page Title */}
+        <Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            sx={{
+              display: { xs: "none", sm: "flex" },
+              minWidth: 0,
+              "& .MuiBreadcrumbs-ol": { flexWrap: "nowrap", overflow: "hidden" },
+              "& .MuiBreadcrumbs-separator": {
+                color: "#cbd5e1",
+                fontSize: "0.8rem",
+              },
+            }}
+          >
+            {crumbs.map((crumb, index) => {
+              const isLast = index === crumbs.length - 1;
+              return isLast ? (
+                <Typography
+                  key={crumb.href}
+                  noWrap
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 700,
+                    color: "#0f172a",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {crumb.label}
+                </Typography>
+              ) : (
+                <MuiLink
+                  key={crumb.href}
+                  component={Link}
+                  href={crumb.href}
+                  underline="hover"
+                  noWrap
+                  sx={{
+                    fontSize: "0.875rem",
+                    color: "#64748b",
+                    fontWeight: 500,
+                    "&:hover": { color: "#2563eb" },
+                  }}
+                >
+                  {crumb.label}
+                </MuiLink>
+              );
+            })}
+          </Breadcrumbs>
+
+          <Typography
+            noWrap
+            sx={{
+              display: { xs: "block", sm: "none" },
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              color: "#0f172a",
+              lineHeight: 1.2,
+            }}
+          >
+            {crumbs[crumbs.length - 1]?.label || "Dashboard"}
+          </Typography>
+        </Box>
 
         {/* Dynamic Profession / Role Switcher */}
-        {hasMultipleOptions && (
+        {!hasMultipleOptions ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              bgcolor: "#f0fdf4",
+              border: "1px solid #bbf7d0",
+              color: "#166534",
+              fontWeight: 700,
+              fontSize: "0.8125rem",
+              borderRadius: "8px",
+              px: 1.5,
+              py: 0.6,
+            }}
+          >
+            <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />
+            <Typography sx={{ fontSize: "0.8125rem", fontWeight: 700, color: "#166534" }}>
+              ICJ Member
+            </Typography>
+          </Box>
+        ) : (
           <Box>
             <Button
               size="small"
@@ -275,7 +321,7 @@ export default function PortalHeader({
                     REGISTERED PROFESSIONS ({professions.length})
                   </Typography>
                   {professions.map((prof) => {
-                    const isSelected = activeProfession?.registration_id === prof.registration_id;
+                    const isSelected = !isMemberRoute && activeRole !== "member" && activeProfession?.registration_id === prof.registration_id;
                     const isAdv = prof.is_advocate || prof.profession_name.toLowerCase().includes("advocate") || prof.profession_name.toLowerCase().includes("lawyer");
 
                     return (
@@ -285,13 +331,8 @@ export default function PortalHeader({
                         onClick={() => {
                           if (onSelectProfession) onSelectProfession(prof);
                           setSwitcherAnchor(null);
-                          if (isAdv) {
-                            if (onRoleChange) onRoleChange("professional");
-                            router.push("/dashboard/advocate");
-                          } else {
-                            if (onRoleChange) onRoleChange("professional");
-                            router.push("/dashboard/professional");
-                          }
+                          if (onRoleChange) onRoleChange("professional");
+                          router.push("/dashboard/professional");
                         }}
                         sx={{ py: 1, px: 2, gap: 1.5, alignItems: "flex-start" }}
                       >
@@ -333,7 +374,7 @@ export default function PortalHeader({
                     MEMBERSHIP
                   </Typography>
                   <MenuItem
-                    selected={activeRole === "member" && !activeProfession}
+                    selected={isMemberRoute || (activeRole === "member" && !activeProfession)}
                     onClick={() => {
                       if (onRoleChange) onRoleChange("member");
                       setSwitcherAnchor(null);
@@ -352,11 +393,11 @@ export default function PortalHeader({
                           : `App: ${membership.reference_id}`
                       }
                       slotProps={{
-                        primary: { sx: { fontSize: "0.85rem", fontWeight: activeRole === "member" ? 800 : 600 } },
+                        primary: { sx: { fontSize: "0.85rem", fontWeight: (isMemberRoute || activeRole === "member") ? 800 : 600 } },
                         secondary: { sx: { fontSize: "0.7rem", color: "#64748b" } },
                       }}
                     />
-                    {activeRole === "member" && !activeProfession && (
+                    {(isMemberRoute || (activeRole === "member" && !activeProfession)) && (
                       <CheckIcon fontSize="small" color="success" />
                     )}
                   </MenuItem>

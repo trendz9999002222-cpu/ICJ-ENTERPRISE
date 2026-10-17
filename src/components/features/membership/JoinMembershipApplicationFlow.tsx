@@ -420,15 +420,19 @@ export default function JoinMembershipApplicationFlow() {
     }
   };
 
-  const applySessionAndGoToMemberArea = (access: string, refresh: string) => {
+  const applySessionAndGoToMemberArea = (access: string, refresh: string, isFirstTimeOnboarding: boolean = true) => {
     document.cookie = `icj_access_token=${access}; path=/; max-age=1800; SameSite=Lax`;
     document.cookie = `icj_refresh_token=${refresh}; path=/; max-age=604800; SameSite=Lax`;
-    try {
-      localStorage.removeItem("icj_password_change_required");
-    } catch {
-      // ignore
+    if (isFirstTimeOnboarding) {
+      try {
+        sessionStorage.setItem("icj_just_onboarded_membership", "1");
+      } catch {
+        // ignore
+      }
+      window.location.assign(`${MEMBER_DASHBOARD}?setPassword=1`);
+    } else {
+      window.location.assign(MEMBER_DASHBOARD);
     }
-    window.location.assign(MEMBER_DASHBOARD);
   };
 
   const signInAndRedirectToMemberDashboard = async (
@@ -437,7 +441,13 @@ export default function JoinMembershipApplicationFlow() {
     setRedirecting(true);
 
     if (result.access && result.refresh) {
-      applySessionAndGoToMemberArea(result.access, result.refresh);
+      const isNew = Boolean(
+        result.user?.is_new_user ??
+        result.requires_password_change ??
+        (result.user as any)?.password_change_required ??
+        true
+      );
+      applySessionAndGoToMemberArea(result.access, result.refresh, isNew);
       return;
     }
 
@@ -450,7 +460,7 @@ export default function JoinMembershipApplicationFlow() {
       try {
         const tokens = await authService.login(email, tempPassword, "whatsapp");
         if (tokens.access && tokens.refresh) {
-          applySessionAndGoToMemberArea(tokens.access, tokens.refresh);
+          applySessionAndGoToMemberArea(tokens.access, tokens.refresh, true);
           return;
         }
       } catch {

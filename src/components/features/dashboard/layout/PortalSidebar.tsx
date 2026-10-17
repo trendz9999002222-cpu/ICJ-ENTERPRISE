@@ -57,63 +57,74 @@ export type PortalNavItem = {
 export function getPortalNavItems(
   roles: string[],
   primaryRole: string,
-  options?: { memberApproved?: boolean; professionalApproved?: boolean; activeRole?: string },
+  options?: {
+    memberApproved?: boolean;
+    professionalApproved?: boolean;
+    activeRole?: string;
+    pathname?: string;
+    hasProfessions?: boolean;
+    activeProfessionName?: string;
+  },
 ): PortalNavItem[] {
+  const path = options?.pathname ?? "";
+  const isMemberPath = path.startsWith("/dashboard/member");
+  const isProPath = path.startsWith("/dashboard/professional");
+
+  const hasProfessions = options?.hasProfessions ?? false;
   const allRoles = normalizePlatformRoles(roles.length > 0 ? roles : [primaryRole]);
-  const hasPro = allRoles.includes("professional");
   const hasMember = allRoles.includes("member");
-  const memberApproved = options?.memberApproved ?? true;
-  const professionalApproved = options?.professionalApproved ?? true;
-  const activeRole = options?.activeRole ?? primaryRole;
-  const memberLimited = activeRole === "member" && hasMember && !memberApproved;
-  const professionalLimited = activeRole === "professional" && hasPro && !professionalApproved;
+  // User only has professional capability if they have registered profession(s)
+  const hasPro = hasProfessions;
+
+  const resolvedRole = isMemberPath
+    ? "member"
+    : isProPath
+      ? (hasProfessions ? "professional" : "member")
+      : (hasProfessions ? (options?.activeRole ?? "member") : "member");
+
+  const isMemberMode = resolvedRole === "member";
 
   const items: PortalNavItem[] = [];
 
-  if (professionalLimited) {
-    items.push({
-      label: "Professional Dashboard",
-      href: "/dashboard/professional",
-      icon: <DashboardIcon fontSize="small" />,
-    });
-    items.push({
-      label: "My Profile & Edit",
-      href: "/dashboard/profile",
-      icon: <PersonIcon fontSize="small" />,
-      section: "Account",
-    });
-    items.push({
-      label: "Change Password",
-      href: "/dashboard/change-password",
-      icon: <LockOutlinedIcon fontSize="small" />,
-    });
-    return items;
-  }
-
-  if (memberLimited) {
+  // --- MEMBER MODE ---
+  if (isMemberMode) {
     items.push({
       label: "Member Dashboard",
       href: "/dashboard/member",
       icon: <DashboardIcon fontSize="small" />,
     });
     items.push({
-      label: "My Profile & Edit",
-      href: "/dashboard/profile",
-      icon: <PersonIcon fontSize="small" />,
-      section: "Account",
+      label: "Find Advocates & Experts",
+      href: "/dashboard/member/find-advocate",
+      icon: <SearchIcon fontSize="small" />,
+      section: "Services",
     });
     items.push({
-      label: "Change Password",
-      href: "/dashboard/change-password",
-      icon: <LockOutlinedIcon fontSize="small" />,
+      label: "Documents & Vault",
+      href: "/dashboard/member/documents",
+      icon: <FolderOpenIcon fontSize="small" />,
+      section: "Documents",
     });
-    return items;
-  }
+    if (hasPro) {
+      items.push({
+        label: options?.activeProfessionName ? `Go to ${options.activeProfessionName}` : "Go to Professional Portal",
+        href: "/dashboard/professional",
+        icon: <WorkspacePremiumIcon fontSize="small" />,
+        section: "Switch Portal",
+        badge: "Pro",
+      });
+    }
+  } else {
+    // --- PROFESSIONAL MODE ---
+    const proTitle = options?.activeProfessionName
+      ? `${options.activeProfessionName} Dashboard`
+      : "Professional Dashboard";
 
-  items.push({ label: "Dashboard", href: "/dashboard", icon: <DashboardIcon fontSize="small" /> });
-
-  // Section: Cases & Practice
-  if (hasPro) {
+    items.push({
+      label: proTitle,
+      href: "/dashboard/professional",
+      icon: <DashboardIcon fontSize="small" />,
+    });
     items.push({
       label: "Register New Practice",
       href: "/dashboard/professional/register",
@@ -131,7 +142,6 @@ export function getPortalNavItems(
       href: "/dashboard/professional/my-cases",
       icon: <AssignmentTurnedInIcon fontSize="small" />,
     });
-    // Section: Lead Marketplace & Wallet
     items.push({
       label: "Lead Marketplace",
       href: "/dashboard/professional/leads",
@@ -158,31 +168,16 @@ export function getPortalNavItems(
       href: "/dashboard/professional/payments",
       icon: <ReceiptLongIcon fontSize="small" />,
     });
-  }
 
-  if (hasMember) {
-    items.push({
-      label: "Membership Card",
-      href: "/dashboard/member",
-      icon: <CardMembershipIcon fontSize="small" />,
-      section: hasPro ? undefined : "Membership",
-      badge: "Member",
-    });
-    items.push({
-      label: "Find Professionals",
-      href: "/dashboard/member/find-advocate",
-      icon: <SearchIcon fontSize="small" />,
-    });
-  }
-
-  if (hasMember) {
-    // Section: Vault & Documents
-    items.push({
-      label: "Documents & Vault",
-      href: "/dashboard/member/documents",
-      icon: <FolderOpenIcon fontSize="small" />,
-      section: "Documents",
-    });
+    if (hasMember) {
+      items.push({
+        label: "Go to Member Portal",
+        href: "/dashboard/member",
+        icon: <CardMembershipIcon fontSize="small" />,
+        section: "Switch Portal",
+        badge: "Member",
+      });
+    }
   }
 
   // Section: Account & Security
@@ -191,21 +186,12 @@ export function getPortalNavItems(
     href: "/dashboard/profile",
     icon: <PersonIcon fontSize="small" />,
     section: "Account",
-
   });
   items.push({
     label: "Change Password",
     href: "/dashboard/change-password",
     icon: <LockOutlinedIcon fontSize="small" />,
   });
-
-  if (hasMember && !hasPro) {
-    items.push({
-      label: "Support Desk",
-      href: "/dashboard/member/support",
-      icon: <SupportAgentIcon fontSize="small" />,
-    });
-  }
 
   return items;
 }
@@ -226,6 +212,8 @@ type Props = {
   activeRole?: string;
   userName?: string;
   userEmail?: string;
+  hasProfessions?: boolean;
+  activeProfessionName?: string;
 };
 
 export default function PortalSidebar({
@@ -239,6 +227,8 @@ export default function PortalSidebar({
   activeRole,
   userName = "User",
   userEmail = "",
+  hasProfessions = false,
+  activeProfessionName,
 }: Props) {
   const pathname = usePathname();
   const collapsed = !open && variant === "persistent";
@@ -246,6 +236,9 @@ export default function PortalSidebar({
     memberApproved,
     professionalApproved,
     activeRole: activeRole ?? primaryRole,
+    pathname,
+    hasProfessions,
+    activeProfessionName,
   });
 
   const initials = userName
@@ -341,12 +334,19 @@ export default function PortalSidebar({
           )}
         </Link>
 
-        {variant === "persistent" && !collapsed && (
-          <Tooltip title="Collapse sidebar">
+        {!collapsed && (
+          <Tooltip title={variant === "temporary" ? "Close sidebar" : "Collapse sidebar"}>
             <IconButton
               size="small"
               onClick={onClose}
-              sx={{ color: "#94a3b8", "&:hover": { color: "#0f172a" } }}
+              sx={{
+                color: "#64748b",
+                bgcolor: "#f1f5f9",
+                borderRadius: "8px",
+                width: 32,
+                height: 32,
+                "&:hover": { color: "#0f172a", bgcolor: "#e2e8f0" },
+              }}
             >
               <ChevronLeftIcon fontSize="small" />
             </IconButton>
@@ -547,25 +547,22 @@ export default function PortalSidebar({
   const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   return (
-    <Drawer
-      variant="permanent"
+    <Box
+      component="nav"
       sx={{
         width,
         flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width,
-          borderRight: "1px solid #e2e8f0",
-          boxSizing: "border-box",
-          transition: (theme) =>
-            theme.transitions.create("width", {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-          overflowX: "hidden",
-        },
+        transition: "width 0.2s ease",
+        height: "100vh",
+        position: "sticky",
+        top: 0,
+        bgcolor: "#ffffff",
+        borderRight: "1px solid #e2e8f0",
+        overflow: "hidden",
+        zIndex: 10,
       }}
     >
       {content}
-    </Drawer>
+    </Box>
   );
 }

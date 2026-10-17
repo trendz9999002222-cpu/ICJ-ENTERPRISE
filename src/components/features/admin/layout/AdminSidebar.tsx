@@ -54,7 +54,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/admin/dashboard", icon: <DashboardIcon fontSize="small" /> },
+  { label: "Dashboard", href: "/dashboard/admin", icon: <DashboardIcon fontSize="small" /> },
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
   { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
   { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
@@ -107,7 +107,9 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 function isNavItemActive(pathname: string, href: string): boolean {
-  if (href === "/admin/dashboard") return pathname === href;
+  if (href === "/dashboard/admin" || href === "/admin/dashboard") {
+    return pathname === "/dashboard/admin" || pathname === "/admin/dashboard";
+  }
   if (href === "/admin/subscriptions") {
     return pathname.startsWith("/admin/subscriptions");
   }

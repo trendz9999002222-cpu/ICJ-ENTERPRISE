@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import MandatorySetPasswordGate from "@/components/features/dashboard/auth/MandatorySetPasswordGate";
 import MemberRouteGuard from "@/components/features/dashboard/member/MemberRouteGuard";
 import ProfessionalRouteGuard from "@/components/features/dashboard/professional/ProfessionalRouteGuard";
+import { env } from "@/config/env";
+import { authenticatedFetch } from "@/lib/api/authFetch";
 import { isProfessionalApproved } from "@/lib/professionalDashboard";
 import { normalizePlatformRoles } from "@/lib/roles";
 
@@ -33,18 +35,31 @@ type Props = {
 
 export default function PortalShell({ children }: Props) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
+  const isMemberRoute = pathname.startsWith("/dashboard/member");
+  const isProRoute = pathname.startsWith("/dashboard/professional");
+  const isProRegisterRoute = pathname.startsWith("/dashboard/professional/register");
+  const initialRole = isProRoute ? "professional" : "member";
 
-  const [roles, setRoles] = useState<string[]>([]);
-  const [activeRole, setActiveRole] = useState<string>("professional");
+  const [roles, setRoles] = useState<string[]>(isProRoute ? ["professional"] : ["member"]);
+  const [activeRole, setActiveRole] = useState<string>(initialRole);
   const [professions, setProfessions] = useState<ProfessionItem[]>([]);
   const [activeProfession, setActiveProfession] = useState<ProfessionItem | null>(null);
   const [membership, setMembership] = useState<MembershipItem | null>(null);
   const [userName, setUserName] = useState<string>("User");
   const [userEmail, setUserEmail] = useState<string>("");
+
+  const hasProfessions = professions.length > 0;
+
+  // If user has not registered any profession, they are strictly restricted to member mode (except when registering)
+  const currentRole = isMemberRoute
+    ? "member"
+    : isProRoute
+      ? (hasProfessions || isProRegisterRoute ? "professional" : "member")
+      : (hasProfessions ? activeRole : "member");
 
   useEffect(() => {
     const token = readCookie("icj_access_token");
@@ -74,39 +89,44 @@ export default function PortalShell({ children }: Props) {
         if (key === "client" || key === "advocate") return "professional";
         return r;
       });
-      if (extractedRoles.length === 0) extractedRoles = ["professional"];
+      if (extractedRoles.length === 0) extractedRoles = ["member"];
       setRoles(extractedRoles);
 
       // determine active role from pathname
-      if (pathname.includes("/dashboard/advocate") || pathname.includes("/dashboard/professional")) {
-        setActiveRole("professional");
-      } else if (pathname.includes("/dashboard/member")) {
+      if (pathname.startsWith("/dashboard/member")) {
         setActiveRole("member");
-      } else if (pathname.includes("/dashboard/professional")) {
+      } else if (pathname.startsWith("/dashboard/professional")) {
         setActiveRole("professional");
       } else {
-        setActiveRole(extractedRoles[0] || "professional");
+        setActiveRole(extractedRoles.includes("professional") ? "professional" : "member");
       }
     }
 
     // Fetch full profile and professions from /api/v1/auth/me/
     async function loadProfile() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/v1/auth/me/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await authenticatedFetch(`${env.apiUrl}/auth/me/`);
         if (res.ok) {
           const json = await res.json();
           const data = json.data || json;
           if (Array.isArray(data.professions)) {
             setProfessions(data.professions);
-            const savedProfId = typeof window !== "undefined" ? localStorage.getItem("active_profession_id") : null;
-            if (savedProfId) {
-              const matched = data.professions.find((p: any) => p.registration_id === savedProfId);
-              if (matched) setActiveProfession(matched);
-              else if (data.professions.length > 0) setActiveProfession(data.professions[0]);
-            } else if (data.professions.length > 0) {
-              setActiveProfession(data.professions[0]);
+            const userHasPro = data.professions.length > 0;
+            if (userHasPro) {
+              const savedProfId = typeof window !== "undefined" ? localStorage.getItem("active_profession_id") : null;
+              if (savedProfId) {
+                const matched = data.professions.find((p: any) => p.registration_id === savedProfId);
+                if (matched) setActiveProfession(matched);
+                else setActiveProfession(data.professions[0]);
+              } else {
+                setActiveProfession(data.professions[0]);
+              }
+            } else {
+              setActiveProfession(null);
+              // If user has NO registered professions, redirect them to member dashboard
+              if (pathname.startsWith("/dashboard/professional") && !pathname.startsWith("/dashboard/professional/register")) {
+                router.replace("/dashboard/member");
+              }
             }
           }
           if (data.membership) {
@@ -129,6 +149,14 @@ export default function PortalShell({ children }: Props) {
     }
 
     loadProfile();
+
+    const handleProfileUpdated = () => {
+      loadProfile();
+    };
+    window.addEventListener("icj_profile_updated", handleProfileUpdated);
+    return () => {
+      window.removeEventListener("icj_profile_updated", handleProfileUpdated);
+    };
   }, [pathname, router]);
 
   const handleSelectProfession = (prof: ProfessionItem) => {
@@ -176,12 +204,14 @@ export default function PortalShell({ children }: Props) {
           onClose={closeSidebar}
           variant="temporary"
           roles={roles}
-          primaryRole={activeRole}
+          primaryRole={currentRole}
           memberApproved={memberApproved}
           professionalApproved={professionalApproved}
-          activeRole={activeRole}
+          activeRole={currentRole}
           userName={userName}
           userEmail={userEmail}
+          hasProfessions={hasProfessions}
+          activeProfessionName={activeProfession?.profession_name}
         />
       ) : (
         <PortalSidebar
@@ -189,12 +219,14 @@ export default function PortalShell({ children }: Props) {
           onClose={toggleSidebar}
           variant="persistent"
           roles={roles}
-          primaryRole={activeRole}
+          primaryRole={currentRole}
           memberApproved={memberApproved}
           professionalApproved={professionalApproved}
-          activeRole={activeRole}
+          activeRole={currentRole}
           userName={userName}
           userEmail={userEmail}
+          hasProfessions={hasProfessions}
+          activeProfessionName={activeProfession?.profession_name}
         />
       )}
 
@@ -212,10 +244,10 @@ export default function PortalShell({ children }: Props) {
         <PortalHeader
           onMenuClick={toggleSidebar}
           roles={roles}
-          activeRole={activeRole}
+          activeRole={currentRole}
           onRoleChange={(r) => setActiveRole(r)}
           professions={professions}
-          activeProfession={activeProfession}
+          activeProfession={currentRole === "member" ? null : activeProfession}
           onSelectProfession={handleSelectProfession}
           membership={membership}
           userName={userName}

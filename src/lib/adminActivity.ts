@@ -18,6 +18,7 @@ const MAX_ACTIVITIES = 10;
 const ROUTE_NAME_MAP: Record<string, string> = {
   "/admin": "Admin Home",
   "/admin/dashboard": "Admin Dashboard",
+  "/dashboard/admin": "Admin Dashboard",
   "/admin/users": "Users Management",
   "/admin/advocates": "Professionals List",
   "/admin/professionals": "Professionals List",

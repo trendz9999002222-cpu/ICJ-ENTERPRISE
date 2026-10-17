@@ -26,13 +26,8 @@ import { useEffect, useState, useRef } from "react";
 import SectionCard from "@/components/ui/SectionCard";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import { env } from "@/config/env";
+import { authenticatedFetch } from "@/lib/api/authFetch";
 import type { ProfessionConfiguration } from "@/types/public/professionalOnboardingPublic";
-
-function readCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]+)`));
-  return m ? decodeURIComponent(m[1]) : null;
-}
 
 type CategoryItem = { id: string; title: string };
 type GroupItem = { id: string; title: string };
@@ -61,6 +56,7 @@ export default function RegisterPracticePage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
   const [activeStep, setActiveStep] = useState(0);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const errorRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +66,16 @@ export default function RegisterPracticePage() {
       .then((json) => {
         const data = json.data || json;
         setCategories(Array.isArray(data) ? data : data.results || []);
+      })
+      .catch(() => {});
+
+    authenticatedFetch(`${env.apiUrl}/auth/me/`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (json) {
+          const data = json.data || json;
+          setUserProfile(data);
+        }
       })
       .catch(() => {});
   }, []);
@@ -220,13 +226,38 @@ export default function RegisterPracticePage() {
     setSubmitSuccess(false);
 
     try {
-      const token = readCookie("icj_access_token");
       const formData = new FormData();
       
       formData.set("category_ids", JSON.stringify([selectedCategory]));
       formData.set("group_ids", JSON.stringify([selectedGroup]));
       formData.set("profession_ids", JSON.stringify([selectedProfession]));
-      formData.set("common_field_values", JSON.stringify({})); 
+      const memFields = (userProfile as any)?.membership?.field_values || {};
+      const fullName =
+        `${userProfile?.first_name || ""} ${userProfile?.last_name || ""}`.trim() ||
+        (userProfile as any)?.name ||
+        memFields.full_name ||
+        memFields.name ||
+        "";
+      const email = userProfile?.email || memFields.email || "";
+      const mobile =
+        (userProfile as any)?.mobile ||
+        userProfile?.phone_number ||
+        memFields.mobile_number ||
+        memFields.mobile ||
+        "";
+      const country = memFields.country || "India";
+      const state = memFields.state || "Delhi";
+      const district = memFields.district || memFields.city || "New Delhi";
+
+      const commonValues = {
+        full_name: fullName,
+        email: email,
+        mobile_number: mobile,
+        country: country,
+        state: state,
+        district: district,
+      };
+      formData.set("common_field_values", JSON.stringify(commonValues)); 
       
       const profValues = {
         [selectedProfession]: formValues
@@ -237,11 +268,8 @@ export default function RegisterPracticePage() {
         if (file) formData.append(`document__${key}`, file);
       });
 
-      const res = await fetch(`${env.apiUrl}/professional-onboarding/register/`, {
+      const res = await authenticatedFetch(`${env.apiUrl}/professional-onboarding/register/`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         body: formData,
       });
 
@@ -255,21 +283,40 @@ export default function RegisterPracticePage() {
         setFormValues({});
         setFileValues({});
         scrollToTop();
+
+        // Refresh user profile so header switcher & sidebar immediately detect the new profession
+        authenticatedFetch(`${env.apiUrl}/auth/me/`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((json) => {
+            if (json) {
+              const data = json.data || json;
+              setUserProfile(data);
+              window.dispatchEvent(new CustomEvent("icj_profile_updated", { detail: data }));
+            }
+          })
+          .catch(() => {});
+      } else if (res.status === 401) {
+        setSubmitError("Your login session has expired. Please log in again to complete your registration.");
+        scrollToTop();
       } else {
         const err = await res.json().catch(() => null);
-        if (err?.errors) {
-            setFieldErrors(err.errors);
-            setSubmitError("Validation failed. Please check the highlighted fields.");
-            
-            // Auto-navigate to correct step
-            const hasFieldErrors = Object.keys(err.errors).some(k => k.startsWith('profession_field_values') || !config?.documents?.find(d => d.document_key === k));
-            if (hasFieldErrors) {
-               setActiveStep(1);
-            }
-            scrollToTop();
+        const isAuthError = err?.code === "token_not_valid" || err?.detail?.toString().includes("token") || res.status === 403;
+        if (isAuthError) {
+          setSubmitError("Authentication error. Please refresh the page or log in again.");
+          scrollToTop();
+        } else if (err?.errors && typeof err.errors === "object" && !err.errors.detail && !err.errors.code) {
+          setFieldErrors(err.errors);
+          setSubmitError("Validation failed. Please check the highlighted fields.");
+          
+          // Auto-navigate to correct step
+          const hasFieldErrors = Object.keys(err.errors).some(k => k.startsWith('profession_field_values') || !config?.documents?.find(d => d.document_key === k));
+          if (hasFieldErrors) {
+             setActiveStep(1);
+          }
+          scrollToTop();
         } else {
-            setSubmitError(err?.message || err?.detail || "Registration failed. Please try again.");
-            scrollToTop();
+          setSubmitError(err?.message || err?.detail || "Registration failed. Please try again.");
+          scrollToTop();
         }
       }
     } catch {
@@ -303,11 +350,55 @@ export default function RegisterPracticePage() {
       </Box>
 
       {submitSuccess ? (
-        <Alert severity="success" sx={{ mb: 3, fontWeight: 700 }}>
-          Registration submitted successfully! You can view your new application status on the dashboard.
+        <Alert
+          severity="success"
+          sx={{ mb: 3, fontWeight: 700 }}
+          action={
+            <Stack direction="row" spacing={1}>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  window.location.href = "/dashboard/professional";
+                }}
+                sx={{ fontWeight: 800, textTransform: "none" }}
+              >
+                Go to Professional Practice
+              </Button>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  window.location.href = "/dashboard/member";
+                }}
+                sx={{ fontWeight: 600, textTransform: "none", opacity: 0.85 }}
+              >
+                Member Dashboard
+              </Button>
+            </Stack>
+          }
+        >
+          Registration submitted successfully! Your professional practice registration has been received.
         </Alert>
       ) : submitError ? (
-        <Alert severity="error" sx={{ mb: 3, fontWeight: 700 }}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3, fontWeight: 700 }}
+          action={
+            submitError.includes("expired") || submitError.includes("log in") || submitError.includes("Authentication") ? (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  window.location.href = "/login";
+                }}
+                sx={{ fontWeight: 800, textTransform: "none" }}
+              >
+                Log In
+              </Button>
+            ) : undefined
+          }
+        >
           {submitError}
         </Alert>
       ) : null}

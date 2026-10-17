@@ -33,6 +33,21 @@ const nextConfig: NextConfig = {
         destination: "/admin/professionals/:id",
         permanent: true,
       },
+      {
+        source: "/dashboard/advocate",
+        destination: "/dashboard/professional",
+        permanent: true,
+      },
+      {
+        source: "/dashboard/advocate/:path*",
+        destination: "/dashboard/professional/:path*",
+        permanent: true,
+      },
+      {
+        source: "/admin/dashboard",
+        destination: "/dashboard/admin",
+        permanent: true,
+      },
     ];
   },
 };

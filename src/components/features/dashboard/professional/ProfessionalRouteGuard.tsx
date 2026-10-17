@@ -10,8 +10,9 @@ import { normalizePlatformRoles } from "@/lib/roles";
 import type { UserProfessionInfo } from "@/types/api";
 
 function isAllowedPendingProfessionalPath(pathname: string): boolean {
-  if (pathname === "/dashboard/professional") return true;
+  if (pathname.startsWith("/dashboard/professional")) return true;
   if (pathname === "/dashboard/profile" || pathname.startsWith("/dashboard/profile/")) return true;
+  if (pathname.startsWith("/dashboard/change-password")) return true;
   if (pathname.startsWith("/login/change-password")) return true;
   return false;
 }
@@ -40,13 +41,17 @@ export default function ProfessionalRouteGuard({ children }: { children: React.R
       return;
     }
 
-    const roles = normalizePlatformRoles(decodeJwtRole(token));
-    if (!roles.includes("professional")) {
+    // Only guard professional routes
+    if (!pathname.startsWith("/dashboard/professional")) {
       setReady(true);
       return;
     }
 
-    const allowedPath = isAllowedPendingProfessionalPath(pathname);
+    // Always allow users to access the registration page to register a profession
+    if (pathname.startsWith("/dashboard/professional/register")) {
+      setReady(true);
+      return;
+    }
 
     fetch(`${env.apiUrl}/auth/me/`, {
       headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
@@ -55,7 +60,15 @@ export default function ProfessionalRouteGuard({ children }: { children: React.R
       .then((json) => {
         const data = json?.data ?? json;
         const professions = (data?.professions ?? []) as UserProfessionInfo[];
+
+        // If user has no registered professions yet, redirect to member dashboard
+        if (!professions || professions.length === 0) {
+          router.replace("/dashboard/member");
+          return;
+        }
+
         const approved = isProfessionalApproved(professions);
+        const allowedPath = isAllowedPendingProfessionalPath(pathname);
 
         if (!approved) {
           if (pathname === "/dashboard") {
