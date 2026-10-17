@@ -14,6 +14,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import SearchIcon from "@mui/icons-material/Search";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import LoyaltyIcon from "@mui/icons-material/Loyalty";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 
 import {
   Avatar,
@@ -124,6 +129,33 @@ export function getPortalNavItems(
       label: "My Cases",
       href: "/dashboard/professional/my-cases",
       icon: <AssignmentTurnedInIcon fontSize="small" />,
+    });
+    // Section: Lead Marketplace & Wallet
+    items.push({
+      label: "Lead Marketplace",
+      href: "/dashboard/professional/leads",
+      icon: <StorefrontIcon fontSize="small" />,
+      section: "Lead Marketplace",
+    });
+    items.push({
+      label: "My Leads",
+      href: "/dashboard/professional/my-leads",
+      icon: <ContactPhoneIcon fontSize="small" />,
+    });
+    items.push({
+      label: "ICJ Wallet",
+      href: "/dashboard/professional/wallet",
+      icon: <AccountBalanceWalletIcon fontSize="small" />,
+    });
+    items.push({
+      label: "Lead Credit Plans",
+      href: "/dashboard/professional/plans",
+      icon: <LoyaltyIcon fontSize="small" />,
+    });
+    items.push({
+      label: "Payment History",
+      href: "/dashboard/professional/payments",
+      icon: <ReceiptLongIcon fontSize="small" />,
     });
   }
 
