@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
-from apps.core.models.form_field_config import FormFieldConfig
-from apps.core.serializers.common_field import CommonFieldSerializer
+from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig
+from .common_field import CommonFieldSerializer
 
 
 class FormFieldConfigSerializer(serializers.ModelSerializer):
@@ -11,6 +10,21 @@ class FormFieldConfigSerializer(serializers.ModelSerializer):
         slug_field="form_code",
         queryset=AdditionalOnboardingFormfields.objects.all(),
     )
+
+    def to_internal_value(self, data):
+        form_code = data.get("form")
+        if form_code and isinstance(form_code, str):
+            form_code_clean = form_code.strip()
+            valid_codes = dict(AdditionalOnboardingFormfields.FormCode.choices)
+            if form_code_clean in valid_codes:
+                AdditionalOnboardingFormfields.objects.get_or_create(
+                    form_code=form_code_clean,
+                    defaults={
+                        "form_name": valid_codes[form_code_clean],
+                        "description": f"Onboarding flow for {valid_codes[form_code_clean]}."
+                    }
+                )
+        return super().to_internal_value(data)
     
     class Meta:
         model = FormFieldConfig

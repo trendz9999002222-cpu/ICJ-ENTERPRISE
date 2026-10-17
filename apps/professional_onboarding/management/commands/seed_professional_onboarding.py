@@ -735,7 +735,6 @@ class Command(BaseCommand):
             help="Wipe existing onboarding config before seeding.",
         )
 
-    @transaction.atomic
     def handle(self, *args, **options):
         file_path = options.get("file")
         if file_path:
@@ -835,12 +834,17 @@ class Command(BaseCommand):
                 },
             )
             if "optionsRef" in cf_def and cf_def["optionsRef"] in option_sets:
+                seen_opts = set()
                 for idx, opt in enumerate(option_sets[cf_def["optionsRef"]]):
+                    val_str = str(opt).strip()
+                    if not val_str or val_str in seen_opts:
+                        continue
+                    seen_opts.add(val_str)
                     FieldOption.objects.update_or_create(
                         common_field=cfield,
-                        value=opt,
+                        value=val_str,
                         defaults={
-                            "label": opt,
+                            "label": val_str,
                             "display_order": idx * 10,
                             "is_active": True,
                         },
@@ -1001,8 +1005,12 @@ class Command(BaseCommand):
                                 opts = field_cfg["options"]
 
                             if opts and m_type in (CommonField.FieldType.SELECT, CommonField.FieldType.RADIO, CommonField.FieldType.CHECKBOX):
+                                seen_opts = set()
                                 for opt_idx, opt_val in enumerate(opts):
-                                    val_str = str(opt_val)
+                                    val_str = str(opt_val).strip()
+                                    if not val_str or val_str in seen_opts:
+                                        continue
+                                    seen_opts.add(val_str)
                                     FieldOption.objects.update_or_create(
                                         profession_field=p_field,
                                         value=val_str,
@@ -1012,6 +1020,8 @@ class Command(BaseCommand):
                                             "is_active": True,
                                         },
                                     )
+
+            self.stdout.write(f"   [+] Seeded category: {cat_title}")
 
         self.stdout.write(self.style.SUCCESS(
             f"Successfully seeded onboarding data:\n"

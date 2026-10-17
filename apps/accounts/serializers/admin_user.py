@@ -145,3 +145,12 @@ class AdminUserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "phone_number", "role")
+
+    def validate_phone_number(self, value):
+        if value:
+            from apps.accounts.services.identity_checks import check_duplicate_phone
+            user = self.instance
+            err = check_duplicate_phone(value, current_user=user, check_applications=False)
+            if err:
+                raise serializers.ValidationError(err)
+        return value

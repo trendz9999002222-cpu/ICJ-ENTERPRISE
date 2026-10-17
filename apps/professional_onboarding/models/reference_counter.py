@@ -4,6 +4,8 @@ from django.db import models
 class ProfessionalRegistrationReferenceCounter(models.Model):
     """Per-year atomic sequence for human-readable reference IDs (PostgreSQL-safe)."""
 
+    objects = models.Manager()
+
     year = models.PositiveIntegerField(unique=True)
     last_value = models.PositiveIntegerField(default=0)
 

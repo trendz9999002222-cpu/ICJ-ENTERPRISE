@@ -3,8 +3,8 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.db import models
 
-from apps.professional_onboarding.models.common_field import CommonField
-from apps.professional_onboarding.models.profession_field import ProfessionField
+from .common_field import CommonField
+from .profession_field import ProfessionField
 
 OPTION_FIELD_TYPES = {
     CommonField.FieldType.SELECT,
@@ -15,6 +15,8 @@ OPTION_FIELD_TYPES = {
 
 class FieldOption(models.Model):
     """Selectable choices for CommonField or ProfessionField (select / radio / checkbox)."""
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     common_field = models.ForeignKey(

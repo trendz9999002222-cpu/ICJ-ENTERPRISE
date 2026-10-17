@@ -3,7 +3,7 @@ from typing import Any
 
 import phonenumbers
 
-from apps.professional_onboarding.models.common_field import CommonField
+from apps.professional_onboarding.models import CommonField
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 

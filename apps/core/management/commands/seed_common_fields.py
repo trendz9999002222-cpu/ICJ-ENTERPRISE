@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from apps.core.models.common_field import CommonField
+from apps.core.models import CommonField
 
 class Command(BaseCommand):
     help = "Seeds standard common fields."

@@ -1,7 +1,5 @@
 from django.contrib import admin
-from apps.core.models.common_field import CommonField
-from apps.core.models.additional_onboarding_formfields import AdditionalOnboardingFormfields
-from apps.core.models.form_field_config import FormFieldConfig
+from apps.core.models import AdditionalOnboardingFormfields, CommonField, FormFieldConfig
 
 @admin.register(CommonField)
 class CommonFieldAdmin(admin.ModelAdmin):
