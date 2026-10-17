@@ -1,5 +1,11 @@
 from apps.membership_onboarding.models import MembershipFeeSettings
-from apps.membership_onboarding.services.razorpay_client import razorpay_configured
+from apps.membership_onboarding.services.easebuzz_client import (
+    get_easebuzz_key,
+    get_easebuzz_env,
+    is_easebuzz_configured,
+)
+# Razorpay import (Commented out)
+# from apps.membership_onboarding.services.razorpay_client import razorpay_configured, get_razorpay_key_id
 
 
 def get_membership_fee_settings() -> MembershipFeeSettings:
@@ -13,14 +19,17 @@ def payment_required_for_submission() -> bool:
 
 def public_payment_payload() -> dict:
     settings = get_membership_fee_settings()
-    required = payment_required_for_submission()
-    from apps.membership_onboarding.services.razorpay_client import get_razorpay_key_id
 
     return {
-        "payment_required": required,
+        "payment_required": False,
         "is_payment_enabled": settings.is_payment_enabled,
         "amount_paise": settings.amount_paise,
         "amount_inr": float(settings.amount_paise) / 100.0,
         "currency": settings.currency,
-        "razorpay_key_id": get_razorpay_key_id() if required else "",
+        "payment_gateway": "easebuzz",
+        "easebuzz_configured": is_easebuzz_configured(),
+        "easebuzz_key": get_easebuzz_key() if settings.is_payment_enabled else "",
+        "easebuzz_env": get_easebuzz_env(),
+        # Razorpay backward compatibility (commented / empty)
+        "razorpay_key_id": "",
     }

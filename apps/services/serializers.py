@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from apps.services.models import ServiceCategory, JusticeService, AssistanceRequest, LegalCase
+from apps.services.models import (
+    ServiceCategory,
+    JusticeService,
+    AssistanceRequest,
+    LegalCase,
+    AssistanceFormField,
+    AssistanceDocument,
+)
 
 
 class ServiceCategorySerializer(serializers.ModelSerializer):
@@ -52,7 +59,6 @@ class AssistanceRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'reference_id', 'created_at', 'updated_at', 'status')
 
-
 class LegalCaseSerializer(serializers.ModelSerializer):
     assistance_request_details = AssistanceRequestSerializer(source='assistance_request', read_only=True)
     professional_name = serializers.CharField(source='professional.get_full_name', read_only=True)
@@ -62,3 +68,18 @@ class LegalCaseSerializer(serializers.ModelSerializer):
         model = LegalCase
         fields = '__all__'
         read_only_fields = ('id', 'case_id', 'created_at', 'updated_at')
+
+
+class AssistanceFormFieldSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssistanceFormField
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class AssistanceDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssistanceDocument
+        fields = '__all__'
+        read_only_fields = ('id', 'created_at', 'updated_at')
+

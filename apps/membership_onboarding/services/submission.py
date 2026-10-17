@@ -72,14 +72,14 @@ class MembershipApplicationService:
             raise ServiceError("Declaration must be accepted.", {"declaration_accepted": ["Required."]})
 
         payment: MembershipPayment | None = None
-        if payment_required_for_submission():
-            if not membership_payment_id:
-                raise ServiceError("Membership fee payment is required.", {"payment_id": ["Complete payment before submitting."]})
+        if membership_payment_id:
             payment = MembershipPayment.objects.filter(pk=membership_payment_id).first()
             if not payment or payment.status != MembershipPayment.Status.PAID:
                 raise ServiceError("Valid payment is required.", {"payment_id": ["Payment not verified."]})
             if payment.application_id:
                 raise ServiceError("Payment already used.", {"payment_id": ["This payment is linked to another application."]})
+        elif payment_required_for_submission():
+            raise ServiceError("Membership fee payment is required.", {"payment_id": ["Complete payment before submitting."]})
 
         idempotency_key = (idempotency_key or "").strip() or None
         if idempotency_key and user:
@@ -225,6 +225,8 @@ class MembershipApplicationService:
             if payment:
                 payment.application = application
                 payment.save(update_fields=["application"])
+                application.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
+                application.save(update_fields=["fee_payment_status"])
 
         user_obj, _, is_new = provision_user_for_membership(application)
         application.user = user_obj

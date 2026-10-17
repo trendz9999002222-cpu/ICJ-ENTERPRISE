@@ -37,9 +37,17 @@ class MembershipPayment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     amount_paise = models.PositiveIntegerField()
     currency = models.CharField(max_length=3, default="INR")
-    razorpay_order_id = models.CharField(max_length=64, unique=True, db_index=True)
+    gateway = models.CharField(max_length=32, default="easebuzz", db_index=True)
+    # Razorpay fields (optional for backward compatibility)
+    razorpay_order_id = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     razorpay_payment_id = models.CharField(max_length=64, blank=True, db_index=True)
     razorpay_signature = models.CharField(max_length=128, blank=True)
+
+    # Easebuzz fields
+    easebuzz_txnid = models.CharField(max_length=64, blank=True, null=True, unique=True, db_index=True)
+    easebuzz_access_key = models.CharField(max_length=256, blank=True)
+    easebuzz_payment_id = models.CharField(max_length=64, blank=True, db_index=True)
+    easebuzz_hash = models.CharField(max_length=256, blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.CREATED, db_index=True)
     application = models.OneToOneField(
         "membership_onboarding.MembershipApplication",

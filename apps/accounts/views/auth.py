@@ -217,3 +217,140 @@ class MeView(APIView):
 class RefreshTokenView(TokenRefreshView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]
+
+
+class SendEmailVerificationLinkView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        if not email or "@" not in email:
+            return api_error("Please provide a valid email address.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        name = request.data.get("name", "").strip() or "Applicant"
+        frontend_url = request.data.get("frontend_url", "").strip()
+        if not frontend_url:
+            frontend_url = settings.CORS_ALLOWED_ORIGINS[0] if settings.CORS_ALLOWED_ORIGINS else "http://localhost:3000"
+
+        import base64
+        import json
+        import time
+        from django.core.mail import send_mail
+
+        token_payload = json.dumps({"email": email, "timestamp": int(time.time() * 1000)})
+        token = base64.b64encode(token_payload.encode()).decode()
+
+        verify_url = f"{frontend_url.rstrip('/')}/join-membership?verify_email={email}&verified=1&token={token}"
+
+        subject = "Verify Your Email - International Consortium of Jurists (ICJ)"
+        message = (
+            f"Dear {name},\n\n"
+            f"Thank you for initiating your application with the International Consortium of Jurists (ICJ).\n\n"
+            f"Please click the link below to verify your email address:\n\n"
+            f"{verify_url}\n\n"
+            f"If you did not request this verification, please disregard this email.\n\n"
+            f"Best regards,\n"
+            f"International Consortium of Jurists (ICJ)"
+        )
+
+        html_message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h2 style="color: #1e3a8a; margin-top: 0;">International Consortium of Jurists (ICJ)</h2>
+            <p>Dear {name},</p>
+            <p>Thank you for initiating your membership application. Please click the button below to verify your email address and continue your registration:</p>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="{verify_url}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Verify Email Address</a>
+            </div>
+            <p style="color: #64748b; font-size: 13px;">Or copy and paste this link in your browser:<br/><a href="{verify_url}" style="color: #2563eb; word-break: break-all;">{verify_url}</a></p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;"/>
+            <p style="color: #94a3b8; font-size: 12px;">If you did not request this, please ignore this email.</p>
+        </div>
+        """
+
+        # 1. Dispatch via EmailJS API using configured keys
+        emailjs_sent = False
+        try:
+            import urllib.request
+            service_id = getattr(settings, "EMAILJS_SERVICE_ID", "service_rypannl")
+            template_id = getattr(settings, "EMAILJS_TEMPLATE_ID", "template_pmntrjf")
+            public_key = getattr(settings, "EMAILJS_PUBLIC_KEY", "_afNcmKvmFJoVdlI9")
+
+            payload = json.dumps({
+                "service_id": service_id,
+                "template_id": template_id,
+                "user_id": public_key,
+                "template_params": {
+                    "to_email": email,
+                    "email": email,
+                    "user_email": email,
+                    "recipient": email,
+                    "to_name": name,
+                    "name": name,
+                    "title": "Welcome to ICJ - Verify Your Email",
+                    "subject": "Verify Your Email - International Consortium of Jurists (ICJ)",
+                    "message": message,
+                    "verify_url": verify_url,
+                    "verify_link": verify_url,
+                    "link": verify_url,
+                },
+            }).encode("utf-8")
+
+            req = urllib.request.Request(
+                "https://api.emailjs.com/api/v1.0/email/send",
+                data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status == 200:
+                    emailjs_sent = True
+        except Exception:
+            pass
+
+        # 2. Also dispatch via Django send_mail
+        django_sent = False
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                html_message=html_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            django_sent = True
+        except Exception:
+            pass
+
+        return api_success(
+            message=f"Verification email dispatched to {email}",
+            data={
+                "verify_url": verify_url,
+                "email": email,
+                "emailjs_sent": emailjs_sent,
+                "django_sent": django_sent,
+            },
+        )
+
+
+VERIFIED_EMAILS_CACHE = set()
+
+
+class VerifyEmailStatusView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        if not email:
+            return api_error("Email is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        VERIFIED_EMAILS_CACHE.add(email)
+        return api_success(message=f"Email {email} marked as verified.", data={"email": email, "verified": True})
+
+    def get(self, request):
+        email = request.query_params.get("email", "").strip().lower()
+        if not email:
+            return api_error("Email is required.", status_code=status.HTTP_400_BAD_REQUEST)
+        is_verified = email in VERIFIED_EMAILS_CACHE
+        return api_success(data={"email": email, "verified": is_verified})
+

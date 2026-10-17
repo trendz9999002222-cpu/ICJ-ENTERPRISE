@@ -41,8 +41,8 @@ def _professional_identity_from_submission(submission):
     return email, first_name, last_name, mobile
 
 
-def generate_temp_password(length: int = 10) -> str:
-    """Generate a clean, strong temporary password."""
+def generate_temp_password(length: int = 12) -> str:
+    """Generate a clean, strong temporary password with uppercase, lowercase, numbers, and special characters."""
     letters = string.ascii_letters
     digits = string.digits
     special = "@#$!"
@@ -260,7 +260,7 @@ def provision_user_for_membership(application) -> Tuple[User, None, bool]:
             role=role,
             is_active=True,
             email_verified=True,
-            password_change_required=True,
+            password_change_required=False,
             last_temp_password="",
         )
         user.set_unusable_password()
@@ -276,7 +276,8 @@ def provision_user_for_membership(application) -> Tuple[User, None, bool]:
         if mobile and not user.phone_number:
             user.phone_number = mobile
         
-        user.password_change_required = True
+        if not user.has_usable_password():
+            user.password_change_required = True
         user.save()
 
     application.user = user

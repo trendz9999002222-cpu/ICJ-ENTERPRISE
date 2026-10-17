@@ -23,6 +23,7 @@ python manage.py configure_membership_form
 python manage.py seed_professional_onboarding
 python manage.py seed_membership_onboarding
 python manage.py seed_services
+python manage.py seed_seek_assistance
 
 python manage.py runserver 8000
 ```

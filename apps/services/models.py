@@ -125,6 +125,7 @@ class AssistanceRequest(models.Model):
     category = models.CharField(max_length=200)
     urgency = models.CharField(max_length=20)
     problem_description = models.TextField()
+    additional_fields = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -135,6 +136,45 @@ class AssistanceRequest(models.Model):
         
     def __str__(self):
         return f"{self.reference_id} - {self.full_name}"
+
+
+class AssistanceFormField(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    field_key = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=100)
+    field_type = models.CharField(max_length=50)
+    required = models.BooleanField(default=False)
+    options = models.JSONField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    display_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('display_order', 'created_at')
+
+    def __str__(self):
+        return f"{self.label} ({self.field_key})"
+
+
+class AssistanceDocument(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=150)
+    document_key = models.CharField(max_length=64, unique=True)
+    description = models.TextField(blank=True)
+    allowed_file_types = models.JSONField(default=list, help_text='JSON list of allowed extensions e.g. ["pdf", "docx", "jpg", "png"]')
+    max_file_size_mb = models.PositiveIntegerField(default=5)
+    is_required = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, db_index=True)
+    display_order = models.PositiveIntegerField(default=0, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("display_order", "name")
+
+    def __str__(self):
+        return f"{self.name} ({self.document_key})"
 
 
 class LegalCase(models.Model):

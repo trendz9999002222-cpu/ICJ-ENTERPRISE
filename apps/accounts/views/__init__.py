@@ -6,7 +6,9 @@ from apps.accounts.views.auth import (
     MeView,
     RefreshTokenView,
     ResetPasswordView,
+    SendEmailVerificationLinkView,
     SetInitialPasswordView,
+    VerifyEmailStatusView,
 )
 
 __all__ = [
@@ -17,5 +19,7 @@ __all__ = [
     "MeView",
     "RefreshTokenView",
     "ResetPasswordView",
+    "SendEmailVerificationLinkView",
     "SetInitialPasswordView",
+    "VerifyEmailStatusView",
 ]

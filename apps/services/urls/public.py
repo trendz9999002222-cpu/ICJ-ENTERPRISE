@@ -6,12 +6,14 @@ from apps.services.views.public import (
     PublicJusticeServiceDetailAPIView,
     PublicJusticeServiceListAPIView,
     PublicAssistanceRequestAPIView,
+    PublicAssistanceFormConfigAPIView,
 )
 
 urlpatterns = [
     path("categories/", PublicCategoryListAPIView.as_view(), name="public-service-categories"),
     path("featured/", PublicFeaturedServicesAPIView.as_view(), name="public-featured-services"),
     path("", PublicJusticeServiceListAPIView.as_view(), name="public-services"),
+    path("seek-assistance/config/", PublicAssistanceFormConfigAPIView.as_view(), name="public-seek-assistance-config"),
     path("seek-assistance/", PublicAssistanceRequestAPIView.as_view(), name="public-seek-assistance"),
     path("<slug:slug>/", PublicJusticeServiceDetailAPIView.as_view(), name="public-service-detail"),
 ]
