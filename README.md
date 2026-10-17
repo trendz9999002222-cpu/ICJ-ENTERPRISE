@@ -7,6 +7,7 @@ Next.js enterprise frontend for the ICJ platform.
 - React 19
 - TypeScript
 - MUI 9
+
 - Django REST API (no Supabase)
 
 ## Structure
