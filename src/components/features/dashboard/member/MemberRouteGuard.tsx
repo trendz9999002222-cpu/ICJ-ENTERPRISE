@@ -38,6 +38,12 @@ export default function MemberRouteGuard({ children }: { children: React.ReactNo
       return;
     }
 
+    // Only guard member routes
+    if (!pathname.startsWith("/dashboard/member")) {
+      setReady(true);
+      return;
+    }
+
     const roles = normalizePlatformRoles(decodeJwtRole(token));
     if (!roles.includes("member")) {
       setReady(true);

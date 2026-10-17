@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
+import { env } from "@/config/env";
 
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -35,7 +36,7 @@ export default function MemberDocumentsPage() {
     async function fetchDocs() {
       try {
         const token = readCookie("icj_access_token");
-        const res = await fetch("http://127.0.0.1:8000/api/v1/auth/me/", {
+        const res = await fetch(`${env.apiUrl}/auth/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {

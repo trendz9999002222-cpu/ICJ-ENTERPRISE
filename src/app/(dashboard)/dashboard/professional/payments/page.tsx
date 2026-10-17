@@ -38,7 +38,7 @@ export default function ProfessionalPaymentsPage() {
   return (
     <PortalPageShell
       title="Payment History"
-      subtitle="View all direct gateway checkout orders and invoice records."
+      subtitle="View all direct Easebuzz gateway checkout orders and invoice records."
     >
       <SectionCard
         title="Gateway Orders"
@@ -63,6 +63,7 @@ export default function ProfessionalPaymentsPage() {
                 <TableRow sx={{ bgcolor: "#f8fafc" }}>
                   <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Date</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Order Reference</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Gateway</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Type</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }} align="right">Amount</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }} align="center">Status</TableCell>
@@ -82,6 +83,19 @@ export default function ProfessionalPaymentsPage() {
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#2563eb" }}>
                       {p.order_id}
+                      {p.easepayid && (
+                        <Typography variant="caption" sx={{ display: "block", color: "#64748b", fontSize: "0.7rem" }}>
+                          Ref: {p.easepayid}
+                        </Typography>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.8rem" }}>
+                      <Chip
+                        label="Easebuzz"
+                        size="small"
+                        variant="outlined"
+                        sx={{ height: 20, fontSize: "0.7rem", fontWeight: 700, color: "#0369a1", borderColor: "#bae6fd", bgcolor: "#f0f9ff" }}
+                      />
                     </TableCell>
                     <TableCell sx={{ fontSize: "0.8rem", textTransform: "capitalize" }}>
                       {p.order_type.replace(/_/g, " ")}

@@ -36,6 +36,7 @@ import LockClockIcon from "@mui/icons-material/LockClock";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
 import EmptyState from "@/components/ui/EmptyState";
+import { loadEasebuzzCheckout } from "@/lib/easebuzz/loadEasebuzz";
 import { leadMarketplaceService } from "@/services/professional/leadMarketplace.service";
 import type { ProfessionalWalletData, WalletTransactionItem } from "@/types/lead";
 
@@ -94,19 +95,62 @@ export default function ProfessionalWalletPage() {
 
     try {
       const order = await leadMarketplaceService.createTopupOrder(topupAmount);
-      // Auto verify in mock/test mode
-      await leadMarketplaceService.verifyPayment({
-        razorpay_order_id: order.gateway_order_id,
-        razorpay_payment_id: `pay_mock_${Date.now()}`,
-        razorpay_signature: `test_sig_${order.gateway_order_id}_pay_mock_${Date.now()}`,
-      });
 
-      setTopupSuccess(`Successfully added ₹${topupAmount.toLocaleString("en-IN")} to your ICJ Wallet!`);
-      setTimeout(() => {
-        setTopupModalOpen(false);
-        loadWallet();
-        loadTransactions();
-      }, 1200);
+      // Load Easebuzz checkout script
+      let easebuzzLoaded = false;
+      try {
+        await loadEasebuzzCheckout();
+        easebuzzLoaded = typeof window !== "undefined" && Boolean(window.EasebuzzCheckout);
+      } catch {
+        easebuzzLoaded = false;
+      }
+
+      if (easebuzzLoaded && order.access_key) {
+        await new Promise<void>((resolve, reject) => {
+          try {
+            const easebuzz = new window.EasebuzzCheckout(order.key || "P2OTPKQ5X", order.env || "test");
+            const options = {
+              access_key: order.access_key,
+              onResponse: async (response: any) => {
+                try {
+                  const statusStr = String(response?.status || "").toLowerCase();
+                  if (statusStr === "success" || response?.status === 1) {
+                    await leadMarketplaceService.verifyPayment({
+                      txnid: response.txnid || order.gateway_order_id,
+                      easepayid: response.easepayid || "",
+                      status: "success",
+                      hash: response.hash || "",
+                      order_id: order.order_id,
+                    });
+                    setTopupSuccess(`Successfully added ₹${topupAmount.toLocaleString("en-IN")} to your ICJ Wallet!`);
+                    setTimeout(() => {
+                      setTopupModalOpen(false);
+                      loadWallet();
+                      loadTransactions();
+                    }, 1200);
+                    resolve();
+                  } else {
+                    reject(new Error(response?.error_Message || response?.error_desc || "Payment was not successful."));
+                  }
+                } catch (e) {
+                  reject(e);
+                }
+              },
+            };
+            easebuzz.initiatePayment(options);
+          } catch (initErr) {
+            if (order.payment_url) {
+              window.location.href = order.payment_url;
+            } else {
+              reject(initErr);
+            }
+          }
+        });
+      } else if (order.payment_url) {
+        window.location.href = order.payment_url;
+      } else {
+        throw new Error("Unable to initialize Easebuzz checkout. Please try again.");
+      }
     } catch (err: any) {
       setTopupError(err?.message || "Payment top-up failed.");
     } finally {

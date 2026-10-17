@@ -43,6 +43,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
 import EmptyState from "@/components/ui/EmptyState";
+import { loadEasebuzzCheckout } from "@/lib/easebuzz/loadEasebuzz";
 import { leadMarketplaceService } from "@/services/professional/leadMarketplace.service";
 import type { MarketplaceLeadPreview, ProfessionalWalletData, PaymentMethodType } from "@/types/lead";
 
@@ -142,14 +143,56 @@ export default function LeadMarketplacePage() {
     try {
       const res = await leadMarketplaceService.acceptLead(selectedLead.id, paymentMethod);
 
-      if (paymentMethod === "direct_payment" && res?.order_id) {
-        // Direct gateway payment initiated
-        alert(`Direct payment order ${res.order_id} generated for ₹${res.amount_inr}. (In test mode, verifying directly...)`);
-        await leadMarketplaceService.verifyPayment({
-          razorpay_order_id: res.gateway_order_id,
-          razorpay_payment_id: `pay_mock_${Date.now()}`,
-          razorpay_signature: `test_sig_${res.gateway_order_id}_pay_mock_${Date.now()}`,
-        });
+      if (paymentMethod === "direct_payment" && res?.access_key) {
+        // Load Easebuzz checkout script
+        let easebuzzLoaded = false;
+        try {
+          await loadEasebuzzCheckout();
+          easebuzzLoaded = typeof window !== "undefined" && Boolean(window.EasebuzzCheckout);
+        } catch {
+          easebuzzLoaded = false;
+        }
+
+        if (easebuzzLoaded) {
+          await new Promise<void>((resolve, reject) => {
+            try {
+              const easebuzz = new window.EasebuzzCheckout(res.key || "P2OTPKQ5X", res.env || "test");
+              const options = {
+                access_key: res.access_key,
+                onResponse: async (response: any) => {
+                  try {
+                    const statusStr = String(response?.status || "").toLowerCase();
+                    if (statusStr === "success" || response?.status === 1) {
+                      await leadMarketplaceService.verifyPayment({
+                        txnid: response.txnid || res.gateway_order_id,
+                        easepayid: response.easepayid || "",
+                        status: "success",
+                        hash: response.hash || "",
+                        order_id: res.order_id,
+                      });
+                      resolve();
+                    } else {
+                      reject(new Error(response?.error_Message || response?.error_desc || "Payment was not successful."));
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                },
+              };
+              easebuzz.initiatePayment(options);
+            } catch (initErr) {
+              if (res.payment_url) {
+                window.location.href = res.payment_url;
+              } else {
+                reject(initErr);
+              }
+            }
+          });
+        } else if (res.payment_url) {
+          window.location.href = res.payment_url;
+        } else {
+          throw new Error("Unable to initialize Easebuzz checkout. Please try again.");
+        }
       }
 
       setAcceptSuccess("Lead accepted successfully! Client contact info unlocked.");
@@ -555,7 +598,7 @@ export default function LeadMarketplacePage() {
                         label={
                           <Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              Pay Directly via Payment Gateway (Cards, UPI, NetBanking)
+                              Pay Directly via Easebuzz Gateway (Cards, UPI, NetBanking)
                             </Typography>
                           </Box>
                         }

@@ -29,6 +29,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import ChangePasswordDialog from "@/components/features/dashboard/member/ChangePasswordDialog";
+import SetInitialPasswordDialog from "@/components/features/dashboard/member/SetInitialPasswordDialog";
 import { env } from "@/config/env";
 import { MEMBER_DASHBOARD_PATH } from "@/lib/memberDashboard";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
@@ -77,6 +78,7 @@ function MemberDashboardInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [setInitialPasswordOpen, setSetInitialPasswordOpen] = useState(false);
 
   const [name, setName] = useState("Member");
   const [email, setEmail] = useState("");
@@ -104,6 +106,29 @@ function MemberDashboardInner() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    // Only right after membership onboarding: check if user just onboarded for the first time
+    const isFirstTimeOnboarded =
+      searchParams.get("setPassword") === "1" ||
+      (typeof window !== "undefined" && sessionStorage.getItem("icj_just_onboarded_membership") === "1");
+
+    if (isFirstTimeOnboarded) {
+      setSetInitialPasswordOpen(true);
+    }
+  }, [searchParams]);
+
+  const closeSetInitialPasswordDialog = () => {
+    setSetInitialPasswordOpen(false);
+    try {
+      sessionStorage.removeItem("icj_just_onboarded_membership");
+    } catch {
+      // ignore
+    }
+    if (searchParams.get("setPassword")) {
+      router.replace(MEMBER_DASHBOARD_PATH);
+    }
+  };
 
   useEffect(() => {
     if (searchParams.get("changePassword") === "1") {
@@ -134,6 +159,11 @@ function MemberDashboardInner() {
 
   return (
     <Box>
+      <SetInitialPasswordDialog
+        open={setInitialPasswordOpen}
+        onClose={closeSetInitialPasswordDialog}
+        onSuccess={closeSetInitialPasswordDialog}
+      />
       <ChangePasswordDialog open={passwordDialogOpen} onClose={closePasswordDialog} />
 
       <Box

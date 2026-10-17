@@ -6,6 +6,59 @@ const EMAILJS_USER_ID = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "_afNcmKvm
 
 export const emailVerificationService = {
   /**
+   * Checks whether the email is unique and available across the database
+   * (User accounts, Active Membership Applications, and Active Professional Registrations).
+   * Prevents wasting EmailJS OTP tokens if the email is already registered.
+   */
+  checkEmailAvailability: async (
+    email: string
+  ): Promise<{ available: boolean; error?: string }> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizedEmail)) {
+      return { available: false, error: "Please enter a valid email address." };
+    }
+
+    try {
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
+
+      let authHeader: Record<string, string> = {};
+      try {
+        if (typeof document !== "undefined") {
+          const match = document.cookie.match(/(?:^|;\s*)icj_access_token=([^;]+)/);
+          if (match && match[1]) {
+            authHeader = { Authorization: `Bearer ${decodeURIComponent(match[1])}` };
+          }
+        }
+      } catch {}
+
+      const response = await fetch(`${apiBase}/auth/check-email/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader,
+        },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || data?.success === false) {
+        const errorMsg =
+          data?.message ||
+          data?.errors?.email?.[0] ||
+          "This email is already registered. Please log in to continue or use a different email.";
+        return { available: false, error: errorMsg };
+      }
+
+      return { available: true };
+    } catch (err: any) {
+      console.warn("[EmailVerification] Email availability check network exception:", err);
+      // In case backend is temporarily unreachable, allow flow rather than blocking hard
+      return { available: true };
+    }
+  },
+
+  /**
    * Generates and dispatches a 6-digit OTP code to applicant's email via EmailJS
    */
   sendEmailOtp: async (
@@ -15,6 +68,17 @@ export const emailVerificationService = {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizedEmail)) {
       return { success: false, error: "Please enter a valid email address." };
+    }
+
+    // 1. Mandatory Pre-check: Verify email is unique before spending EmailJS token quota
+    console.log(`[EmailJS] Pre-checking email uniqueness for: ${normalizedEmail}`);
+    const checkRes = await emailVerificationService.checkEmailAvailability(normalizedEmail);
+    if (!checkRes.available) {
+      console.warn(`[EmailJS] Pre-check failed: ${checkRes.error}. Aborting OTP send to save tokens.`);
+      return {
+        success: false,
+        error: checkRes.error || "This email is already registered. Please log in or use a different email.",
+      };
     }
 
     const greetingName = name?.trim() || "Valued Applicant";
@@ -185,6 +249,15 @@ International Consortium of Jurists (ICJ)`;
       return { success: false, error: "Please enter a valid email address." };
     }
 
+    // 1. Mandatory Pre-check: Verify email is unique before spending EmailJS quota
+    const checkRes = await emailVerificationService.checkEmailAvailability(normalizedEmail);
+    if (!checkRes.available) {
+      return {
+        success: false,
+        error: checkRes.error || "This email is already registered. Please log in or use a different email.",
+      };
+    }
+
     const greetingName = name?.trim() || "Valued Applicant";
 
     // Construct dedicated verify link
@@ -347,8 +420,9 @@ International Consortium of Jurists (ICJ)`;
     try {
       const normalized = email.trim().toLowerCase();
       if (emailVerificationService.isEmailVerified(normalized)) return true;
+      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
       const res = await fetch(
-        `http://localhost:8000/api/v1/auth/email-verification-status/?email=${encodeURIComponent(normalized)}`
+        `${apiBase}/auth/email-verification-status/?email=${encodeURIComponent(normalized)}`
       );
       if (res.ok) {
         const json = await res.json();
@@ -376,7 +450,8 @@ International Consortium of Jurists (ICJ)`;
 
       // Sync with backend verification status
       try {
-        fetch("http://localhost:8000/api/v1/auth/email-verification-status/", {
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
+        fetch(`${apiBase}/auth/email-verification-status/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: normalized }),

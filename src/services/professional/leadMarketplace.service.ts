@@ -206,8 +206,18 @@ export const leadMarketplaceService = {
     return res.data;
   },
 
-  /** Verify direct payment */
-  verifyPayment: async (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature?: string }): Promise<any> => {
+  /** Verify direct gateway payment (Easebuzz) */
+  verifyPayment: async (data: {
+    txnid?: string;
+    easepayid?: string;
+    status?: string;
+    hash?: string;
+    order_id?: string;
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+    [key: string]: any;
+  }): Promise<any> => {
     const res = await apiClient<ApiEnvelope<any>>(API_ENDPOINTS.professionalLeads.verifyPayment, {
       method: "POST",
       headers: authHeaders(),

@@ -258,7 +258,7 @@ export default function AdminDashboardPage() {
                           {formatRelativeTime(item.timestamp)}
                         </Typography>
 
-                        {targetUrl && targetUrl !== "/admin/dashboard" && (
+                        {targetUrl && targetUrl !== "/admin/dashboard" && targetUrl !== "/dashboard/admin" && (
                           <Button
                             component={Link}
                             href={targetUrl}
