@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "apps.person.apps.PersonConfig",
     "apps.honorable_advisory.apps.HonorableAdvisoryConfig",
     "apps.services.apps.ServicesConfig",
+    "apps.leads.apps.LeadsConfig",
 ]
 
 MIDDLEWARE = [
