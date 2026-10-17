@@ -11,6 +11,7 @@ Next.js enterprise frontend for the ICJ platform.
 
 ## Structure
 
+
 ```
 src/
 ├── app/              # Routes (public, auth groups)
