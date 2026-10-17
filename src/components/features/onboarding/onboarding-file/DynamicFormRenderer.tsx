@@ -23,6 +23,7 @@ import { RADIUS, resolveIcon } from "./iconMap";
 import { FormField, FormSchema, Theme } from "@/types/registration";
 import { Select, Tabs, Tab } from "@mui/material";
 import { useState } from "react";
+import EmailVerificationField from "@/components/ui/EmailVerificationField";
 
 type Props = {
   schema: FormSchema;
@@ -30,6 +31,8 @@ type Props = {
   errors: Record<string, string>;
   theme: Theme;
   onChange: (name: string, value: unknown) => void;
+  isEmailPreVerified?: boolean;
+  onEmailVerified?: (email: string) => void;
 };
 
 function labelWithFlag(field: FormField) {
@@ -44,7 +47,15 @@ function resolveOptionEntries(field: FormField): { value: string; label: string 
   return opts.map((o) => ({ value: o, label: o }));
 }
 
-export default function DynamicFormRenderer({ schema, values, errors, theme, onChange }: Props) {
+export default function DynamicFormRenderer({
+  schema,
+  values,
+  errors,
+  theme,
+  onChange,
+  isEmailPreVerified,
+  onEmailVerified,
+}: Props) {
   const countryKey = Object.keys(values).find(k => k.toLowerCase().includes("country")) || "country";
   const stateKey = Object.keys(values).find(k => k.toLowerCase().includes("state")) || "state";
   const districtKey = Object.keys(values).find(k => k.toLowerCase().includes("district") || k.toLowerCase().includes("city")) || "district";
@@ -304,7 +315,20 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
           />
         );
 
-      case "date":
+      case "date": {
+        const isDob =
+          field.name.toLowerCase().includes("dob") ||
+          field.name.toLowerCase().includes("birth") ||
+          field.label?.toLowerCase().includes("birth");
+
+        const maxDobDate = `${new Date().getFullYear() - 18}-12-31`;
+
+        const handleDateFocus = () => {
+          if (isDob && !value) {
+            onChange(field.name, "2000-01-01");
+          }
+        };
+
         return wrap(
           <TextField
             fullWidth
@@ -312,13 +336,24 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
             type="date"
             label={labelWithFlag(field)}
             value={(value as string) ?? ""}
+            onFocus={handleDateFocus}
+            onClick={handleDateFocus}
             onChange={(e) => onChange(field.name, e.target.value)}
             error={!!error}
             helperText={error ?? field.helper}
-            slotProps={{ inputLabel: { shrink: true } }}
+            slotProps={{
+              inputLabel: { shrink: true },
+              htmlInput: isDob
+                ? {
+                    max: maxDobDate,
+                    min: "1940-01-01",
+                  }
+                : undefined,
+            }}
             sx={inputSx}
           />
         );
+      }
 
       case "tel": {
         const countryCode = (countries.find((c) => c.value === selectedCountryName)?.code?.toUpperCase() || "IN") as CountryCode;
@@ -366,6 +401,9 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
           }
 
           if (countryCode === "IN") {
+            if (digits.startsWith("0")) {
+              digits = digits.replace(/^0+/, "");
+            }
             if (digits.length > 10) {
               digits = digits.slice(0, 10);
             }
@@ -479,7 +517,50 @@ export default function DynamicFormRenderer({ schema, values, errors, theme, onC
         );
       }
 
+      case "email":
       default: {
+        const isEmailField =
+          field.type === "email" ||
+          field.name.toLowerCase() === "email" ||
+          field.name.toLowerCase() === "email_address";
+
+        if (isEmailField) {
+          const applicantName =
+            ((values.full_name || values.name || values.first_name) as string) || "";
+          return wrap(
+            <EmailVerificationField
+              label={field.label}
+              placeholder={field.placeholder || "name@example.com"}
+              value={(value as string) ?? ""}
+              error={error}
+              helperText={field.helper}
+              required={field.required}
+              applicantName={applicantName}
+              themeColor={theme.color}
+              inputSx={inputSx}
+              onChange={(newVal) => onChange(field.name, newVal)}
+              onVerified={(verifiedEmail) => {
+                onChange(field.name, verifiedEmail);
+                if (onEmailVerified) onEmailVerified(verifiedEmail);
+                // Automatically focus next interactive field in the form
+                setTimeout(() => {
+                  try {
+                    const selector = 'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])';
+                    const allInputs = Array.from(document.querySelectorAll(selector));
+                    const currentIdx = allInputs.findIndex((el) => (el as HTMLInputElement).value === verifiedEmail);
+                    if (currentIdx >= 0 && currentIdx < allInputs.length - 1) {
+                      (allInputs[currentIdx + 1] as HTMLElement).focus();
+                    }
+                  } catch {
+                    // Ignore DOM focus errors
+                  }
+                }, 100);
+              }}
+              isPreVerified={isEmailPreVerified}
+            />
+          );
+        }
+
         const isPincode = field.name.toLowerCase().includes("pincode");
         const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
           let val = e.target.value;

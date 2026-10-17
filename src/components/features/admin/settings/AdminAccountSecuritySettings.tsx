@@ -15,6 +15,7 @@ import { useState } from "react";
 import { ApiError, apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { AuthTokens } from "@/types/api";
+import PasswordStrengthIndicator from "@/components/ui/PasswordStrengthIndicator";
 
 export default function AdminAccountSecuritySettings() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -116,6 +117,14 @@ export default function AdminAccountSecuritySettings() {
           fullWidth
           autoComplete="current-password"
         />
+        <PasswordStrengthIndicator
+          password={newPassword}
+          confirmPassword={confirmPassword}
+          onSuggest={(suggested) => {
+            setNewPassword(suggested);
+            setConfirmPassword(suggested);
+          }}
+        />
         <TextField
           label="New password"
           type="password"
@@ -124,7 +133,7 @@ export default function AdminAccountSecuritySettings() {
           required
           fullWidth
           autoComplete="new-password"
-          helperText="At least 12 characters"
+          helperText="Must meet all policy requirements above"
         />
         <TextField
           label="Confirm new password"

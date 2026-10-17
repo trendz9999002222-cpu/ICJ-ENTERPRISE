@@ -9,6 +9,7 @@ import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { normalizePlatformRole } from "@/lib/roles";
 import type { AuthTokens, UserRole } from "@/types/api";
 import { getDashboardRoute } from "@/types/api";
+import PasswordStrengthIndicator from "@/components/ui/PasswordStrengthIndicator";
 
 function decodeJwt(token: string): Record<string, unknown> | null {
   try {
@@ -90,7 +91,7 @@ export default function ChangePasswordForm() {
             Set a new password
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter your <strong>current (temporary) password</strong>, then choose a new password (at least 12 characters).
+            Enter your <strong>current (temporary) password</strong>, then choose a new password (at least 8 characters).
           </Typography>
           <TextField
             label="Current password"
@@ -99,6 +100,14 @@ export default function ChangePasswordForm() {
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
             fullWidth
+          />
+          <PasswordStrengthIndicator
+            password={newPassword}
+            confirmPassword={confirmPassword}
+            onSuggest={(suggested) => {
+              setNewPassword(suggested);
+              setConfirmPassword(suggested);
+            }}
           />
           <TextField
             label="New password"

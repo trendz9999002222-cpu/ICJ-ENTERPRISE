@@ -16,15 +16,27 @@ export type MembershipPaymentSettings = {
   amount_paise: number;
   amount_inr: number;
   currency: string;
-  razorpay_key_id: string;
+  payment_gateway?: string;
+  easebuzz_configured?: boolean;
+  easebuzz_key?: string;
+  easebuzz_env?: string;
+  razorpay_key_id?: string;
 };
 
 export type MembershipCreateOrderResponse = {
   payment_id: string;
-  razorpay_order_id: string;
+  gateway?: string;
+  access_key: string;
+  txnid: string;
   amount_paise: number;
+  amount_inr?: number;
   currency: string;
-  razorpay_key_id: string;
+  key?: string;
+  env?: string;
+  payment_url?: string;
+  // Razorpay backward compatibility
+  razorpay_order_id?: string;
+  razorpay_key_id?: string;
 };
 
 export const membershipOnboardingPublicService = {
@@ -32,20 +44,31 @@ export const membershipOnboardingPublicService = {
     return (await apiClient<ApiEnvelope<MembershipPaymentSettings>>(`${BASE}/payment/settings/`)).data;
   },
 
-  async createPaymentOrder(): Promise<MembershipCreateOrderResponse> {
+  async createPaymentOrder(payload: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    application_id?: string;
+  } = {}): Promise<MembershipCreateOrderResponse> {
     return (
       await apiClient<ApiEnvelope<MembershipCreateOrderResponse>>(`${BASE}/payment/create-order/`, {
         method: "POST",
-        body: {},
+        body: payload,
       })
     ).data;
   },
 
   async verifyPayment(payload: {
     payment_id: string;
-    razorpay_order_id: string;
-    razorpay_payment_id: string;
-    razorpay_signature: string;
+    txnid?: string;
+    status?: string;
+    easepayid?: string;
+    hash?: string;
+    // Razorpay backward compatibility
+    razorpay_order_id?: string;
+    razorpay_payment_id?: string;
+    razorpay_signature?: string;
+    application_id?: string;
   }): Promise<{ payment_id: string; verified: boolean }> {
     return (
       await apiClient<ApiEnvelope<{ payment_id: string; verified: boolean }>>(`${BASE}/payment/verify/`, {
@@ -54,6 +77,18 @@ export const membershipOnboardingPublicService = {
       })
     ).data;
   },
+
+  async validateIdentity(payload: {
+    email?: string;
+    phone?: string;
+  }): Promise<{ valid: boolean }> {
+    const res = await apiClient<ApiEnvelope<{ valid: boolean }>>(`${BASE}/validate-identity/`, {
+      method: "POST",
+      body: payload,
+    });
+    return res.data ?? { valid: true };
+  },
+
   async fetchConfiguration(): Promise<MembershipOnboardingConfiguration> {
     const path = API_ENDPOINTS.membershipOnboardingPublic.configuration;
     return (await apiClient<ApiEnvelope<MembershipOnboardingConfiguration>>(path)).data;

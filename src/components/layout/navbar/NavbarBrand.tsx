@@ -1,8 +1,7 @@
 "use client";
 
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import GavelIcon from "@mui/icons-material/Gavel";
 import { Box, Typography } from "@mui/material";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function NavbarBrand() {
@@ -23,14 +22,24 @@ export default function NavbarBrand() {
         sx={{
           width: { xs: 36, sm: 40 },
           height: { xs: 36, sm: 40 },
-          borderRadius: 2,
-          bgcolor: "#2563eb",
+          borderRadius: "50%",
+          overflow: "hidden",
+          bgcolor: "#ffffff",
+          border: "1.5px solid #e2e8f0",
           display: "grid",
           placeItems: "center",
-          boxShadow: "0 2px 8px rgba(37,99,235,0.25)",
+          boxShadow: "0 2px 6px rgba(15,23,42,0.08)",
+          p: 0.3,
         }}
       >
-        <GavelIcon sx={{ color: "#ffffff", fontSize: { xs: 20, sm: 22 } }} />
+        <Image
+          src="/images/icj-logo.png"
+          alt="ICJ Logo"
+          width={40}
+          height={40}
+          priority
+          style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "50%" }}
+        />
       </Box>
 
       <Box>

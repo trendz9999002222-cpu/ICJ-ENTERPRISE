@@ -82,6 +82,9 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
   
   const [toastMsg, setToastMsg] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -138,6 +141,16 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
     config: configs.find(c => c.common_field === gf.id) || null
   }));
 
+  const filteredRows = rows.filter((r) => {
+    if (!search.trim()) return true;
+    const q = search.toLowerCase();
+    return (
+      r.globalField.label.toLowerCase().includes(q) ||
+      r.globalField.field_key.toLowerCase().includes(q) ||
+      r.globalField.field_type.toLowerCase().includes(q)
+    );
+  });
+
   const columns: AdminTableColumn<CombinedRow>[] = [
     { key: "label", label: "Field", render: (r) => <strong>{r.globalField.label}</strong> },
     { key: "key", label: "Key", render: (r) => r.globalField.field_key },
@@ -189,11 +202,28 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
 
       <AdminDataTable
         columns={columns}
-        rows={rows}
+        rows={filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)}
         loading={loading}
         error={error}
+        searchValue={search}
+        searchPlaceholder="Search common fields by label, key, type..."
+        onSearchChange={(v) => {
+          setSearch(v);
+          setPage(0);
+        }}
         getRowKey={(r) => r.globalField.id}
         emptyMessage="No common fields found. Please create them in the global Common Form Fields tab."
+        pagination={{
+          page,
+          totalCount: filteredRows.length,
+          rowsPerPage,
+          rowsPerPageOptions: [10, 25, 50],
+          onPageChange: (p) => setPage(p),
+          onRowsPerPageChange: (s) => {
+            setRowsPerPage(s);
+            setPage(0);
+          },
+        }}
       />
 
       <Snackbar open={!!toastMsg} autoHideDuration={4000} onClose={() => setToastMsg("")} message={toastMsg} />

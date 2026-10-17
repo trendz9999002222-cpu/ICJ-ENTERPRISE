@@ -9,6 +9,11 @@ export const env = {
   apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1",
   appName: process.env.NEXT_PUBLIC_APP_NAME ?? "ICJ Enterprise Platform",
   isProduction: process.env.NODE_ENV === "production",
+  emailjs: {
+    serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_rypannl",
+    templateId: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_pmntrjf",
+    publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "_afNcmKvmFJoVdlI9",
+  },
 };
 
 export const getServerApiUrl = () =>

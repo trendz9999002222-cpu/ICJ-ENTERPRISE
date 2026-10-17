@@ -4,7 +4,7 @@ import { Tab, Tabs, Box } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export default function OnboardingTabs({ type }: { type: "professional" | "membership" | "honorable" }) {
+export default function OnboardingTabs({ type }: { type: "professional" | "membership" | "honorable" | "subscription" | "assistance" }) {
   const pathname = usePathname();
 
   let tabs: Array<{label: string; href: string}> = [];
@@ -26,6 +26,16 @@ export default function OnboardingTabs({ type }: { type: "professional" | "membe
     tabs = [
       { label: "Common Fields", href: "/admin/honorable-advisory-onboarding/common-fields" },
       { label: "Additional Fields", href: "/admin/honorable-advisory-onboarding" },
+    ];
+  } else if (type === "assistance") {
+    tabs = [
+      { label: "Citizen Details", href: "/admin/assistance-onboarding/common-fields" },
+      { label: "Legal Matter Information", href: "/admin/assistance-onboarding/legal-matter" },
+      { label: "Supporting Documents", href: "/admin/assistance-onboarding/documents" },
+    ];
+  } else if (type === "subscription") {
+    tabs = [
+      { label: "Membership", href: "/admin/subscriptions" },
     ];
   }
 
