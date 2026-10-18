@@ -116,6 +116,15 @@ class WalletService:
         return tx
 
     @staticmethod
+    def debit_for_lead(user, amount_paise: int, lead_id: str, receipt_ref: str) -> WalletTransaction:
+        return WalletService.debit_wallet(
+            user=user,
+            amount_paise=amount_paise,
+            description=f"Payment for Lead Acceptance: {lead_id}",
+            reference=receipt_ref,
+        )
+
+    @staticmethod
     @transaction.atomic
     def hold_balance(user, amount_paise: int, reference: str | None = None) -> WalletTransaction:
         if amount_paise <= 0:

@@ -160,7 +160,35 @@ class PublicAssistanceRequestAPIView(APIView):
             while AssistanceRequest.objects.filter(reference_id=ref_id).exists():
                 ref_id = f"ICJ-REQ-{year}-{random.randint(10000, 99999)}"
                 
-            serializer.save(reference_id=ref_id)
+            instance = serializer.save(reference_id=ref_id)
+
+            # Automatically generate Marketplace Lead from citizen assistance request
+            try:
+                from apps.leads.models import Lead
+                lead_id = f"LEAD-{ref_id}"
+                Lead.objects.get_or_create(
+                    assistance_request=instance,
+                    defaults={
+                        "lead_id": lead_id,
+                        "category": instance.category or "Legal Assistance",
+                        "urgency": instance.urgency or "Medium",
+                        "state_name": instance.state_name or "Not Specified",
+                        "city_name": instance.city_name or "Not Specified",
+                        "anonymized_summary": (
+                            f"Matter regarding {instance.category or 'Legal Assistance'} in "
+                            f"{instance.city_name or ''}, {instance.state_name or ''}. "
+                            f"Urgency: {instance.urgency or 'Medium'}."
+                        ),
+                        "full_description": instance.problem_description or "",
+                        "status": Lead.Status.PENDING_REVIEW,
+                        "tokens_required": 1,
+                        "client_documents": payload.get("files") or [],
+                    }
+                )
+            except Exception as e:
+                # Log but do not block citizen request confirmation
+                pass
+
             return api_success(data=serializer.data, message="Assistance request submitted successfully.", status_code=201)
         return api_error(message="Validation failed.", errors=serializer.errors, status_code=400)
 
