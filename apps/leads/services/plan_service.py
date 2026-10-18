@@ -56,6 +56,26 @@ class PlanService:
             notes=f"Purchased plan '{plan.name}' with {plan.credits_granted} credits",
         )
 
+        from apps.leads.services.wallet_service import WalletService
+        from apps.leads.models import WalletTransaction
+        import uuid
+        wallet = WalletService.get_or_create_wallet(user)
+        wallet.token_balance += plan.credits_granted
+        wallet.total_tokens_purchased += plan.credits_granted
+        wallet.save(update_fields=["token_balance", "total_tokens_purchased", "updated_at"])
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            reference=f"TX-PLAN-{uuid.uuid4().hex[:10].upper()}",
+            tx_type=WalletTransaction.TxType.CREDIT,
+            amount_paise=plan.price_paise,
+            balance_after_paise=wallet.balance_paise,
+            tokens_delta=plan.credits_granted,
+            token_balance_after=wallet.token_balance,
+            description=f"Purchased plan '{plan.name}' (+{plan.credits_granted} tokens)",
+            created_by=user,
+        )
+
         LeadAuditLog.objects.create(
             entity_type="PLAN",
             entity_id=str(plan.id),

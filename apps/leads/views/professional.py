@@ -221,10 +221,42 @@ class ProfessionalMyLeadsAPIView(ProfessionalLeadBaseView):
             status=LeadAcceptance.Status.ACTIVE,
         ).values_list("lead_id", flat=True)
 
-        qs = Lead.objects.filter(id__in=lead_ids).select_related("assistance_request", "acceptance")
+        qs = Lead.objects.filter(
+            Q(id__in=lead_ids) | Q(assigned_professional=request.user)
+        ).distinct().select_related("assistance_request")
         qs = apply_search(qs, params.get("search"), "lead_id", "category", "assistance_request__full_name")
-        qs = apply_ordering(qs, params.get("ordering"), "-acceptance__accepted_at")
+        qs = apply_ordering(qs, params.get("ordering"), "-created_at")
         return paginated_success(request, qs, LeadDetailSerializer, message="My accepted leads retrieved.")
+
+
+class ProfessionalLeadCaseProgressAPIView(ProfessionalLeadBaseView):
+    """
+    Allows the accepted professional to update stage and cumulative case notes for a matter.
+    """
+    def patch(self, request, pk):
+        lead = get_object_or_404(Lead, pk=pk)
+        has_access = (
+            lead.assigned_professional_id == request.user.id or
+            lead.acceptances.filter(professional=request.user, status=LeadAcceptance.Status.ACTIVE).exists()
+        )
+        if not has_access:
+            return api_error("You do not have permission to manage this lead.", status_code=403)
+
+        data = self.get_request_data(request)
+        from django.utils import timezone
+        timestamp_str = timezone.now().strftime('%Y-%m-%d %I:%M %p')
+
+        if "case_stage" in data:
+            lead.case_stage = data["case_stage"]
+        if "case_notes" in data and data["case_notes"].strip():
+            new_note = data["case_notes"].strip()
+            author = request.user.get_full_name() or request.user.email
+            lead.case_notes = (lead.case_notes + f"\n[{author} - {timestamp_str}]: {new_note}").strip()
+        lead.save()
+        return api_success(
+            data=LeadDetailSerializer(lead, context={"request": request}).data,
+            message="Case progress and notes updated successfully."
+        )
 
 
 class ProfessionalWalletAPIView(ProfessionalLeadBaseView):
