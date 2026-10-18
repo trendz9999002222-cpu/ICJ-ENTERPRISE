@@ -36,7 +36,7 @@ urlpatterns = [
         include("apps.services.urls.admin"),
     ),
     path(
-        "api/v1/admin/leads/",
+        "api/v1/admin/",
         include("apps.leads.urls.admin"),
     ),
     path(

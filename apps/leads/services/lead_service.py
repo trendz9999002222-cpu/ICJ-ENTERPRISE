@@ -184,7 +184,7 @@ class LeadService:
         commercial_settings = LeadCommercialSettings.get_settings()
         receipt_ref = f"ICJ-REC-{now.year}-{uuid.uuid4().hex[:10].upper()}"
         wallet = WalletService.get_or_create_wallet(user)
-        required_tokens = lead.tokens_required or 1
+        required_tokens = max(1, lead.tokens_required or 1)
 
         price_paid_paise = 0
         tokens_spent = 0
@@ -212,15 +212,12 @@ class LeadService:
                 raise ValidationError("No active, valid lead credits available.")
             price_paid_paise = 0
             tokens_spent = 1
-        elif payment_method == "non_commercial":
-            price_paid_paise = 0
-            tokens_spent = 0
         else:
-            # Default: Token-based economy ("tokens")
+            # Token-based economy ("tokens" or default)
             plan_credits = PlanService.get_available_credits(user)
             if plan_credits > wallet.token_balance:
                 wallet.token_balance = plan_credits
-                wallet.save(update_fields=["token_balance"])
+                wallet.save(update_fields=["token_balance", "updated_at"])
 
             if wallet.token_balance < required_tokens:
                 raise ValidationError(
@@ -246,6 +243,7 @@ class LeadService:
             )
             price_paid_paise = 0
             tokens_spent = required_tokens
+            payment_method = "tokens"
 
         # Update Lead status to ACCEPTED and set assigned professional
         lead.status = Lead.Status.ACCEPTED
@@ -270,7 +268,7 @@ class LeadService:
             status=LeadAcceptance.Status.ACTIVE,
         )
 
-        if payment_method == LeadAcceptance.PaymentMethod.LEAD_CREDIT:
+        if PlanService.get_available_credits(user) > 0:
             PlanService.consume_one_credit(user=user, lead_acceptance=acceptance)
 
         LeadActivity.objects.create(
