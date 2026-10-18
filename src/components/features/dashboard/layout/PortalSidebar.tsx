@@ -133,21 +133,10 @@ export function getPortalNavItems(
       section: "Practice",
     });
     items.push({
-      label: "Available Cases",
-      href: "/dashboard/professional/cases",
-      icon: <GavelIcon fontSize="small" />,
-      section: "Cases",
-    });
-    items.push({
-      label: "My Cases",
-      href: "/dashboard/professional/my-cases",
-      icon: <AssignmentTurnedInIcon fontSize="small" />,
-    });
-    items.push({
       label: "Lead Marketplace",
       href: "/dashboard/professional/leads",
       icon: <StorefrontIcon fontSize="small" />,
-      section: "Lead Marketplace",
+      section: "Leads & Marketplace",
     });
     items.push({
       label: "My Leads",

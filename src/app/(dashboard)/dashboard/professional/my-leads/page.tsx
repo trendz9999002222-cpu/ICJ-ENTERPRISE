@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -14,19 +15,27 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
-  Grid,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
   Typography,
-  Alert,
 } from "@mui/material";
 
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import PhoneIcon from "@mui/icons-material/Phone";
 import EmailIcon from "@mui/icons-material/Email";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-import GavelIcon from "@mui/icons-material/Gavel";
-import ReceiptIcon from "@mui/icons-material/Receipt";
+import GridViewIcon from "@mui/icons-material/GridView";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
@@ -37,6 +46,8 @@ import type { DetailedLead } from "@/types/lead";
 export default function MyLeadsPage() {
   const [leads, setLeads] = useState<DetailedLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
   const [selectedLead, setSelectedLead] = useState<DetailedLead | null>(null);
   const [refundModalOpen, setRefundModalOpen] = useState(false);
   const [refundReason, setRefundReason] = useState("");
@@ -86,11 +97,44 @@ export default function MyLeadsPage() {
   return (
     <PortalPageShell
       title="My Accepted Leads"
-      subtitle="Exclusive legal inquiries accepted by you. Access unlocked client contact details and initiate matter engagement."
+      subtitle="Exclusive legal inquiries accepted by you. Unlocked client contact details, matter progress, and document access."
+      actions={
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={(_, next) => next && setViewMode(next)}
+            size="small"
+            sx={{ bgcolor: "#f8fafc" }}
+          >
+            <ToggleButton value="grid" aria-label="cards view">
+              <Tooltip title="Cards View">
+                <GridViewIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+            <ToggleButton value="list" aria-label="list view">
+              <Tooltip title="List View">
+                <ViewListIcon fontSize="small" />
+              </Tooltip>
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          <Button
+            component={Link}
+            href="/dashboard/professional/leads"
+            variant="contained"
+            size="small"
+            startIcon={<StorefrontIcon />}
+            sx={{ textTransform: "none", fontWeight: 700 }}
+          >
+            Marketplace
+          </Button>
+        </Stack>
+      }
     >
       <SectionCard
-        title="Accepted Leads"
-        subtitle={`${leads.length} lead${leads.length !== 1 ? "s" : ""} in your active portfolio`}
+        title="Accepted Leads Portfolio"
+        subtitle={`${leads.length} matter${leads.length !== 1 ? "s" : ""} under your representation`}
         icon={<ContactPhoneIcon sx={{ color: "#2563eb", fontSize: 20 }} />}
         noPadding
       >
@@ -101,15 +145,22 @@ export default function MyLeadsPage() {
         ) : leads.length === 0 ? (
           <EmptyState
             icon={<ContactPhoneIcon sx={{ fontSize: 48, color: "#94a3b8" }} />}
-            message="No accepted leads yet"
-            description="Explore the Lead Marketplace to review verified inquiries and accept matters in your practice domain."
+            message="No Accepted Leads Yet"
+            description="Explore the Lead Marketplace to review verified inquiries and accept matters in your practice domain using tokens."
             action={
-              <Button component={Link} href="/dashboard/professional/leads" variant="contained" size="small" sx={{ textTransform: "none", fontWeight: 700 }}>
+              <Button
+                component={Link}
+                href="/dashboard/professional/leads"
+                variant="contained"
+                size="small"
+                sx={{ textTransform: "none", fontWeight: 700 }}
+              >
                 Explore Lead Marketplace
               </Button>
             }
           />
-        ) : (
+        ) : viewMode === "grid" ? (
+          /* CARDS VIEW */
           <Box sx={{ p: 2.5 }}>
             <Stack spacing={2.5}>
               {leads.map((lead) => (
@@ -138,11 +189,11 @@ export default function MyLeadsPage() {
                         <Chip
                           label={lead.urgency}
                           size="small"
-                          color={lead.urgency.toLowerCase() === "high" ? "error" : "warning"}
+                          color={lead.urgency.toLowerCase() === "high" || lead.urgency.toLowerCase() === "critical" ? "error" : "warning"}
                           sx={{ fontSize: "0.7rem", height: 20, fontWeight: 600 }}
                         />
                         <Chip
-                          label={lead.city_name}
+                          label={lead.city_name || "Location"}
                           size="small"
                           variant="outlined"
                           sx={{ fontSize: "0.7rem", height: 20 }}
@@ -155,7 +206,7 @@ export default function MyLeadsPage() {
                       <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a" }}>
                         {lead.client_name || "Client"}
                       </Typography>
-                      <Stack direction="row" spacing={2} sx={{ mt: 0.5, color: "#475569", fontSize: "0.8rem" }}>
+                      <Stack direction="row" spacing={2} sx={{ mt: 0.5, color: "#475569", fontSize: "0.8rem", flexWrap: "wrap" }}>
                         <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
                           <PhoneIcon sx={{ fontSize: 15, color: "#16a34a" }} />
                           <a href={`tel:${lead.client_mobile}`} style={{ color: "inherit", textDecoration: "none", fontWeight: 600 }}>
@@ -174,7 +225,7 @@ export default function MyLeadsPage() {
                       </Typography>
                     </Box>
 
-                    {/* Right-Middle: Receipt and Status */}
+                    {/* Right-Middle: Receipt and Tokens */}
                     <Box>
                       <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
                         RECEIPT REF
@@ -183,7 +234,7 @@ export default function MyLeadsPage() {
                         {lead.acceptance_info?.receipt_reference || "Direct"}
                       </Typography>
                       <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 0.5 }}>
-                        Method: <strong>{lead.acceptance_info?.payment_method || "Wallet"}</strong>
+                        Tokens Spent: <strong>{lead.acceptance_info?.tokens_spent || lead.tokens_required || 1}</strong>
                       </Typography>
                     </Box>
 
@@ -194,9 +245,9 @@ export default function MyLeadsPage() {
                         href={`/dashboard/professional/leads/${lead.id}`}
                         variant="outlined"
                         size="small"
-                        sx={{ textTransform: "none", fontSize: "0.8rem" }}
+                        sx={{ textTransform: "none", fontSize: "0.8rem", fontWeight: 600 }}
                       >
-                        View Matter Details
+                        View Matter & Documents
                       </Button>
                       <Button
                         variant="text"
@@ -213,6 +264,78 @@ export default function MyLeadsPage() {
               ))}
             </Stack>
           </Box>
+        ) : (
+          /* TABLE LIST VIEW */
+          <TableContainer>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>LEAD ID</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>CATEGORY</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>URGENCY</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>CLIENT NAME</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>CONTACT</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>LOCATION</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>TOKENS</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textAlign: "right" }}>ACTIONS</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id} hover>
+                    <TableCell sx={{ fontWeight: 700, color: "#2563eb", fontSize: "0.8rem" }}>
+                      {lead.lead_id}
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600, fontSize: "0.8rem" }}>
+                      {lead.category}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={lead.urgency}
+                        size="small"
+                        color={lead.urgency.toLowerCase() === "high" || lead.urgency.toLowerCase() === "critical" ? "error" : "warning"}
+                        sx={{ fontWeight: 600, fontSize: "0.68rem", height: 20 }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: "0.8rem" }}>
+                      {lead.client_name || "—"}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.8rem" }}>
+                      {lead.client_mobile || lead.client_email || "—"}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.8rem", color: "#64748b" }}>
+                      {lead.city_name}, {lead.state_name}
+                    </TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: "#1d4ed8", fontSize: "0.8rem" }}>
+                      {lead.acceptance_info?.tokens_spent || lead.tokens_required || 1}
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "right" }}>
+                      <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                        <Button
+                          component={Link}
+                          href={`/dashboard/professional/leads/${lead.id}`}
+                          variant="outlined"
+                          size="small"
+                          sx={{ textTransform: "none", fontSize: "0.75rem", py: 0.3 }}
+                        >
+                          View Details
+                        </Button>
+                        <Button
+                          variant="text"
+                          color="error"
+                          size="small"
+                          onClick={() => handleOpenRefund(lead)}
+                          sx={{ textTransform: "none", fontSize: "0.75rem", py: 0.3 }}
+                        >
+                          Refund
+                        </Button>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </SectionCard>
 
