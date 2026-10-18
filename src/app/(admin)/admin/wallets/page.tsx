@@ -321,10 +321,35 @@ export default function AdminWalletsPage() {
         ))}
       </Box>
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2, borderBottom: "1px solid #e2e8f0" }}>
-        <Tab icon={<AccountBalanceWalletIcon fontSize="small" />} iconPosition="start" label="Wallet Overview" />
-        <Tab icon={<HistoryIcon fontSize="small" />} iconPosition="start" label="All Transactions" />
-      </Tabs>
+      <Box sx={{ borderBottom: "1px solid #e2e8f0", mb: 3 }}>
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          sx={{
+            minHeight: 44,
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              minHeight: 44,
+              px: 2.5,
+              color: "text.secondary",
+              "&.Mui-selected": {
+                color: "primary.main",
+                fontWeight: 700,
+              },
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+              borderRadius: "3px 3px 0 0",
+              bgcolor: "primary.main",
+            },
+          }}
+        >
+          <Tab icon={<AccountBalanceWalletIcon fontSize="small" />} iconPosition="start" label="Wallet Overview" />
+          <Tab icon={<HistoryIcon fontSize="small" />} iconPosition="start" label="All Transactions" />
+        </Tabs>
+      </Box>
 
       {tab === 0 && (
         <AdminDataTable<ProfessionalWalletData>

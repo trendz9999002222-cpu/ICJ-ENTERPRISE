@@ -54,8 +54,8 @@ type Props<T> = {
   onSearchChange?: (value: string) => void;
   /** Optional filter chips/selects rendered next to search */
   filterSlot?: ReactNode;
-  /** Key extractor for React list keys */
-  getRowKey: (row: T) => string | number;
+  /** Key extractor for React list keys (optional, defaults to row.id) */
+  getRowKey?: (row: T) => string | number;
   /** If provided, renders MUI TablePagination below the table. If undefined, built-in client pagination is used. Pass false to disable. */
   pagination?: AdminPaginationConfig | false;
   /** Prepends a serial number column (respects pagination offset) */
@@ -107,7 +107,7 @@ export default function AdminDataTable<T>({
   searchPlaceholder = "Search...",
   onSearchChange,
   filterSlot,
-  getRowKey,
+  getRowKey = (row: any) => row?.id || row?.key || row?._id || Math.random().toString(),
   pagination,
   showSerialNumber = false,
   serialLabel = "S.No.",
@@ -274,7 +274,7 @@ export default function AdminDataTable<T>({
               ) : (
                 (displayedRows || []).map((row, rowIndex) => (
                   <TableRow
-                    key={getRowKey(row)}
+                    key={typeof getRowKey === "function" ? getRowKey(row) : ((row as any)?.id || rowIndex)}
                     hover
                     sx={{
                       "&:last-child td": { borderBottom: 0 },

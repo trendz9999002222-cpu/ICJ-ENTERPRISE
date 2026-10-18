@@ -59,14 +59,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
   { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
   { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
-  { label: "Subscriptions", href: "/admin/subscriptions", icon: <AccountBalanceWalletIcon fontSize="small" /> },
   { label: "Honorable Advisory", href: "/admin/honorable-advisory-members", icon: <PeopleAltIcon fontSize="small" /> },
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" />, section: "Legal" },
   { label: "Appointments", href: "/admin/appointments", icon: <CalendarMonthIcon fontSize="small" />, section: "Operations" },
   { label: "Services", href: "/admin/services", icon: <HandshakeIcon fontSize="small" /> },
   { label: "Leads Management", href: "/admin/leads", icon: <StorefrontIcon fontSize="small" />, section: "Marketplace & Finance" },
   { label: "Professional Wallets", href: "/admin/wallets", icon: <AccountBalanceWalletIcon fontSize="small" /> },
-  { label: "Lead Credit Plans", href: "/admin/lead-plans", icon: <LoyaltyIcon fontSize="small" /> },
+  { label: "ICJ Plans", href: "/admin/lead-plans", icon: <LoyaltyIcon fontSize="small" /> },
   { label: "Payments & Refunds", href: "/admin/payments", icon: <ReceiptLongIcon fontSize="small" /> },
   { label: "Trust Donations", href: "/admin/donations", icon: <VolunteerActivismIcon fontSize="small" /> },
   { label: "Marketplace Reports", href: "/admin/leads/reports", icon: <SummarizeIcon fontSize="small" /> },
@@ -110,8 +109,11 @@ function isNavItemActive(pathname: string, href: string): boolean {
   if (href === "/dashboard/admin" || href === "/admin/dashboard") {
     return pathname === "/dashboard/admin" || pathname === "/admin/dashboard";
   }
-  if (href === "/admin/subscriptions") {
-    return pathname.startsWith("/admin/subscriptions");
+  if (href === "/admin/lead-plans") {
+    return pathname.startsWith("/admin/lead-plans") || pathname.startsWith("/admin/subscriptions");
+  }
+  if (href === "/admin/payments") {
+    return pathname.startsWith("/admin/payments");
   }
   if (href === "/admin/assistance") {
     return (

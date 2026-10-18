@@ -59,8 +59,6 @@ export default function AdminPageShell({
         autoTabs = <OnboardingTabs type="honorable" />;
       } else if (pathname.startsWith("/admin/assistance-onboarding")) {
         autoTabs = <OnboardingTabs type="assistance" />;
-      } else if (pathname.startsWith("/admin/subscriptions")) {
-        autoTabs = <OnboardingTabs type="subscription" />;
       }
     }
   }
