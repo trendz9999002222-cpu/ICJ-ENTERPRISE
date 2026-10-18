@@ -131,6 +131,20 @@ class Lead(models.Model):
     # Financial fields (integer paise)
     price_paise = models.PositiveIntegerField(default=100000, help_text="Price in integer paise at publication")
     tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("18.00"))
+    tokens_required = models.PositiveIntegerField(default=1, help_text="Tokens required to accept this lead")
+
+    # Assignment & Handover tracking (Preserved across professional reassignments)
+    assigned_professional = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_marketplace_leads",
+    )
+    case_stage = models.CharField(max_length=100, default="New", help_text="Ongoing stage of the matter")
+    case_notes = models.TextField(blank=True, help_text="Cumulative case progress notes and work history")
+    reassignment_notes = models.TextField(blank=True, help_text="Handover notes preserved across reassignments")
+    client_documents = models.JSONField(default=list, blank=True, help_text="Document links or metadata for this lead")
     
     status = models.CharField(max_length=30, choices=Status.choices, default=Status.PENDING_REVIEW, db_index=True)
     client_consent_given = models.BooleanField(default=True)
@@ -152,6 +166,10 @@ class Lead(models.Model):
     @property
     def price_inr(self) -> float:
         return round(self.price_paise / 100, 2)
+
+    @property
+    def acceptance(self):
+        return self.acceptances.filter(status=LeadAcceptance.Status.ACTIVE).first()
 
 
 class LeadPublication(models.Model):
@@ -213,13 +231,15 @@ class LeadAcceptance(models.Model):
         ACTIVE = "active", "Active"
         RELEASED = "released", "Released"
         REFUNDED = "refunded", "Refunded"
+        REASSIGNED = "reassigned", "Reassigned"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    lead = models.OneToOneField(Lead, on_delete=models.PROTECT, related_name="acceptance")
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="acceptances")
     professional = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="accepted_leads")
     accepted_at = models.DateTimeField(default=timezone.now, db_index=True)
     payment_method = models.CharField(max_length=30, choices=PaymentMethod.choices)
     price_paid_paise = models.PositiveIntegerField(default=0)
+    tokens_spent = models.PositiveIntegerField(default=1, help_text="Number of tokens spent for this lead")
     receipt_reference = models.CharField(max_length=100, unique=True, db_index=True)
     client_contact_unlocked = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True)
@@ -247,12 +267,15 @@ class LeadActivity(models.Model):
 
 class ProfessionalWallet(models.Model):
     """
-    Prepaid wallet account for an eligible verified professional.
-    Amounts stored in integer paise.
+    Token and payment wallet account for an eligible verified professional.
+    Professional accepts leads exclusively using tokens.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     professional = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="icj_wallet")
     currency = models.CharField(max_length=10, default="INR")
+    token_balance = models.PositiveIntegerField(default=0, help_text="Available lead tokens")
+    total_tokens_purchased = models.PositiveIntegerField(default=0)
+    total_tokens_spent = models.PositiveIntegerField(default=0)
     balance_paise = models.PositiveIntegerField(default=0, help_text="Available balance in integer paise")
     reserved_paise = models.PositiveIntegerField(default=0, help_text="Held/reserved balance during checkout")
     total_added_paise = models.PositiveIntegerField(default=0)
@@ -261,11 +284,15 @@ class ProfessionalWallet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Wallet ({self.professional.email}) - Available: ₹{self.balance_paise / 100:.2f}"
+        return f"Wallet ({self.professional.email}) - Tokens: {self.token_balance}, Balance: ₹{self.balance_paise / 100:.2f}"
+
+    @property
+    def available_paise(self) -> int:
+        return max(0, self.balance_paise - self.reserved_paise)
 
     @property
     def available_inr(self) -> float:
-        return round(self.balance_paise / 100, 2)
+        return round(self.available_paise / 100, 2)
 
 
 class WalletTransaction(models.Model):
@@ -284,8 +311,10 @@ class WalletTransaction(models.Model):
     wallet = models.ForeignKey(ProfessionalWallet, on_delete=models.PROTECT, related_name="transactions")
     reference = models.CharField(max_length=80, unique=True, db_index=True)
     tx_type = models.CharField(max_length=20, choices=TxType.choices, db_index=True)
-    amount_paise = models.PositiveIntegerField(help_text="Always positive integer paise")
-    balance_after_paise = models.PositiveIntegerField()
+    amount_paise = models.PositiveIntegerField(default=0, help_text="Always positive integer paise")
+    balance_after_paise = models.PositiveIntegerField(default=0)
+    tokens_delta = models.IntegerField(default=0, help_text="Positive for tokens credited, negative for spent")
+    token_balance_after = models.PositiveIntegerField(default=0)
     description = models.CharField(max_length=255)
     idempotency_key = models.CharField(max_length=120, blank=True, null=True, unique=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

@@ -57,6 +57,7 @@ class LeadMarketplacePreviewSerializer(serializers.ModelSerializer):
             "state_name",
             "city_name",
             "anonymized_summary",
+            "tokens_required",
             "price_paise",
             "price_inr",
             "tax_percentage",
@@ -79,6 +80,8 @@ class LeadDetailSerializer(serializers.ModelSerializer):
     client_mobile = serializers.SerializerMethodField()
     client_preferred_contact = serializers.SerializerMethodField()
     full_description = serializers.SerializerMethodField()
+    client_documents = serializers.SerializerMethodField()
+    assigned_professional_details = serializers.SerializerMethodField()
     acceptance_info = serializers.SerializerMethodField()
     legal_case_id = serializers.SerializerMethodField()
 
@@ -93,6 +96,13 @@ class LeadDetailSerializer(serializers.ModelSerializer):
             "city_name",
             "anonymized_summary",
             "full_description",
+            "tokens_required",
+            "assigned_professional",
+            "assigned_professional_details",
+            "case_stage",
+            "case_notes",
+            "reassignment_notes",
+            "client_documents",
             "price_paise",
             "price_inr",
             "tax_percentage",
@@ -115,10 +125,31 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         user = request.user
         if user.is_staff or getattr(user, "role", "") in ["admin", "super_admin"]:
             return True
+        if obj.assigned_professional_id == user.id:
+            return True
         acceptance = getattr(obj, "acceptance", None)
         if acceptance and acceptance.professional_id == user.id and acceptance.status == LeadAcceptance.Status.ACTIVE:
             return True
         return False
+
+    def get_assigned_professional_details(self, obj: Lead):
+        pro = obj.assigned_professional
+        if not pro:
+            acc = getattr(obj, "acceptance", None)
+            pro = acc.professional if acc else None
+        if pro:
+            return {
+                "id": str(pro.id),
+                "name": pro.get_full_name() or pro.email,
+                "email": pro.email,
+                "mobile": getattr(pro, "mobile_number", ""),
+            }
+        return None
+
+    def get_client_documents(self, obj: Lead):
+        if self._has_access(obj):
+            return obj.client_documents or []
+        return []
 
     def get_client_name(self, obj: Lead):
         if self._has_access(obj) and obj.assistance_request:
@@ -195,6 +226,8 @@ class WalletTransactionSerializer(serializers.ModelSerializer):
             "id",
             "reference",
             "tx_type",
+            "tokens_delta",
+            "token_balance_after",
             "amount_paise",
             "amount_inr",
             "balance_after_paise",
@@ -223,6 +256,9 @@ class ProfessionalWalletSerializer(serializers.ModelSerializer):
             "id",
             "professional_email",
             "currency",
+            "token_balance",
+            "total_tokens_purchased",
+            "total_tokens_spent",
             "balance_paise",
             "available_inr",
             "reserved_paise",

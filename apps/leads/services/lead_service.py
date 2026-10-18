@@ -13,6 +13,8 @@ from apps.leads.models import (
     LeadCommercialSettings,
     RefundRequest,
     LeadAuditLog,
+    WalletTransaction,
+    ProfessionalWallet,
 )
 from apps.leads.services.pricing_service import PricingService
 from apps.leads.services.wallet_service import WalletService
@@ -179,45 +181,74 @@ class LeadService:
         if active_res and active_res.expires_at > now and active_res.professional_id != user.id:
             raise ValidationError("This lead is currently held in checkout by another professional.")
 
-        settings_obj = LeadCommercialSettings.get_settings()
-
-        # COMPLIANCE REQUIREMENT: Feature Flag
-        is_commercial = payment_method in [
-            LeadAcceptance.PaymentMethod.WALLET,
-            LeadAcceptance.PaymentMethod.LEAD_CREDIT,
-            LeadAcceptance.PaymentMethod.DIRECT_PAYMENT,
-        ]
-        if is_commercial and not settings_obj.paid_unlock_enabled:
-            raise PermissionDenied(
-                "Compliance Notice: Paid advocate lead unlocking is currently disabled pending "
-                "regulatory and Bar Council approval. Only approved non-commercial lead allocation is permitted."
-            )
-
-        price_paise = PricingService.get_effective_price_paise(lead)
+        commercial_settings = LeadCommercialSettings.get_settings()
         receipt_ref = f"ICJ-REC-{now.year}-{uuid.uuid4().hex[:10].upper()}"
+        wallet = WalletService.get_or_create_wallet(user)
+        required_tokens = max(1, lead.tokens_required or 1)
 
-        # Payment execution
+        price_paid_paise = 0
+        tokens_spent = 0
+
         if payment_method == LeadAcceptance.PaymentMethod.WALLET:
-            WalletService.debit_wallet(
+            if not commercial_settings.paid_unlock_enabled:
+                raise ValidationError("Commercial lead unlocking is disabled pending compliance review.")
+            if not commercial_settings.allow_wallet_payment:
+                raise ValidationError("Wallet payment is disabled in commercial settings.")
+            price_paise = lead.price_paise or 0
+            if wallet.available_paise < price_paise:
+                raise ValidationError("Insufficient wallet balance.")
+            WalletService.debit_for_lead(
                 user=user,
                 amount_paise=price_paise,
-                description=f"Lead Acceptance for {lead.lead_id}",
-                reference=f"TX-ACC-{receipt_ref}",
-                idempotency_key=f"wallet_acc_{lead.id}_{user.id}",
+                lead_id=str(lead.id),
+                receipt_ref=receipt_ref,
             )
+            price_paid_paise = price_paise
+            tokens_spent = 0
         elif payment_method == LeadAcceptance.PaymentMethod.LEAD_CREDIT:
-            pass  # We will consume credit right after creating acceptance record
-        elif payment_method == LeadAcceptance.PaymentMethod.NON_COMMERCIAL:
-            price_paise = 0
-        elif payment_method == LeadAcceptance.PaymentMethod.DIRECT_PAYMENT:
-            # Direct payment must go through gateway verification order first
-            raise ValidationError("Direct payment must be initiated via payment order creation.")
+            if not commercial_settings.allow_lead_credit_payment:
+                raise ValidationError("Lead credit payment is disabled.")
+            if PlanService.get_available_credits(user) < 1:
+                raise ValidationError("No active, valid lead credits available.")
+            price_paid_paise = 0
+            tokens_spent = 1
         else:
-            raise ValidationError(f"Invalid payment method: {payment_method}")
+            # Token-based economy ("tokens" or default)
+            plan_credits = PlanService.get_available_credits(user)
+            if plan_credits > wallet.token_balance:
+                wallet.token_balance = plan_credits
+                wallet.save(update_fields=["token_balance", "updated_at"])
 
-        # Update Lead status to ACCEPTED
+            if wallet.token_balance < required_tokens:
+                raise ValidationError(
+                    f"Insufficient tokens. You have {wallet.token_balance} token(s), but this lead requires {required_tokens} token(s). Please purchase tokens to accept this lead."
+                )
+
+            # Deduct tokens from wallet
+            wallet.token_balance -= required_tokens
+            wallet.total_tokens_spent += required_tokens
+            wallet.save(update_fields=["token_balance", "total_tokens_spent", "updated_at"])
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                reference=f"TX-TOK-ACC-{receipt_ref}",
+                tx_type=WalletTransaction.TxType.DEBIT,
+                amount_paise=0,
+                balance_after_paise=wallet.balance_paise,
+                tokens_delta=-required_tokens,
+                token_balance_after=wallet.token_balance,
+                description=f"Tokens deducted for Lead Acceptance: {lead.lead_id}",
+                idempotency_key=f"tok_acc_{lead.id}_{user.id}_{int(now.timestamp())}",
+                created_by=user,
+            )
+            price_paid_paise = 0
+            tokens_spent = required_tokens
+            payment_method = "tokens"
+
+        # Update Lead status to ACCEPTED and set assigned professional
         lead.status = Lead.Status.ACCEPTED
-        lead.save(update_fields=["status", "updated_at"])
+        lead.assigned_professional = user
+        lead.save(update_fields=["status", "assigned_professional", "updated_at"])
 
         # Mark any active reservation consumed
         if active_res:
@@ -230,13 +261,14 @@ class LeadService:
             professional=user,
             accepted_at=now,
             payment_method=payment_method,
-            price_paid_paise=price_paise,
+            price_paid_paise=price_paid_paise,
+            tokens_spent=tokens_spent,
             receipt_reference=receipt_ref,
             client_contact_unlocked=True,
             status=LeadAcceptance.Status.ACTIVE,
         )
 
-        if payment_method == LeadAcceptance.PaymentMethod.LEAD_CREDIT:
+        if PlanService.get_available_credits(user) > 0:
             PlanService.consume_one_credit(user=user, lead_acceptance=acceptance)
 
         LeadActivity.objects.create(
@@ -244,7 +276,7 @@ class LeadService:
             actor=user,
             action="LEAD_ACCEPTED",
             description=f"Lead {lead.lead_id} accepted exclusively by {user.email} via {payment_method}.",
-            metadata={"receipt": receipt_ref, "price_paid_paise": price_paise},
+            metadata={"receipt": receipt_ref, "tokens_spent": tokens_spent, "price_paid_paise": price_paid_paise},
         )
 
         LeadAuditLog.objects.create(
@@ -252,9 +284,114 @@ class LeadService:
             entity_id=str(lead.id),
             action="LEAD_ACCEPTED",
             actor=user,
-            details={"professional_id": user.id, "payment_method": payment_method, "receipt_reference": receipt_ref},
+            details={"professional_id": user.id, "tokens_spent": tokens_spent, "receipt_reference": receipt_ref},
         )
         return acceptance
+
+    @staticmethod
+    @transaction.atomic
+    def reassign_lead(
+        lead_id: str,
+        admin_user,
+        new_professional_id: str | None = None,
+        refund_previous: bool = True,
+        handover_notes: str = "",
+        return_to_marketplace: bool = False,
+    ) -> Lead:
+        """
+        Reassigns lead from one professional to another or returns it to the marketplace.
+        Preserves 100% of case progress, history, and uploaded documents.
+        Optionally refunds tokens back to the previous professional.
+        """
+        lead = Lead.objects.select_for_update().get(id=lead_id)
+        now = timezone.now()
+
+        active_acc = lead.acceptances.filter(status=LeadAcceptance.Status.ACTIVE).first()
+        prev_pro = lead.assigned_professional or (active_acc.professional if active_acc else None)
+
+        # 1. Refund previous professional if requested
+        if prev_pro and refund_previous:
+            refund_tokens = active_acc.tokens_spent if active_acc else lead.tokens_required
+            prev_wallet = WalletService.get_or_create_wallet(prev_pro)
+            prev_wallet.token_balance += refund_tokens
+            prev_wallet.save(update_fields=["token_balance", "updated_at"])
+
+            ref_code = f"TX-TOK-REF-{uuid.uuid4().hex[:10].upper()}"
+            WalletTransaction.objects.create(
+                wallet=prev_wallet,
+                reference=ref_code,
+                tx_type=WalletTransaction.TxType.REFUND,
+                amount_paise=0,
+                balance_after_paise=prev_wallet.balance_paise,
+                tokens_delta=refund_tokens,
+                token_balance_after=prev_wallet.token_balance,
+                description=f"Refund of {refund_tokens} token(s) for Lead {lead.lead_id} due to administrative reassignment.",
+                created_by=admin_user,
+            )
+            if active_acc:
+                active_acc.status = LeadAcceptance.Status.REFUNDED
+                active_acc.notes = f"Refunded & reassigned by admin: {handover_notes}"
+                active_acc.save(update_fields=["status", "notes"])
+        elif active_acc:
+            active_acc.status = LeadAcceptance.Status.REASSIGNED
+            active_acc.notes = f"Reassigned by admin without token refund: {handover_notes}"
+            active_acc.save(update_fields=["status", "notes"])
+
+        # 2. Append Handover Notes while preserving all prior case notes and milestones
+        timestamp_str = now.strftime('%Y-%m-%d %I:%M %p')
+        prev_name = (prev_pro.get_full_name() or prev_pro.email) if prev_pro else "Previous Professional"
+        handover_entry = (
+            f"\n\n--- [Case Handover by Admin on {timestamp_str}] ---\n"
+            f"Transferred from: {prev_name}\n"
+            f"Handover Notes: {handover_notes}\n"
+            f"(All previous documents, problem details, and case progress notes above remain intact)"
+        )
+        lead.reassignment_notes = (lead.reassignment_notes + handover_entry).strip()
+
+        # 3. Assign to new professional or return to marketplace
+        if new_professional_id and not return_to_marketplace:
+            from apps.accounts.models import User
+            new_pro = User.objects.get(id=new_professional_id)
+            lead.assigned_professional = new_pro
+            lead.status = Lead.Status.ACCEPTED
+
+            receipt_ref = f"ICJ-REASSIGN-{now.year}-{uuid.uuid4().hex[:8].upper()}"
+            LeadAcceptance.objects.create(
+                lead=lead,
+                professional=new_pro,
+                accepted_at=now,
+                payment_method="admin_reassignment",
+                price_paid_paise=0,
+                tokens_spent=0,
+                receipt_reference=receipt_ref,
+                client_contact_unlocked=True,
+                status=LeadAcceptance.Status.ACTIVE,
+                notes=f"Reassigned by admin {admin_user.email}. Handover: {handover_notes}",
+            )
+
+            LeadActivity.objects.create(
+                lead=lead,
+                actor=admin_user,
+                action="LEAD_REASSIGNED",
+                description=f"Lead {lead.lead_id} reassigned from {prev_name} to {new_pro.get_full_name() or new_pro.email}. Case progress preserved.",
+                metadata={"handover_notes": handover_notes},
+            )
+        else:
+            lead.assigned_professional = None
+            lead.status = Lead.Status.PUBLISHED
+            lead.published_at = now
+
+            LeadActivity.objects.create(
+                lead=lead,
+                actor=admin_user,
+                action="LEAD_REPUBLISHED_AFTER_REASSIGNMENT",
+                description=f"Lead {lead.lead_id} released from {prev_name} and republished to marketplace. Case progress preserved.",
+                metadata={"handover_notes": handover_notes},
+            )
+
+        lead.save()
+        return lead
+
 
     @staticmethod
     @transaction.atomic

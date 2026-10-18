@@ -398,7 +398,7 @@ class MarketplaceLead(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead_id = models.CharField(max_length=50, unique=True, db_index=True)
     assistance_request = models.OneToOneField(
-        AssistanceRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='marketplace_lead'
+        AssistanceRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='services_marketplace_lead'
     )
     category = models.CharField(max_length=200)
     urgency = models.CharField(max_length=50, default='medium')
