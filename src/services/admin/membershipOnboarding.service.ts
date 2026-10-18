@@ -185,6 +185,12 @@ export const membershipOnboardingAdminService = {
       currency: string;
       is_payment_enabled: boolean;
       updated_at: string | null;
+      payment_gateway?: string;
+      easebuzz_configured?: boolean;
+      easebuzz_key?: string;
+      easebuzz_env?: string;
+      razorpay_configured?: boolean;
+      razorpay_key_id?: string;
     }>(`${BASE}/payment-settings/`);
   },
 
@@ -196,5 +202,15 @@ export const membershipOnboardingAdminService = {
       is_payment_enabled: boolean;
       updated_at: string;
     }>(`${BASE}/payment-settings/`, { method: "PATCH", body: payload });
+  },
+
+  async listPayments(params?: { page?: number; page_size?: number; status?: string; search?: string }) {
+    const q = new URLSearchParams();
+    if (params?.page) q.set("page", String(params.page));
+    if (params?.page_size) q.set("page_size", String(params.page_size));
+    if (params?.status && params.status !== "all") q.set("status", params.status);
+    if (params?.search) q.set("search", params.search);
+    const qs = q.toString() ? `?${q.toString()}` : "";
+    return request<{ count: number; results: any[] }>(`${BASE}/payments/${qs}`);
   },
 };

@@ -38,6 +38,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import SummarizeIcon from "@mui/icons-material/Summarize";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import TollIcon from "@mui/icons-material/Toll";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Link from "next/link";
 
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
@@ -257,15 +258,43 @@ export default function AdminLeadsPage() {
     }
   };
 
+  const formatFieldLabel = (key: string): string => {
+    return key
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   const columns: AdminTableColumn<DetailedLead>[] = [
     {
       key: "lead_id",
       label: "Lead ID",
-      minWidth: 140,
+      minWidth: 150,
       render: (row) => (
-        <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb" }}>
-          {row.lead_id}
-        </Typography>
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb" }}>
+            {row.lead_id}
+          </Typography>
+          {row.assistance_reference_id ? (
+            <Chip
+              label={row.assistance_reference_id}
+              size="small"
+              variant="outlined"
+              sx={{
+                fontSize: "0.68rem",
+                height: 19,
+                color: "#0369a1",
+                bgcolor: "#f0f9ff",
+                borderColor: "#bae6fd",
+                fontWeight: 600,
+                mt: 0.3,
+              }}
+            />
+          ) : (
+            <Typography variant="caption" sx={{ color: "#94a3b8", fontSize: "0.7rem", display: "block" }}>
+              Direct / Phone
+            </Typography>
+          )}
+        </Box>
       ),
     },
     {
@@ -295,6 +324,7 @@ export default function AdminLeadsPage() {
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {row.client_mobile || row.client_email || "Confidential"}
+            {row.client_preferred_contact && ` • via ${row.client_preferred_contact}`}
           </Typography>
         </Box>
       ),
@@ -517,6 +547,82 @@ export default function AdminLeadsPage() {
                 </Typography>
               </Box>
 
+              {/* Dynamic Intake & Custom Fields from Seek Assistance */}
+              {(selectedLead.assistance_reference_id || (selectedLead.dynamic_fields && Object.keys(selectedLead.dynamic_fields).length > 0)) && (
+                <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1.5, justifyContent: "space-between" }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#1e293b" }}>
+                      Seek Assistance Dynamic Intake Details
+                    </Typography>
+                    {selectedLead.assistance_reference_id && (
+                      <Chip
+                        label={`Ref: ${selectedLead.assistance_reference_id}`}
+                        size="small"
+                        color="primary"
+                        sx={{ fontWeight: 700, fontSize: "0.72rem", height: 22 }}
+                      />
+                    )}
+                  </Stack>
+
+                  <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 1.5 }}>
+                    {selectedLead.client_preferred_contact && (
+                      <Box sx={{ bgcolor: "#ffffff", p: 1.25, borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
+                        <Typography variant="caption" color="text.secondary">PREFERRED CONTACT METHOD</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{selectedLead.client_preferred_contact}</Typography>
+                      </Box>
+                    )}
+                    {(selectedLead.state_name || selectedLead.city_name) && (
+                      <Box sx={{ bgcolor: "#ffffff", p: 1.25, borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
+                        <Typography variant="caption" color="text.secondary">LOCATION / JURISDICTION</Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {[selectedLead.city_name, selectedLead.state_name].filter(Boolean).join(", ")}
+                        </Typography>
+                      </Box>
+                    )}
+                    {Object.entries(selectedLead.dynamic_fields || {})
+                      .filter(([k]) => !["full_name", "email", "mobile", "mobile_number", "state", "state_name", "district", "city_name", "category", "urgency", "problem_description", "preferred_contact"].includes(k.toLowerCase()))
+                      .map(([key, val]) => (
+                        <Box
+                          key={key}
+                          sx={{
+                            bgcolor: "#ffffff",
+                            p: 1.25,
+                            borderRadius: 1.5,
+                            border: "1px solid #e2e8f0",
+                            gridColumn: key.toLowerCase() === "files" ? { xs: "span 1", sm: "span 2" } : "auto",
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary">
+                            {formatFieldLabel(key)}
+                          </Typography>
+                          {key.toLowerCase() === "files" && Array.isArray(val) ? (
+                            <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 0.5, flexWrap: "wrap" }}>
+                              {val.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary">No files attached</Typography>
+                              ) : (
+                                val.map((f: string, idx: number) => (
+                                  <Chip
+                                    key={idx}
+                                    icon={<AttachFileIcon fontSize="small" />}
+                                    label={f}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ my: 0.25 }}
+                                  />
+                                ))
+                              )}
+                            </Stack>
+                          ) : (
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {typeof val === "boolean" ? (val ? "Yes" : "No") : Array.isArray(val) ? val.join(", ") : String(val || "—")}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))}
+                  </Box>
+                </Box>
+              )}
+
               {/* Acceptance & Reassignment History */}
               {selectedLead.status === "accepted" && (
                 <Box sx={{ p: 2, bgcolor: "#f0fdf4", borderRadius: 2, border: "1px solid #bbf7d0" }}>
@@ -566,7 +672,37 @@ export default function AdminLeadsPage() {
             </Stack>
           )}
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
+        <DialogActions sx={{ px: 3, py: 2, justifyContent: "space-between" }}>
+          <Box>
+            {selectedLead && selectedLead.status !== "published" && selectedLead.status !== "accepted" && (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<PublishIcon />}
+                onClick={() => {
+                  handlePublish(selectedLead.id);
+                  setDetailModalOpen(false);
+                }}
+                sx={{ textTransform: "none", fontWeight: 700 }}
+              >
+                Approve & Publish to Marketplace
+              </Button>
+            )}
+            {selectedLead && selectedLead.status === "published" && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<UnpublishedIcon />}
+                onClick={() => {
+                  handleUnpublish(selectedLead.id);
+                  setDetailModalOpen(false);
+                }}
+                sx={{ textTransform: "none", fontWeight: 700 }}
+              >
+                Unpublish Lead
+              </Button>
+            )}
+          </Box>
           <Button onClick={() => setDetailModalOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>

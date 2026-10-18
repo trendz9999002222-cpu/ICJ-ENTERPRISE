@@ -30,6 +30,7 @@ export interface MarketplaceLeadPreview {
   tax_percentage: string | number;
   status: LeadStatus;
   is_exclusive: boolean;
+  assistance_reference_id?: string | null;
   published_at?: string;
   created_at: string;
 }
@@ -47,6 +48,22 @@ export interface DetailedLead extends MarketplaceLeadPreview {
   case_notes?: string;
   reassignment_notes?: string;
   client_documents?: any[];
+  dynamic_fields?: Record<string, any>;
+  assistance_data?: {
+    reference_id: string;
+    full_name: string;
+    email: string;
+    mobile: string;
+    preferred_contact: string;
+    state_name: string;
+    city_name: string;
+    category: string;
+    urgency: string;
+    problem_description: string;
+    additional_fields: Record<string, any>;
+    status: string;
+    created_at: string;
+  } | null;
   acceptance_info?: {
     accepted_at: string;
     payment_method: PaymentMethodType;
