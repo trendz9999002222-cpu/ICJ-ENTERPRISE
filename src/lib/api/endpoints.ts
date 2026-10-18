@@ -122,6 +122,7 @@ export const API_ENDPOINTS = {
     purchasePlan: (id: string) => `/professional/lead-plans/${id}/purchase/`,
     payments: "/professional/payments/",
     verifyPayment: "/professional/payments/verify/",
+    caseProgress: (id: string) => `/professional/my-leads/${id}/case-progress/`,
   },
   adminLeads: {
     leads: "/admin/leads/",
