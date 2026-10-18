@@ -19,6 +19,7 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 
 import {
   Avatar,
@@ -179,6 +180,14 @@ export function getPortalNavItems(
       });
     }
   }
+ 
+  // Section: Trust & Giving
+  items.push({
+    label: "Donate to Trust",
+    href: "/dashboard/donations",
+    icon: <VolunteerActivismIcon fontSize="small" />,
+    section: "Trust & Giving",
+  });
 
   // Section: Account & Security
   items.push({

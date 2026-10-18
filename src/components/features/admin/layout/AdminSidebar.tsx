@@ -24,6 +24,7 @@ import SummarizeIcon from "@mui/icons-material/Summarize";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import {
   Box,
   Divider,
@@ -69,6 +70,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Professional Wallets", href: "/admin/wallets", icon: <AccountBalanceWalletIcon fontSize="small" /> },
   { label: "Lead Credit Plans", href: "/admin/lead-plans", icon: <LoyaltyIcon fontSize="small" /> },
   { label: "Payments & Refunds", href: "/admin/payments", icon: <ReceiptLongIcon fontSize="small" /> },
+  { label: "Trust Donations", href: "/admin/donations", icon: <VolunteerActivismIcon fontSize="small" /> },
   { label: "Marketplace Reports", href: "/admin/leads/reports", icon: <SummarizeIcon fontSize="small" /> },
   { label: "Commercial Settings", href: "/admin/leads/settings", icon: <SettingsIcon fontSize="small" /> },
   {

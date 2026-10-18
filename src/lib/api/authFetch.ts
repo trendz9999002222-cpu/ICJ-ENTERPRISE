@@ -45,7 +45,7 @@ export async function getFreshAccessToken(forceRefresh: boolean = false): Promis
         body: JSON.stringify({ refresh: refreshToken }),
       });
 
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         const newAccess = json?.data?.access || json?.access;
         if (newAccess) {

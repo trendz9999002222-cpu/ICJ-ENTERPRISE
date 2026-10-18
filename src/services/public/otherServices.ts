@@ -1,3 +1,4 @@
+import { env } from "@/config/env";
 import {
   mockCertificates,
   mockChapters,
@@ -115,8 +116,27 @@ export const verificationService = {
   },
 
   verifyDonation: async (receiptNumber: string): Promise<DonationVerification | null> => {
-    await new Promise((r) => setTimeout(r, 300));
     const cleanReceipt = receiptNumber.trim().toUpperCase();
+    try {
+      const res = await fetch(`${env.apiUrl}/donations/verify-receipt/?receipt=${encodeURIComponent(cleanReceipt)}`);
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+        const json = await res.json();
+        if (json.data && json.data.verified) {
+          return {
+            receiptNumber: json.data.receipt_number,
+            donorInitials: json.data.donor_initials,
+            donationCategory: json.data.fund_category,
+            donationDate: json.data.date,
+            status: json.data.status,
+            taxExemptionEligible: json.data.tax_exemption_eligible,
+          };
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    await new Promise((r) => setTimeout(r, 300));
     if (mockDonationReceipts[cleanReceipt]) {
       return mockDonationReceipts[cleanReceipt];
     }

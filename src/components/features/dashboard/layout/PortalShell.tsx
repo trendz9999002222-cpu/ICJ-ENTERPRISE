@@ -106,7 +106,7 @@ export default function PortalShell({ children }: Props) {
     async function loadProfile() {
       try {
         const res = await authenticatedFetch(`${env.apiUrl}/auth/me/`);
-        if (res.ok) {
+        if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
           const json = await res.json();
           const data = json.data || json;
           if (Array.isArray(data.professions)) {

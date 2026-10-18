@@ -91,7 +91,7 @@ export default function RegisterPracticePage() {
 
     try {
       const res = await fetch(`${env.apiUrl}/professional-onboarding/categories/${categoryId}/groups/`);
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         const data = json.data || json;
         setGroups(Array.isArray(data) ? data : data.results || []);
@@ -110,7 +110,7 @@ export default function RegisterPracticePage() {
 
     try {
       const res = await fetch(`${env.apiUrl}/professional-onboarding/groups/${groupId}/professions/`);
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         const data = json.data || json;
         setProfessionsList(Array.isArray(data) ? data : data.results || []);
@@ -132,7 +132,7 @@ export default function RegisterPracticePage() {
     setLoadingConfig(true);
     try {
       const res = await fetch(`${env.apiUrl}/professional-onboarding/professions/${selectedProfession}/configuration/`);
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         setConfig(json.data || json);
         setActiveStep(1); // Move to next step
