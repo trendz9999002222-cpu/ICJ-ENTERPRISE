@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.honorable_advisory.apps.HonorableAdvisoryConfig",
     "apps.services.apps.ServicesConfig",
     "apps.donations.apps.DonationsConfig",
+    "apps.leads.apps.LeadsConfig",
 ]
 
 MIDDLEWARE = [
@@ -172,12 +173,12 @@ FRONTEND_PASSWORD_RESET_URL = os.getenv(
 # RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 
 # Easebuzz Payment Gateway Configuration
-EASEBUZZ_KEY = os.getenv("EASEBUZZ_KEY", "P2OTPKQ5X")
-EASEBUZZ_SALT = os.getenv("EASEBUZZ_SALT", "APYJMJTBT")
+EASEBUZZ_KEY = os.getenv("EASEBUZZ_KEY", "DUMMY")
+EASEBUZZ_SALT = os.getenv("EASEBUZZ_SALT", "DUMMY")
 EASEBUZZ_ENV = os.getenv("EASEBUZZ_ENV", "test")
 EASEBUZZ_SURL = os.getenv("EASEBUZZ_SURL", "http://localhost:3000/membership-application/payment-success")
 EASEBUZZ_FURL = os.getenv("EASEBUZZ_FURL", "http://localhost:3000/membership-application/payment-failure")
 
-EMAILJS_SERVICE_ID = os.getenv("EMAILJS_SERVICE_ID", "service_rypannl")
-EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "template_pmntrjf")
+EMAILJS_SERVICE_ID = os.getenv("EMAILJS_SERVICE_ID", "service_DUMMY")
+EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "template_DUMMY")
 EMAILJS_PUBLIC_KEY = os.getenv("EMAILJS_PUBLIC_KEY", "_afNcmKvmFJoVdlI9")
