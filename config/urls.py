@@ -48,7 +48,7 @@ urlpatterns = [
         include("apps.services.urls.public"),
     ),
     path(
-        "api/v1/professional/leads/",
+        "api/v1/professional/",
         include("apps.leads.urls.professional"),
     ),
     path(
