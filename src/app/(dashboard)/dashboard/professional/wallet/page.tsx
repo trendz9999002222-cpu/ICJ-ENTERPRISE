@@ -8,12 +8,7 @@ import {
   CardContent,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Divider,
-  Grid,
   Stack,
   Table,
   TableBody,
@@ -21,39 +16,28 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
-  Alert,
 } from "@mui/material";
+import Link from "next/link";
 
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import TollIcon from "@mui/icons-material/Toll";
+import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import HistoryIcon from "@mui/icons-material/History";
-import LockClockIcon from "@mui/icons-material/LockClock";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
 import EmptyState from "@/components/ui/EmptyState";
-import { loadEasebuzzCheckout } from "@/lib/easebuzz/loadEasebuzz";
 import { leadMarketplaceService } from "@/services/professional/leadMarketplace.service";
 import type { ProfessionalWalletData, WalletTransactionItem } from "@/types/lead";
-
-const PRESET_AMOUNTS = [1000, 3000, 5000, 10000];
 
 export default function ProfessionalWalletPage() {
   const [wallet, setWallet] = useState<ProfessionalWalletData | null>(null);
   const [transactions, setTransactions] = useState<WalletTransactionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(true);
-
-  // Topup Modal State
-  const [topupModalOpen, setTopupModalOpen] = useState(false);
-  const [topupAmount, setTopupAmount] = useState<number>(3000);
-  const [submittingTopup, setSubmittingTopup] = useState(false);
-  const [topupError, setTopupError] = useState("");
-  const [topupSuccess, setTopupSuccess] = useState("");
 
   const loadWallet = async () => {
     setLoading(true);
@@ -84,109 +68,51 @@ export default function ProfessionalWalletPage() {
     loadTransactions();
   }, []);
 
-  const handleTopupSubmit = async () => {
-    if (!topupAmount || topupAmount < 100) {
-      setTopupError("Minimum top-up amount is ₹100.");
-      return;
-    }
-    setSubmittingTopup(true);
-    setTopupError("");
-    setTopupSuccess("");
-
-    try {
-      const order = await leadMarketplaceService.createTopupOrder(topupAmount);
-
-      // Load Easebuzz checkout script
-      let easebuzzLoaded = false;
-      try {
-        await loadEasebuzzCheckout();
-        easebuzzLoaded = typeof window !== "undefined" && Boolean(window.EasebuzzCheckout);
-      } catch {
-        easebuzzLoaded = false;
-      }
-
-      if (easebuzzLoaded && order.access_key) {
-        await new Promise<void>((resolve, reject) => {
-          try {
-            const easebuzz = new window.EasebuzzCheckout(order.key || "P2OTPKQ5X", order.env || "test");
-            const options = {
-              access_key: order.access_key,
-              onResponse: async (response: any) => {
-                try {
-                  const statusStr = String(response?.status || "").toLowerCase();
-                  if (statusStr === "success" || response?.status === 1) {
-                    await leadMarketplaceService.verifyPayment({
-                      txnid: response.txnid || order.gateway_order_id,
-                      easepayid: response.easepayid || "",
-                      status: "success",
-                      hash: response.hash || "",
-                      order_id: order.order_id,
-                    });
-                    setTopupSuccess(`Successfully added ₹${topupAmount.toLocaleString("en-IN")} to your ICJ Wallet!`);
-                    setTimeout(() => {
-                      setTopupModalOpen(false);
-                      loadWallet();
-                      loadTransactions();
-                    }, 1200);
-                    resolve();
-                  } else {
-                    reject(new Error(response?.error_Message || response?.error_desc || "Payment was not successful."));
-                  }
-                } catch (e) {
-                  reject(e);
-                }
-              },
-            };
-            easebuzz.initiatePayment(options);
-          } catch (initErr) {
-            if (order.payment_url) {
-              window.location.href = order.payment_url;
-            } else {
-              reject(initErr);
-            }
-          }
-        });
-      } else if (order.payment_url) {
-        window.location.href = order.payment_url;
-      } else {
-        throw new Error("Unable to initialize Easebuzz checkout. Please try again.");
-      }
-    } catch (err: any) {
-      setTopupError(err?.message || "Payment top-up failed.");
-    } finally {
-      setSubmittingTopup(false);
-    }
-  };
-
   return (
     <PortalPageShell
-      title="ICJ Professional Wallet"
-      subtitle="Manage your prepaid balance for seamless, instant lead unlocks and professional service transactions."
+      title="ICJ Token Wallet"
+      subtitle="Your token balance for unlocking client inquiries, case documents, and accepting exclusive leads."
+      actions={
+        <Button
+          component={Link}
+          href="/dashboard/professional/plans"
+          variant="contained"
+          size="medium"
+          startIcon={<ShoppingBagIcon />}
+          sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2 }}
+        >
+          Buy Tokens / Plans
+        </Button>
+      }
     >
-      {/* Balances Summary Cards */}
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2.5, mb: 3 }}>
-        <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1 }}>
+      {/* Token Balances Summary Cards */}
+      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 2.5, mb: 3 }}>
+        <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1, border: "1.5px solid #bfdbfe" }}>
           <CardContent>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <AccountBalanceWalletIcon color="primary" sx={{ fontSize: 32 }} />
+              <TollIcon color="primary" sx={{ fontSize: 36 }} />
               <Box>
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  AVAILABLE BALANCE
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, letterSpacing: 0.5 }}>
+                  AVAILABLE TOKENS
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                  ₹{wallet ? wallet.available_inr.toLocaleString("en-IN") : "0.00"}
+                <Typography variant="h4" sx={{ fontWeight: 800, color: "#1d4ed8" }}>
+                  {wallet ? wallet.token_balance : 0} <span style={{ fontSize: "1rem", fontWeight: 600 }}>Tokens</span>
                 </Typography>
               </Box>
             </Stack>
+            <Typography variant="caption" sx={{ color: "#64748b", display: "block", mt: 1.5 }}>
+              Use your available tokens to immediately accept marketplace leads.
+            </Typography>
             <Button
+              component={Link}
+              href="/dashboard/professional/plans"
               variant="contained"
               size="small"
               fullWidth
-              startIcon={<AddCircleIcon />}
-              onClick={() => { setTopupError(""); setTopupSuccess(""); setTopupModalOpen(true); }}
+              startIcon={<ShoppingBagIcon />}
               sx={{ mt: 2, textTransform: "none", fontWeight: 700 }}
             >
-              Add Money
+              Get More Tokens
             </Button>
           </CardContent>
         </Card>
@@ -194,18 +120,18 @@ export default function ProfessionalWalletPage() {
         <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1 }}>
           <CardContent>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <LockClockIcon sx={{ fontSize: 32, color: "#94a3b8" }} />
+              <ArrowDownwardIcon sx={{ fontSize: 36, color: "#16a34a" }} />
               <Box>
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  HELD IN CHECKOUT
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, letterSpacing: 0.5 }}>
+                  TOTAL TOKENS PURCHASED
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: "#334155" }}>
-                  ₹{wallet ? wallet.reserved_inr.toLocaleString("en-IN") : "0.00"}
+                <Typography variant="h4" sx={{ fontWeight: 800, color: "#15803d" }}>
+                  {wallet ? wallet.total_tokens_purchased : 0} <span style={{ fontSize: "1rem", fontWeight: 600 }}>Tokens</span>
                 </Typography>
               </Box>
             </Stack>
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 2 }}>
-              Temporary holds during active lead reservations.
+            <Typography variant="caption" sx={{ color: "#64748b", display: "block", mt: 1.5 }}>
+              Cumulative tokens granted via purchased credit plans.
             </Typography>
           </CardContent>
         </Card>
@@ -213,105 +139,111 @@ export default function ProfessionalWalletPage() {
         <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1 }}>
           <CardContent>
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <ArrowDownwardIcon sx={{ fontSize: 32, color: "#16a34a" }} />
+              <ArrowUpwardIcon sx={{ fontSize: 36, color: "#ea580c" }} />
               <Box>
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  LIFETIME ADDED
+                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700, letterSpacing: 0.5 }}>
+                  TOTAL TOKENS SPENT
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: "#15803d" }}>
-                  ₹{wallet ? wallet.total_added_inr.toLocaleString("en-IN") : "0.00"}
+                <Typography variant="h4" sx={{ fontWeight: 800, color: "#9a3412" }}>
+                  {wallet ? wallet.total_tokens_spent : 0} <span style={{ fontSize: "1rem", fontWeight: 600 }}>Tokens</span>
                 </Typography>
               </Box>
             </Stack>
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 2 }}>
-              Total money deposited into your wallet account.
+            <Typography variant="caption" sx={{ color: "#64748b", display: "block", mt: 1.5 }}>
+              Tokens deducted for accepted client leads.
             </Typography>
-          </CardContent>
-        </Card>
-
-        <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1 }}>
-          <CardContent>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <ArrowUpwardIcon sx={{ fontSize: 32, color: "#ea580c" }} />
-              <Box>
-                <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  LIFETIME SPENT
-                </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: "#9a3412" }}>
-                  ₹{wallet ? wallet.total_spent_inr.toLocaleString("en-IN") : "0.00"}
-                </Typography>
-              </Box>
-            </Stack>
-            <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mt: 2 }}>
-              Used for lead acceptance and services.
-            </Typography>
+            <Button
+              component={Link}
+              href="/dashboard/professional/my-leads"
+              variant="outlined"
+              size="small"
+              fullWidth
+              startIcon={<StorefrontIcon />}
+              sx={{ mt: 2, textTransform: "none", fontWeight: 700 }}
+            >
+              View Accepted Leads
+            </Button>
           </CardContent>
         </Card>
       </Box>
 
-      {/* Transaction Ledger Table */}
+      {/* Transaction History Section */}
       <SectionCard
-        title="Wallet Ledger Transactions"
-        subtitle="Append-only immutable audit statement of all credits, debits, and adjustments."
-        icon={<HistoryIcon sx={{ color: "#2563eb", fontSize: 20 }} />}
-        noPadding
+        title="Token Ledger & Transaction History"
+        subtitle="Complete immutable log of all tokens credited, spent on leads, or refunded by admin."
       >
         {txLoading ? (
-          <Box sx={{ textAlign: "center", py: 5 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress size={30} />
           </Box>
         ) : transactions.length === 0 ? (
           <EmptyState
             icon={<HistoryIcon sx={{ fontSize: 44, color: "#94a3b8" }} />}
-            message="No wallet transactions yet"
-            description="Your deposits and lead acceptance debits will appear here with full reference tracking."
+            message="No Token Transactions Yet"
+            description="When you purchase tokens or accept leads, your token transactions will appear here."
+            action={
+              <Button
+                component={Link}
+                href="/dashboard/professional/plans"
+                variant="contained"
+                size="small"
+                sx={{ textTransform: "none", fontWeight: 700 }}
+              >
+                Browse Token Plans
+              </Button>
+            }
           />
         ) : (
           <TableContainer>
             <Table size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Date & Time</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Reference</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Type</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }}>Description</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }} align="right">Amount</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: "0.78rem" }} align="right">Balance After</TableCell>
+              <TableHead sx={{ bgcolor: "#f8fafc" }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>DATE & TIME</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>REFERENCE</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>TYPE</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem" }}>DESCRIPTION</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textAlign: "right" }}>TOKENS</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: "0.75rem", textAlign: "right" }}>BALANCE AFTER</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {transactions.map((tx) => {
-                  const isCredit = tx.tx_type === "credit" || tx.tx_type === "refund";
+                  const isCredit = tx.tx_type === "credit" || tx.tx_type === "refund" || (tx.tokens_delta ?? 0) > 0;
+                  const tokensDelta = tx.tokens_delta ?? 1;
+
                   return (
                     <TableRow key={tx.id} hover>
                       <TableCell sx={{ fontSize: "0.8rem", color: "#64748b" }}>
                         {new Date(tx.created_at).toLocaleString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
+                          dateStyle: "medium",
+                          timeStyle: "short",
                         })}
                       </TableCell>
-                      <TableCell sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#2563eb" }}>
+                      <TableCell sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#334155" }}>
                         {tx.reference}
                       </TableCell>
                       <TableCell>
                         <Chip
                           label={tx.tx_type.toUpperCase()}
                           size="small"
-                          color={isCredit ? "success" : "default"}
-                          sx={{ fontWeight: 700, fontSize: "0.68rem", height: 20 }}
+                          color={
+                            tx.tx_type === "credit" || tx.tx_type === "refund"
+                              ? "success"
+                              : tx.tx_type === "debit"
+                              ? "error"
+                              : "default"
+                          }
+                          sx={{ fontSize: "0.68rem", height: 20, fontWeight: 700 }}
                         />
                       </TableCell>
-                      <TableCell sx={{ fontSize: "0.8rem", color: "#334155" }}>
+                      <TableCell sx={{ fontSize: "0.8rem", color: "#0f172a" }}>
                         {tx.description}
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.85rem", color: isCredit ? "#16a34a" : "#dc2626" }}>
-                        {isCredit ? "+" : "-"}₹{tx.amount_inr.toLocaleString("en-IN")}
+                      <TableCell sx={{ textAlign: "right", fontWeight: 700, fontSize: "0.85rem", color: isCredit ? "#16a34a" : "#dc2626" }}>
+                        {isCredit ? `+${Math.abs(tokensDelta || 1)}` : `-${Math.abs(tokensDelta || 1)}`} Tokens
                       </TableCell>
-                      <TableCell align="right" sx={{ fontSize: "0.8rem", fontWeight: 600, color: "#0f172a" }}>
-                        ₹{tx.balance_after_inr.toLocaleString("en-IN")}
+                      <TableCell sx={{ textAlign: "right", fontWeight: 600, fontSize: "0.8rem", color: "#334155" }}>
+                        {tx.token_balance_after ?? wallet?.token_balance ?? 0} Tokens
                       </TableCell>
                     </TableRow>
                   );
@@ -321,71 +253,6 @@ export default function ProfessionalWalletPage() {
           </TableContainer>
         )}
       </SectionCard>
-
-      {/* Add Money Modal */}
-      <Dialog
-        open={topupModalOpen}
-        onClose={() => !submittingTopup && setTopupModalOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
-      >
-        <DialogTitle sx={{ fontWeight: 800, fontSize: "1.15rem" }}>
-          Add Balance to ICJ Wallet
-        </DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2.5}>
-            {topupError && <Alert severity="error">{topupError}</Alert>}
-            {topupSuccess && <Alert severity="success">{topupSuccess}</Alert>}
-
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              Select or enter the amount you want to add. Funds are credited immediately upon verified payment.
-            </Typography>
-
-            {/* Presets */}
-            <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
-              {PRESET_AMOUNTS.map((amt) => (
-                <Button
-                  key={amt}
-                  variant={topupAmount === amt ? "contained" : "outlined"}
-                  size="small"
-                  onClick={() => setTopupAmount(amt)}
-                  sx={{ textTransform: "none", fontWeight: 700, minWidth: 64 }}
-                >
-                  ₹{amt.toLocaleString("en-IN")}
-                </Button>
-              ))}
-            </Stack>
-
-            <TextField
-              label="Amount in INR"
-              type="number"
-              fullWidth
-              value={topupAmount}
-              onChange={(e) => setTopupAmount(Number(e.target.value))}
-              slotProps={{ input: { startAdornment: <Typography sx={{ mr: 1, fontWeight: 700 }}>₹</Typography> } }}
-            />
-
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              Supported payment methods: UPI, NetBanking, Cards. Amounts stored securely in integer paise.
-            </Typography>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button onClick={() => setTopupModalOpen(false)} disabled={submittingTopup} sx={{ textTransform: "none" }}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleTopupSubmit}
-            disabled={submittingTopup || !topupAmount || topupAmount < 100}
-            sx={{ textTransform: "none", fontWeight: 700, px: 3 }}
-          >
-            {submittingTopup ? <CircularProgress size={20} color="inherit" /> : `Pay ₹${topupAmount.toLocaleString("en-IN")}`}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </PortalPageShell>
   );
 }

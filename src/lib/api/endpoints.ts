@@ -129,6 +129,8 @@ export const API_ENDPOINTS = {
     publish: (id: string) => `/admin/leads/${id}/publish/`,
     unpublish: (id: string) => `/admin/leads/${id}/unpublish/`,
     pricing: (id: string) => `/admin/leads/${id}/pricing/`,
+    reassign: (id: string) => `/admin/leads/${id}/reassign/`,
+    caseProgress: (id: string) => `/admin/leads/${id}/case-progress/`,
     wallets: "/admin/wallets/",
     adjustWallet: (id: string) => `/admin/wallets/${id}/adjust/`,
     walletTransactions: "/admin/wallet-transactions/",

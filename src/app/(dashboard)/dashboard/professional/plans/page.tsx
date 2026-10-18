@@ -147,25 +147,25 @@ export default function LeadCreditPlansPage() {
   return (
     <PortalPageShell
       title="Lead Credit Subscription Plans"
-      subtitle="Prepaid bundles for acquiring verified legal leads at discounted rates with 1-click acceptance."
+      subtitle="Prepaid token packages for acquiring verified legal leads with 1-click acceptance."
     >
-      {/* Top Banner with Active Credits */}
+      {/* Top Banner with Active Tokens */}
       <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1, mb: 4 }}>
         <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
           <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: "center" }} spacing={2}>
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <LoyaltyIcon color="success" sx={{ fontSize: 36 }} />
+              <LoyaltyIcon color="primary" sx={{ fontSize: 36 }} />
               <Box>
                 <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  YOUR ACTIVE LEAD CREDITS
+                  YOUR AVAILABLE TOKENS
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                  {availableCredits} {availableCredits === 1 ? "Credit" : "Credits"} Available
+                <Typography variant="h5" sx={{ fontWeight: 800, color: "#1d4ed8" }}>
+                  {wallet?.token_balance ?? availableCredits} {((wallet?.token_balance ?? availableCredits) === 1) ? "Token" : "Tokens"} Available
                 </Typography>
               </Box>
             </Stack>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              1 Lead Credit = 1 Exclusive Lead Unlock. Never expires during active validity.
+              Tokens are stored in your ICJ Token Wallet and used for instant lead unlocks.
             </Typography>
           </Stack>
         </CardContent>

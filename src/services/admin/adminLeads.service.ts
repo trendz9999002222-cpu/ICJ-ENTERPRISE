@@ -80,6 +80,59 @@ export const adminLeadsService = {
     return res.data;
   },
 
+  createLead: async (payload: {
+    client_name: string;
+    client_mobile?: string;
+    client_email?: string;
+    category: string;
+    urgency: string;
+    state_name: string;
+    city_name: string;
+    problem_description: string;
+    anonymized_summary?: string;
+    tokens_required?: number;
+    status?: string;
+  }): Promise<DetailedLead> => {
+    const res = await apiClient<ApiEnvelope<DetailedLead>>(API_ENDPOINTS.adminLeads.leads, {
+      method: "POST",
+      headers: authHeaders(),
+      body: payload,
+    });
+    return res.data;
+  },
+
+  reassignLead: async (
+    id: string,
+    payload: {
+      new_professional_id?: string;
+      refund_previous: boolean;
+      handover_notes: string;
+      return_to_marketplace: boolean;
+    }
+  ): Promise<DetailedLead> => {
+    const res = await apiClient<ApiEnvelope<DetailedLead>>(API_ENDPOINTS.adminLeads.reassign(id), {
+      method: "POST",
+      headers: authHeaders(),
+      body: payload,
+    });
+    return res.data;
+  },
+
+  updateCaseProgress: async (
+    id: string,
+    payload: {
+      case_stage?: string;
+      case_notes?: string;
+    }
+  ): Promise<DetailedLead> => {
+    const res = await apiClient<ApiEnvelope<DetailedLead>>(API_ENDPOINTS.adminLeads.caseProgress(id), {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: payload,
+    });
+    return res.data;
+  },
+
   updatePricing: async (id: string, pricePaise: number, taxPercentage?: number): Promise<DetailedLead> => {
     const res = await apiClient<ApiEnvelope<DetailedLead>>(API_ENDPOINTS.adminLeads.pricing(id), {
       method: "PATCH",

@@ -8,7 +8,13 @@ export type LeadStatus =
   | "rejected"
   | "closed";
 
-export type PaymentMethodType = "wallet" | "lead_credit" | "direct_payment" | "non_commercial";
+export type PaymentMethodType =
+  | "wallet"
+  | "lead_credit"
+  | "direct_payment"
+  | "non_commercial"
+  | "tokens"
+  | "admin_reassignment";
 
 export interface MarketplaceLeadPreview {
   id: string;
@@ -20,6 +26,7 @@ export interface MarketplaceLeadPreview {
   anonymized_summary: string;
   price_paise: number;
   price_inr: number;
+  tokens_required?: number;
   tax_percentage: string | number;
   status: LeadStatus;
   is_exclusive: boolean;
@@ -34,12 +41,19 @@ export interface DetailedLead extends MarketplaceLeadPreview {
   client_mobile?: string | null;
   client_preferred_contact?: string | null;
   legal_case_id?: string | null;
+  assigned_professional?: string | null;
+  assigned_professional_name?: string | null;
+  case_stage?: string;
+  case_notes?: string;
+  reassignment_notes?: string;
+  client_documents?: any[];
   acceptance_info?: {
     accepted_at: string;
     payment_method: PaymentMethodType;
     receipt_reference: string;
     professional_email: string;
     status: string;
+    tokens_spent?: number;
   } | null;
 }
 
@@ -47,6 +61,9 @@ export interface ProfessionalWalletData {
   id: string;
   professional_email: string;
   currency: string;
+  token_balance?: number;
+  total_tokens_purchased?: number;
+  total_tokens_spent?: number;
   balance_paise: number;
   available_inr: number;
   reserved_paise: number;
@@ -67,6 +84,8 @@ export interface WalletTransactionItem {
   amount_inr: number;
   balance_after_paise: number;
   balance_after_inr: number;
+  tokens_delta?: number;
+  token_balance_after?: number;
   description: string;
   created_at: string;
 }
@@ -101,9 +120,14 @@ export interface LeadReportsData {
   total_leads: number;
   published_leads: number;
   accepted_leads: number;
-  pending_review: number;
-  conversion_rate_percent: number;
-  total_revenue_inr: number;
-  total_wallet_balance_inr: number;
-  total_wallet_topups_inr: number;
+  reserved_leads: number;
+  pending_review?: number;
+  conversion_rate_percent?: number;
+  total_volume_paise: number;
+  total_volume_inr: number;
+  total_revenue_inr?: number;
+  total_wallet_balance_inr?: number;
+  total_wallet_topups_inr?: number;
+  status_counts: Record<string, number>;
+  category_breakdown: Record<string, number>;
 }
