@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -228,3 +229,106 @@ class AdminMembershipFeeSettingsAPIView(AdminMembershipConfigAPIView):
             },
             message="Fee settings updated.",
         )
+
+
+class AdminMembershipPaymentListAPIView(AdminMembershipConfigAPIView):
+    def get(self, request):
+        qs = (
+            MembershipPayment.objects.select_related("application", "application__person", "application__user")
+            .all()
+            .order_by("-created_at")
+        )
+        status_filter = request.query_params.get("status")
+        if status_filter and status_filter.lower() != "all":
+            qs = qs.filter(status=status_filter.lower())
+        search = (request.query_params.get("search") or "").strip()
+        if search:
+            qs = qs.filter(
+                Q(easebuzz_txnid__icontains=search)
+                | Q(easebuzz_payment_id__icontains=search)
+                | Q(application__reference_id__icontains=search)
+                | Q(application__person__full_name__icontains=search)
+                | Q(application__person__email__icontains=search)
+                | Q(application__person__mobile__icontains=search)
+                | Q(application__user__email__icontains=search)
+                | Q(application__user__first_name__icontains=search)
+                | Q(application__user__last_name__icontains=search)
+            )
+
+        try:
+            page = max(1, int(request.query_params.get("page", 1)))
+        except (ValueError, TypeError):
+            page = 1
+        try:
+            page_size = max(1, min(100, int(request.query_params.get("page_size", 10))))
+        except (ValueError, TypeError):
+            page_size = 10
+
+        total = qs.count()
+        start = (page - 1) * page_size
+        end = start + page_size
+        items = qs[start:end]
+
+        data = []
+        for p in items:
+            app = getattr(p, "application", None)
+            person = getattr(app, "person", None) if app else None
+            user = getattr(app, "user", None) if app else None
+            field_vals = getattr(app, "field_values", {}) if app else {}
+            if not isinstance(field_vals, dict):
+                field_vals = {}
+
+            full_name = (
+                getattr(person, "full_name", None)
+                or field_vals.get("full_name")
+                or field_vals.get("name")
+                or (user.get_full_name() if user and hasattr(user, "get_full_name") else None)
+                or getattr(user, "first_name", None)
+                or "Citizen Applicant"
+            )
+
+            email = (
+                getattr(person, "email", None)
+                or field_vals.get("email")
+                or field_vals.get("email_address")
+                or getattr(user, "email", None)
+                or ""
+            )
+
+            phone = (
+                getattr(person, "mobile", None)
+                or field_vals.get("mobile_number")
+                or field_vals.get("mobile")
+                or field_vals.get("phone")
+                or ""
+            )
+
+            data.append(
+                {
+                    "id": str(p.id),
+                    "order_id": p.easebuzz_txnid or str(p.id)[:8],
+                    "reference_id": getattr(app, "reference_id", "") if app else "",
+                    "full_name": full_name,
+                    "firstname": full_name,
+                    "name": full_name,
+                    "email": email,
+                    "phone": phone,
+                    "mobile": phone,
+                    "amount_inr": float(p.amount_paise) / 100.0,
+                    "amount_paise": p.amount_paise,
+                    "currency": p.currency,
+                    "gateway": p.gateway,
+                    "easebuzz_txnid": p.easebuzz_txnid,
+                    "easebuzz_payment_id": p.easebuzz_payment_id,
+                    "easepayid": p.easebuzz_payment_id,
+                    "status": p.status,
+                    "created_at": p.created_at.isoformat() if p.created_at else None,
+                    "paid_at": p.paid_at.isoformat() if p.paid_at else None,
+                }
+            )
+
+        return api_success(
+            data={"count": total, "results": data},
+            message="Membership payments retrieved.",
+        )
+
