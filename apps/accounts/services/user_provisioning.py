@@ -260,7 +260,7 @@ def provision_user_for_membership(application) -> Tuple[User, None, bool]:
             role=role,
             is_active=True,
             email_verified=True,
-            password_change_required=False,
+            password_change_required=True,
             last_temp_password="",
         )
         user.set_unusable_password()

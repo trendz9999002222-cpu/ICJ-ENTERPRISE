@@ -90,8 +90,8 @@ def change_password(user: User, current_password: str, new_password: str, confir
 
 @transaction.atomic
 def set_initial_password(user: User, new_password: str, confirm_password: str) -> User:
-    """First-time password setup (no current password) when password_change_required is true."""
-    if not user.password_change_required:
+    """First-time password setup (no current password) when password_change_required is true or user has no usable password."""
+    if not user.password_change_required and user.has_usable_password():
         raise AuthServiceError(
             "Password is already set. Use change password instead.",
             {"password": ["Initial setup not required."]},

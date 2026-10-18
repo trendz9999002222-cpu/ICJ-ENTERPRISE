@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import permissions, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
@@ -228,6 +230,17 @@ class SendEmailVerificationLinkView(APIView):
         if not email or "@" not in email:
             return api_error("Please provide a valid email address.", status_code=status.HTTP_400_BAD_REQUEST)
 
+        # Check duplicate before sending any email or consuming quota
+        from apps.accounts.services.identity_checks import check_duplicate_email
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        duplicate_err = check_duplicate_email(email, current_user=user, check_applications=True)
+        if duplicate_err:
+            return api_error(
+                message=duplicate_err,
+                errors={"email": [duplicate_err]},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
         name = request.data.get("name", "").strip() or "Applicant"
         frontend_url = request.data.get("frontend_url", "").strip()
         if not frontend_url:
@@ -353,4 +366,46 @@ class VerifyEmailStatusView(APIView):
             return api_error("Email is required.", status_code=status.HTTP_400_BAD_REQUEST)
         is_verified = email in VERIFIED_EMAILS_CACHE
         return api_success(data={"email": email, "verified": is_verified})
+
+
+class CheckEmailAvailabilityView(APIView):
+    """
+    Public endpoint to check if an email is available for registration
+    BEFORE sending OTPs or consuming EmailJS token quotas.
+    Returns 200 with available=True if unique, or 400 with duplicate message if already taken.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def _check(self, request, email_param: str | None):
+        email = (email_param or "").strip().lower()
+        if not email or "@" not in email or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            return api_error(
+                message="Please provide a valid email address.",
+                errors={"email": ["Please provide a valid email address."]},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.accounts.services.identity_checks import check_duplicate_email
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        duplicate_err = check_duplicate_email(email, current_user=user, check_applications=True)
+
+        if duplicate_err:
+            return api_error(
+                message=duplicate_err,
+                errors={"email": [duplicate_err]},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return api_success(
+            message="Email is available.",
+            data={"available": True, "email": email},
+        )
+
+    def get(self, request):
+        email = request.query_params.get("email", "")
+        return self._check(request, email)
+
+    def post(self, request):
+        email = request.data.get("email", "") if isinstance(request.data, dict) else ""
+        return self._check(request, email)
 

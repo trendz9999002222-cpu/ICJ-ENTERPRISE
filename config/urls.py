@@ -36,6 +36,10 @@ urlpatterns = [
         include("apps.services.urls.admin"),
     ),
     path(
+        "api/v1/admin/",
+        include("apps.services.urls.admin_leads"),
+    ),
+    path(
         "api/v1/services/",
         include("apps.services.urls.public"),
     ),
@@ -45,15 +49,7 @@ urlpatterns = [
     ),
     path(
         "api/v1/professional/",
-        include("apps.leads.urls.professional"),
-    ),
-    path(
-        "api/v1/admin/",
-        include("apps.leads.urls.admin"),
-    ),
-    path(
-        "api/v1/payments/",
-        include("apps.leads.urls.public"),
+        include("apps.services.urls.professional_leads"),
     ),
 ]
 

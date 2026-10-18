@@ -2,6 +2,7 @@ from django.urls import path
 
 from apps.accounts.views import (
     ChangePasswordView,
+    CheckEmailAvailabilityView,
     ForgotPasswordView,
     LoginView,
     LogoutView,
@@ -22,6 +23,7 @@ urlpatterns = [
     path("set-password/", SetInitialPasswordView.as_view(), name="auth-set-password"),
     path("refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path("me/", MeView.as_view(), name="auth-me"),
+    path("check-email/", CheckEmailAvailabilityView.as_view(), name="auth-check-email"),
     path("send-verification-email/", SendEmailVerificationLinkView.as_view(), name="auth-send-verification-email"),
     path("email-verification-status/", VerifyEmailStatusView.as_view(), name="auth-email-verification-status"),
 ]

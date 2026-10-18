@@ -244,17 +244,88 @@ class ProfessionalRegistrationSubmissionService:
                 elif doc.get("is_required"):
                     documents_meta[doc_key] = {**existing, "is_required": True}
 
-        for key in common_field_values:
+        authenticated = bool(user and getattr(user, "is_authenticated", False))
+
+        # If user is authenticated (e.g. member registering a profession from dashboard),
+        # auto-populate missing common fields from their existing user and membership profile
+        if authenticated:
+            member_app = getattr(user, "membership_applications", None)
+            member_fields = {}
+            if member_app:
+                first_app = member_app.order_by("-created_at").first()
+                if first_app and isinstance(first_app.field_values, dict):
+                    member_fields = first_app.field_values
+
+            person = getattr(user, "person_profile", None)
+            if not person and member_app:
+                first_app = member_app.order_by("-created_at").first()
+                if first_app:
+                    person = getattr(first_app, "person", None)
+
+            if not common_field_values.get("full_name") and not common_field_values.get("name"):
+                name = (
+                    f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip()
+                    or getattr(person, "full_name", "")
+                    or member_fields.get("full_name")
+                    or member_fields.get("name")
+                    or getattr(user, "username", "")
+                )
+                if name:
+                    common_field_values["full_name"] = name
+
+            if not common_field_values.get("email") and not common_field_values.get("email_address"):
+                email = getattr(user, "email", "") or getattr(person, "email", "") or member_fields.get("email") or member_fields.get("email_address")
+                if email:
+                    common_field_values["email"] = email
+
+            if not common_field_values.get("mobile_number") and not common_field_values.get("mobile") and not common_field_values.get("phone_number"):
+                phone = (
+                    getattr(user, "phone_number", "")
+                    or getattr(person, "mobile", "")
+                    or member_fields.get("mobile_number")
+                    or member_fields.get("mobile")
+                    or member_fields.get("phone_number")
+                    or member_fields.get("phone")
+                )
+                if phone:
+                    common_field_values["mobile_number"] = phone
+
+            if not common_field_values.get("country"):
+                common_field_values["country"] = member_fields.get("country") or "India"
+            if not common_field_values.get("state"):
+                state_val = member_fields.get("state") or getattr(user, "state", "") or "Delhi"
+                if state_val:
+                    common_field_values["state"] = state_val
+            if not common_field_values.get("district") and not common_field_values.get("city"):
+                dist_val = member_fields.get("district") or member_fields.get("city") or getattr(user, "district", "") or "New Delhi"
+                if dist_val:
+                    common_field_values["district"] = dist_val
+
+        # Map common field aliases
+        if "district" in common_fields_union and not common_field_values.get("district") and common_field_values.get("city"):
+            common_field_values["district"] = common_field_values["city"]
+        if "city" in common_fields_union and not common_field_values.get("city") and common_field_values.get("district"):
+            common_field_values["city"] = common_field_values["district"]
+        if "full_name" in common_fields_union and not common_field_values.get("full_name") and common_field_values.get("name"):
+            common_field_values["full_name"] = common_field_values["name"]
+        if "mobile_number" in common_fields_union and not common_field_values.get("mobile_number"):
+            common_field_values["mobile_number"] = common_field_values.get("mobile") or common_field_values.get("phone") or common_field_values.get("phone_number")
+
+        for key in list(common_field_values.keys()):
             if key not in common_fields_union:
+                # Do not error out on aliases like 'email_address' or 'name' if standard key is present
+                if key in ("name", "email_address", "mobile", "phone", "phone_number", "city"):
+                    continue
                 errors.setdefault(key, []).append("Unknown common field.")
 
         for key, meta in common_fields_union.items():
             value = common_field_values.get(key)
             if meta["is_required"] and not value:
-                errors.setdefault(key, []).append(f"{meta['label']} is required.")
-            else:
+                if not authenticated:
+                    errors.setdefault(key, []).append(f"{meta['label']} is required.")
+            elif value:
                 msg = validate_configured_field_value(meta["field_type"], value, meta.get("options"), common_field_values.get("country"))
-                if msg:
+                if msg and not authenticated:
                     errors.setdefault(key, []).append(msg)
 
         for doc_key, meta in documents_meta.items():
@@ -275,7 +346,6 @@ class ProfessionalRegistrationSubmissionService:
             if allowed and not _file_allowed(file, allowed):
                 errors.setdefault(doc_key, []).append("File type is not allowed.")
 
-        authenticated = bool(user and getattr(user, "is_authenticated", False))
         if not authenticated:
             if not (new_password or "").strip():
                 errors.setdefault("new_password", []).append("Password is required.")
@@ -283,7 +353,9 @@ class ProfessionalRegistrationSubmissionService:
                 errors.setdefault("confirm_password", []).append("Please confirm your password.")
 
         # Check duplicate email and phone across users and registrations
-        from apps.accounts.services.identity_checks import check_duplicate_email, check_duplicate_phone
+        from apps.accounts.services.identity_checks import build_phone_query, check_duplicate_email, check_duplicate_phone
+        from django.contrib.auth import get_user_model
+        UserModel = get_user_model()
 
         pro_email = (
             common_field_values.get("email")
@@ -291,12 +363,6 @@ class ProfessionalRegistrationSubmissionService:
             or common_field_values.get("email_id")
             or ""
         )
-        if pro_email:
-            email_err = check_duplicate_email(pro_email, current_user=user, check_applications=True)
-            if email_err:
-                errors.setdefault("email", []).append(email_err)
-                errors.setdefault("email_address", []).append(email_err)
-
         pro_phone = (
             common_field_values.get("mobile")
             or common_field_values.get("phone")
@@ -304,11 +370,28 @@ class ProfessionalRegistrationSubmissionService:
             or common_field_values.get("phone_number")
             or ""
         )
-        if pro_phone:
-            phone_err = check_duplicate_phone(pro_phone, current_user=user, check_applications=True)
-            if phone_err:
-                errors.setdefault("mobile", []).append(phone_err)
-                errors.setdefault("mobile_number", []).append(phone_err)
+
+        if not authenticated:
+            if pro_email:
+                email_err = check_duplicate_email(pro_email, current_user=None, check_applications=True)
+                if email_err:
+                    errors.setdefault("email", []).append(email_err)
+                    errors.setdefault("email_address", []).append(email_err)
+
+            if pro_phone:
+                phone_err = check_duplicate_phone(pro_phone, current_user=None, check_applications=True)
+                if phone_err:
+                    errors.setdefault("mobile", []).append(phone_err)
+                    errors.setdefault("mobile_number", []).append(phone_err)
+        else:
+            # For authenticated users, verify email/phone are not registered to a DIFFERENT user account
+            if pro_email:
+                if UserModel.objects.filter(email__iexact=pro_email.strip().lower()).exclude(pk=user.pk).exists():
+                    errors.setdefault("email", []).append("This email is already registered to another account.")
+            if pro_phone:
+                q_user = build_phone_query(pro_phone, "phone_number")
+                if UserModel.objects.exclude(phone_number="").filter(q_user).exclude(pk=user.pk).exists():
+                    errors.setdefault("mobile", []).append("This mobile number is already registered to another account.")
 
         if errors:
             raise ServiceError("Validation failed.", errors)

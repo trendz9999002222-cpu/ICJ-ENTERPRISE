@@ -67,6 +67,13 @@ def check_duplicate_email(email: str | None, current_user=None, check_applicatio
         if User.objects.filter(email__iexact=email_clean).exists():
             return "This email is already registered. Please log in to continue or use a different email."
 
+    # 1b. Check Person model (if person is linked to an account)
+    person_user_qs = Person.objects.filter(email__iexact=email_clean, user__isnull=False)
+    if current_user and getattr(current_user, "is_authenticated", False):
+        person_user_qs = person_user_qs.exclude(user=current_user)
+    if person_user_qs.exists():
+        return "This email is already registered with an existing account."
+
     if not check_applications:
         return None
 
