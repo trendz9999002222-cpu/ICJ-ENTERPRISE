@@ -8,6 +8,8 @@ class FormFieldConfig(models.Model):
     """
     Mapping table that links a CommonField (or later, a ProfessionField) to a specific AdditionalOnboardingFormfields.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     form = models.ForeignKey(
         AdditionalOnboardingFormfields,

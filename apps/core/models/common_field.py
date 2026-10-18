@@ -23,6 +23,8 @@ class CommonField(models.Model):
         CITY = "city", "City"
         PINCODE = "pincode", "PIN Code"
 
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120, help_text="Human-readable name for admin.")
     field_key = models.CharField(

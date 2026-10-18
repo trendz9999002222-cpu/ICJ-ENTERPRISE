@@ -1,4 +1,5 @@
 import uuid
+from typing import TYPE_CHECKING, Any
 
 from django.db import models
 from django.utils.text import slugify
@@ -9,6 +10,8 @@ class ServiceCategory(models.Model):
     Categories for justice services.
     Examples: Specialized Law, Citizen Assistance, Dispute Resolution, etc.
     """
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120)
@@ -32,11 +35,11 @@ class ServiceCategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = str(slugify(self.name))  # type: ignore
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return self.name
+        return str(self.name)
 
 
 class JusticeService(models.Model):
@@ -44,6 +47,8 @@ class JusticeService(models.Model):
     Individual justice service offered by ICJ.
     All list fields (who_it_is_for, how_icj_helps, etc.) are stored as JSON arrays.
     """
+
+    objects = models.Manager()
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
@@ -100,11 +105,11 @@ class JusticeService(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = str(slugify(self.title))  # type: ignore
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
-        return self.title
+        return str(self.title)
 
 
 class AssistanceRequest(models.Model):
@@ -114,6 +119,8 @@ class AssistanceRequest(models.Model):
         CLOSED = 'closed', 'Closed'
         CASE_CREATED = 'case_created', 'Case Created'
         
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference_id = models.CharField(max_length=50, unique=True, db_index=True)
     full_name = models.CharField(max_length=255)
@@ -134,11 +141,13 @@ class AssistanceRequest(models.Model):
     class Meta:
         ordering = ('-created_at',)
         
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.reference_id} - {self.full_name}"
 
 
 class AssistanceFormField(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     field_key = models.CharField(max_length=50, unique=True)
     label = models.CharField(max_length=100)
@@ -153,11 +162,13 @@ class AssistanceFormField(models.Model):
     class Meta:
         ordering = ('display_order', 'created_at')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.label} ({self.field_key})"
 
 
 class AssistanceDocument(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=150)
     document_key = models.CharField(max_length=64, unique=True)
@@ -173,7 +184,7 @@ class AssistanceDocument(models.Model):
     class Meta:
         ordering = ("display_order", "name")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.document_key})"
 
 
@@ -184,6 +195,8 @@ class LegalCase(models.Model):
         IN_PROGRESS = 'in_progress', 'In Progress'
         CLOSED = 'closed', 'Closed'
         
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case_id = models.CharField(max_length=50, unique=True, db_index=True)
     assistance_request = models.OneToOneField(AssistanceRequest, on_delete=models.PROTECT, related_name='legal_case')
@@ -199,11 +212,18 @@ class LegalCase(models.Model):
     class Meta:
         ordering = ('-created_at',)
         
-    def __str__(self):
-        return self.case_id
+    def __str__(self) -> str:
+        return str(self.case_id)
 
 
 class ProfessionalWallet(models.Model):
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        transactions: models.Manager
+        user: Any
+        balance_paise: Any
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField('accounts.User', on_delete=models.CASCADE, related_name='professional_wallet')
     balance_paise = models.BigIntegerField(default=0)
@@ -214,7 +234,7 @@ class ProfessionalWallet(models.Model):
 
     @property
     def available_inr(self) -> float:
-        return round(self.balance_paise / 100.0, 2)
+        return round(self.balance_paise / 100.0, 2)  # type: ignore
 
     @property
     def reserved_inr(self) -> float:
@@ -244,7 +264,7 @@ class ProfessionalWallet(models.Model):
     def total_spent_inr(self) -> float:
         return round(self.total_spent_paise / 100.0, 2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Wallet ({self.user.email}) - ₹{self.available_inr}"
 
 
@@ -256,6 +276,12 @@ class WalletTransaction(models.Model):
         ADJUSTMENT = 'adjustment', 'Adjustment'
         HOLD = 'hold', 'Hold'
         HOLD_RELEASE = 'hold_release', 'Hold Release'
+
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        amount_paise: Any
+        balance_after_paise: Any
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(ProfessionalWallet, on_delete=models.CASCADE, related_name='transactions')
@@ -271,17 +297,22 @@ class WalletTransaction(models.Model):
 
     @property
     def amount_inr(self) -> float:
-        return round(self.amount_paise / 100.0, 2)
+        return round(self.amount_paise / 100.0, 2)  # type: ignore
 
     @property
     def balance_after_inr(self) -> float:
-        return round(self.balance_after_paise / 100.0, 2)
+        return round(self.balance_after_paise / 100.0, 2)  # type: ignore
 
-    def __str__(self):
-        return f"{self.tx_type.upper()} ₹{self.amount_inr} - {self.reference}"
+    def __str__(self) -> str:
+        return f"{str(self.tx_type).upper()} ₹{self.amount_inr} - {self.reference}"
 
 
 class LeadCreditPlan(models.Model):
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        price_paise: Any
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=50, unique=True)
@@ -300,9 +331,9 @@ class LeadCreditPlan(models.Model):
 
     @property
     def price_inr(self) -> float:
-        return round(self.price_paise / 100.0, 2)
+        return round(self.price_paise / 100.0, 2)  # type: ignore
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} - {self.credits_granted} Credits (₹{self.price_inr})"
 
 
@@ -317,6 +348,11 @@ class ProfessionalPayment(models.Model):
         SUCCESS = 'success', 'Success'
         FAILED = 'failed', 'Failed'
         REFUNDED = 'refunded', 'Refunded'
+
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        amount_paise: Any
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='professional_payments')
@@ -337,9 +373,9 @@ class ProfessionalPayment(models.Model):
 
     @property
     def amount_inr(self) -> float:
-        return round(self.amount_paise / 100.0, 2)
+        return round(self.amount_paise / 100.0, 2)  # type: ignore
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.order_id} ({self.order_type}) - ₹{self.amount_inr} [{self.status}]"
 
 
@@ -353,6 +389,11 @@ class MarketplaceLead(models.Model):
         UNAVAILABLE = 'unavailable', 'Unavailable'
         REJECTED = 'rejected', 'Rejected'
         CLOSED = 'closed', 'Closed'
+
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        price_paise: Any
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead_id = models.CharField(max_length=50, unique=True, db_index=True)
@@ -392,13 +433,15 @@ class MarketplaceLead(models.Model):
 
     @property
     def price_inr(self) -> float:
-        return round(self.price_paise / 100.0, 2)
+        return round(self.price_paise / 100.0, 2)  # type: ignore
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.lead_id} - {self.category} ({self.status})"
 
 
 class LeadCommercialSettings(models.Model):
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     paid_unlock_enabled = models.BooleanField(default=True)
     default_lead_price_paise = models.BigIntegerField(default=50000)
@@ -415,5 +458,5 @@ class LeadCommercialSettings(models.Model):
     class Meta:
         verbose_name_plural = "Lead Commercial Settings"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Lead Commercial Settings (Paid: {self.paid_unlock_enabled})"
