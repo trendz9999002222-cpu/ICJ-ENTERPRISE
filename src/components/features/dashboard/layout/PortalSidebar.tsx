@@ -120,36 +120,25 @@ export function getPortalNavItems(
       icon: <WorkspacePremiumIcon fontSize="small" />,
       section: "Practice",
     });
-    items.push({
-      label: "Available Cases",
-      href: "/dashboard/professional/cases",
-      icon: <GavelIcon fontSize="small" />,
-      section: "Cases",
-    });
-    items.push({
-      label: "My Cases",
-      href: "/dashboard/professional/my-cases",
-      icon: <AssignmentTurnedInIcon fontSize="small" />,
-    });
-    // Section: Lead Marketplace & Wallet
+    // Unified Leads & Cases section (Deduplicated)
     items.push({
       label: "Lead Marketplace",
       href: "/dashboard/professional/leads",
       icon: <StorefrontIcon fontSize="small" />,
-      section: "Lead Marketplace",
+      section: "Leads & Matters",
     });
     items.push({
-      label: "My Leads",
+      label: "My Accepted Leads",
       href: "/dashboard/professional/my-leads",
-      icon: <ContactPhoneIcon fontSize="small" />,
+      icon: <AssignmentTurnedInIcon fontSize="small" />,
     });
     items.push({
-      label: "ICJ Wallet",
+      label: "Token Wallet",
       href: "/dashboard/professional/wallet",
       icon: <AccountBalanceWalletIcon fontSize="small" />,
     });
     items.push({
-      label: "Lead Credit Plans",
+      label: "Purchase Tokens",
       href: "/dashboard/professional/plans",
       icon: <LoyaltyIcon fontSize="small" />,
     });

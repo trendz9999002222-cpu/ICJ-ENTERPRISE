@@ -135,6 +135,18 @@ export const leadMarketplaceService = {
     };
   },
 
+  updateCaseProgress: async (
+    id: string,
+    payload: { case_stage?: string; case_notes?: string }
+  ): Promise<DetailedLead> => {
+    const res = await apiClient<ApiEnvelope<DetailedLead>>(API_ENDPOINTS.professionalLeads.caseProgress(id), {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: payload,
+    });
+    return res.data;
+  },
+
   /** Get wallet info */
   getWallet: async (): Promise<ProfessionalWalletData> => {
     const res = await apiClient<ApiEnvelope<ProfessionalWalletData>>(API_ENDPOINTS.professionalLeads.wallet, {

@@ -87,7 +87,7 @@ export default function LeadCreditPlansPage() {
         });
       }
 
-      setPurchaseSuccess(`Plan '${selectedPlan.name}' purchased! Added ${selectedPlan.credits_granted} credits.`);
+      setPurchaseSuccess(`Plan '${selectedPlan.name}' purchased! Added ${selectedPlan.credits_granted} tokens.`);
       setTimeout(() => {
         setPurchaseModalOpen(false);
         loadData();
@@ -101,10 +101,10 @@ export default function LeadCreditPlansPage() {
 
   return (
     <PortalPageShell
-      title="Lead Credit Subscription Plans"
-      subtitle="Prepaid bundles for acquiring verified legal leads at discounted rates with 1-click acceptance."
+      title="Lead Token Packs"
+      subtitle="Prepaid token bundles for unlocking verified legal leads with 1-click acceptance."
     >
-      {/* Top Banner with Active Credits */}
+      {/* Top Banner with Active Tokens */}
       <Card variant="outlined" sx={{ borderRadius: 2.5, bgcolor: "#f8fafc", p: 1, mb: 4 }}>
         <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
           <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: "center" }} spacing={2}>
@@ -112,15 +112,15 @@ export default function LeadCreditPlansPage() {
               <LoyaltyIcon color="success" sx={{ fontSize: 36 }} />
               <Box>
                 <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 700 }}>
-                  YOUR ACTIVE LEAD CREDITS
+                  YOUR TOKEN BALANCE
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                  {availableCredits} {availableCredits === 1 ? "Credit" : "Credits"} Available
+                  {wallet?.token_balance ?? availableCredits} {((wallet?.token_balance ?? availableCredits) === 1) ? "Token" : "Tokens"} Available
                 </Typography>
               </Box>
             </Stack>
             <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              1 Lead Credit = 1 Exclusive Lead Unlock. Never expires during active validity.
+              Tokens are required to accept leads and unlock client details & documents.
             </Typography>
           </Stack>
         </CardContent>
@@ -184,7 +184,7 @@ export default function LeadCreditPlansPage() {
                         ₹{plan.price_inr.toLocaleString("en-IN")}
                       </Typography>
                       <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                        for {plan.credits_granted} {plan.credits_granted === 1 ? "Lead Credit" : "Lead Credits"}
+                        for {plan.credits_granted} {plan.credits_granted === 1 ? "Lead Unlock Token" : "Lead Unlock Tokens"}
                       </Typography>
                     </Box>
 
@@ -218,7 +218,7 @@ export default function LeadCreditPlansPage() {
                         fontWeight: 700,
                       }}
                     >
-                      Buy Plan
+                      Buy Token Pack
                     </Button>
                   </Box>
                 </Card>
@@ -236,7 +236,7 @@ export default function LeadCreditPlansPage() {
         fullWidth
         slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>Purchase Plan</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Purchase Token Pack</DialogTitle>
         <DialogContent dividers>
           {selectedPlan && (
             <Stack spacing={2.5}>
@@ -245,10 +245,10 @@ export default function LeadCreditPlansPage() {
 
               <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  {selectedPlan.name} Plan
+                  {selectedPlan.name} Pack
                 </Typography>
                 <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                  Grants {selectedPlan.credits_granted} lead credits
+                  Grants {selectedPlan.credits_granted} lead unlock tokens
                 </Typography>
                 <Divider sx={{ my: 1.5 }} />
                 <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>

@@ -19,9 +19,6 @@ import {
   Grid,
   InputLabel,
   MenuItem,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
   Select,
   Stack,
   TextField,
@@ -29,22 +26,34 @@ import {
   Alert,
   IconButton,
   Tooltip,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import LoyaltyIcon from "@mui/icons-material/Loyalty";
+import TollIcon from "@mui/icons-material/Toll";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import SectionCard from "@/components/ui/SectionCard";
 import EmptyState from "@/components/ui/EmptyState";
 import { leadMarketplaceService } from "@/services/professional/leadMarketplace.service";
-import type { MarketplaceLeadPreview, ProfessionalWalletData, PaymentMethodType } from "@/types/lead";
+import type { MarketplaceLeadPreview, ProfessionalWalletData } from "@/types/lead";
 
 const URGENCY_COLOR_MAP: Record<string, "error" | "warning" | "info" | "default"> = {
   critical: "error",
@@ -60,8 +69,9 @@ export default function LeadMarketplacePage() {
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [wallet, setWallet] = useState<ProfessionalWalletData | null>(null);
-  const [availableCredits, setAvailableCredits] = useState(0);
-  const [metaInfo, setMetaInfo] = useState<{ paid_unlock_enabled?: boolean; compliance_notice?: string }>({});
+
+  // View Mode: 'list' or 'grid' (default list per user request)
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   // Filter States
   const [search, setSearch] = useState("");
@@ -72,7 +82,6 @@ export default function LeadMarketplacePage() {
   // Acceptance Modal State
   const [selectedLead, setSelectedLead] = useState<MarketplaceLeadPreview | null>(null);
   const [acceptModalOpen, setAcceptModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>("wallet");
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState("");
   const [acceptSuccess, setAcceptSuccess] = useState("");
@@ -93,11 +102,9 @@ export default function LeadMarketplacePage() {
 
       setLeads(leadsRes.results || []);
       setTotalCount(leadsRes.count || 0);
-      if (leadsRes.meta) setMetaInfo(leadsRes.meta);
 
       if (walletRes) {
         setWallet(walletRes);
-        setAvailableCredits(walletRes.available_lead_credits || 0);
       }
     } catch (err: any) {
       console.error("Error loading marketplace leads:", err);
@@ -115,50 +122,38 @@ export default function LeadMarketplacePage() {
     loadData();
   };
 
+  const currentTokens = wallet?.token_balance ?? 0;
+
   const handleOpenAcceptModal = (lead: MarketplaceLeadPreview) => {
     setSelectedLead(lead);
     setAcceptError("");
     setAcceptSuccess("");
-
-    const isPaidEnabled = metaInfo.paid_unlock_enabled;
-    if (!isPaidEnabled) {
-      setPaymentMethod("non_commercial");
-    } else if (availableCredits > 0) {
-      setPaymentMethod("lead_credit");
-    } else if (wallet && wallet.balance_paise >= lead.price_paise) {
-      setPaymentMethod("wallet");
-    } else {
-      setPaymentMethod("direct_payment");
-    }
     setAcceptModalOpen(true);
   };
 
   const handleConfirmAccept = async () => {
     if (!selectedLead) return;
+    const requiredTokens = selectedLead.tokens_required || 1;
+
+    // Strict frontend token check
+    if (currentTokens < requiredTokens) {
+      setAcceptError(`Insufficient Tokens! You need ${requiredTokens} token(s) to accept this lead, but your balance is ${currentTokens}. Please purchase tokens.`);
+      return;
+    }
+
     setAccepting(true);
     setAcceptError("");
     setAcceptSuccess("");
 
     try {
-      const res = await leadMarketplaceService.acceptLead(selectedLead.id, paymentMethod);
-
-      if (paymentMethod === "direct_payment" && res?.order_id) {
-        // Direct gateway payment initiated
-        alert(`Direct payment order ${res.order_id} generated for ₹${res.amount_inr}. (In test mode, verifying directly...)`);
-        await leadMarketplaceService.verifyPayment({
-          razorpay_order_id: res.gateway_order_id,
-          razorpay_payment_id: `pay_mock_${Date.now()}`,
-          razorpay_signature: `test_sig_${res.gateway_order_id}_pay_mock_${Date.now()}`,
-        });
-      }
-
-      setAcceptSuccess("Lead accepted successfully! Client contact info unlocked.");
+      await leadMarketplaceService.acceptLead(selectedLead.id, "tokens");
+      setAcceptSuccess("Lead accepted successfully! Client contact info and case documents are now unlocked.");
       setTimeout(() => {
         setAcceptModalOpen(false);
         router.push("/dashboard/professional/my-leads");
       }, 1200);
     } catch (err: any) {
-      setAcceptError(err?.message || "Failed to accept lead. Please try again.");
+      setAcceptError(err?.message || "Failed to accept lead. Please ensure you have sufficient tokens.");
     } finally {
       setAccepting(false);
     }
@@ -167,98 +162,85 @@ export default function LeadMarketplacePage() {
   return (
     <PortalPageShell
       title="ICJ Lead Marketplace"
-      subtitle="Exclusive verified legal assistance inquiries. Review matter previews and accept leads to assist clients."
+      subtitle="Exclusive verified legal assistance inquiries. Review matter previews and accept leads using your tokens to assist clients."
     >
-      {/* Top Balances Bar */}
-      <Box sx={{ mb: 3, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }, gap: 2 }}>
-        <Card variant="outlined" sx={{ borderRadius: 2, bgcolor: "#f8fafc" }}>
-          <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <AccountBalanceWalletIcon color="primary" sx={{ fontSize: 28 }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  ICJ WALLET BALANCE
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: "#0f172a" }}>
-                  ₹{wallet ? wallet.available_inr.toLocaleString("en-IN") : "0.00"}
-                </Typography>
-              </Box>
-            </Stack>
-            <Button
-              component={Link}
-              href="/dashboard/professional/wallet"
-              size="small"
-              variant="text"
-              sx={{ mt: 1, p: 0, fontSize: "0.75rem", textTransform: "none" }}
+      {/* Top Token Balance Card */}
+      <Card
+        elevation={0}
+        sx={{
+          mb: 3,
+          borderRadius: 3,
+          border: "1px solid #bfdbfe",
+          background: "linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)",
+          p: 2.5,
+        }}
+      >
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          sx={{
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", sm: "center" },
+          }}
+        >
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                bgcolor: "#f59e0b",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+                boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)",
+              }}
             >
-              + Add Balance
-            </Button>
-          </CardContent>
-        </Card>
+              <TollIcon sx={{ fontSize: 28 }} />
+            </Box>
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: "#64748b", letterSpacing: 0.5, textTransform: "uppercase" }}>
+                Your Available Lead Tokens
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: "#0f172a" }}>
+                {currentTokens} <span style={{ fontSize: "1rem", fontWeight: 600, color: "#64748b" }}>Token{currentTokens === 1 ? "" : "s"}</span>
+              </Typography>
+              <Typography variant="caption" sx={{ color: "#475569" }}>
+                Each lead requires tokens to unlock full client contact information and attached documents.
+              </Typography>
+            </Box>
+          </Stack>
 
-        <Card variant="outlined" sx={{ borderRadius: 2, bgcolor: "#f8fafc" }}>
-          <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <LoyaltyIcon color="success" sx={{ fontSize: 28 }} />
-              <Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                  LEAD CREDITS REMAINING
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: "#0f172a" }}>
-                  {availableCredits} {availableCredits === 1 ? "Credit" : "Credits"}
-                </Typography>
-              </Box>
-            </Stack>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
             <Button
               component={Link}
               href="/dashboard/professional/plans"
-              size="small"
-              variant="text"
-              sx={{ mt: 1, p: 0, fontSize: "0.75rem", textTransform: "none" }}
+              variant="contained"
+              color="primary"
+              startIcon={<LoyaltyIcon />}
+              sx={{ fontWeight: 700, textTransform: "none", px: 2.5, py: 1 }}
             >
-              Buy Credit Plan
+              Buy Lead Tokens
             </Button>
-          </CardContent>
-        </Card>
+            <Button
+              component={Link}
+              href="/dashboard/professional/wallet"
+              variant="outlined"
+              sx={{ fontWeight: 600, textTransform: "none" }}
+            >
+              Token Wallet
+            </Button>
+          </Stack>
+        </Stack>
+      </Card>
 
-        <Card
-          variant="outlined"
-          sx={{
-            gridColumn: { xs: "span 1", sm: "span 2", md: "span 2" },
-            borderRadius: 2,
-            bgcolor: metaInfo.paid_unlock_enabled ? "#f0fdf4" : "#fffbeb",
-            borderColor: metaInfo.paid_unlock_enabled ? "#bbf7d0" : "#fef08a",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: "flex-start" }}>
-              <InfoOutlinedIcon
-                sx={{ color: metaInfo.paid_unlock_enabled ? "#16a34a" : "#ca8a04", mt: 0.2 }}
-              />
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#0f172a" }}>
-                  {metaInfo.paid_unlock_enabled
-                    ? "Commercial Lead Acquisition Active"
-                    : "Preview & Non-Commercial Allocation Mode"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                  {metaInfo.compliance_notice ||
-                    "Sensitive client details remain confidential until formal acceptance. Only one verified professional can exclusively accept an individual lead."}
-                </Typography>
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Box>
-
-      {/* Filter and Search Bar */}
+      {/* Filter and View Toggle Bar */}
       <Box sx={{ mb: 3 }}>
-        <SectionCard title="Marketplace Filters" noPadding>
-          <Box sx={{ p: 2 }}>
-            <form onSubmit={handleSearchSubmit}>
-              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "2fr 1fr 1fr 1fr auto" }, gap: 2, alignItems: "center" }}>
+        <Paper elevation={0} sx={{ p: 2, borderRadius: 2, border: "1px solid #e2e8f0" }}>
+          <form onSubmit={handleSearchSubmit}>
+            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(12, 1fr)" }, gap: 2, alignItems: "center" }}>
+              <Box sx={{ gridColumn: { xs: "span 12", sm: "span 4" } }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -266,19 +248,27 @@ export default function LeadMarketplacePage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
+              </Box>
+
+              <Box sx={{ gridColumn: { xs: "span 6", sm: "span 2.5" } }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Category</InputLabel>
                   <Select value={category} label="Category" onChange={(e) => setCategory(e.target.value)}>
                     <MenuItem value="all">All Categories</MenuItem>
-                    <MenuItem value="Property Dispute">Property & Land</MenuItem>
+                    <MenuItem value="Specialized Law">Specialized Law</MenuItem>
+                    <MenuItem value="Citizen Assistance">Citizen Assistance</MenuItem>
+                    <MenuItem value="Property Dispute">Property & Real Estate</MenuItem>
                     <MenuItem value="Consumer Fraud">Consumer Fraud</MenuItem>
                     <MenuItem value="Civil Law">Civil Law</MenuItem>
-                    <MenuItem value="Labour Law">Labour & Employment</MenuItem>
-                    <MenuItem value="Cyber Crime">Cyber Crime</MenuItem>
                     <MenuItem value="Family Law">Family & Matrimonial</MenuItem>
-                    <MenuItem value="Criminal Law">Criminal Law</MenuItem>
+                    <MenuItem value="Criminal Law">Criminal Defense</MenuItem>
+                    <MenuItem value="Labour Law">Labour & Employment</MenuItem>
+                    <MenuItem value="Corporate Law">Corporate Law</MenuItem>
                   </Select>
                 </FormControl>
+              </Box>
+
+              <Box sx={{ gridColumn: { xs: "span 6", sm: "span 2" } }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Urgency</InputLabel>
                   <Select value={urgency} label="Urgency" onChange={(e) => setUrgency(e.target.value)}>
@@ -289,6 +279,9 @@ export default function LeadMarketplacePage() {
                     <MenuItem value="Low">Low</MenuItem>
                   </Select>
                 </FormControl>
+              </Box>
+
+              <Box sx={{ gridColumn: { xs: "span 6", sm: "span 2" } }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Availability</InputLabel>
                   <Select
@@ -301,21 +294,35 @@ export default function LeadMarketplacePage() {
                     <MenuItem value="all">All Leads</MenuItem>
                   </Select>
                 </FormControl>
-                <Stack direction="row" spacing={1}>
-                  <Button type="submit" variant="contained" size="medium">
-                    Filter
-                  </Button>
-                  <IconButton onClick={() => { setSearch(""); setCategory("all"); setUrgency("all"); loadData(); }}>
-                    <RefreshIcon />
-                  </IconButton>
-                </Stack>
               </Box>
-            </form>
-          </Box>
-        </SectionCard>
+
+              {/* View Switcher Toggle */}
+              <Box sx={{ gridColumn: { xs: "span 6", sm: "span 1.5" }, display: "flex", justifyContent: "flex-end" }}>
+                <ToggleButtonGroup
+                  size="small"
+                  value={viewMode}
+                  exclusive
+                  onChange={(_, val) => val && setViewMode(val)}
+                  aria-label="view mode"
+                >
+                  <Tooltip title="List View (Table)">
+                    <ToggleButton value="list" aria-label="list view">
+                      <ViewListIcon fontSize="small" />
+                    </ToggleButton>
+                  </Tooltip>
+                  <Tooltip title="Card View (Grid)">
+                    <ToggleButton value="grid" aria-label="grid view">
+                      <ViewModuleIcon fontSize="small" />
+                    </ToggleButton>
+                  </Tooltip>
+                </ToggleButtonGroup>
+              </Box>
+            </Box>
+          </form>
+        </Paper>
       </Box>
 
-      {/* Leads Grid */}
+      {/* Main Leads Presentation */}
       {loading ? (
         <Box sx={{ textAlign: "center", py: 8 }}>
           <CircularProgress size={36} />
@@ -327,132 +334,219 @@ export default function LeadMarketplacePage() {
         <EmptyState
           icon={<StorefrontIcon sx={{ fontSize: 56, color: "#94a3b8" }} />}
           message="No matching leads in the marketplace"
-          description="Check back shortly or reset your filters. New citizen requests appear as soon as verified by the admin team."
+          description="Check back shortly or reset your filters. New inquiries appear as soon as verified by the admin team."
         />
+      ) : viewMode === "list" ? (
+        /* LIST VIEW TABLE (Per User Request) */
+        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 2, border: "1px solid #e2e8f0" }}>
+          <Table size="medium">
+            <TableHead sx={{ bgcolor: "#f8fafc" }}>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Lead ID</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Matter Category</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Location</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Anonymized Summary</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Token Cost</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem" }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: 700, fontSize: "0.82rem", textAlign: "right" }}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {leads.map((lead) => {
+                const isAvailable = lead.status === "published" || lead.status === "reserved";
+                const isTaken = lead.status === "accepted";
+                const urgencyColor = URGENCY_COLOR_MAP[lead.urgency?.toLowerCase() || ""] || "default";
+                const reqTokens = lead.tokens_required || 1;
+                const hasEnoughTokens = currentTokens >= reqTokens;
+
+                return (
+                  <TableRow key={lead.id} hover sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb" }}>
+                        {lead.lead_id}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#64748b" }}>
+                        {new Date(lead.created_at).toLocaleDateString()}
+                      </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {lead.category}
+                      </Typography>
+                      <Chip
+                        label={lead.urgency}
+                        size="small"
+                        color={urgencyColor}
+                        sx={{ fontSize: "0.68rem", height: 18, mt: 0.3 }}
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                        <LocationOnIcon sx={{ fontSize: 14, color: "#94a3b8" }} />
+                        <Typography variant="body2" sx={{ color: "#334155" }}>
+                          {lead.city_name ? `${lead.city_name}, ` : ""}{lead.state_name || "—"}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+
+                    <TableCell sx={{ maxWidth: 320 }}>
+                      <Typography variant="body2" sx={{ color: "#475569", fontSize: "0.82rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {lead.anonymized_summary}
+                      </Typography>
+                      <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, color: "#94a3b8", alignItems: "center" }}>
+                        <LockOutlinedIcon sx={{ fontSize: 12 }} />
+                        <Typography variant="caption" sx={{ fontSize: "0.7rem" }}>
+                          Client contact masked until accepted
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+
+                    <TableCell>
+                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                        <TollIcon sx={{ color: "#f59e0b", fontSize: 16 }} />
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                          {reqTokens} Token{reqTokens > 1 ? "s" : ""}
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip
+                        label={isTaken ? "Already Taken" : lead.status === "reserved" ? "In Checkout" : "Available"}
+                        size="small"
+                        color={isTaken ? "default" : lead.status === "reserved" ? "warning" : "success"}
+                        variant={isTaken ? "outlined" : "filled"}
+                        sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22 }}
+                      />
+                    </TableCell>
+
+                    <TableCell sx={{ textAlign: "right" }}>
+                      <Button
+                        variant={hasEnoughTokens && isAvailable ? "contained" : "outlined"}
+                        size="small"
+                        disabled={!isAvailable}
+                        onClick={() => handleOpenAcceptModal(lead)}
+                        sx={{
+                          textTransform: "none",
+                          fontWeight: 700,
+                          fontSize: "0.78rem",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {isTaken ? "Taken" : "Accept Lead"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
       ) : (
+        /* CARD VIEW (GRID) */
         <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, gap: 2.5 }}>
           {leads.map((lead) => {
             const isAvailable = lead.status === "published" || lead.status === "reserved";
             const isTaken = lead.status === "accepted";
-            const urgencyColor = URGENCY_COLOR_MAP[lead.urgency.toLowerCase()] || "default";
+            const urgencyColor = URGENCY_COLOR_MAP[lead.urgency?.toLowerCase() || ""] || "default";
+            const reqTokens = lead.tokens_required || 1;
 
             return (
-              <Box key={lead.id}>
-                <Card
-                  variant="outlined"
-                  sx={{
-                    borderRadius: 2.5,
-                    height: "100%",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    transition: "transform 0.15s ease, box-shadow 0.15s ease",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 8px 24px -4px rgba(15, 23, 42, 0.08)",
-                      borderColor: "#93c5fd",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ p: 2.5 }}>
-                    {/* Header Row */}
-                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 700, letterSpacing: 0.5 }}>
-                          {lead.lead_id}
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", mt: 0.3 }}>
-                          {lead.category}
-                        </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                        <Chip
-                          label={lead.urgency}
-                          size="small"
-                          color={urgencyColor}
-                          sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22 }}
-                        />
-                        <Chip
-                          label={isTaken ? "Already Taken" : lead.status === "reserved" ? "In Checkout" : "Available"}
-                          size="small"
-                          color={isTaken ? "default" : lead.status === "reserved" ? "warning" : "success"}
-                          variant={isTaken ? "outlined" : "filled"}
-                          sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22 }}
-                        />
-                      </Stack>
-                    </Stack>
-
-                    {/* Metadata Row */}
-                    <Stack direction="row" spacing={2} sx={{ mb: 2, color: "#64748b", fontSize: "0.8rem" }}>
-                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                        <LocationOnIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
-                        <span>{lead.city_name || "Location"}, {lead.state_name}</span>
-                      </Stack>
-                      <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-                        <AccessTimeIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
-                        <span>{new Date(lead.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
-                      </Stack>
-                    </Stack>
-
-                    {/* Anonymized Matter Summary */}
-                    <Box sx={{ p: 1.5, bgcolor: "#f8fafc", borderRadius: 1.5, border: "1px solid #f1f5f9", mb: 2 }}>
-                      <Typography variant="body2" sx={{ color: "#334155", lineHeight: 1.5 }}>
-                        {lead.anonymized_summary}
+              <Card
+                key={lead.id}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2.5,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 24px -4px rgba(15, 23, 42, 0.08)",
+                    borderColor: "#93c5fd",
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 2.5 }}>
+                  <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-start", mb: 1.5 }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 700, letterSpacing: 0.5 }}>
+                        {lead.lead_id}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontSize: "1.05rem", fontWeight: 700, color: "#0f172a", mt: 0.3 }}>
+                        {lead.category}
                       </Typography>
                     </Box>
-
-                    {/* Masked Confidential Banner */}
-                    <Stack direction="row" spacing={1} sx={{ alignItems: "center", color: "#94a3b8", fontSize: "0.75rem", mb: 1 }}>
-                      <LockOutlinedIcon sx={{ fontSize: 14 }} />
-                      <span>Client identity & contact details protected until authorized acceptance.</span>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                      <Chip
+                        label={lead.urgency}
+                        size="small"
+                        color={urgencyColor}
+                        sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22 }}
+                      />
+                      <Chip
+                        label={isTaken ? "Already Taken" : lead.status === "reserved" ? "In Checkout" : "Available"}
+                        size="small"
+                        color={isTaken ? "default" : lead.status === "reserved" ? "warning" : "success"}
+                        variant={isTaken ? "outlined" : "filled"}
+                        sx={{ fontWeight: 600, fontSize: "0.7rem", height: 22 }}
+                      />
                     </Stack>
-                  </CardContent>
+                  </Stack>
 
-                  {/* Card Footer */}
-                  <Box sx={{ px: 2.5, py: 1.5, bgcolor: "#fbfcfd", borderTop: "1px solid #f1f5f9" }}>
-                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600, display: "block" }}>
-                          LEAD FEE
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                          ₹{lead.price_inr.toLocaleString("en-IN")}
-                        </Typography>
-                      </Box>
-                      <Stack direction="row" spacing={1}>
-                        <Button
-                          component={Link}
-                          href={`/dashboard/professional/leads/${lead.id}`}
-                          variant="outlined"
-                          size="small"
-                          sx={{ textTransform: "none", fontWeight: 600 }}
-                        >
-                          View Details
-                        </Button>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          disabled={!isAvailable}
-                          onClick={() => handleOpenAcceptModal(lead)}
-                          sx={{
-                            textTransform: "none",
-                            fontWeight: 700,
-                            bgcolor: isAvailable ? "#2563eb" : undefined,
-                          }}
-                        >
-                          {isTaken ? "Taken" : "Accept Lead"}
-                        </Button>
-                      </Stack>
+                  <Stack direction="row" spacing={2} sx={{ mb: 2, color: "#64748b", fontSize: "0.8rem" }}>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <LocationOnIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
+                      <span>{lead.city_name ? `${lead.city_name}, ` : ""}{lead.state_name}</span>
                     </Stack>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <AccessTimeIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
+                      <span>{new Date(lead.created_at).toLocaleDateString()}</span>
+                    </Stack>
+                  </Stack>
+
+                  <Box sx={{ p: 1.5, bgcolor: "#f8fafc", borderRadius: 1.5, border: "1px solid #f1f5f9", mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: "#334155", lineHeight: 1.5 }}>
+                      {lead.anonymized_summary}
+                    </Typography>
                   </Box>
-                </Card>
-              </Box>
+
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center", color: "#94a3b8", fontSize: "0.75rem" }}>
+                    <LockOutlinedIcon sx={{ fontSize: 14 }} />
+                    <span>Client identity & contact details protected until authorized acceptance.</span>
+                  </Stack>
+                </CardContent>
+
+                <Box sx={{ px: 2.5, py: 1.5, bgcolor: "#fbfcfd", borderTop: "1px solid #f1f5f9" }}>
+                  <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <TollIcon sx={{ color: "#f59e0b", fontSize: 18 }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: "#0f172a" }}>
+                        {reqTokens} Token{reqTokens > 1 ? "s" : ""}
+                      </Typography>
+                    </Stack>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disabled={!isAvailable}
+                      onClick={() => handleOpenAcceptModal(lead)}
+                      sx={{ textTransform: "none", fontWeight: 700 }}
+                    >
+                      {isTaken ? "Taken" : "Accept Lead"}
+                    </Button>
+                  </Stack>
+                </Box>
+              </Card>
             );
           })}
         </Box>
       )}
 
-      {/* Accept Lead Modal */}
+      {/* Accept Lead Modal (Token Validation Enforced) */}
       <Dialog
         open={acceptModalOpen}
         onClose={() => !accepting && setAcceptModalOpen(false)}
@@ -461,132 +555,85 @@ export default function LeadMarketplacePage() {
         slotProps={{ paper: { sx: { borderRadius: 3, p: 1 } } }}
       >
         <DialogTitle sx={{ fontWeight: 800, fontSize: "1.2rem", pb: 1 }}>
-          Confirm Exclusive Lead Acceptance
+          Confirm Lead Acceptance
         </DialogTitle>
         <DialogContent dividers>
-          {selectedLead && (
-            <Stack spacing={2.5}>
-              {acceptError && <Alert severity="error">{acceptError}</Alert>}
-              {acceptSuccess && <Alert severity="success">{acceptSuccess}</Alert>}
+          {selectedLead && (() => {
+            const reqTokens = selectedLead.tokens_required || 1;
+            const hasTokens = currentTokens >= reqTokens;
 
-              {/* Lead Summary Info */}
-              <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
-                <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 700 }}>
-                  {selectedLead.lead_id}
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a" }}>
-                  {selectedLead.category}
-                </Typography>
-                <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-                  {selectedLead.city_name}, {selectedLead.state_name} • Urgency: {selectedLead.urgency}
-                </Typography>
-                <Divider sx={{ my: 1.5 }} />
-                <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>Lead Price:</Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
-                    ₹{selectedLead.price_inr.toLocaleString("en-IN")}
+            return (
+              <Stack spacing={2.5}>
+                {acceptError && <Alert severity="error">{acceptError}</Alert>}
+                {acceptSuccess && <Alert severity="success">{acceptSuccess}</Alert>}
+
+                {/* Lead Info */}
+                <Box sx={{ p: 2, bgcolor: "#f8fafc", borderRadius: 2, border: "1px solid #e2e8f0" }}>
+                  <Typography variant="caption" sx={{ color: "#2563eb", fontWeight: 700 }}>
+                    {selectedLead.lead_id}
                   </Typography>
-                </Stack>
-              </Box>
-
-              {/* Compliance Notice if commercial flag is disabled */}
-              {!metaInfo.paid_unlock_enabled && (
-                <Alert severity="info" icon={<InfoOutlinedIcon />}>
-                  <strong>Compliance Mode Active:</strong> Paid advocate lead unlocking is currently disabled pending
-                  regulatory review. This lead will be accepted via platform non-commercial allocation without charging your wallet.
-                </Alert>
-              )}
-
-              {/* Payment Method Selection if commercial is enabled */}
-              {metaInfo.paid_unlock_enabled && (
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                    Select Payment Method:
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                    {selectedLead.category}
                   </Typography>
-                  <FormControl component="fieldset" fullWidth>
-                    <RadioGroup
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType)}
-                    >
-                      {/* Option A: Wallet */}
-                      <FormControlLabel
-                        value="wallet"
-                        control={<Radio />}
-                        disabled={(wallet?.balance_paise || 0) < selectedLead.price_paise}
-                        label={
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              Pay from ICJ Wallet (Balance: ₹{wallet?.available_inr.toLocaleString("en-IN") || "0.00"})
-                            </Typography>
-                            {(wallet?.balance_paise || 0) < selectedLead.price_paise && (
-                              <Typography variant="caption" color="error">
-                                Insufficient balance. Please top up your wallet.
-                              </Typography>
-                            )}
-                          </Box>
-                        }
-                        sx={{ mb: 1, p: 1, border: "1px solid #e2e8f0", borderRadius: 1.5 }}
-                      />
-
-                      {/* Option B: Lead Credit */}
-                      <FormControlLabel
-                        value="lead_credit"
-                        control={<Radio />}
-                        disabled={availableCredits <= 0}
-                        label={
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              Use 1 Lead Credit ({availableCredits} available)
-                            </Typography>
-                            {availableCredits <= 0 && (
-                              <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                                No active prepaid lead credits available.
-                              </Typography>
-                            )}
-                          </Box>
-                        }
-                        sx={{ mb: 1, p: 1, border: "1px solid #e2e8f0", borderRadius: 1.5 }}
-                      />
-
-                      {/* Option C: Direct Payment */}
-                      <FormControlLabel
-                        value="direct_payment"
-                        control={<Radio />}
-                        label={
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              Pay Directly via Payment Gateway (Cards, UPI, NetBanking)
-                            </Typography>
-                          </Box>
-                        }
-                        sx={{ p: 1, border: "1px solid #e2e8f0", borderRadius: 1.5 }}
-                      />
-                    </RadioGroup>
-                  </FormControl>
+                  <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+                    {selectedLead.city_name}, {selectedLead.state_name} • Urgency: {selectedLead.urgency}
+                  </Typography>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                    <Typography variant="body2" color="text.secondary">Required Tokens:</Typography>
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+                      <TollIcon sx={{ color: "#f59e0b", fontSize: 20 }} />
+                      <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
+                        {reqTokens} Token{reqTokens > 1 ? "s" : ""}
+                      </Typography>
+                    </Stack>
+                  </Stack>
                 </Box>
-              )}
 
-              {/* Terms Check */}
-              <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                By accepting this lead, you agree to contact the client promptly and maintain professional standards.
-                Lead fee is non-refundable once confidential contact details are unlocked except in verified conflict-of-interest cases.
-              </Typography>
-            </Stack>
-          )}
+                {/* Token Balance Check Banner */}
+                {hasTokens ? (
+                  <Alert severity="success">
+                    <strong>Token Balance Verified:</strong> You have <strong>{currentTokens} tokens</strong> available. Accepting this lead will deduct <strong>{reqTokens} token(s)</strong> and unlock full client contact details and case documents immediately.
+                  </Alert>
+                ) : (
+                  <Alert severity="warning">
+                    <strong>Insufficient Tokens:</strong> You currently have <strong>{currentTokens} tokens</strong>, but this lead requires <strong>{reqTokens} token(s)</strong>. Please purchase lead tokens to accept this inquiry.
+                  </Alert>
+                )}
+
+                <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                  By accepting this matter, you agree to contact the client promptly and provide diligent professional legal assistance. All case progress notes will be maintained under your portal.
+                </Typography>
+              </Stack>
+            );
+          })()}
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setAcceptModalOpen(false)} disabled={accepting} sx={{ textTransform: "none" }}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleConfirmAccept}
-            disabled={accepting || Boolean(acceptSuccess)}
-            sx={{ textTransform: "none", fontWeight: 700, px: 3 }}
-          >
-            {accepting ? <CircularProgress size={20} color="inherit" /> : "Confirm & Accept Lead"}
-          </Button>
+
+          {selectedLead && currentTokens >= (selectedLead.tokens_required || 1) ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleConfirmAccept}
+              disabled={accepting || Boolean(acceptSuccess)}
+              sx={{ textTransform: "none", fontWeight: 700, px: 3 }}
+            >
+              {accepting ? <CircularProgress size={20} color="inherit" /> : `Accept Lead (${selectedLead.tokens_required || 1} Token)`}
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="warning"
+              component={Link}
+              href="/dashboard/professional/plans"
+              sx={{ textTransform: "none", fontWeight: 700, px: 3 }}
+            >
+              Purchase Tokens to Accept
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </PortalPageShell>

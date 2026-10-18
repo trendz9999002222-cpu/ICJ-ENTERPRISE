@@ -4,11 +4,12 @@ export type LeadStatus =
   | "published"
   | "reserved"
   | "accepted"
+  | "reassigned"
   | "unavailable"
   | "rejected"
   | "closed";
 
-export type PaymentMethodType = "wallet" | "lead_credit" | "direct_payment" | "non_commercial";
+export type PaymentMethodType = "wallet" | "lead_credit" | "tokens" | "direct_payment" | "non_commercial";
 
 export interface MarketplaceLeadPreview {
   id: string;
@@ -18,6 +19,7 @@ export interface MarketplaceLeadPreview {
   state_name: string;
   city_name: string;
   anonymized_summary: string;
+  tokens_required?: number;
   price_paise: number;
   price_inr: number;
   tax_percentage: string | number;
@@ -33,6 +35,18 @@ export interface DetailedLead extends MarketplaceLeadPreview {
   client_email?: string | null;
   client_mobile?: string | null;
   client_preferred_contact?: string | null;
+  tokens_required?: number;
+  assigned_professional?: string | null;
+  assigned_professional_details?: {
+    id: string;
+    name: string;
+    email: string;
+    mobile?: string;
+  } | null;
+  case_stage?: string;
+  case_notes?: string;
+  reassignment_notes?: string;
+  client_documents?: any[];
   legal_case_id?: string | null;
   acceptance_info?: {
     accepted_at: string;
@@ -47,6 +61,9 @@ export interface ProfessionalWalletData {
   id: string;
   professional_email: string;
   currency: string;
+  token_balance: number;
+  total_tokens_purchased: number;
+  total_tokens_spent: number;
   balance_paise: number;
   available_inr: number;
   reserved_paise: number;
@@ -63,6 +80,8 @@ export interface WalletTransactionItem {
   id: string;
   reference: string;
   tx_type: "credit" | "debit" | "refund" | "adjustment" | "hold" | "hold_release";
+  tokens_delta?: number;
+  token_balance_after?: number;
   amount_paise: number;
   amount_inr: number;
   balance_after_paise: number;
