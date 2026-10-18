@@ -75,6 +75,7 @@ class PublicFeaturedServicesAPIView(APIView):
         )
 
 
+from decimal import Decimal
 import random
 from django.utils import timezone
 from apps.services.models import AssistanceRequest, AssistanceFormField, AssistanceDocument
@@ -162,32 +163,46 @@ class PublicAssistanceRequestAPIView(APIView):
                 
             instance = serializer.save(reference_id=ref_id)
 
-            # Automatically generate Marketplace Lead from citizen assistance request
-            try:
-                from apps.leads.models import Lead
-                lead_id = f"LEAD-{ref_id}"
-                Lead.objects.get_or_create(
+            # Ensure MarketplaceLead is created for Unified Leads Management
+            from apps.services.models import LeadCommercialSettings, MarketplaceLead
+            if not hasattr(instance, "marketplace_lead") or instance.marketplace_lead is None:
+                settings_obj = LeadCommercialSettings.objects.first()
+                default_price = settings_obj.default_lead_price_paise if settings_obj else 50000
+                tax = settings_obj.tax_percentage if settings_obj else Decimal("18.00")
+
+                lead_id = f"LEAD-{year}-{random.randint(10000, 99999)}"
+                while MarketplaceLead.objects.filter(lead_id=lead_id).exists():
+                    lead_id = f"LEAD-{year}-{random.randint(10000, 99999)}"
+
+                summary = (instance.problem_description or "").strip()
+                if len(summary) > 220:
+                    summary = summary[:217] + "..."
+
+                urgency_raw = (instance.urgency or "medium").lower()
+                if "high" in urgency_raw or "critical" in urgency_raw:
+                    urgency_clean = "high"
+                elif "low" in urgency_raw:
+                    urgency_clean = "low"
+                else:
+                    urgency_clean = "medium"
+
+                MarketplaceLead.objects.create(
+                    lead_id=lead_id,
                     assistance_request=instance,
-                    defaults={
-                        "lead_id": lead_id,
-                        "category": instance.category or "Legal Assistance",
-                        "urgency": instance.urgency or "Medium",
-                        "state_name": instance.state_name or "Not Specified",
-                        "city_name": instance.city_name or "Not Specified",
-                        "anonymized_summary": (
-                            f"Matter regarding {instance.category or 'Legal Assistance'} in "
-                            f"{instance.city_name or ''}, {instance.state_name or ''}. "
-                            f"Urgency: {instance.urgency or 'Medium'}."
-                        ),
-                        "full_description": instance.problem_description or "",
-                        "status": Lead.Status.PENDING_REVIEW,
-                        "tokens_required": 1,
-                        "client_documents": payload.get("files") or [],
-                    }
+                    category=instance.category or "General Legal Assistance",
+                    urgency=urgency_clean,
+                    state_name=instance.state_name or "",
+                    city_name=instance.city_name or "",
+                    anonymized_summary=summary or f"Assistance request for {instance.category or 'General Legal Assistance'}",
+                    full_description=instance.problem_description or "",
+                    price_paise=default_price,
+                    tax_percentage=tax,
+                    status=MarketplaceLead.Status.PENDING_REVIEW,
+                    client_name=instance.full_name or "",
+                    client_email=instance.email or "",
+                    client_mobile=instance.mobile or "",
+                    client_preferred_contact=instance.preferred_contact or "Phone",
                 )
-            except Exception as e:
-                # Log but do not block citizen request confirmation
-                pass
 
             return api_success(data=serializer.data, message="Assistance request submitted successfully.", status_code=201)
         return api_error(message="Validation failed.", errors=serializer.errors, status_code=400)

@@ -11,7 +11,9 @@ from common.api_listing import list_params, paginated_success
 from common.listing import apply_ordering, apply_search
 from common.responses import api_error, api_success
 from apps.accounts.permissions import IsAdminRole, PasswordChangeCompleted
+import random
 from apps.services.models import (
+    AssistanceRequest,
     LeadCommercialSettings,
     LeadCreditPlan,
     MarketplaceLead,
@@ -29,6 +31,56 @@ from apps.services.serializers import (
 )
 
 
+def sync_assistance_requests_to_leads():
+    """
+    Ensures every citizen seek-assistance intake has a corresponding MarketplaceLead
+    so it appears immediately in the Unified Leads Management table.
+    """
+    orphaned_requests = AssistanceRequest.objects.filter(marketplace_lead__isnull=True).order_by("-created_at")
+    if not orphaned_requests.exists():
+        return
+
+    settings_obj = LeadCommercialSettings.objects.first()
+    default_price = settings_obj.default_lead_price_paise if settings_obj else 50000
+    tax = settings_obj.tax_percentage if settings_obj else Decimal("18.00")
+    year = timezone.now().year
+
+    for req in orphaned_requests[:100]:
+        lead_id = f"LEAD-{year}-{random.randint(10000, 99999)}"
+        while MarketplaceLead.objects.filter(lead_id=lead_id).exists():
+            lead_id = f"LEAD-{year}-{random.randint(10000, 99999)}"
+
+        summary = (req.problem_description or "").strip()
+        if len(summary) > 220:
+            summary = summary[:217] + "..."
+
+        urgency_raw = (req.urgency or "medium").lower()
+        if "high" in urgency_raw or "critical" in urgency_raw:
+            urgency_clean = "high"
+        elif "low" in urgency_raw:
+            urgency_clean = "low"
+        else:
+            urgency_clean = "medium"
+
+        MarketplaceLead.objects.create(
+            lead_id=lead_id,
+            assistance_request=req,
+            category=req.category or "General Legal Assistance",
+            urgency=urgency_clean,
+            state_name=req.state_name or "",
+            city_name=req.city_name or "",
+            anonymized_summary=summary or f"Assistance request for {req.category or 'General Legal Assistance'}",
+            full_description=req.problem_description or "",
+            price_paise=default_price,
+            tax_percentage=tax,
+            status=MarketplaceLead.Status.PENDING_REVIEW,
+            client_name=req.full_name or "",
+            client_email=req.email or "",
+            client_mobile=req.mobile or "",
+            client_preferred_contact=req.preferred_contact or "Phone",
+        )
+
+
 class AdminLeadsBaseView(APIView):
     permission_classes = [IsAuthenticated, PasswordChangeCompleted, IsAdminRole]
 
@@ -39,6 +91,7 @@ class AdminLeadsBaseView(APIView):
 
 class AdminLeadsListAPIView(AdminLeadsBaseView):
     def get(self, request):
+        sync_assistance_requests_to_leads()
         params = list_params(request)
         qs = MarketplaceLead.objects.select_related('accepted_by', 'assistance_request').all()
 
@@ -60,6 +113,7 @@ class AdminLeadsListAPIView(AdminLeadsBaseView):
                 | models.Q(state_name__icontains=search)
                 | models.Q(client_name__icontains=search)
                 | models.Q(client_email__icontains=search)
+                | models.Q(assistance_request__reference_id__icontains=search)
             )
 
         qs = apply_ordering(qs, params.get("ordering"), "-created_at")

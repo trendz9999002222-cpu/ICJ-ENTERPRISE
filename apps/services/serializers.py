@@ -192,6 +192,8 @@ class ProfessionalPaymentSerializer(serializers.ModelSerializer):
 
 class MarketplaceLeadPreviewSerializer(serializers.ModelSerializer):
     price_inr = serializers.FloatField(read_only=True)
+    assistance_reference_id = serializers.CharField(source='assistance_request.reference_id', read_only=True, allow_null=True)
+    tokens_required = serializers.SerializerMethodField()
 
     class Meta:
         model = MarketplaceLead
@@ -205,18 +207,29 @@ class MarketplaceLeadPreviewSerializer(serializers.ModelSerializer):
             'anonymized_summary',
             'price_paise',
             'price_inr',
+            'tokens_required',
             'tax_percentage',
             'status',
             'is_exclusive',
+            'assistance_reference_id',
             'published_at',
             'created_at',
         )
         read_only_fields = fields
 
+    def get_tokens_required(self, obj):
+        if not obj.price_paise:
+            return 1
+        return max(1, int(round(obj.price_paise / 50000.0)))
+
 
 class MarketplaceLeadDetailSerializer(serializers.ModelSerializer):
     price_inr = serializers.FloatField(read_only=True)
+    tokens_required = serializers.SerializerMethodField()
     acceptance_info = serializers.SerializerMethodField()
+    assistance_reference_id = serializers.CharField(source='assistance_request.reference_id', read_only=True, allow_null=True)
+    dynamic_fields = serializers.SerializerMethodField()
+    assistance_data = serializers.SerializerMethodField()
 
     class Meta:
         model = MarketplaceLead
@@ -231,6 +244,7 @@ class MarketplaceLeadDetailSerializer(serializers.ModelSerializer):
             'full_description',
             'price_paise',
             'price_inr',
+            'tokens_required',
             'tax_percentage',
             'status',
             'is_exclusive',
@@ -238,11 +252,50 @@ class MarketplaceLeadDetailSerializer(serializers.ModelSerializer):
             'client_email',
             'client_mobile',
             'client_preferred_contact',
+            'assistance_reference_id',
+            'dynamic_fields',
+            'assistance_data',
             'acceptance_info',
             'published_at',
             'created_at',
         )
         read_only_fields = fields
+
+    def get_tokens_required(self, obj):
+        if not obj.price_paise:
+            return 1
+        return max(1, int(round(obj.price_paise / 50000.0)))
+
+    def get_dynamic_fields(self, obj):
+        if not obj.assistance_request:
+            return {}
+        req = obj.assistance_request
+        fields = {}
+        if req.additional_fields and isinstance(req.additional_fields, dict):
+            fields.update(req.additional_fields)
+        if req.preferred_contact:
+            fields['preferred_contact'] = req.preferred_contact
+        return fields
+
+    def get_assistance_data(self, obj):
+        if not obj.assistance_request:
+            return None
+        req = obj.assistance_request
+        return {
+            'reference_id': req.reference_id,
+            'full_name': req.full_name,
+            'email': req.email,
+            'mobile': req.mobile,
+            'preferred_contact': req.preferred_contact,
+            'state_name': req.state_name,
+            'city_name': req.city_name,
+            'category': req.category,
+            'urgency': req.urgency,
+            'problem_description': req.problem_description,
+            'additional_fields': req.additional_fields or {},
+            'status': req.status,
+            'created_at': req.created_at.isoformat() if req.created_at else None,
+        }
 
     def get_acceptance_info(self, obj):
         if not obj.accepted_by:
