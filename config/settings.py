@@ -13,7 +13,7 @@ load_dotenv(BASE_DIR / ".env", override=True)
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-insecure-change-me")
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+ALLOWED_HOSTS = ["*"] if DEBUG else [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "apps.person.apps.PersonConfig",
     "apps.honorable_advisory.apps.HonorableAdvisoryConfig",
     "apps.services.apps.ServicesConfig",
-    "apps.leads.apps.LeadsConfig",
+    "apps.donations.apps.DonationsConfig",
 ]
 
 MIDDLEWARE = [

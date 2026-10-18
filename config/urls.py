@@ -36,6 +36,10 @@ urlpatterns = [
         include("apps.services.urls.admin"),
     ),
     path(
+        "api/v1/admin/donations/",
+        include("apps.donations.urls.admin"),
+    ),
+    path(
         "api/v1/admin/",
         include("apps.services.urls.admin_leads"),
     ),
@@ -50,6 +54,10 @@ urlpatterns = [
     path(
         "api/v1/professional/",
         include("apps.services.urls.professional_leads"),
+    ),
+    path(
+        "api/v1/donations/",
+        include("apps.donations.urls.user"),
     ),
 ]
 

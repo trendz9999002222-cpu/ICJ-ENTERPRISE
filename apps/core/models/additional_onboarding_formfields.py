@@ -11,6 +11,8 @@ class AdditionalOnboardingFormfields(models.Model):
         SEEKER_ASSISTANT = "SEEKER_ASSISTANT", "Client Seeker Assistant"
         HONORABLE_ADVISORY = "HONORABLE_ADVISORY", "Honorable Advisory Onboarding"
 
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     form_code = models.CharField(
         max_length=64,
