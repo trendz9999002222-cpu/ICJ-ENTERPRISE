@@ -78,7 +78,7 @@ export default function UserProfilePage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         const data = json.data || json;
         setProfile(data);
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
           membership_field_values: updatedMembershipFields,
         }),
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const json = await res.json();
         setProfile(json.data || json);
         setFeedback({ open: true, message: "Profile updated successfully!", severity: "success" });

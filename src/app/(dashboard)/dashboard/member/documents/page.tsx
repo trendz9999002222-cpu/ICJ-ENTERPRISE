@@ -39,7 +39,7 @@ export default function MemberDocumentsPage() {
         const res = await fetch(`${env.apiUrl}/auth/me/`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (res.ok) {
+        if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
           const json = await res.json();
           const data = json.data || json;
           setMembership(data.membership);
