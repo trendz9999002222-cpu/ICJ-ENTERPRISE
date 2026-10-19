@@ -148,7 +148,11 @@ export default function LeadCreditPlansPage() {
         loadData();
       }, 1300);
     } catch (err: any) {
-      setPurchaseError(err?.message || "Failed to purchase plan.");
+      const msg =
+        err?.body?.message ||
+        err?.message ||
+        "Failed to initialize payment gateway. Please try again.";
+      setPurchaseError(msg);
     } finally {
       setPurchasing(false);
     }
