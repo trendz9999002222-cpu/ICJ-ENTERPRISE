@@ -80,7 +80,14 @@ export default function LeadCreditPlansPage() {
     try {
       const res = await leadMarketplaceService.purchasePlan(selectedPlan.id, payWithWallet);
 
-      if (!payWithWallet && res?.access_key) {
+      if (!payWithWallet) {
+        if (!res?.access_key) {
+          throw new Error(
+            res?.message ||
+              "Failed to initialize payment gateway. Access key was not returned by server. Please check your Easebuzz configuration."
+          );
+        }
+
         // Load Easebuzz checkout script
         let easebuzzLoaded = false;
         try {
@@ -93,7 +100,10 @@ export default function LeadCreditPlansPage() {
         if (easebuzzLoaded) {
           await new Promise<void>((resolve, reject) => {
             try {
-              const easebuzz = new window.EasebuzzCheckout(res.key || "P2OTPKQ5X", res.env || "test");
+              if (!res.key) {
+                throw new Error("Merchant gateway key is missing from backend response.");
+              }
+              const easebuzz = new window.EasebuzzCheckout(res.key, res.env || "test");
               const options = {
                 access_key: res.access_key,
                 onResponse: async (response: any) => {

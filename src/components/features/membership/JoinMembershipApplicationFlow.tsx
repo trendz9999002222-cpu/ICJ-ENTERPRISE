@@ -360,7 +360,7 @@ export default function JoinMembershipApplicationFlow() {
         // Open Easebuzz modal popup
         await new Promise<void>((resolve, reject) => {
           try {
-            const easebuzz = new window.EasebuzzCheckout(order.key || "P2OTPKQ5X", order.env || "test");
+            const easebuzz = new window.EasebuzzCheckout(order.key, order.env || "test");
             const options = {
               access_key: order.access_key,
               onResponse: async (response: any) => {
