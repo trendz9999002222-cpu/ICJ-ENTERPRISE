@@ -101,6 +101,9 @@ class ProfessionalWalletSerializer(serializers.ModelSerializer):
     total_spent_paise = serializers.IntegerField(read_only=True)
     total_spent_inr = serializers.FloatField(read_only=True)
     available_lead_credits = serializers.IntegerField(source='lead_credits', read_only=True)
+    token_balance = serializers.IntegerField(source='lead_credits', read_only=True)
+    total_tokens_purchased = serializers.SerializerMethodField()
+    total_tokens_spent = serializers.SerializerMethodField()
 
     class Meta:
         model = ProfessionalWallet
@@ -117,15 +120,35 @@ class ProfessionalWalletSerializer(serializers.ModelSerializer):
             'total_spent_paise',
             'total_spent_inr',
             'available_lead_credits',
+            'token_balance',
+            'total_tokens_purchased',
+            'total_tokens_spent',
             'updated_at',
         )
         read_only_fields = fields
+
+    def get_total_tokens_purchased(self, obj):
+        total = 0
+        if hasattr(obj, 'user') and obj.user:
+            for p in obj.user.professional_payments.filter(status='success', order_type='lead_credit_plan'):
+                total += int(p.metadata.get('credits', 0) or 0)
+        return max(total, obj.lead_credits)
+
+    def get_total_tokens_spent(self, obj):
+        spent = 0
+        if hasattr(obj, 'user') and obj.user:
+            for lead in obj.user.accepted_marketplace_leads.filter(acceptance_payment_method__in=['lead_credit', 'tokens']):
+                req = max(1, int(round(lead.price_paise / 50000.0))) if lead.price_paise else 1
+                spent += req
+        return spent
 
 
 class WalletTransactionSerializer(serializers.ModelSerializer):
     amount_inr = serializers.FloatField(read_only=True)
     balance_after_inr = serializers.FloatField(read_only=True)
     professional_email = serializers.EmailField(source='wallet.user.email', read_only=True)
+    tokens_delta = serializers.SerializerMethodField()
+    token_balance_after = serializers.SerializerMethodField()
 
     class Meta:
         model = WalletTransaction
@@ -138,10 +161,25 @@ class WalletTransactionSerializer(serializers.ModelSerializer):
             'amount_inr',
             'balance_after_paise',
             'balance_after_inr',
+            'tokens_delta',
+            'token_balance_after',
             'description',
             'created_at',
         )
         read_only_fields = fields
+
+    def get_tokens_delta(self, obj):
+        import re
+        m = re.search(r'([+-]?\d+)\s*(?:credit|token)', obj.description, re.IGNORECASE)
+        if m:
+            val = int(m.group(1))
+            if "deducted" in obj.description.lower() or "used" in obj.description.lower() or "-" in m.group(0):
+                return -abs(val)
+            return abs(val)
+        return None
+
+    def get_token_balance_after(self, obj):
+        return obj.wallet.lead_credits if hasattr(obj, 'wallet') and obj.wallet else None
 
 
 class LeadCreditPlanSerializer(serializers.ModelSerializer):
