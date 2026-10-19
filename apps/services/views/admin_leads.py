@@ -217,8 +217,47 @@ class AdminWalletAdjustAPIView(AdminLeadsBaseView):
     def post(self, request, pk):
         wallet = get_object_or_404(ProfessionalWallet.objects.select_related('user'), pk=pk)
         amount_inr = request.data.get("amount_inr")
+        tokens_delta = request.data.get("tokens_delta")
         is_credit = bool(request.data.get("is_credit", True))
         reason = (request.data.get("reason") or "").strip() or "Admin Adjustment"
+
+        if tokens_delta is not None:
+            try:
+                tokens = int(tokens_delta)
+                if tokens <= 0:
+                    return api_error("Token adjustment amount must be positive.", status_code=status.HTTP_400_BAD_REQUEST)
+            except (ValueError, TypeError):
+                return api_error("Invalid token adjustment amount.", status_code=status.HTTP_400_BAD_REQUEST)
+
+            if is_credit:
+                wallet.lead_credits += tokens
+                tx_type = WalletTransaction.TxType.ADJUSTMENT
+                desc = f"{reason} (+{tokens} Tokens)"
+            else:
+                if wallet.lead_credits < tokens:
+                    return api_error("Insufficient token balance for debit adjustment.", status_code=status.HTTP_400_BAD_REQUEST)
+                wallet.lead_credits -= tokens
+                tx_type = WalletTransaction.TxType.DEBIT
+                desc = f"{reason} (-{tokens} Tokens)"
+
+            wallet.save()
+
+            tx = WalletTransaction.objects.create(
+                wallet=wallet,
+                reference=f"ADJ-TOK-{uuid.uuid4().hex[:8].upper()}",
+                tx_type=tx_type,
+                amount_paise=0,
+                balance_after_paise=wallet.balance_paise,
+                description=desc,
+            )
+
+            return api_success(
+                data={
+                    "wallet": ProfessionalWalletSerializer(wallet).data,
+                    "transaction": WalletTransactionSerializer(tx).data,
+                },
+                message=f"Wallet successfully adjusted by {tokens} token(s).",
+            )
 
         try:
             amt = float(amount_inr)
@@ -459,17 +498,31 @@ class AdminRefundProcessAPIView(AdminLeadsBaseView):
                 # Credit back professional wallet
                 if lead.accepted_by:
                     wallet, _ = ProfessionalWallet.objects.get_or_create(user=lead.accepted_by)
-                    wallet.balance_paise += lead.price_paise
-                    wallet.save()
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        reference=f"REF-{lead.lead_id}",
-                        tx_type=WalletTransaction.TxType.REFUND,
-                        amount_paise=lead.price_paise,
-                        balance_after_paise=wallet.balance_paise,
-                        description=f"Refund approved for Lead {lead.lead_id}. Notes: {notes}",
-                    )
-                return api_success(message=f"Refund approved and ₹{lead.price_inr:.2f} credited back to wallet.")
+                    tokens_req = max(1, int(round(lead.price_paise / 50000.0))) if lead.price_paise else 1
+                    if lead.acceptance_payment_method in ["tokens", "lead_credit"]:
+                        wallet.lead_credits += tokens_req
+                        wallet.save()
+                        WalletTransaction.objects.create(
+                            wallet=wallet,
+                            reference=f"REF-TOK-{lead.lead_id}",
+                            tx_type=WalletTransaction.TxType.REFUND,
+                            amount_paise=0,
+                            balance_after_paise=wallet.balance_paise,
+                            description=f"Refund approved for Lead {lead.lead_id} (+{tokens_req} Tokens). Notes: {notes}",
+                        )
+                        return api_success(message=f"Refund approved and {tokens_req} token(s) credited back to wallet.")
+                    else:
+                        wallet.balance_paise += lead.price_paise
+                        wallet.save()
+                        WalletTransaction.objects.create(
+                            wallet=wallet,
+                            reference=f"REF-{lead.lead_id}",
+                            tx_type=WalletTransaction.TxType.REFUND,
+                            amount_paise=lead.price_paise,
+                            balance_after_paise=wallet.balance_paise,
+                            description=f"Refund approved for Lead {lead.lead_id}. Notes: {notes}",
+                        )
+                        return api_success(message=f"Refund approved and ₹{lead.price_inr:.2f} credited back to wallet.")
             else:
                 lead.status = MarketplaceLead.Status.ACCEPTED
                 lead.save()

@@ -110,7 +110,7 @@ class Lead(models.Model):
     assistance_request = models.OneToOneField(
         "services.AssistanceRequest",
         on_delete=models.CASCADE,
-        related_name="marketplace_lead",
+        related_name="leads_app_lead",
         null=True,
         blank=True,
     )
@@ -119,7 +119,7 @@ class Lead(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="marketplace_lead",
+        related_name="leads_app_lead",
     )
     category = models.CharField(max_length=200, db_index=True)
     urgency = models.CharField(max_length=50, default="Medium", db_index=True)

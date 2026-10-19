@@ -444,45 +444,74 @@ class ReserveLeadAPIView(ProfessionalLeadBaseView):
 
 class AcceptLeadAPIView(ProfessionalLeadBaseView):
     """
-    Accept lead using wallet balance, 1 lead credit, or initiate Easebuzz direct checkout.
+    Accept lead using tokens/lead credits, wallet balance, or initiate Easebuzz direct checkout.
     """
     def post(self, request, pk):
         lead = get_object_or_404(MarketplaceLead, pk=pk)
         if lead.status not in [MarketplaceLead.Status.PUBLISHED, MarketplaceLead.Status.RESERVED]:
             return api_error("This lead is no longer available.", status_code=400)
 
-        payment_method = request.data.get("payment_method", "wallet")
+        payment_method = request.data.get("payment_method", "tokens")
         wallet, _ = ProfessionalWallet.objects.get_or_create(user=request.user)
+        tokens_req = max(1, int(round(lead.price_paise / 50000.0))) if lead.price_paise else 1
 
-        if payment_method == "lead_credit":
-            if wallet.lead_credits < 1:
-                return api_error("You do not have enough lead credits. Please purchase a credit pack or pay via Easebuzz.", status_code=400)
+        if payment_method in ["lead_credit", "tokens"]:
+            if wallet.lead_credits < tokens_req:
+                return api_error(
+                    f"Insufficient tokens! You need {tokens_req} token(s) to accept this lead (available: {wallet.lead_credits}).",
+                    status_code=400,
+                )
 
-            wallet.lead_credits -= 1
+            wallet.lead_credits -= tokens_req
             wallet.save()
 
             lead.status = MarketplaceLead.Status.ACCEPTED
             lead.accepted_by = request.user
             lead.accepted_at = timezone.now()
-            lead.acceptance_payment_method = "lead_credit"
+            lead.acceptance_payment_method = "tokens"
             lead.save()
 
             WalletTransaction.objects.create(
                 wallet=wallet,
-                reference=f"ACC_CRD_{lead.lead_id}",
+                reference=f"ACC_TOK_{lead.lead_id}",
                 tx_type=WalletTransaction.TxType.DEBIT,
                 amount_paise=0,
                 balance_after_paise=wallet.balance_paise,
-                description=f"Unlocked Lead #{lead.lead_id} (1 Credit Used)",
+                description=f"Unlocked Lead #{lead.lead_id} ({tokens_req} Token(s) Deducted)",
             )
 
             return api_success(
                 data=MarketplaceLeadDetailSerializer(lead, context={"request": request}).data,
-                message="Lead unlocked successfully using 1 lead credit.",
+                message=f"Lead #{lead.lead_id} unlocked successfully using {tokens_req} token(s).",
             )
 
         elif payment_method == "wallet":
             if wallet.balance_paise < lead.price_paise:
+                # If cash wallet is insufficient, check if user has tokens
+                if wallet.lead_credits >= tokens_req:
+                    wallet.lead_credits -= tokens_req
+                    wallet.save()
+
+                    lead.status = MarketplaceLead.Status.ACCEPTED
+                    lead.accepted_by = request.user
+                    lead.accepted_at = timezone.now()
+                    lead.acceptance_payment_method = "tokens"
+                    lead.save()
+
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        reference=f"ACC_TOK_{lead.lead_id}",
+                        tx_type=WalletTransaction.TxType.DEBIT,
+                        amount_paise=0,
+                        balance_after_paise=wallet.balance_paise,
+                        description=f"Unlocked Lead #{lead.lead_id} ({tokens_req} Token(s) Deducted)",
+                    )
+
+                    return api_success(
+                        data=MarketplaceLeadDetailSerializer(lead, context={"request": request}).data,
+                        message=f"Lead #{lead.lead_id} unlocked successfully using {tokens_req} token(s).",
+                    )
+
                 return api_error("Insufficient wallet balance. Please top up your wallet or pay via Easebuzz.", status_code=400)
 
             wallet.balance_paise -= lead.price_paise
