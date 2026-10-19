@@ -16,31 +16,38 @@ logger = logging.getLogger(__name__)
 
 
 def get_easebuzz_key() -> str:
-    return (getattr(settings, "EASEBUZZ_KEY", None) or os.getenv("EASEBUZZ_KEY", "P2OTPKQ5X")).strip()
+    val = getattr(settings, "EASEBUZZ_KEY", None)
+    if val is None or val == "DUMMY":
+        val = os.getenv("EASEBUZZ_KEY", "")
+    return str(val or "").strip()
 
 
 def get_easebuzz_salt() -> str:
-    return (getattr(settings, "EASEBUZZ_SALT", None) or os.getenv("EASEBUZZ_SALT", "APYJMJTBT")).strip()
+    val = getattr(settings, "EASEBUZZ_SALT", None)
+    if val is None or val == "DUMMY":
+        val = os.getenv("EASEBUZZ_SALT", "")
+    return str(val or "").strip()
 
 
 def get_easebuzz_env() -> str:
-    return (getattr(settings, "EASEBUZZ_ENV", None) or os.getenv("EASEBUZZ_ENV", "test")).strip().lower()
+    val = getattr(settings, "EASEBUZZ_ENV", None)
+    if val is None:
+        val = os.getenv("EASEBUZZ_ENV", "test")
+    return str(val or "test").strip().lower()
 
 
 def get_easebuzz_surl() -> str:
-    return getattr(
-        settings,
-        "EASEBUZZ_SURL",
-        "http://localhost:3000/membership-application/payment-success",
-    )
+    val = getattr(settings, "EASEBUZZ_SURL", None)
+    if val is None:
+        val = os.getenv("EASEBUZZ_SURL", "")
+    return str(val or "").strip()
 
 
 def get_easebuzz_furl() -> str:
-    return getattr(
-        settings,
-        "EASEBUZZ_FURL",
-        "http://localhost:3000/membership-application/payment-failure",
-    )
+    val = getattr(settings, "EASEBUZZ_FURL", None)
+    if val is None:
+        val = os.getenv("EASEBUZZ_FURL", "")
+    return str(val or "").strip()
 
 
 def is_easebuzz_configured() -> bool:
@@ -145,7 +152,7 @@ def create_easebuzz_order(
 
     if not key or not salt:
         raise ServiceError(
-            "Easebuzz gateway is not configured. Set EASEBUZZ_KEY and EASEBUZZ_SALT.",
+            "Easebuzz gateway is not configured. Please set EASEBUZZ_KEY and EASEBUZZ_SALT in your environment variables.",
             {"payment": ["Gateway credentials missing."]},
         )
 
@@ -157,8 +164,10 @@ def create_easebuzz_order(
     clean_firstname = (firstname or "Applicant").strip()[:50]
     clean_email = (email or "info@icj.local").strip()[:100]
     clean_phone = "".join(filter(str.isdigit, phone or "9876543210"))[-10:] or "9876543210"
-    s_url = surl or get_easebuzz_surl()
-    f_url = furl or get_easebuzz_furl()
+
+    default_base = "https://icj.co.in" if env == "prod" else "http://localhost:3000"
+    s_url = surl or get_easebuzz_surl() or f"{default_base}/membership-application/payment-success"
+    f_url = furl or get_easebuzz_furl() or f"{default_base}/membership-application/payment-failure"
 
     # Calculate SHA-512 initiate hash
     req_hash = generate_initiate_hash(
@@ -237,6 +246,6 @@ def create_easebuzz_order(
             "payment_url": payment_url,
         }
     else:
-        err_desc = res_json.get("error_desc") or res_json.get("data") or "Payment initiation failed."
+        err_desc = res_json.get("error_desc") or res_json.get("error_msg") or res_json.get("data") or "Payment initiation failed."
         logger.error("Easebuzz returned failure: %s", res_json)
-        raise ServiceError(f"Easebuzz Error: {err_desc}", {"payment": [str(err_desc)]})
+        raise ServiceError(f"Easebuzz Gateway Error: {err_desc}", {"payment": [str(err_desc)]})

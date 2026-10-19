@@ -85,7 +85,7 @@ class WalletTopupOrderAPIView(ProfessionalLeadBaseView):
 
         firstname = (request.user.first_name or "Professional").strip()[:50]
         email = (request.user.email or "info@icj.local").strip()[:100]
-        phone = getattr(request.user, "mobile", "9876543210") or "9876543210"
+        phone = getattr(request.user, "phone_number", None) or getattr(request.user, "mobile", "9876543210") or "9876543210"
 
         try:
             order_data = create_easebuzz_order(
@@ -99,6 +99,9 @@ class WalletTopupOrderAPIView(ProfessionalLeadBaseView):
             )
         except Exception as exc:
             return api_error(f"Failed to initiate Easebuzz payment: {str(exc)}", status_code=502)
+
+        if not order_data.get("access_key"):
+            return api_error("Easebuzz payment gateway did not return an access key.", status_code=502)
 
         payment = ProfessionalPayment.objects.create(
             user=request.user,
@@ -188,7 +191,7 @@ class PurchasePlanAPIView(ProfessionalLeadBaseView):
         txnid = f"PLN_{uuid.uuid4().hex[:12]}"
         firstname = (request.user.first_name or "Professional").strip()[:50]
         email = (request.user.email or "info@icj.local").strip()[:100]
-        phone = getattr(request.user, "mobile", "9876543210") or "9876543210"
+        phone = getattr(request.user, "phone_number", None) or getattr(request.user, "mobile", "9876543210") or "9876543210"
 
         try:
             order_data = create_easebuzz_order(
@@ -202,6 +205,9 @@ class PurchasePlanAPIView(ProfessionalLeadBaseView):
             )
         except Exception as exc:
             return api_error(f"Failed to initiate Easebuzz payment: {str(exc)}", status_code=502)
+
+        if not order_data.get("access_key"):
+            return api_error("Easebuzz payment gateway did not return an access key.", status_code=502)
 
         payment = ProfessionalPayment.objects.create(
             user=request.user,
@@ -541,7 +547,7 @@ class AcceptLeadAPIView(ProfessionalLeadBaseView):
             txnid = f"LED_{uuid.uuid4().hex[:12]}"
             firstname = (request.user.first_name or "Professional").strip()[:50]
             email = (request.user.email or "info@icj.local").strip()[:100]
-            phone = getattr(request.user, "mobile", "9876543210") or "9876543210"
+            phone = getattr(request.user, "phone_number", None) or getattr(request.user, "mobile", "9876543210") or "9876543210"
 
             try:
                 order_data = create_easebuzz_order(
@@ -555,6 +561,9 @@ class AcceptLeadAPIView(ProfessionalLeadBaseView):
                 )
             except Exception as exc:
                 return api_error(f"Failed to initiate Easebuzz payment: {str(exc)}", status_code=502)
+
+            if not order_data.get("access_key"):
+                return api_error("Easebuzz payment gateway did not return an access key.", status_code=502)
 
             payment = ProfessionalPayment.objects.create(
                 user=request.user,
