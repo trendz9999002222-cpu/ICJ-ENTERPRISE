@@ -59,6 +59,7 @@ urlpatterns = [
         "api/v1/professional/services/",
         include("apps.services.urls.professional"),
     ),
+    # Professional Lead Marketplace & Credit Plans (Easebuzz Gateway)
     path(
         "api/v1/professional/",
         include("apps.services.urls.professional_leads"),
