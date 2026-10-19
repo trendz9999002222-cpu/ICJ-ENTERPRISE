@@ -137,6 +137,7 @@ export default function ProfessionalLeadMarketplacePage() {
     try {
       await leadMarketplaceService.acceptLead(selectedLead.id, "tokens");
       setAcceptSuccess("Lead successfully accepted! Tokens have been deducted from your wallet.");
+      loadData();
       setTimeout(() => {
         setAcceptModalOpen(false);
         router.push(`/dashboard/professional/leads/${selectedLead.id}`);
@@ -150,7 +151,7 @@ export default function ProfessionalLeadMarketplacePage() {
   };
 
   const categories = Array.from(new Set(leads.map((l) => l.category).filter(Boolean)));
-  const userTokens = wallet?.token_balance ?? 0;
+  const userTokens = (wallet?.token_balance ?? wallet?.available_lead_credits) ?? 0;
   const leadTokensRequired = selectedLead?.tokens_required || 1;
   const hasEnoughTokens = userTokens >= leadTokensRequired;
 
