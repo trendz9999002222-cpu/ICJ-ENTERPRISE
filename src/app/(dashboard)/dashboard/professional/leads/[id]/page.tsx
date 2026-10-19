@@ -141,7 +141,7 @@ export default function LeadDetailPage() {
   const handleConfirmAccept = async () => {
     if (!lead) return;
     const requiredTokens = lead.tokens_required ?? 1;
-    const currentTokens = wallet?.token_balance ?? 0;
+    const currentTokens = (wallet?.token_balance ?? wallet?.available_lead_credits) ?? 0;
 
     if (currentTokens < requiredTokens) {
       setAcceptError(`Insufficient tokens. You have ${currentTokens} token(s), but this matter requires ${requiredTokens} token(s). Please purchase a token pack first.`);
@@ -151,7 +151,7 @@ export default function LeadDetailPage() {
     setAccepting(true);
     setAcceptError("");
     try {
-      await leadMarketplaceService.acceptLead(lead.id, "wallet");
+      await leadMarketplaceService.acceptLead(lead.id, "tokens");
       setAcceptModalOpen(false);
       // Reload lead details now unmasked
       await loadData();
@@ -187,7 +187,7 @@ export default function LeadDetailPage() {
 
   const isAccepted = Boolean(lead.client_name);
   const tokensRequired = lead.tokens_required ?? 1;
-  const tokenBalance = wallet?.token_balance ?? 0;
+  const tokenBalance = (wallet?.token_balance ?? wallet?.available_lead_credits) ?? 0;
   const hasSufficientTokens = tokenBalance >= tokensRequired;
 
   return (

@@ -96,7 +96,7 @@ export default function ProfessionalWalletPage() {
                   AVAILABLE TOKENS
                 </Typography>
                 <Typography variant="h4" sx={{ fontWeight: 800, color: "#1d4ed8" }}>
-                  {wallet ? wallet.token_balance : 0} <span style={{ fontSize: "1rem", fontWeight: 600 }}>Tokens</span>
+                  {wallet ? (wallet.token_balance ?? wallet.available_lead_credits ?? 0) : 0} <span style={{ fontSize: "1rem", fontWeight: 600 }}>Tokens</span>
                 </Typography>
               </Box>
             </Stack>
