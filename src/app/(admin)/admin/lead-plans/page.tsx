@@ -166,7 +166,7 @@ function ICJPlansPageContent() {
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(true);
   const [currency, setCurrency] = useState("INR");
   const [gateway, setGateway] = useState("easebuzz");
-  const [easebuzzKey, setEasebuzzKey] = useState("P2OTPKQ5X");
+  const [easebuzzKey, setEasebuzzKey] = useState("");
   const [easebuzzConfigured, setEasebuzzConfigured] = useState(true);
   const [easebuzzEnv, setEasebuzzEnv] = useState("test");
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
