@@ -31,6 +31,8 @@ class AdminUserListSerializer(serializers.ModelSerializer):
     category_name = serializers.SerializerMethodField()
     group_name = serializers.SerializerMethodField()
     profession_name = serializers.SerializerMethodField()
+    profile_picture_url = serializers.SerializerMethodField()
+    photo_url = serializers.SerializerMethodField()
     categories = serializers.SerializerMethodField()
     groups = serializers.SerializerMethodField()
     professions = serializers.SerializerMethodField()
@@ -47,6 +49,8 @@ class AdminUserListSerializer(serializers.ModelSerializer):
             "role",
             "roles",
             "mobile",
+            "profile_picture_url",
+            "photo_url",
             "temp_password",
             "password_change_required",
             "status",
@@ -73,6 +77,38 @@ class AdminUserListSerializer(serializers.ModelSerializer):
 
     def get_status(self, user) -> str:
         return _compute_status(user)
+
+    def get_profile_picture_url(self, user) -> str | None:
+        request = self.context.get("request")
+        if getattr(user, "profile_picture", None):
+            try:
+                if user.profile_picture:
+                    url = user.profile_picture.url
+                    return request.build_absolute_uri(url) if request else url
+            except Exception:
+                pass
+        # Fallback to professional onboarding submission photo
+        try:
+            subs = user.professional_registration_submissions.all().prefetch_related("files")
+            for s in subs:
+                for f in s.files.all():
+                    k = (f.document_key or "").lower().strip()
+                    if (
+                        k in ("photo", "profile_photo", "passport_photo", "avatar", "photograph", "profile_picture", "profile_image", "user_photo")
+                        or (f.content_type and f.content_type.startswith("image/") and "photo" in k)
+                    ):
+                        try:
+                            if f.file:
+                                url = f.file.url
+                                return request.build_absolute_uri(url) if request else url
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+        return None
+
+    def get_photo_url(self, user) -> str | None:
+        return self.get_profile_picture_url(user)
 
     def _get_submissions(self, user):
         if hasattr(user, "_cached_submissions"):

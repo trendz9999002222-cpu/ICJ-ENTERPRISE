@@ -121,16 +121,25 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
     def get_photo_url(self, obj) -> str | None:
         request = self.context.get("request")
         if obj.user_id and obj.user and getattr(obj.user, "profile_picture", None):
-            url = obj.user.profile_picture.url
-            if request:
-                return request.build_absolute_uri(url)
-            return url
-        for f in obj.files.all():
-            if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:
-                url = f.file.url
-                if request:
-                    return request.build_absolute_uri(url)
-                return url
+            try:
+                if obj.user.profile_picture:
+                    url = obj.user.profile_picture.url
+                    return request.build_absolute_uri(url) if request else url
+            except Exception:
+                pass
+        files = obj.files.all() if hasattr(obj, "files") else []
+        for f in files:
+            k = (f.document_key or "").lower().strip()
+            if (
+                k in ("photo", "profile_photo", "passport_photo", "avatar", "photograph", "profile_picture", "profile_image", "user_photo")
+                or (f.content_type and f.content_type.startswith("image/") and "photo" in k)
+            ):
+                try:
+                    if f.file:
+                        url = f.file.url
+                        return request.build_absolute_uri(url) if request else url
+                except Exception:
+                    pass
         return None
 
     def get_city(self, obj) -> str:

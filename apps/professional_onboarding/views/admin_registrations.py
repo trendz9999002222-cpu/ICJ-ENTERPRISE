@@ -23,7 +23,7 @@ from apps.professional_onboarding.views.base import AdminConfigAPIView
 class AdminRegistrationListAPIView(AdminConfigAPIView):
     def get(self, request):
         params = list_params(request)
-        qs = ProfessionalRegistrationSubmission.objects.select_related("user").all()
+        qs = ProfessionalRegistrationSubmission.objects.select_related("user").prefetch_related("files").all()
         qs = filter_registrations(
             qs,
             search=params.get("search"),
