@@ -1,5 +1,6 @@
 import { apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { mockAdvocates } from "@/data/admin/advocates";
 import type {
   AdminAdvocate,
@@ -69,19 +70,6 @@ function authHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${token}` };
 }
 
-function resolveMediaUrl(url?: string | null): string | null {
-  if (!url) return null;
-  if (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("blob:") ||
-    url.startsWith("data:")
-  ) {
-    return url;
-  }
-  const backendBase = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000";
-  return `${backendBase.replace(/\/$/, "")}/${url.replace(/^\//, "")}`;
-}
 
 function parsePossibleJson(val: any): any {
   if (typeof val === "string" && (val.startsWith("{") || val.startsWith("["))) {

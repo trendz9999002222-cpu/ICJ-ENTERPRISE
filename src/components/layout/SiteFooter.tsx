@@ -1,9 +1,54 @@
 "use client";
 
 import GavelIcon from "@mui/icons-material/Gavel";
-import { Box, Container, Divider, Grid, Stack, Typography } from "@mui/material";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import XIcon from "@mui/icons-material/X";
+import YouTubeIcon from "@mui/icons-material/YouTube";
+import { Box, Container, Divider, Grid, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
+
+const SOCIAL_LINKS = [
+  {
+    label: "Instagram",
+    href: "https://instagram.com/icj_intconsortiumofjurists?vrfl=b3dqcnJ6ajJwa3Bz",
+    icon: <InstagramIcon sx={{ fontSize: 20 }} />,
+    color: "#E1306C",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/icj.enterprise",
+    icon: <FacebookIcon sx={{ fontSize: 20 }} />,
+    color: "#1877F2",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/icj-enterprise",
+    icon: <LinkedInIcon sx={{ fontSize: 20 }} />,
+    color: "#0A66C2",
+  },
+  {
+    label: "Twitter",
+    href: "https://twitter.com/icj_enterprise",
+    icon: <TwitterIcon sx={{ fontSize: 20 }} />,
+    color: "#1DA1F2",
+  },
+  {
+    label: "X (formerly Twitter)",
+    href: "https://x.com/icj_enterprise",
+    icon: <XIcon sx={{ fontSize: 18 }} />,
+    color: "#ffffff",
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@icj-enterprise",
+    icon: <YouTubeIcon sx={{ fontSize: 20 }} />,
+    color: "#FF0000",
+  },
+];
 
 export default function SiteFooter() {
   return (
@@ -62,9 +107,33 @@ export default function SiteFooter() {
               democratizing access to justice, advancing legal scholarship, and upholding constitutional values.
             </Typography>
 
-            <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", display: "block" }}>
+            <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", display: "block", mb: 2 }}>
               Justice • Knowledge • Service • Integrity
             </Typography>
+
+            {/* Social Media Icons in Brand Column */}
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+              {SOCIAL_LINKS.map((s) => (
+                <Tooltip key={s.label} title={s.label} arrow>
+                  <IconButton
+                    component="a"
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="small"
+                    sx={{
+                      color: "rgba(255,255,255,0.55)",
+                      transition: "color 0.2s, background-color 0.2s",
+                      "&:hover": { color: s.color, bgcolor: "rgba(255,255,255,0.08)" },
+                      p: 0.7,
+                    }}
+                    aria-label={s.label}
+                  >
+                    {s.icon}
+                  </IconButton>
+                </Tooltip>
+              ))}
+            </Stack>
           </Grid>
 
           {/* Col 2: Justice Services */}
@@ -232,6 +301,8 @@ export default function SiteFooter() {
             credit mechanism and is not a currency, cryptocurrency, deposit, or financial investment.
           </Typography>
         </Box>
+
+
 
         {/* Copyright & Bottom Links */}
         <Stack

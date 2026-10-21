@@ -4,13 +4,17 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import CloseIcon from "@mui/icons-material/Close";
 import DescriptionIcon from "@mui/icons-material/Description";
 import DownloadIcon from "@mui/icons-material/Download";
+import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import GavelIcon from "@mui/icons-material/Gavel";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
 import SaveIcon from "@mui/icons-material/Save";
@@ -26,6 +30,10 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   Paper,
@@ -38,7 +46,8 @@ import Link from "next/link";
 
 import { MEMBER_CHANGE_PASSWORD_QUERY } from "@/lib/memberDashboard";
 import { normalizePlatformRoles } from "@/lib/roles";
-import { useEffect, useMemo, useState } from "react";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ProfilePictureUpload from "@/components/features/dashboard/profile/ProfilePictureUpload";
 import PortalPageShell from "@/components/features/dashboard/layout/PortalPageShell";
 import { env } from "@/config/env";
@@ -68,6 +77,69 @@ export default function UserProfilePage() {
     message: "",
     severity: "success",
   });
+
+  const [docModal, setDocModal] = useState<{ open: boolean; file: any | null; uploading: boolean }>({
+    open: false,
+    file: null,
+    uploading: false,
+  });
+  const [selectedDocFile, setSelectedDocFile] = useState<File | null>(null);
+  const [docUploadError, setDocUploadError] = useState<string | null>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenReplaceModal = (file: any) => {
+    setSelectedDocFile(null);
+    setDocUploadError(null);
+    setDocModal({ open: true, file, uploading: false });
+  };
+
+  const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) {
+      setDocUploadError("File size cannot exceed 5 MB.");
+      return;
+    }
+    setDocUploadError(null);
+    setSelectedDocFile(f);
+  };
+
+  const handleUploadDocumentSubmit = async () => {
+    if (!selectedDocFile || !docModal.file) return;
+    setDocModal((prev) => ({ ...prev, uploading: true }));
+    setDocUploadError(null);
+    try {
+      const token = readCookie("icj_access_token");
+      const form = new FormData();
+      form.append("file", selectedDocFile);
+      if (docModal.file.id) {
+        form.append("file_id", docModal.file.id);
+      }
+      if (docModal.file.document_key) {
+        form.append("document_key", docModal.file.document_key);
+      }
+      const res = await fetch(`${env.apiUrl}/auth/me/documents/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDocUploadError(json?.message || "Failed to upload document.");
+        setDocModal((prev) => ({ ...prev, uploading: false }));
+        return;
+      }
+      setDocModal({ open: false, file: null, uploading: false });
+      setSelectedDocFile(null);
+      setFeedback({ open: true, message: "Document updated successfully!", severity: "success" });
+      await fetchProfile();
+    } catch {
+      setDocUploadError("Network error while uploading document.");
+      setDocModal((prev) => ({ ...prev, uploading: false }));
+    }
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -257,43 +329,27 @@ export default function UserProfilePage() {
           >
             {/* Top Identity Header */}
             <Box sx={{ p: 3, borderBottom: "1px solid #e2e8f0", bgcolor: "#f8fafc" }}>
-              {isMember && (
-                <Box sx={{ mb: 2.5 }}>
-                  <ProfilePictureUpload
-                    profilePictureUrl={profilePictureUrl}
-                    initials={initials}
-                    onUploaded={(url) => {
-                      setProfilePictureUrl(url);
-                      setProfile((prev: typeof profile) =>
-                        prev ? { ...prev, profile_picture_url: url } : prev,
-                      );
-                      setFeedback({
-                        open: true,
-                        message: "Profile picture updated.",
-                        severity: "success",
-                      });
-                    }}
-                    onError={(message) =>
-                      setFeedback({ open: true, message, severity: "error" })
-                    }
-                  />
-                </Box>
-              )}
+              <Box sx={{ mb: 2.5 }}>
+                <ProfilePictureUpload
+                  profilePictureUrl={profilePictureUrl}
+                  initials={initials}
+                  onUploaded={(url) => {
+                    setProfilePictureUrl(url);
+                    setProfile((prev: typeof profile) =>
+                      prev ? { ...prev, profile_picture_url: url } : prev,
+                    );
+                    setFeedback({
+                      open: true,
+                      message: "Profile picture updated.",
+                      severity: "success",
+                    });
+                  }}
+                  onError={(message) =>
+                    setFeedback({ open: true, message, severity: "error" })
+                  }
+                />
+              </Box>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2.5} sx={{ alignItems: { sm: "center" } }}>
-                {!isMember && (
-                  <Avatar
-                    sx={{
-                      width: 68,
-                      height: 68,
-                      bgcolor: "#2563eb",
-                      fontSize: "1.6rem",
-                      fontWeight: 800,
-                      boxShadow: "0 4px 6px -1px rgba(37,99,235,0.25)",
-                    }}
-                  >
-                    {initials}
-                  </Avatar>
-                )}
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap", gap: 0.8 }}>
                     <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a" }}>
@@ -571,19 +627,22 @@ export default function UserProfilePage() {
                           Submitted verification documents
                         </Typography>
                         <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: "wrap", gap: 1 }}>
-                          {sub.files.map((file: any) => (
-                            <Chip
-                              key={file.id}
-                              icon={<DescriptionIcon sx={{ fontSize: "14px !important" }} />}
-                              label={file.original_name || file.document_key}
-                              component="a"
-                              href={file.url || "#"}
-                              target="_blank"
-                              clickable
-                              size="small"
-                              variant="outlined"
-                            />
-                          ))}
+                          {sub.files.map((file: any) => {
+                            const resolvedUrl = resolveMediaUrl(file.url || file.file_url);
+                            return (
+                              <Chip
+                                key={file.id}
+                                icon={<DescriptionIcon sx={{ fontSize: "14px !important" }} />}
+                                label={file.original_name || file.document_key}
+                                component="a"
+                                href={resolvedUrl || "#"}
+                                target="_blank"
+                                clickable
+                                size="small"
+                                variant="outlined"
+                              />
+                            );
+                          })}
                         </Stack>
                       </Box>
                     )}
@@ -608,57 +667,80 @@ export default function UserProfilePage() {
                 Documents & Vault Files ({allFiles.length})
               </Typography>
               <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
-                Access all submitted certificates, licenses, and identity files.
+                Access all submitted certificates, licenses, and identity files. You can view or upload replacements below.
               </Typography>
 
               <Grid container spacing={2}>
-                {allFiles.map((file, idx) => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={file.id || idx}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        borderRadius: "10px",
-                        border: "1px solid #e2e8f0",
-                        bgcolor: "#f8fafc",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1.5,
-                      }}
-                    >
-                      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                        <DescriptionIcon sx={{ color: "#2563eb", fontSize: 24 }} />
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Typography variant="body2" noWrap sx={{ fontWeight: 700, color: "#0f172a" }}>
-                            {file.original_name || file.document_key}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: "#64748b" }}>
-                            {file.profession_name}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                      {file.url && (
-                        <Button
-                          component="a"
-                          href={file.url}
-                          target="_blank"
-                          size="small"
-                          variant="outlined"
-                          startIcon={<DownloadIcon />}
-                          sx={{
-                            textTransform: "none",
-                            borderColor: "#cbd5e1",
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            color: "#2563eb",
-                            "&:hover": { borderColor: "#2563eb", bgcolor: "#eff6ff" },
-                          }}
-                        >
-                          View / Download
-                        </Button>
-                      )}
-                    </Box>
-                  </Grid>
-                ))}
+                {allFiles.map((file, idx) => {
+                  const resolvedUrl = resolveMediaUrl(file.url || file.file_url);
+                  return (
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={file.id || idx}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: "10px",
+                          border: "1px solid #e2e8f0",
+                          bgcolor: "#f8fafc",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1.5,
+                        }}
+                      >
+                        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                          <DescriptionIcon sx={{ color: "#2563eb", fontSize: 24 }} />
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography variant="body2" noWrap sx={{ fontWeight: 700, color: "#0f172a" }}>
+                              {file.original_name || file.document_key}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: "#64748b" }}>
+                              {file.profession_name}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        <Stack direction="row" spacing={1}>
+                          {resolvedUrl && (
+                            <Button
+                              component="a"
+                              href={resolvedUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              size="small"
+                              variant="outlined"
+                              startIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                              sx={{
+                                flex: 1,
+                                textTransform: "none",
+                                borderColor: "#cbd5e1",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                color: "#2563eb",
+                                "&:hover": { borderColor: "#2563eb", bgcolor: "#eff6ff" },
+                              }}
+                            >
+                              View
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={() => handleOpenReplaceModal(file)}
+                            startIcon={<EditIcon sx={{ fontSize: 13 }} />}
+                            sx={{
+                              flex: 1,
+                              textTransform: "none",
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              bgcolor: "#2563eb",
+                              "&:hover": { bgcolor: "#1d4ed8" },
+                            }}
+                          >
+                            Update
+                          </Button>
+                        </Stack>
+                      </Box>
+                    </Grid>
+                  );
+                })}
               </Grid>
             </Card>
           )}
@@ -715,6 +797,84 @@ export default function UserProfilePage() {
           )}
         </Stack>
       )}
+
+      {/* Document Replace / Upload Dialog */}
+      <Dialog
+        open={docModal.open}
+        onClose={() => !docModal.uploading && setDocModal({ open: false, file: null, uploading: false })}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: { sx: { borderRadius: "14px", p: 1 } },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, color: "#0f172a", pb: 0.5 }}>
+          Update Document
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+            Upload a replacement file for{" "}
+            <strong>{docModal.file?.original_name || docModal.file?.document_key}</strong> (PDF, JPG, PNG up to 5 MB).
+          </Typography>
+          <Box
+            sx={{
+              border: "2px dashed #cbd5e1",
+              borderRadius: "10px",
+              p: 3,
+              textAlign: "center",
+              bgcolor: "#f8fafc",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              "&:hover": { borderColor: "#2563eb", bgcolor: "#eff6ff" },
+            }}
+            onClick={() => docInputRef.current?.click()}
+          >
+            <input
+              ref={docInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+              style={{ display: "none" }}
+              onChange={handleDocumentFileChange}
+            />
+            <CloudUploadIcon sx={{ fontSize: 40, color: "#2563eb", mb: 1 }} />
+            <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a" }}>
+              {selectedDocFile ? selectedDocFile.name : "Click to select a file"}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "#64748b", display: "block", mt: 0.5 }}>
+              Max size: 5 MB (PDF, JPG, PNG, WebP)
+            </Typography>
+          </Box>
+          {docUploadError && (
+            <Alert severity="error" sx={{ mt: 2, borderRadius: "8px" }}>
+              {docUploadError}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDocModal({ open: false, file: null, uploading: false })}
+            disabled={docModal.uploading}
+            sx={{ textTransform: "none", color: "#64748b", fontWeight: 600 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleUploadDocumentSubmit}
+            disabled={!selectedDocFile || docModal.uploading}
+            startIcon={docModal.uploading ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
+            sx={{
+              textTransform: "none",
+              fontWeight: 700,
+              bgcolor: "#2563eb",
+              borderRadius: "8px",
+              "&:hover": { bgcolor: "#1d4ed8" },
+            }}
+          >
+            {docModal.uploading ? "Uploading..." : "Upload & Replace"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar Notification */}
       <Snackbar
