@@ -25,6 +25,7 @@ import PageHeader from "@/components/features/public/PageHeader";
 import Pagination from "@/components/features/public/Pagination";
 import EmptyState from "@/components/features/public/EmptyState";
 import { maskPublicProfessional, publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { professionalService } from "@/services/public";
 import type { PublicProfessional, PublicPaginatedResponse } from "@/types/public";
 import Link from "next/link";
@@ -184,6 +185,7 @@ export default function DirectoryPage() {
                     <Box>
                       <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start", mb: 2 }}>
                         <Avatar
+                          src={resolveMediaUrl(prof.photoUrl) || undefined}
                           sx={{
                             width: 48,
                             height: 48,

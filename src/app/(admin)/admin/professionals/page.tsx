@@ -26,6 +26,7 @@ import { apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import { adminAdvocatesService } from "@/services/admin/adminAdvocates.service";
 import type { AdminAdvocate } from "@/types/admin";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 // ---------------------------------------------------------------------------
 // Types for filter dropdowns
@@ -187,7 +188,7 @@ export default function ProfessionalsPage() {
       render: (a) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
-            src={a.photo_url || undefined}
+            src={resolveMediaUrl(a.photo_url) || undefined}
             sx={{
               width: 40,
               height: 40,

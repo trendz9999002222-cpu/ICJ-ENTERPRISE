@@ -30,6 +30,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -88,6 +89,7 @@ type Props = {
   membership?: MembershipItem | null;
   userName?: string;
   userEmail?: string;
+  profilePictureUrl?: string | null;
 };
 
 export default function PortalHeader({
@@ -101,6 +103,7 @@ export default function PortalHeader({
   membership,
   userName = "User",
   userEmail = "",
+  profilePictureUrl,
 }: Props) {
   const pathname = usePathname();
   const router = useRouter();
@@ -432,6 +435,7 @@ export default function PortalHeader({
           }}
         >
           <Avatar
+            src={resolveMediaUrl(profilePictureUrl) || undefined}
             sx={{
               width: 32,
               height: 32,

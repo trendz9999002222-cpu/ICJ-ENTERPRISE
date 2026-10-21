@@ -45,6 +45,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import { adminAdvocatesService } from "@/services/admin/adminAdvocates.service";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type {
   AdminAdvocateDetail,
   AdvocateDocument,
@@ -275,7 +276,7 @@ export default function AdvocateDetailPage() {
             {/* Left: Avatar + Identity */}
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Avatar
-                src={advocate.photo_url || undefined}
+                src={resolveMediaUrl(advocate.photo_url) || undefined}
                 sx={{
                   width: { xs: 56, sm: 68 },
                   height: { xs: 56, sm: 68 },

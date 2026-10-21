@@ -21,6 +21,7 @@ import PortalPageShell from "@/components/features/dashboard/layout/PortalPageSh
 import SectionCard from "@/components/ui/SectionCard";
 import StatusProgressBar from "@/components/ui/StatusProgressBar";
 import { env } from "@/config/env";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import {
   PROFESSIONAL_ONBOARDING_STEPS,
   formatProfessionalStatusLabel,
@@ -56,6 +57,7 @@ export default function ProfessionalDashboardView() {
   const [name, setName] = useState("Professional");
   const [email, setEmail] = useState("");
   const [professions, setProfessions] = useState<UserProfessionInfo[]>([]);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [leadCredits, setLeadCredits] = useState<number>(0);
 
@@ -76,6 +78,13 @@ export default function ProfessionalDashboardView() {
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         const data = json?.data ?? json;
+        if (data?.first_name || data?.last_name) {
+          const full = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+          if (full) setName(full);
+        }
+        if (data?.profile_picture_url) {
+          setProfilePictureUrl(data.profile_picture_url);
+        }
         if (Array.isArray(data?.professions)) {
           setProfessions(data.professions as UserProfessionInfo[]);
         }
@@ -151,6 +160,7 @@ export default function ProfessionalDashboardView() {
           >
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Avatar
+                src={resolveMediaUrl(profilePictureUrl) || undefined}
                 sx={{
                   width: 56,
                   height: 56,

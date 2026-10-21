@@ -18,6 +18,9 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { env } from "@/config/env";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 // ---------------------------------------------------------------------------
 // Build breadcrumbs from the current URL path
@@ -69,6 +72,48 @@ export default function AdminHeader({ onMenuClick }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const crumbs = buildBreadcrumbs(pathname);
+
+  const [adminName, setAdminName] = useState("Super Admin");
+  const [adminAvatarUrl, setAdminAvatarUrl] = useState<string | null>(null);
+  const [adminInitials, setAdminInitials] = useState("SA");
+
+  useEffect(() => {
+    function readCookie(name: string): string | null {
+      if (typeof document === "undefined") return null;
+      const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]+)`));
+      return m ? decodeURIComponent(m[1]) : null;
+    }
+    const token = readCookie("icj_access_token");
+    if (!token) return;
+
+    fetch(`${env.apiUrl}/auth/me/`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        const data = json?.data ?? json;
+        if (data?.first_name || data?.last_name) {
+          const full = `${data.first_name || ""} ${data.last_name || ""}`.trim();
+          if (full) {
+            setAdminName(full);
+            const inits = full
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+            if (inits) setAdminInitials(inits);
+          }
+        } else if (data?.username) {
+          setAdminName(data.username);
+          setAdminInitials(data.username.slice(0, 2).toUpperCase());
+        }
+        if (data?.profile_picture_url) {
+          setAdminAvatarUrl(data.profile_picture_url);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     document.cookie =
@@ -156,12 +201,13 @@ export default function AdminHeader({ onMenuClick }: Props) {
           <Chip
             avatar={
               <Avatar
+                src={resolveMediaUrl(adminAvatarUrl) || undefined}
                 sx={{ bgcolor: "#2563eb", fontSize: "0.7rem", fontWeight: 700 }}
               >
-                SA
+                {adminInitials}
               </Avatar>
             }
-            label="Super Admin"
+            label={adminName}
             size="small"
             variant="outlined"
             sx={{

@@ -30,6 +30,7 @@ import CredentialsDialog, {
 } from "@/components/features/admin/shared/CredentialsDialog";
 import { adminUsersService } from "@/services/admin/adminUsers.service";
 import type { AdminUser } from "@/types/admin";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 // ---------------------------------------------------------------------------
 
@@ -243,6 +244,8 @@ export default function UserDetailPage() {
             sx={{ border: "1px solid #e2e8f0", borderRadius: 3, p: 3, textAlign: "center" }}
           >
             <Avatar
+              src={resolveMediaUrl(user.profile_picture_url || user.photo_url) || undefined}
+              alt={user.full_name}
               sx={{
                 width: 80,
                 height: 80,
@@ -251,6 +254,8 @@ export default function UserDetailPage() {
                 fontWeight: 800,
                 mx: "auto",
                 mb: 2,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                border: "3px solid #eff6ff",
               }}
             >
               {initials}

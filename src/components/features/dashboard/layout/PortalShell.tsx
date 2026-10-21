@@ -51,6 +51,7 @@ export default function PortalShell({ children }: Props) {
   const [membership, setMembership] = useState<MembershipItem | null>(null);
   const [userName, setUserName] = useState<string>("User");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   const hasProfessions = professions.length > 0;
 
@@ -142,6 +143,15 @@ export default function PortalShell({ children }: Props) {
           if (Array.isArray(data.roles) && data.roles.length > 0) {
             setRoles(data.roles);
           }
+          if (data.first_name || data.last_name) {
+            setUserName(`${data.first_name || ""} ${data.last_name || ""}`.trim());
+          }
+          if (data.email) {
+            setUserEmail(data.email);
+          }
+          if (data.profile_picture_url) {
+            setProfilePictureUrl(data.profile_picture_url);
+          }
         }
       } catch (err) {
         console.error("Error loading user profile in PortalShell:", err);
@@ -212,6 +222,7 @@ export default function PortalShell({ children }: Props) {
           userEmail={userEmail}
           hasProfessions={hasProfessions}
           activeProfessionName={activeProfession?.profession_name}
+          profilePictureUrl={profilePictureUrl}
         />
       ) : (
         <PortalSidebar
@@ -227,6 +238,7 @@ export default function PortalShell({ children }: Props) {
           userEmail={userEmail}
           hasProfessions={hasProfessions}
           activeProfessionName={activeProfession?.profession_name}
+          profilePictureUrl={profilePictureUrl}
         />
       )}
 
@@ -252,6 +264,7 @@ export default function PortalShell({ children }: Props) {
           membership={membership}
           userName={userName}
           userEmail={userEmail}
+          profilePictureUrl={profilePictureUrl}
         />
 
         {/* Page content */}

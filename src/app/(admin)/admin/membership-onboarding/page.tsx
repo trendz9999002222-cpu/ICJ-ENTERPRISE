@@ -26,6 +26,7 @@ import {
   membershipOnboardingAdminService,
   type AdminMembershipApplication,
 } from "@/services/admin/membershipOnboarding.service";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 const STATUS_COLOR: Record<string, "success" | "warning" | "error" | "default"> = {
   approved: "success",
@@ -81,6 +82,7 @@ export default function AdminMembershipsPage() {
       render: (row) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
+            src={resolveMediaUrl((row as any).photo_url || (row as any).profile_picture_url) || undefined}
             sx={{
               width: 40,
               height: 40,

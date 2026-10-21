@@ -32,6 +32,7 @@ import { useEffect, useState } from "react";
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
 import { publicProfessionalInitials } from "@/lib/privacy/maskPublicIdentity";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { professionalService } from "@/services/public";
 import type { PublicProfessional } from "@/types/public";
 
@@ -123,7 +124,7 @@ export default function ProfessionalProfilePage() {
               >
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ alignItems: { sm: "center" } }}>
                   <Avatar
-                    src={professional.photoUrl || undefined}
+                    src={resolveMediaUrl(professional.photoUrl) || undefined}
                     sx={{
                       width: 80,
                       height: 80,

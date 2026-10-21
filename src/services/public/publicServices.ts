@@ -2,6 +2,7 @@ import { mockProfessionals } from "@/data/public/professionals";
 import { mockAcademyCourses, mockResearchPapers, mockTrainingEvents } from "@/data/public/research";
 import { apiClient } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { maskPublicProfessional } from "@/lib/privacy/maskPublicIdentity";
 import { paginateArray } from "@/services/public/paginate";
 import type {
@@ -180,7 +181,7 @@ function mapBackendToPublicProfessional(p: any): PublicProfessional {
     categoryName: p.category_name,
     registeredCategories: p.registered_categories || [],
     registeredProfessions: p.registered_professions || [],
-    photoUrl: p.photo_url || null,
+    photoUrl: resolveMediaUrl(p.photo_url || p.profile_picture_url) || null,
     barOrRegNumber: p.enrollment_number || p.reference_id,
     stateBarCouncil: p.bar_council || p.state,
     specialisations: Array.isArray(p.specialisations) && p.specialisations.length > 0 ? p.specialisations : ["General Practice"],

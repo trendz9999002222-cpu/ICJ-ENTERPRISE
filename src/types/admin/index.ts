@@ -59,6 +59,8 @@ export type AdminUser = {
   roles?: string[];
   status: AdminUserStatus;
   mobile: string;
+  profile_picture_url?: string | null;
+  photo_url?: string | null;
   category_name?: string | null;
   group_name?: string | null;
   profession_name?: string | null;

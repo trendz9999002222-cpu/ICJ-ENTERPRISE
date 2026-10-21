@@ -19,6 +19,7 @@ import AdminDataTable, {
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import { membershipOnboardingAdminService } from "@/services/admin/membershipOnboarding.service";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { AdminMembershipApplication } from "@/services/admin/membershipOnboarding.service";
 
 // ---------------------------------------------------------------------------
@@ -79,6 +80,7 @@ export default function AdminMembershipsPage() {
       render: (a) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
+            src={resolveMediaUrl((a as any).photo_url || (a as any).profile_picture_url) || undefined}
             sx={{
               width: 40,
               height: 40,

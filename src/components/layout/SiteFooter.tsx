@@ -31,12 +31,6 @@ const SOCIAL_LINKS = [
     color: "#0A66C2",
   },
   {
-    label: "Twitter",
-    href: "https://twitter.com/icj_enterprise",
-    icon: <TwitterIcon sx={{ fontSize: 20 }} />,
-    color: "#1DA1F2",
-  },
-  {
     label: "X (formerly Twitter)",
     href: "https://x.com/icj_enterprise",
     icon: <XIcon sx={{ fontSize: 18 }} />,

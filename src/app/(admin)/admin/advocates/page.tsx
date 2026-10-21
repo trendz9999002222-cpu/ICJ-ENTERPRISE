@@ -21,6 +21,7 @@ import AdminDataTable, {
 } from "@/components/features/admin/shared/AdminDataTable";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import { adminAdvocatesService } from "@/services/admin/adminAdvocates.service";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { AdminAdvocate } from "@/types/admin";
 
 // ---------------------------------------------------------------------------
@@ -80,7 +81,7 @@ export default function AdvocatesPage() {
       render: (a) => (
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
           <Avatar
-            src={a.photo_url || undefined}
+            src={resolveMediaUrl(a.photo_url) || undefined}
             sx={{
               width: 34,
               height: 34,

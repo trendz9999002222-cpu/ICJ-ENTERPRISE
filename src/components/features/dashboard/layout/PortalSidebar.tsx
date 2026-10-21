@@ -42,6 +42,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { MEMBER_CHANGE_PASSWORD_QUERY } from "@/lib/memberDashboard";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { normalizePlatformRoles } from "@/lib/roles";
 
 export const SIDEBAR_WIDTH = 240;
@@ -212,6 +213,7 @@ type Props = {
   userEmail?: string;
   hasProfessions?: boolean;
   activeProfessionName?: string;
+  profilePictureUrl?: string | null;
 };
 
 export default function PortalSidebar({
@@ -227,6 +229,7 @@ export default function PortalSidebar({
   userEmail = "",
   hasProfessions = false,
   activeProfessionName,
+  profilePictureUrl,
 }: Props) {
   const pathname = usePathname();
   const collapsed = !open && variant === "persistent";
@@ -474,6 +477,7 @@ export default function PortalSidebar({
         }}
       >
         <Avatar
+          src={resolveMediaUrl(profilePictureUrl) || undefined}
           sx={{
             width: 32,
             height: 32,

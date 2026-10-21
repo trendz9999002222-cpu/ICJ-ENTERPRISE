@@ -7,6 +7,7 @@ import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
 import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -27,6 +28,7 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 import AdminDataTable, {
   type AdminPaginationConfig,
@@ -250,23 +252,24 @@ export default function UsersPage() {
       label: "User",
       minWidth: 170,
       render: (u) => (
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          <Box
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
+          <Avatar
+            src={resolveMediaUrl(u.profile_picture_url || u.photo_url) || undefined}
+            alt={u.full_name}
             sx={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               borderRadius: "50%",
-              bgcolor: normalizePlatformRole(u.role) === "admin" ? "#dbeafe" : "#f1f5f9",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-              fontSize: "0.7rem",
+              bgcolor: normalizePlatformRole(u.role) === "admin" ? "#dbeafe" : "#eff6ff",
+              fontSize: "0.75rem",
               fontWeight: 800,
-              color: normalizePlatformRole(u.role) === "admin" ? "#1d4ed8" : "#475569",
+              color: normalizePlatformRole(u.role) === "admin" ? "#1d4ed8" : "#2563eb",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}
           >
             {u.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-          </Box>
+          </Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Box sx={{ fontWeight: 600, color: "#0f172a", fontSize: "0.8125rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {u.full_name}

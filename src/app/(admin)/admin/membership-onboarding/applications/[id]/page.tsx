@@ -43,6 +43,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 
 import {
   DetailField,
@@ -237,6 +238,7 @@ export default function AdminMembershipApplicationDetailPage() {
           >
             <Stack direction="row" spacing={2.5} sx={{ alignItems: "center" }}>
               <Avatar
+                src={resolveMediaUrl((app as any).photo_url || (app as any).profile_picture_url) || undefined}
                 sx={{
                   width: { xs: 64, sm: 76 },
                   height: { xs: 64, sm: 76 },

@@ -7,6 +7,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import AdminPageShell from "@/components/features/admin/shared/AdminPageShell";
 import AdminDataTable, { type AdminTableColumn } from "@/components/features/admin/shared/AdminDataTable";
 import { apiClient, readAccessTokenFromCookie } from "@/lib/api/client";
+import { resolveMediaUrl } from "@/lib/mediaUrl";
 import type { HonorableAdvisoryMember } from "@/services/public/honorableAdvisory.service";
 import HonorableAdvisoryActions from "@/app/(admin)/admin/honorable-advisory-onboarding/HonorableAdvisoryActions";
 
@@ -65,7 +66,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
       render: (m) => (
         <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
           <Avatar
-            src={m.photo_url || undefined}
+            src={resolveMediaUrl(m.photo_url) || undefined}
             sx={{
               width: 40,
               height: 40,
@@ -245,7 +246,7 @@ export default function AdminHonorableAdvisoryMembersPage() {
             <Stack spacing={2}>
               <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
                 <Avatar
-                  src={viewMember.photo_url || undefined}
+                  src={resolveMediaUrl(viewMember.photo_url) || undefined}
                   sx={{ width: 100, height: 100, fontSize: "2rem", bgcolor: "#2563eb" }}
                 >
                   {!viewMember.photo_url && viewMember.name.substring(0, 2).toUpperCase()}

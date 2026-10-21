@@ -74,6 +74,9 @@ export default function ProfilePictureUpload({
       const data = json.data ?? json;
       setPreviewUrl(null);
       onUploaded?.(data.profile_picture_url ?? null);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("icj_profile_updated"));
+      }
     } catch {
       setPreviewUrl(null);
       onError?.("Network error while uploading photo.");

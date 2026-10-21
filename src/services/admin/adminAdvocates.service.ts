@@ -163,7 +163,11 @@ function mapDetailToAdminAdvocateDetail(d: BackendRegistrationDetail): AdminAdvo
   let photoUrl: string | null = resolveMediaUrl(d.photo_url);
   const docs = (d.files || []).map((f) => {
     const resolved = resolveMediaUrl(f.file_url);
-    if (!photoUrl && f.document_key in { photo: 1, profile_photo: 1, passport_photo: 1, avatar: 1 }) {
+    const docKey = (f.document_key || "").toLowerCase().trim();
+    if (
+      !photoUrl &&
+      ["photo", "profile_photo", "passport_photo", "avatar", "photograph", "profile_picture", "profile_image"].includes(docKey)
+    ) {
       photoUrl = resolved;
     }
     return {
