@@ -51,7 +51,7 @@ class AdminUserListAPIView(APIView):
                 "professional_registration_submissions",
                 queryset=ProfessionalRegistrationSubmission.objects.select_related(
                     "category", "group", "profession"
-                ).order_by("-created_at"),
+                ).prefetch_related("files").order_by("-created_at"),
             )
         )
 

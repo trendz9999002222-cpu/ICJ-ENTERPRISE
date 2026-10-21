@@ -13,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     professions = serializers.SerializerMethodField()
     membership = serializers.SerializerMethodField()
     profile_picture_url = serializers.SerializerMethodField()
+    photo_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -29,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "mobile",
             "profile_picture_url",
+            "photo_url",
             "password_change_required",
             "email_verified",
             "is_staff",
@@ -38,24 +40,35 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_profile_picture_url(self, user) -> str | None:
         request = self.context.get("request")
-        if user.profile_picture:
-            url = user.profile_picture.url
-            if request is not None:
-                return request.build_absolute_uri(url)
-            return url
+        if getattr(user, "profile_picture", None):
+            try:
+                if user.profile_picture:
+                    url = user.profile_picture.url
+                    return request.build_absolute_uri(url) if request else url
+            except Exception:
+                pass
         # Fallback to professional onboarding submission photo if user.profile_picture is not set
         try:
             subs = user.professional_registration_submissions.all().prefetch_related("files")
             for s in subs:
                 for f in s.files.all():
-                    if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:
-                        url = f.file.url
-                        if request is not None:
-                            return request.build_absolute_uri(url)
-                        return url
+                    k = (f.document_key or "").lower().strip()
+                    if (
+                        k in ("photo", "profile_photo", "passport_photo", "avatar", "photograph", "profile_picture", "profile_image", "user_photo")
+                        or (f.content_type and f.content_type.startswith("image/") and "photo" in k)
+                    ):
+                        try:
+                            if f.file:
+                                url = f.file.url
+                                return request.build_absolute_uri(url) if request else url
+                        except Exception:
+                            pass
         except Exception:
             pass
         return None
+
+    def get_photo_url(self, user) -> str | None:
+        return self.get_profile_picture_url(user)
 
     def get_roles(self, user) -> list[str]:
         return user.get_all_roles()
