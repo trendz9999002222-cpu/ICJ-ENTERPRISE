@@ -233,6 +233,11 @@ class ProfessionalRegistrationSubmissionDetailSerializer(serializers.ModelSerial
 
     def get_photo_url(self, obj) -> str | None:
         request = self.context.get("request")
+        if obj.user_id and obj.user and getattr(obj.user, "profile_picture", None):
+            url = obj.user.profile_picture.url
+            if request:
+                return request.build_absolute_uri(url)
+            return url
         files = obj.files.all() if hasattr(obj, "files") else []
         for f in files:
             if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:

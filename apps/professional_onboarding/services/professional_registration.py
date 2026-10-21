@@ -444,12 +444,41 @@ class ProfessionalRegistrationSubmissionService:
             if authenticated and user:
                 submission.user = user
                 submission.save(update_fields=["user"])
+                if not user.profile_picture:
+                    for f in submission.files.all():
+                        if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:
+                            user.profile_picture = f.file
+                            user.save(update_fields=["profile_picture"])
+                            break
             else:
                 provision_professional_user_at_registration(
                     submission,
                     (new_password or "").strip(),
                     (confirm_password or "").strip(),
                 )
+
+        # Send welcome email after transaction (outside atomic block to avoid blocking)
+        try:
+            from apps.professional_onboarding.emails.welcome import send_professional_welcome_email
+            applicant_email = (
+                common_field_values.get("email")
+                or common_field_values.get("email_address")
+                or ""
+            )
+            applicant_name = (
+                common_field_values.get("full_name")
+                or common_field_values.get("name")
+                or common_field_values.get("first_name")
+                or ""
+            )
+            if applicant_email:
+                send_professional_welcome_email(
+                    to_email=applicant_email,
+                    applicant_name=applicant_name,
+                    reference_id=submission.reference_id,
+                )
+        except Exception:
+            pass  # Email failure must never block registration
 
         return submission
 

@@ -37,13 +37,25 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_profile_picture_url(self, user) -> str | None:
-        if not user.profile_picture:
-            return None
         request = self.context.get("request")
-        url = user.profile_picture.url
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+        if user.profile_picture:
+            url = user.profile_picture.url
+            if request is not None:
+                return request.build_absolute_uri(url)
+            return url
+        # Fallback to professional onboarding submission photo if user.profile_picture is not set
+        try:
+            subs = user.professional_registration_submissions.all().prefetch_related("files")
+            for s in subs:
+                for f in s.files.all():
+                    if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:
+                        url = f.file.url
+                        if request is not None:
+                            return request.build_absolute_uri(url)
+                        return url
+        except Exception:
+            pass
+        return None
 
     def get_roles(self, user) -> list[str]:
         return user.get_all_roles()
@@ -52,6 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
         from apps.professional_onboarding.services.submission_professions import expand_submission_professions
 
         res = []
+        request = self.context.get("request")
         try:
             subs = user.professional_registration_submissions.all().select_related(
                 "category", "group", "profession"
@@ -59,12 +72,16 @@ class UserSerializer(serializers.ModelSerializer):
             for s in subs:
                 file_list = []
                 for f in s.files.all():
+                    f_url = f.file.url if f.file else ""
+                    if f_url and request is not None:
+                        f_url = request.build_absolute_uri(f_url)
                     file_list.append({
                         "id": str(f.id),
                         "document_key": f.document_key,
                         "original_name": f.original_name,
                         "size_bytes": f.size_bytes,
-                        "url": f.file.url if f.file else "",
+                        "url": f_url,
+                        "file_url": f_url,
                     })
                 expanded = expand_submission_professions(s)
                 if not expanded:

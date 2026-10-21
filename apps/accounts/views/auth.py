@@ -409,3 +409,108 @@ class CheckEmailAvailabilityView(APIView):
         email = request.data.get("email", "") if isinstance(request.data, dict) else ""
         return self._check(request, email)
 
+
+class UserProfessionalDocumentsView(APIView):
+    """
+    Allows a professional to view and update/replace their submitted verification documents.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        user = request.user
+        subs = user.professional_registration_submissions.all().select_related("profession").prefetch_related("files")
+        docs = []
+        for s in subs:
+            prof_name = s.profession.name if s.profession else "Professional"
+            for f in s.files.all():
+                url = request.build_absolute_uri(f.file.url) if f.file else ""
+                docs.append({
+                    "id": str(f.id),
+                    "submission_id": str(s.id),
+                    "document_key": f.document_key,
+                    "original_name": f.original_name,
+                    "content_type": f.content_type,
+                    "size_bytes": f.size_bytes,
+                    "uploaded_at": f.uploaded_at.isoformat() if f.uploaded_at else None,
+                    "url": url,
+                    "file_url": url,
+                    "profession_name": prof_name,
+                })
+        return api_success(data={"documents": docs}, message="Documents retrieved.")
+
+    def post(self, request):
+        import os
+        from apps.professional_onboarding.models import ProfessionalRegistrationSubmissionFile
+
+        user = request.user
+        file = request.FILES.get("file")
+        if not file:
+            return api_error("No file provided.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        file_id = request.data.get("file_id")
+        document_key = (request.data.get("document_key") or "").strip()
+
+        # Size check (max 5MB)
+        if file.size > 5 * 1024 * 1024:
+            return api_error("File size cannot exceed 5 MB.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        # Allowed types
+        ext = os.path.splitext(file.name or "")[1].lower().lstrip(".")
+        allowed_exts = {"pdf", "jpg", "jpeg", "png", "webp", "doc", "docx"}
+        if ext not in allowed_exts:
+            return api_error("Allowed file types are PDF, JPG, PNG, WebP, DOC, DOCX.", status_code=status.HTTP_400_BAD_REQUEST)
+
+        sub_file = None
+        if file_id:
+            sub_file = ProfessionalRegistrationSubmissionFile.objects.filter(
+                id=file_id,
+                submission__user=user,
+            ).first()
+
+        if not sub_file and document_key:
+            # Look for existing file with this document_key in user's submissions
+            sub_file = ProfessionalRegistrationSubmissionFile.objects.filter(
+                submission__user=user,
+                document_key=document_key,
+            ).first()
+
+        if not sub_file:
+            # Find user's latest submission to attach this file to
+            latest_sub = user.professional_registration_submissions.order_by("-created_at").first()
+            if not latest_sub:
+                return api_error("No professional registration found for this user.", status_code=status.HTTP_404_NOT_FOUND)
+            if not document_key:
+                document_key = "document"
+            sub_file = ProfessionalRegistrationSubmissionFile(
+                submission=latest_sub,
+                document_key=document_key,
+            )
+
+        sub_file.file = file
+        sub_file.original_name = os.path.basename(file.name or "upload")
+        sub_file.content_type = file.content_type or ""
+        sub_file.size_bytes = file.size
+        sub_file.save()
+
+        # If this is a photo, also update user's profile picture
+        if sub_file.document_key in ("photo", "profile_photo", "passport_photo", "avatar"):
+            user.profile_picture = file
+            user.save(update_fields=["profile_picture"])
+
+        file_url = request.build_absolute_uri(sub_file.file.url) if sub_file.file else ""
+        return api_success(
+            data={
+                "id": str(sub_file.id),
+                "document_key": sub_file.document_key,
+                "original_name": sub_file.original_name,
+                "content_type": sub_file.content_type,
+                "size_bytes": sub_file.size_bytes,
+                "url": file_url,
+                "file_url": file_url,
+                "profile_picture_url": request.build_absolute_uri(user.profile_picture.url) if user.profile_picture else None,
+            },
+            message="Document updated successfully.",
+        )
+
+

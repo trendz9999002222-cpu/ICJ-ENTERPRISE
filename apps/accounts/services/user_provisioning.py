@@ -127,8 +127,14 @@ def provision_professional_user_at_registration(submission, new_password: str, c
 
     user.set_password(new_password)
     user.password_change_required = False
-    user.last_temp_password = ""
     user.save()
+
+    if not user.profile_picture:
+        for f in submission.files.all():
+            if f.document_key in ("photo", "profile_photo", "passport_photo", "avatar") and f.file:
+                user.profile_picture = f.file
+                user.save(update_fields=["profile_picture"])
+                break
 
     submission.user = user
     submission.save(update_fields=["user"])
