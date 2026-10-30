@@ -10,6 +10,9 @@ urlpatterns = [
     path("api/v1/health/", HealthCheckView.as_view(), name="health-check"),
     path("api/v1/auth/", include("apps.accounts.urls.auth")),
     path("api/v1/admin/users/", include("apps.accounts.urls.admin_users")),
+    # Application submission and review (new Phase 3)
+    path("api/v1/applications/", include("apps.accounts.urls.applications")),
+    path("api/v1/admin/applications/", include("apps.accounts.urls.admin_applications")),
     path("api/v1/admin/core/", include("apps.core.urls_admin")),
     path(
         "api/v1/admin/professional-onboarding/",
@@ -51,18 +54,18 @@ urlpatterns = [
         "api/v1/services/",
         include("apps.services.urls.public"),
     ),
-    # path(
-    #     "api/v1/professional/",
-    #     include("apps.leads.urls.professional"),
-    # ),
+    # 2-Factor Case Tracking
+    path(
+        "api/v1/services/cases/track/",
+        include("apps.services.urls.case_tracking"),
+    ),
+    path(
+        "api/v1/professional/",
+        include("apps.leads.urls.professional"),
+    ),
     path(
         "api/v1/professional/services/",
         include("apps.services.urls.professional"),
-    ),
-    # Professional Lead Marketplace & Credit Plans (Easebuzz Gateway)
-    path(
-        "api/v1/professional/",
-        include("apps.services.urls.professional_leads"),
     ),
     path(
         "api/v1/donations/",
@@ -72,4 +75,3 @@ urlpatterns = [
 
 if settings.DEBUG or True:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-

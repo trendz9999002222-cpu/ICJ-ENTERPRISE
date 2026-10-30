@@ -8,14 +8,17 @@ from apps.accounts.views import (
     LogoutView,
     MeView,
     RefreshTokenView,
+    RegisterView,
     ResetPasswordView,
     SendEmailVerificationLinkView,
     SetInitialPasswordView,
     UserProfessionalDocumentsView,
     VerifyEmailStatusView,
 )
+from apps.accounts.views.application import ProfileCompletionAPIView
 
 urlpatterns = [
+    path("register/", RegisterView.as_view(), name="auth-register"),
     path("login/", LoginView.as_view(), name="auth-login"),
     path("logout/", LogoutView.as_view(), name="auth-logout"),
     path("forgot-password/", ForgotPasswordView.as_view(), name="auth-forgot-password"),
@@ -24,6 +27,7 @@ urlpatterns = [
     path("set-password/", SetInitialPasswordView.as_view(), name="auth-set-password"),
     path("refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path("me/", MeView.as_view(), name="auth-me"),
+    path("profile-completion/", ProfileCompletionAPIView.as_view(), name="auth-profile-completion"),
     path("me/documents/", UserProfessionalDocumentsView.as_view(), name="auth-me-documents"),
     path("check-email/", CheckEmailAvailabilityView.as_view(), name="auth-check-email"),
     path("send-verification-email/", SendEmailVerificationLinkView.as_view(), name="auth-send-verification-email"),

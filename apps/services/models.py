@@ -131,6 +131,10 @@ class AssistanceRequest(models.Model):
     city_name = models.CharField(max_length=100)
     category = models.CharField(max_length=200)
     urgency = models.CharField(max_length=20)
+    date_of_birth = models.DateField(null=True, blank=True)
+    calculated_age = models.PositiveIntegerField(null=True, blank=True)
+    address = models.TextField(blank=True, default='')
+    help_type = models.CharField(max_length=100, blank=True, default='')
     problem_description = models.TextField()
     additional_fields = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
@@ -143,6 +147,54 @@ class AssistanceRequest(models.Model):
         
     def __str__(self) -> str:
         return f"{self.reference_id} - {self.full_name}"
+
+
+def case_document_upload_to(instance: "CaseDocument", filename: str) -> str:
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "pdf"
+    ref = instance.assistance_request.reference_id if instance.assistance_request else "case"
+    return f"case_documents/{ref}/{uuid.uuid4().hex[:8]}.{ext}"
+
+
+class CaseDocument(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    assistance_request = models.ForeignKey(
+        AssistanceRequest, on_delete=models.CASCADE, related_name="case_documents"
+    )
+    document_title = models.CharField(max_length=200, blank=True, default="")
+    file = models.FileField(upload_to=case_document_upload_to)
+    file_name = models.CharField(max_length=255, blank=True, default="")
+    file_size_bytes = models.BigIntegerField(default=0)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("uploaded_at",)
+
+    def __str__(self) -> str:
+        return f"{self.file_name} ({self.assistance_request.reference_id})"
+
+
+class CaseOtpVerification(models.Model):
+    """Secure expiring OTP tracking record for 2-factor case status lookup."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session_id = models.CharField(max_length=100, unique=True, db_index=True)
+    case_reference = models.CharField(max_length=50, db_index=True)
+    contact = models.CharField(max_length=120)
+    otp_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveIntegerField(default=0)
+    verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["session_id", "verified"]),
+            models.Index(fields=["case_reference", "contact"]),
+        ]
+
+    def __str__(self) -> str:
+        status_text = "Verified" if self.verified else "Pending"
+        return f"OTP for {self.case_reference} ({status_text})"
 
 
 class AssistanceFormField(models.Model):
@@ -203,6 +255,9 @@ class LegalCase(models.Model):
     professional = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_cases')
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN, db_index=True)
     budget = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    client_fee_agreed = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    platform_charge_pct = models.DecimalField(max_digits=5, decimal_places=2, default=20.00)
+    payment_status = models.CharField(max_length=30, default="pending")
     group_type = models.CharField(max_length=100, blank=True)
     professional_group = models.ForeignKey('professional_onboarding.Group', on_delete=models.SET_NULL, null=True, blank=True, related_name='legal_cases')
     
@@ -214,6 +269,61 @@ class LegalCase(models.Model):
         
     def __str__(self) -> str:
         return str(self.case_id)
+
+
+class CaseAssignmentHistory(models.Model):
+    """Audit trail of advocate/professional assignment and reassignments."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    legal_case = models.ForeignKey(
+        LegalCase, on_delete=models.CASCADE, related_name="assignment_history"
+    )
+    previous_professional = models.ForeignKey(
+        "accounts.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="previous_case_assignments"
+    )
+    new_professional = models.ForeignKey(
+        "accounts.User", on_delete=models.CASCADE, related_name="new_case_assignments"
+    )
+    reassigned_by = models.ForeignKey(
+        "accounts.User", on_delete=models.SET_NULL, null=True, blank=True, related_name="case_reassignments_made"
+    )
+    reason = models.TextField(help_text="Mandatory business reason for reassignment")
+    notify_client = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self) -> str:
+        prev = self.previous_professional.get_full_name() if self.previous_professional else "Unassigned"
+        new = self.new_professional.get_full_name() or self.new_professional.email
+        return f"{self.legal_case.case_id}: {prev} -> {new}"
+
+
+class CaseInstallmentSchedule(models.Model):
+    """Agreed milestone installments for legal matters."""
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        OVERDUE = "overdue", "Overdue"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    legal_case = models.ForeignKey(
+        LegalCase, on_delete=models.CASCADE, related_name="installments"
+    )
+    installment_number = models.PositiveIntegerField()
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("installment_number",)
+        unique_together = ("legal_case", "installment_number")
+
+    def __str__(self) -> str:
+        return f"{self.legal_case.case_id} Installment #{self.installment_number}: ₹{self.amount} ({self.status})"
 
 
 class ProfessionalWallet(models.Model):

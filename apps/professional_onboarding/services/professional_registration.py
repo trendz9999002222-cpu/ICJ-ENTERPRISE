@@ -290,13 +290,13 @@ class ProfessionalRegistrationSubmissionService:
                 if phone:
                     common_field_values["mobile_number"] = phone
 
-            if not common_field_values.get("country"):
+            if "country" in common_fields_union and not common_field_values.get("country"):
                 common_field_values["country"] = member_fields.get("country") or "India"
-            if not common_field_values.get("state"):
+            if "state" in common_fields_union and not common_field_values.get("state"):
                 state_val = member_fields.get("state") or getattr(user, "state", "") or "Delhi"
                 if state_val:
                     common_field_values["state"] = state_val
-            if not common_field_values.get("district") and not common_field_values.get("city"):
+            if "district" in common_fields_union and not common_field_values.get("district") and not common_field_values.get("city"):
                 dist_val = member_fields.get("district") or member_fields.get("city") or getattr(user, "district", "") or "New Delhi"
                 if dist_val:
                     common_field_values["district"] = dist_val
