@@ -2,20 +2,25 @@
 
 import {
   ArrowForward,
+  BusinessCenter,
   CalendarToday,
   CardMembership,
   CheckCircle,
   Download,
   Gavel,
+  HourglassEmpty,
+  InfoOutlined,
   Person,
   QrCode,
   Support,
+  VolunteerActivism,
 } from "@mui/icons-material";
 import {
   Avatar,
   Box,
   Button,
   Card,
+  CardActionArea,
   CardContent,
   Chip,
   CircularProgress,
@@ -29,6 +34,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import ChangePasswordDialog from "@/components/features/dashboard/member/ChangePasswordDialog";
+import ProfileCompletionBanner from "@/components/features/dashboard/ProfileCompletionBanner";
 import SetInitialPasswordDialog from "@/components/features/dashboard/member/SetInitialPasswordDialog";
 import { env } from "@/config/env";
 import { MEMBER_DASHBOARD_PATH } from "@/lib/memberDashboard";
@@ -60,11 +66,11 @@ type MemberAction = {
 
 const ALL_MEMBER_ACTIONS: MemberAction[] = [
   { label: "Find & Book Advocate", href: "/dashboard/member/find-advocate", icon: <Gavel fontSize="small" />, requiresApproval: true },
-  { label: "Track My Application", href: "/dashboard/member/application", icon: <CalendarToday fontSize="small" />, requiresApproval: true },
+  { label: "Track Legal Assistance", href: "/track-case", icon: <CalendarToday fontSize="small" />, requiresApproval: false },
   { label: "Download Documents", href: "/dashboard/member/documents", icon: <Download fontSize="small" />, requiresApproval: true },
   { label: "Update Profile", href: "/dashboard/profile", icon: <Person fontSize="small" />, requiresApproval: false },
   { label: "Change Password", href: MEMBER_DASHBOARD_PATH, icon: <Person fontSize="small" />, requiresApproval: false, openPasswordDialog: true },
-  { label: "Contact Support", href: "/dashboard/member/support", icon: <Support fontSize="small" />, requiresApproval: true },
+  { label: "Contact Support", href: "/dashboard/member/support", icon: <Support fontSize="small" />, requiresApproval: false },
 ];
 
 const membershipDetails = [
@@ -73,6 +79,25 @@ const membershipDetails = [
   { label: "Valid Until", value: "Lifetime" },
   { label: "Benefits", value: "Legal Aid, Directory Access, Events" },
 ];
+
+interface ApplicationStatusItem {
+  id: string;
+  reference_number: string;
+  pathway: string;
+  category: string;
+  status: "pending" | "under_review" | "approved" | "rejected" | "info_requested";
+  submitted_at: string;
+  reviewed_at?: string;
+  reviewer_notes?: string;
+}
+
+const STATUS_CHIP_CONFIG: Record<string, { label: string; color: "default" | "warning" | "success" | "error" | "info" }> = {
+  pending: { label: "Pending", color: "default" },
+  under_review: { label: "Under Review", color: "warning" },
+  approved: { label: "Approved", color: "success" },
+  rejected: { label: "Rejected", color: "error" },
+  info_requested: { label: "Info Requested", color: "info" },
+};
 
 function MemberDashboardInner() {
   const router = useRouter();
@@ -85,6 +110,8 @@ function MemberDashboardInner() {
   const [userId, setUserId] = useState("");
   const [membership, setMembership] = useState<UserMembershipInfo | null>(null);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [applications, setApplications] = useState<ApplicationStatusItem[]>([]);
+  const [loadingApps, setLoadingApps] = useState(false);
 
   useEffect(() => {
     const token = readCookie("icj_access_token");
@@ -105,10 +132,21 @@ function MemberDashboardInner() {
         setProfilePictureUrl((data?.profile_picture_url as string) ?? null);
       })
       .catch(() => {});
+
+    // Fetch user applications
+    setLoadingApps(true);
+    fetch(`${env.apiUrl}/applications/my-status/`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => {
+        if (Array.isArray(list)) setApplications(list);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingApps(false));
   }, []);
 
   useEffect(() => {
-    // Only right after membership onboarding: check if user just onboarded for the first time
     const isFirstTimeOnboarded =
       searchParams.get("setPassword") === "1" ||
       (typeof window !== "undefined" && sessionStorage.getItem("icj_just_onboarded_membership") === "1");
@@ -166,6 +204,10 @@ function MemberDashboardInner() {
       />
       <ChangePasswordDialog open={passwordDialogOpen} onClose={closePasswordDialog} />
 
+      {/* Profile Completion Alert Banner */}
+      <ProfileCompletionBanner />
+
+      {/* Header Banner */}
       <Box
         sx={{
           background: "linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%)",
@@ -191,7 +233,7 @@ function MemberDashboardInner() {
             <Typography variant="h5" sx={{ fontWeight: 900 }}>Welcome, {name}</Typography>
             <Typography variant="body2" sx={{ opacity: 0.8, mt: 0.3 }}>{email}</Typography>
             <Chip
-              label={memberApproved ? "Active Member" : "Pending admin approval"}
+              label={memberApproved ? "Active Member" : "Registered Member"}
               size="small"
               icon={<CheckCircle sx={{ fontSize: "14px !important", color: "#fff !important" }} />}
               sx={{ mt: 1, bgcolor: "rgba(255,255,255,0.25)", color: "#fff", fontWeight: 700, fontSize: "0.7rem" }}
@@ -200,6 +242,124 @@ function MemberDashboardInner() {
         </Stack>
       </Box>
 
+      {/* Professional Empanelment Pathways */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a", mb: 0.5 }}>
+          Join an ICJ Professional Panel
+        </Typography>
+        <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
+          Upgrade your membership by applying for professional empanelment in your domain of expertise.
+        </Typography>
+
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card elevation={0} sx={{ border: "2px solid #e2e8f0", borderRadius: 3, transition: "0.2s", "&:hover": { borderColor: "#1e3a8a", boxShadow: "0 4px 12px rgba(30,58,138,0.1)" } }}>
+              <CardActionArea component={Link} href="/join?step=pathway&pathway=legal_professional" sx={{ p: 2.5, height: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <Box sx={{ p: 1, borderRadius: 2, bgcolor: "#eff6ff", color: "#1e3a8a", mb: 1.5 }}>
+                  <Gavel fontSize="medium" />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#1e3a8a", mb: 0.5 }}>
+                  Legal Professional
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b", mb: 1.5, display: "block" }}>
+                  Advocates, Legal Consultants, Researchers, Forensic Experts &amp; Drafting Specialists.
+                </Typography>
+                <Chip label="Apply Now" size="small" color="primary" sx={{ fontWeight: 700, fontSize: "0.7rem" }} />
+              </CardActionArea>
+            </Card>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card elevation={0} sx={{ border: "2px solid #e2e8f0", borderRadius: 3, transition: "0.2s", "&:hover": { borderColor: "#065f46", boxShadow: "0 4px 12px rgba(6,95,70,0.1)" } }}>
+              <CardActionArea component={Link} href="/join?step=pathway&pathway=other_professional" sx={{ p: 2.5, height: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <Box sx={{ p: 1, borderRadius: 2, bgcolor: "#ecfdf5", color: "#065f46", mb: 1.5 }}>
+                  <BusinessCenter fontSize="medium" />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#065f46", mb: 0.5 }}>
+                  Other Professional
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b", mb: 1.5, display: "block" }}>
+                  Chartered Accountants (CA), financial advisors, and corporate compliance specialists.
+                </Typography>
+                <Chip label="Apply Now" size="small" sx={{ bgcolor: "#065f46", color: "#fff", fontWeight: 700, fontSize: "0.7rem" }} />
+              </CardActionArea>
+            </Card>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card elevation={0} sx={{ border: "2px solid #e2e8f0", borderRadius: 3, transition: "0.2s", "&:hover": { borderColor: "#7c2d12", boxShadow: "0 4px 12px rgba(124,45,18,0.1)" } }}>
+              <CardActionArea component={Link} href="/join?step=pathway&pathway=volunteer" sx={{ p: 2.5, height: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                <Box sx={{ p: 1, borderRadius: 2, bgcolor: "#fff7ed", color: "#7c2d12", mb: 1.5 }}>
+                  <VolunteerActivism fontSize="medium" />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#7c2d12", mb: 0.5 }}>
+                  Volunteer / Fellow
+                </Typography>
+                <Typography variant="caption" sx={{ color: "#64748b", mb: 1.5, display: "block" }}>
+                  Support pro bono legal aid, field research, and public interest outreach missions.
+                </Typography>
+                <Chip label="Join Volunteer Desk" size="small" sx={{ bgcolor: "#7c2d12", color: "#fff", fontWeight: 700, fontSize: "0.7rem" }} />
+              </CardActionArea>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Applications Status Section (if any applications exist) */}
+      {applications.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: "#0f172a", mb: 1.5 }}>
+            My Professional Applications
+          </Typography>
+          <Stack spacing={2}>
+            {applications.map((app) => {
+              const chipInfo = STATUS_CHIP_CONFIG[app.status] ?? { label: app.status, color: "default" };
+              return (
+                <Card key={app.id} elevation={0} sx={{ border: "1px solid #e2e8f0", borderRadius: 2 }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+                          {app.category} ({app.pathway?.replace(/_/g, " ")})
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Ref: <strong>{app.reference_number}</strong> • Submitted: {new Date(app.submitted_at).toLocaleDateString("en-IN")}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                        <Chip label={chipInfo.label} color={chipInfo.color} size="small" sx={{ fontWeight: 700 }} />
+                        {app.status === "approved" && (
+                          <Button
+                            component={Link}
+                            href="/dashboard/professional"
+                            variant="contained"
+                            size="small"
+                            sx={{ textTransform: "none", bgcolor: "#059669", fontWeight: 700 }}
+                          >
+                            Open Professional Portal
+                          </Button>
+                        )}
+                      </Stack>
+                    </Stack>
+                    {app.reviewer_notes && (
+                      <Box sx={{ mt: 1.5, p: 1.5, bgcolor: "#f8fafc", borderRadius: 1.5, borderLeft: "3px solid #2563eb" }}>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontWeight: 600 }}>
+                          Admin Review Note:
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
+                          {app.reviewer_notes}
+                        </Typography>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
+
+      {/* Main Grid: Membership Card & Actions */}
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card
@@ -239,7 +399,7 @@ function MemberDashboardInner() {
                   <Box>
                     <Typography variant="caption" sx={{ opacity: 0.6 }}>Status</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700, color: "#86efac" }}>
-                      {memberApproved ? "Active" : "Pending"}
+                      {memberApproved ? "Active" : "Active Member"}
                     </Typography>
                   </Box>
                 </Stack>

@@ -1,0 +1,200 @@
+{
+  "formId": "forensic-expert-registration",
+  "version": "1.0",
+  "title": "Forensic Expert Registration",
+  "description": "Complete registration form for forensic experts joining the ICJ empanelled panel.",
+  "steps": [
+    {
+      "stepId": "specialisation",
+      "stepTitle": "Specialisation",
+      "stepDescription": "Your forensic specialisation, certifying body, and experience.",
+      "fields": [
+        {
+          "id": "forensic_specialization",
+          "name": "forensic_specialization",
+          "label": "Forensic Specialisation",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select your specialisation",
+          "helpText": "Select the primary area of forensic science in which you specialise.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": [
+            "Digital Forensics",
+            "Document Examination",
+            "Handwriting Analysis",
+            "Ballistics",
+            "Toxicology",
+            "DNA Analysis",
+            "Financial Forensics",
+            "Cyber Forensics",
+            "Other"
+          ],
+          "summaryLabel": "Forensic Specialisation"
+        },
+        {
+          "id": "certifying_body",
+          "name": "certifying_body",
+          "label": "Certifying Body / Board",
+          "type": "text",
+          "required": false,
+          "placeholder": "e.g., American Board of Forensic Document Examiners",
+          "helpText": "Name of the professional body or board that has certified your forensic expertise (optional).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Certifying Body"
+        },
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Experience",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 12",
+          "helpText": "Total years of professional forensic experience.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)"
+        }
+      ]
+    },
+    {
+      "stepId": "qualifications",
+      "stepTitle": "Qualifications",
+      "stepDescription": "Your academic qualifications in forensic science or a related field.",
+      "fields": [
+        {
+          "id": "highest_qualification",
+          "name": "highest_qualification",
+          "label": "Highest Qualification",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select qualification",
+          "helpText": "Select your highest academic qualification.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": [
+            "BSc Forensic Science",
+            "MSc Forensic Science",
+            "PhD",
+            "BTech",
+            "MTech",
+            "MBBS",
+            "Other"
+          ],
+          "summaryLabel": "Highest Qualification"
+        },
+        {
+          "id": "university",
+          "name": "university",
+          "label": "University / Institution",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Panjab University",
+          "helpText": "Name of the university or institution that awarded your degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "University"
+        },
+        {
+          "id": "passing_year",
+          "name": "passing_year",
+          "label": "Year of Passing",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2005",
+          "helpText": "Year in which you passed your highest degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Passing Year"
+        }
+      ]
+    },
+    {
+      "stepId": "court-experience",
+      "stepTitle": "Court Experience",
+      "stepDescription": "Your experience as an expert witness in court proceedings.",
+      "fields": [
+        {
+          "id": "court_testimony",
+          "name": "court_testimony",
+          "label": "Have you testified as an expert witness?",
+          "type": "radio",
+          "required": true,
+          "helpText": "Indicate whether you have previously appeared as an expert witness in any court or tribunal.",
+          "gridWidth": { "xs": 12 },
+          "options": ["Yes", "No"],
+          "summaryLabel": "Expert Witness Experience"
+        },
+        {
+          "id": "testimony_count",
+          "name": "testimony_count",
+          "label": "Approximate number of testimonies",
+          "type": "number",
+          "required": false,
+          "placeholder": "e.g., 25",
+          "helpText": "Approximate total number of times you have testified as an expert witness.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "conditions": [
+            { "field": "court_testimony", "operator": "equals", "value": "Yes" }
+          ],
+          "summaryLabel": "Testimony Count"
+        },
+        {
+          "id": "courts_appeared",
+          "name": "courts_appeared",
+          "label": "Courts Appeared In",
+          "type": "multiselect",
+          "required": false,
+          "placeholder": "Select all applicable courts",
+          "helpText": "Select all courts or tribunals where you have appeared as an expert witness (optional).",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Supreme Court",
+            "High Court",
+            "District Court",
+            "Tribunal",
+            "Other"
+          ],
+          "summaryLabel": "Courts Appeared In"
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Documents Upload",
+      "stepDescription": "Upload required documents to verify your credentials.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport-size Photograph",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a recent passport-size photograph (JPG or PNG, max 2 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["jpg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph"
+        },
+        {
+          "id": "professional_certificate",
+          "name": "professional_certificate",
+          "label": "Primary Professional Certificate",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload your primary forensic/professional certificate (PDF or JPG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg"], "maxSizeMb": 5 },
+          "summaryLabel": "Professional Certificate"
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Identity Proof",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a government-issued identity document (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof"
+        }
+      ]
+    }
+  ]
+}
+

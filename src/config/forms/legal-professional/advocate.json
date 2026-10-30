@@ -1,0 +1,289 @@
+{
+  "formId": "advocate-registration",
+  "version": "1.0",
+  "title": "Advocate Registration",
+  "description": "Complete registration form for advocates joining the ICJ empanelled panel.",
+  "steps": [
+    {
+      "stepId": "professional-identity",
+      "stepTitle": "Professional Identity",
+      "stepDescription": "Your bar enrolment and practice details.",
+      "fields": [
+        {
+          "id": "enrollment_number",
+          "name": "enrollment_number",
+          "label": "Enrolment Number",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., DL/1234/2015",
+          "helpText": "Enter your bar council enrolment number as issued.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Enrolment No."
+        },
+        {
+          "id": "enrollment_year",
+          "name": "enrollment_year",
+          "label": "Enrolment Year",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2010",
+          "helpText": "Year of first enrolment with a Bar Council.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 1950, "max": 2025 },
+          "summaryLabel": "Enrolment Year"
+        },
+        {
+          "id": "bar_council",
+          "name": "bar_council",
+          "label": "Bar Council",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select Bar Council",
+          "helpText": "Select the Bar Council with which you are enrolled.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": [
+            "Bar Council of India",
+            "Bar Council of Andhra Pradesh",
+            "Bar Council of Arunachal Pradesh",
+            "Bar Council of Assam",
+            "Bar Council of Bihar",
+            "Bar Council of Chhattisgarh",
+            "Bar Council of Goa",
+            "Bar Council of Gujarat",
+            "Bar Council of Haryana",
+            "Bar Council of Himachal Pradesh",
+            "Bar Council of Jharkhand",
+            "Bar Council of Karnataka",
+            "Bar Council of Kerala",
+            "Bar Council of Madhya Pradesh",
+            "Bar Council of Maharashtra & Goa",
+            "Bar Council of Manipur",
+            "Bar Council of Meghalaya",
+            "Bar Council of Mizoram",
+            "Bar Council of Nagaland",
+            "Bar Council of Odisha",
+            "Bar Council of Punjab & Haryana",
+            "Bar Council of Rajasthan",
+            "Bar Council of Sikkim",
+            "Bar Council of Tamil Nadu",
+            "Bar Council of Telangana",
+            "Bar Council of Tripura",
+            "Bar Council of Uttar Pradesh",
+            "Bar Council of Uttarakhand",
+            "Bar Council of West Bengal"
+          ],
+          "summaryLabel": "Bar Council"
+        },
+        {
+          "id": "practice_city",
+          "name": "practice_city",
+          "label": "City of Practice",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., New Delhi",
+          "helpText": "Primary city where you practise law.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Practice City"
+        }
+      ]
+    },
+    {
+      "stepId": "qualifications",
+      "stepTitle": "Qualifications",
+      "stepDescription": "Your academic qualifications in law.",
+      "fields": [
+        {
+          "id": "qualification",
+          "name": "qualification",
+          "label": "Highest Legal Qualification",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select qualification",
+          "helpText": "Select your highest law degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": ["LLB", "LLM", "BA LLB", "BBA LLB", "B.Com LLB", "PhD in Law", "Other"],
+          "summaryLabel": "Qualification"
+        },
+        {
+          "id": "university",
+          "name": "university",
+          "label": "University / Institution",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., University of Delhi",
+          "helpText": "Name of the university or institution that awarded your degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "University"
+        },
+        {
+          "id": "passing_year",
+          "name": "passing_year",
+          "label": "Year of Passing",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2012",
+          "helpText": "Year in which you passed your highest law degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Passing Year"
+        },
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Experience",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 8",
+          "helpText": "Total years of legal practice experience.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)"
+        }
+      ]
+    },
+    {
+      "stepId": "practice-details",
+      "stepTitle": "Practice Details",
+      "stepDescription": "Information about your legal practice and areas of expertise.",
+      "fields": [
+        {
+          "id": "practice_type",
+          "name": "practice_type",
+          "label": "Nature of Practice",
+          "type": "radio",
+          "required": true,
+          "helpText": "Are you an independent practitioner or employed by a firm/organisation?",
+          "gridWidth": { "xs": 12 },
+          "options": ["Independent", "Employed"],
+          "summaryLabel": "Practice Type"
+        },
+        {
+          "id": "firm_name",
+          "name": "firm_name",
+          "label": "Firm / Organisation Name",
+          "type": "text",
+          "required": false,
+          "placeholder": "e.g., ABC & Associates",
+          "helpText": "Name of the law firm or organisation you are employed with.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "conditions": [
+            { "field": "practice_type", "operator": "equals", "value": "Employed" }
+          ],
+          "summaryLabel": "Firm Name"
+        },
+        {
+          "id": "courts",
+          "name": "courts",
+          "label": "Courts Practised In",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all applicable courts",
+          "helpText": "Select all courts where you actively practise.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Supreme Court",
+            "High Court",
+            "District Court",
+            "Family Court",
+            "Consumer Forum",
+            "Tribunal",
+            "Revenue Court",
+            "Other"
+          ],
+          "summaryLabel": "Courts"
+        },
+        {
+          "id": "practice_areas",
+          "name": "practice_areas",
+          "label": "Areas of Practice",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all applicable areas",
+          "helpText": "Select all areas of law you practise in.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Criminal Law",
+            "Civil Law",
+            "Family Law",
+            "Property Law",
+            "Corporate Law",
+            "Constitutional Law",
+            "Labour Law",
+            "Intellectual Property",
+            "Tax Law",
+            "Environmental Law",
+            "Cyber Law",
+            "Other"
+          ],
+          "summaryLabel": "Practice Areas"
+        },
+        {
+          "id": "languages",
+          "name": "languages",
+          "label": "Languages of Practice",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all languages",
+          "helpText": "Languages in which you can conduct legal proceedings.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "English",
+            "Hindi",
+            "Tamil",
+            "Telugu",
+            "Kannada",
+            "Malayalam",
+            "Marathi",
+            "Bengali",
+            "Gujarati",
+            "Punjabi",
+            "Odia",
+            "Assamese",
+            "Other"
+          ],
+          "summaryLabel": "Languages"
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Documents Upload",
+      "stepDescription": "Upload required documents to verify your professional credentials.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport-size Photograph",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a recent passport-size photograph (JPG or PNG, max 2 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["jpg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph"
+        },
+        {
+          "id": "enrollment_certificate",
+          "name": "enrollment_certificate",
+          "label": "Enrolment Certificate",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload your bar council enrolment certificate (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Enrolment Certificate"
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Identity Proof",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a government-issued identity document (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof"
+        }
+      ]
+    }
+  ]
+}
+

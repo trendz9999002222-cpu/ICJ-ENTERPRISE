@@ -1,0 +1,178 @@
+{
+  "formId": "volunteer-registration",
+  "version": "1.0",
+  "title": "Volunteer Registration",
+  "description": "Join the ICJ mission as a volunteer supporting legal aid, public interest research, and outreach initiatives.",
+  "steps": [
+    {
+      "stepId": "volunteer-profile",
+      "stepTitle": "Volunteer Profile",
+      "stepDescription": "Tell us about your interests and motivation.",
+      "fields": [
+        {
+          "id": "volunteer_type",
+          "name": "volunteer_type",
+          "label": "Volunteer Role Category",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "Legal Research & Drafting Assistant", "value": "Legal Research" },
+            { "label": "Community Outreach & Legal Awareness", "value": "Community Outreach" },
+            { "label": "Documentation & Case Intake Support", "value": "Documentation" },
+            { "label": "Paralegal Support (Law Students)", "value": "Paralegal Support" },
+            { "label": "Language Translation (Vernacular to English)", "value": "Translation" },
+            { "label": "Event Organization & Media Support", "value": "Event Management" },
+            { "label": "General Administrative Support", "value": "General Administration" }
+          ],
+          "summaryLabel": "Role Category",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "work_mode",
+          "name": "work_mode",
+          "label": "Preferred Mode of Volunteering",
+          "type": "radio",
+          "required": true,
+          "options": [
+            { "label": "Remote", "value": "Remote" },
+            { "label": "In-Person (Local Chapters)", "value": "In-Person" },
+            { "label": "Hybrid", "value": "Hybrid" }
+          ],
+          "summaryLabel": "Work Mode",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "motivation_statement",
+          "name": "motivation_statement",
+          "label": "Statement of Motivation",
+          "type": "textarea",
+          "required": true,
+          "placeholder": "Briefly describe why you wish to volunteer with ICJ and how your background aligns with our mission (min 50 characters).",
+          "validation": { "min": 50, "max": 1500 },
+          "summaryLabel": "Motivation",
+          "gridWidth": { "xs": 12 }
+        },
+        {
+          "id": "skills_offered",
+          "name": "skills_offered",
+          "label": "Skills You Can Offer",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            { "label": "Legal Research", "value": "Legal Research" },
+            { "label": "Content Writing & Summaries", "value": "Content Writing" },
+            { "label": "Field Survey & Citizen Outreach", "value": "Citizen Outreach" },
+            { "label": "Translation & Interpretation", "value": "Translation" },
+            { "label": "Social Media & Public Relations", "value": "Public Relations" },
+            { "label": "Data Analytics & IT Support", "value": "IT Support" },
+            { "label": "Graphic Design & Presentations", "value": "Design" }
+          ],
+          "summaryLabel": "Skills Offered",
+          "gridWidth": { "xs": 12 }
+        }
+      ]
+    },
+    {
+      "stepId": "availability",
+      "stepTitle": "Availability & Time Commitment",
+      "stepDescription": "Indicate your realistic availability for volunteering projects.",
+      "fields": [
+        {
+          "id": "availability_hours_per_week",
+          "name": "availability_hours_per_week",
+          "label": "Weekly Time Commitment",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "label": "2 – 5 hours / week", "value": "2-5 hours" },
+            { "label": "5 – 10 hours / week", "value": "5-10 hours" },
+            { "label": "10 – 20 hours / week", "value": "10-20 hours" },
+            { "label": "Full-time (Internship / Fellowship)", "value": "Full-time" }
+          ],
+          "summaryLabel": "Time Commitment",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "preferred_time",
+          "name": "preferred_time",
+          "label": "Preferred Days / Timing",
+          "type": "select",
+          "required": false,
+          "options": [
+            { "label": "Weekdays (Daytime)", "value": "Weekdays Daytime" },
+            { "label": "Weekdays (Evening)", "value": "Weekdays Evening" },
+            { "label": "Weekends Only", "value": "Weekends" },
+            { "label": "Flexible", "value": "Flexible" }
+          ],
+          "summaryLabel": "Preferred Timing",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        }
+      ]
+    },
+    {
+      "stepId": "education-background",
+      "stepTitle": "Education & Background",
+      "stepDescription": "Your academic credentials and prior social or legal engagement.",
+      "fields": [
+        {
+          "id": "current_occupation",
+          "name": "current_occupation",
+          "label": "Current Status / Occupation",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Law Student (3rd Year), Independent Professional, Academician",
+          "summaryLabel": "Occupation",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "educational_qualification",
+          "name": "educational_qualification",
+          "label": "Highest Qualification / Current Degree",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., BA LLB, B.Tech, MA, Graduate",
+          "summaryLabel": "Education",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "prior_volunteer_experience",
+          "name": "prior_volunteer_experience",
+          "label": "Prior Volunteer / Social Sector Experience (Optional)",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "Briefly mention any past NGO, legal aid clinic, or volunteer work.",
+          "summaryLabel": "Prior Experience",
+          "gridWidth": { "xs": 12 }
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Identification & Verification",
+      "stepDescription": "Upload identity verification documents.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Recent Photograph (Optional)",
+          "type": "file",
+          "required": false,
+          "validation": { "allowedTypes": ["jpg", "jpeg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photo",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Government ID Proof / College ID",
+          "type": "file",
+          "required": true,
+          "validation": { "allowedTypes": ["pdf", "jpg", "jpeg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "ID Proof",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        }
+      ]
+    }
+  ]
+}
+

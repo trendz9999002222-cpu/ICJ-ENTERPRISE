@@ -1,0 +1,208 @@
+{
+  "formId": "drafting-specialist-registration",
+  "version": "1.0",
+  "title": "Drafting Specialist Registration",
+  "description": "Complete registration form for legal drafting specialists joining the ICJ empanelled panel.",
+  "steps": [
+    {
+      "stepId": "professional-details",
+      "stepTitle": "Professional Details",
+      "stepDescription": "Your experience, specialisation type, and document expertise.",
+      "fields": [
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Experience",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 7",
+          "helpText": "Total years of experience in legal drafting.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)"
+        },
+        {
+          "id": "specialization_type",
+          "name": "specialization_type",
+          "label": "Specialisation Type",
+          "type": "radio",
+          "required": true,
+          "helpText": "Indicate whether your practice is limited to drafting only or includes court appearances.",
+          "gridWidth": { "xs": 12 },
+          "options": ["Pleadings/Drafting Only", "Both Pleadings and Court Appearances"],
+          "summaryLabel": "Specialisation Type"
+        },
+        {
+          "id": "primary_document_types",
+          "name": "primary_document_types",
+          "label": "Primary Document Types",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all document types you draft",
+          "helpText": "Select all types of legal documents you are experienced in drafting.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Plaints",
+            "Written Statements",
+            "Applications",
+            "Petitions",
+            "Writ Petitions",
+            "Appeals",
+            "Revision Petitions",
+            "Memoranda",
+            "Affidavits",
+            "Agreements/Contracts",
+            "Other"
+          ],
+          "summaryLabel": "Document Types"
+        }
+      ]
+    },
+    {
+      "stepId": "language-proficiency",
+      "stepTitle": "Language Proficiency",
+      "stepDescription": "Languages in which you provide drafting and translation services.",
+      "fields": [
+        {
+          "id": "primary_language",
+          "name": "primary_language",
+          "label": "Primary Drafting Language",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select primary language",
+          "helpText": "The language in which you primarily draft legal documents.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": [
+            "English",
+            "Hindi",
+            "Tamil",
+            "Telugu",
+            "Kannada",
+            "Malayalam",
+            "Marathi",
+            "Bengali",
+            "Gujarati",
+            "Other"
+          ],
+          "summaryLabel": "Primary Language"
+        },
+        {
+          "id": "additional_languages",
+          "name": "additional_languages",
+          "label": "Additional Drafting Languages",
+          "type": "multiselect",
+          "required": false,
+          "placeholder": "Select additional languages",
+          "helpText": "Other languages in which you can draft legal documents (optional).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": [
+            "English",
+            "Hindi",
+            "Tamil",
+            "Telugu",
+            "Kannada",
+            "Malayalam",
+            "Marathi",
+            "Bengali",
+            "Gujarati",
+            "Other"
+          ],
+          "summaryLabel": "Additional Languages"
+        },
+        {
+          "id": "translation_services",
+          "name": "translation_services",
+          "label": "Do you provide legal translation services?",
+          "type": "radio",
+          "required": true,
+          "helpText": "Indicate whether you offer translation of legal documents between languages.",
+          "gridWidth": { "xs": 12 },
+          "options": ["Yes", "No"],
+          "summaryLabel": "Translation Services"
+        }
+      ]
+    },
+    {
+      "stepId": "qualifications",
+      "stepTitle": "Qualifications",
+      "stepDescription": "Your academic qualifications.",
+      "fields": [
+        {
+          "id": "qualification",
+          "name": "qualification",
+          "label": "Highest Legal Qualification",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select qualification",
+          "helpText": "Select your highest law degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": ["LLB", "LLM", "BA LLB", "BBA LLB", "B.Com LLB", "PhD in Law", "Other"],
+          "summaryLabel": "Qualification"
+        },
+        {
+          "id": "university",
+          "name": "university",
+          "label": "University / Institution",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Symbiosis Law School",
+          "helpText": "Name of the university or institution that awarded your degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "University"
+        },
+        {
+          "id": "passing_year",
+          "name": "passing_year",
+          "label": "Year of Passing",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2014",
+          "helpText": "Year in which you passed your highest degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Passing Year"
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Documents Upload",
+      "stepDescription": "Upload required documents to verify your credentials.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport-size Photograph",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a recent passport-size photograph (JPG or PNG, max 2 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["jpg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph"
+        },
+        {
+          "id": "work_sample",
+          "name": "work_sample",
+          "label": "Sample Drafting Work (redacted)",
+          "type": "file",
+          "required": false,
+          "helpText": "Upload a redacted sample of your drafting work to showcase your skills (PDF, max 5 MB) — optional.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf"], "maxSizeMb": 5 },
+          "summaryLabel": "Work Sample"
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Identity Proof",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a government-issued identity document (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof"
+        }
+      ]
+    }
+  ]
+}
+

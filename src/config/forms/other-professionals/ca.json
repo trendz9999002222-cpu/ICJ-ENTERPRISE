@@ -1,0 +1,185 @@
+{
+  "formId": "ca-registration",
+  "version": "1.0",
+  "title": "Chartered Accountant (CA) Registration",
+  "description": "Registration for empaneled Chartered Accountants providing financial, tax, and audit consultancy to the ICJ network.",
+  "steps": [
+    {
+      "stepId": "icai-membership",
+      "stepTitle": "ICAI Membership Details",
+      "stepDescription": "Enter your Institute of Chartered Accountants of India credentials.",
+      "fields": [
+        {
+          "id": "icai_membership_number",
+          "name": "icai_membership_number",
+          "label": "ICAI Membership Number",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., 501234",
+          "summaryLabel": "ICAI Membership No.",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "membership_type",
+          "name": "membership_type",
+          "label": "Membership Type",
+          "type": "radio",
+          "required": true,
+          "options": [
+            { "label": "ACA (Associate)", "value": "ACA" },
+            { "label": "FCA (Fellow)", "value": "FCA" }
+          ],
+          "summaryLabel": "Membership Type",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "cop_number",
+          "name": "cop_number",
+          "label": "Certificate of Practice (COP) Number",
+          "type": "text",
+          "required": false,
+          "placeholder": "Optional if not holding COP",
+          "summaryLabel": "COP No.",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Post-Qualification Experience",
+          "type": "number",
+          "required": true,
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        }
+      ]
+    },
+    {
+      "stepId": "firm-details",
+      "stepTitle": "Firm / Practice Details",
+      "stepDescription": "Information about your current practice or firm association.",
+      "fields": [
+        {
+          "id": "practice_type",
+          "name": "practice_type",
+          "label": "Practice Structure",
+          "type": "radio",
+          "required": true,
+          "options": [
+            { "label": "Sole Practitioner", "value": "Sole Practitioner" },
+            { "label": "Partnership Firm", "value": "Partnership Firm" },
+            { "label": "LLP", "value": "LLP" },
+            { "label": "Employed / Industry", "value": "Employed" }
+          ],
+          "summaryLabel": "Practice Structure",
+          "gridWidth": { "xs": 12 }
+        },
+        {
+          "id": "firm_name",
+          "name": "firm_name",
+          "label": "Firm / Employer Name",
+          "type": "text",
+          "required": false,
+          "placeholder": "Enter firm name",
+          "conditions": [
+            { "field": "practice_type", "operator": "notEquals", "value": "Sole Practitioner" }
+          ],
+          "summaryLabel": "Firm Name",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "firm_location",
+          "name": "firm_location",
+          "label": "Firm City / Location",
+          "type": "text",
+          "required": false,
+          "placeholder": "City where practice is based",
+          "summaryLabel": "Practice Location",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        }
+      ]
+    },
+    {
+      "stepId": "specialisations",
+      "stepTitle": "Specialisations & Industries",
+      "stepDescription": "Select your core areas of expertise.",
+      "fields": [
+        {
+          "id": "specializations",
+          "name": "specializations",
+          "label": "Core Practice Areas",
+          "type": "multiselect",
+          "required": true,
+          "options": [
+            { "label": "Statutory Audit", "value": "Statutory Audit" },
+            { "label": "Tax Audit & Direct Tax", "value": "Tax Audit & Direct Tax" },
+            { "label": "GST & Indirect Taxation", "value": "GST & Indirect Taxation" },
+            { "label": "Forensic Accounting & Fraud Detection", "value": "Forensic Accounting & Fraud Detection" },
+            { "label": "Insolvency & Bankruptcy (IBC)", "value": "Insolvency & Bankruptcy (IBC)" },
+            { "label": "Corporate Finance & Valuations", "value": "Corporate Finance & Valuations" },
+            { "label": "FEMA & International Tax", "value": "FEMA & International Tax" },
+            { "label": "Corporate Governance & Compliance", "value": "Corporate Governance & Compliance" }
+          ],
+          "summaryLabel": "Practice Areas",
+          "gridWidth": { "xs": 12 }
+        },
+        {
+          "id": "industries_served",
+          "name": "industries_served",
+          "label": "Industry Sectors (Optional)",
+          "type": "multiselect",
+          "required": false,
+          "options": [
+            { "label": "Banking & NBFC", "value": "Banking & NBFC" },
+            { "label": "Information Technology", "value": "Information Technology" },
+            { "label": "Real Estate & Infrastructure", "value": "Real Estate & Infrastructure" },
+            { "label": "Manufacturing", "value": "Manufacturing" },
+            { "label": "Healthcare & Pharma", "value": "Healthcare & Pharma" },
+            { "label": "NGOs, Trusts & Non-Profits", "value": "NGOs, Trusts & Non-Profits" },
+            { "label": "Startups & E-Commerce", "value": "Startups & E-Commerce" }
+          ],
+          "summaryLabel": "Industry Sectors",
+          "gridWidth": { "xs": 12 }
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Supporting Documents",
+      "stepDescription": "Upload documents for administrative verification.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport Size Photograph",
+          "type": "file",
+          "required": true,
+          "validation": { "allowedTypes": ["jpg", "jpeg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "icai_certificate",
+          "name": "icai_certificate",
+          "label": "ICAI Membership / COP Certificate",
+          "type": "file",
+          "required": true,
+          "validation": { "allowedTypes": ["pdf", "jpg", "jpeg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "ICAI Certificate",
+          "gridWidth": { "xs": 12, "sm": 6 }
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Government ID Proof (Aadhaar / PAN / Passport)",
+          "type": "file",
+          "required": true,
+          "validation": { "allowedTypes": ["pdf", "jpg", "jpeg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof",
+          "gridWidth": { "xs": 12 }
+        }
+      ]
+    }
+  ]
+}
+

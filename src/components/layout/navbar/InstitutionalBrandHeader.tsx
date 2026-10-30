@@ -185,54 +185,52 @@ export default function InstitutionalBrandHeader() {
               {isLoggedIn ? "Dashboard" : "Login"}
             </Button>
 
-            {/* Seek Legal Assistance — primary CTA */}
+            {/* Join ICJ & Seek Legal Assistance CTAs */}
             {!isLoggedIn && (
-              <Button
-                component={Link}
-                href="/join-professional"
-                variant="contained"
-                startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
-                sx={{
-                  bgcolor: "#0f2942",
-                  color: "#ffffff",
-                  fontWeight: 800,
-                  fontSize: "0.875rem",
-                  textTransform: "none",
-                  px: 2.5,
-                  py: 1,
-                  borderRadius: 2,
-                  boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
-                  whiteSpace: "nowrap",
-                  borderBottom: "3px solid #b45309",
-                  "&:hover": { bgcolor: "#1e3a5f" },
-                }}
-              >
-                Register as Professional
-              </Button>
+              <>
+                <Button
+                  component={Link}
+                  href="/join"
+                  variant="outlined"
+                  sx={{
+                    borderColor: "#b45309",
+                    color: "#b45309",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    textTransform: "none",
+                    px: 2,
+                    py: 0.9,
+                    borderRadius: 2,
+                    whiteSpace: "nowrap",
+                    "&:hover": { borderColor: "#92400e", bgcolor: "#fffbeb" },
+                  }}
+                >
+                  Join ICJ
+                </Button>
+                <Button
+                  component={Link}
+                  href="/assistance"
+                  variant="contained"
+                  startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
+                  sx={{
+                    bgcolor: "#0f2942",
+                    color: "#ffffff",
+                    fontWeight: 800,
+                    fontSize: "0.875rem",
+                    textTransform: "none",
+                    px: 2.5,
+                    py: 1,
+                    borderRadius: 2,
+                    boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
+                    whiteSpace: "nowrap",
+                    borderBottom: "3px solid #b45309",
+                    "&:hover": { bgcolor: "#1e3a5f" },
+                  }}
+                >
+                  Seek Legal Assistance
+                </Button>
+              </>
             )}
-
-            {/* <Button
-              component={Link}
-              href="/assistance"
-              variant="contained"
-              startIcon={<GavelIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                bgcolor: "#0f2942",
-                color: "#ffffff",
-                fontWeight: 800,
-                fontSize: "0.875rem",
-                textTransform: "none",
-                px: 2.5,
-                py: 1,
-                borderRadius: 2,
-                boxShadow: "0 4px 14px rgba(15,41,66,0.35)",
-                whiteSpace: "nowrap",
-                borderBottom: "3px solid #b45309",
-                "&:hover": { bgcolor: "#1e3a5f" },
-              }}
-            >
-              Seek Legal Assistance
-            </Button> */}
           </Stack>
         </Stack>
       </Container>

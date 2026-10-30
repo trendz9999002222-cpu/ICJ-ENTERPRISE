@@ -1,0 +1,116 @@
+{
+  "formId": "member-registration",
+  "version": "1.0.0",
+  "title": "Join ICJ - Member Registration",
+  "description": "Create your institutional account with the International Consortium of Jurists. From your Member Dashboard, you can apply for professional empanelment as an Advocate, Legal Consultant, Chartered Accountant, or Volunteer.",
+  "steps": [
+    {
+      "stepId": "account-credentials",
+      "stepTitle": "Account Credentials",
+      "stepDescription": "Set up your secure login credentials.",
+      "sections": [
+        {
+          "sectionId": "basic-profile",
+          "title": "Personal Identity",
+          "description": "Provide your name and contact details.",
+          "fields": [
+            {
+              "id": "first_name",
+              "name": "first_name",
+              "label": "First Name",
+              "type": "text",
+              "placeholder": "e.g. Ramesh",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "First Name"
+            },
+            {
+              "id": "last_name",
+              "name": "last_name",
+              "label": "Last Name",
+              "type": "text",
+              "placeholder": "e.g. Kumar",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Last Name"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "label": "Email Address",
+              "type": "email",
+              "placeholder": "name@example.com",
+              "helpText": "A verification link or OTP will be sent to this email.",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Email"
+            },
+            {
+              "id": "phone_number",
+              "name": "phone_number",
+              "label": "Mobile Number",
+              "type": "tel",
+              "placeholder": "10-digit mobile number",
+              "required": true,
+              "validation": {
+                "pattern": "^[6-9]\\d{9}$",
+                "errorMessage": "Enter a valid 10-digit Indian mobile number."
+              },
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Mobile"
+            },
+            {
+              "id": "date_of_birth",
+              "name": "date_of_birth",
+              "label": "Date of Birth",
+              "type": "date",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Date of Birth"
+            },
+            {
+              "id": "address",
+              "name": "address",
+              "label": "Postal Address",
+              "type": "textarea",
+              "placeholder": "City, State, PIN",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Address"
+            }
+          ]
+        },
+        {
+          "sectionId": "security",
+          "title": "Security & Password",
+          "description": "Choose a strong password with at least 8 characters.",
+          "fields": [
+            {
+              "id": "password",
+              "name": "password",
+              "label": "Password",
+              "type": "password",
+              "placeholder": "Minimum 8 characters",
+              "required": true,
+              "validation": {
+                "min": 8,
+                "errorMessage": "Password must be at least 8 characters long."
+              },
+              "gridWidth": { "xs": 12, "md": 6 }
+            },
+            {
+              "id": "confirm_password",
+              "name": "confirm_password",
+              "label": "Confirm Password",
+              "type": "password",
+              "placeholder": "Re-enter password",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

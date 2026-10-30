@@ -1,0 +1,205 @@
+{
+  "formId": "legal-consultant-registration",
+  "version": "1.0",
+  "title": "Legal Consultant Registration",
+  "description": "Complete registration form for legal consultants joining the ICJ empanelled panel.",
+  "steps": [
+    {
+      "stepId": "professional-identity",
+      "stepTitle": "Professional Identity",
+      "stepDescription": "Your consulting profile and experience.",
+      "fields": [
+        {
+          "id": "consultant_type",
+          "name": "consultant_type",
+          "label": "Consultant Type",
+          "type": "radio",
+          "required": true,
+          "helpText": "Are you an in-house consultant employed by an organisation, or an independent consultant?",
+          "gridWidth": { "xs": 12 },
+          "options": ["In-house Consultant", "Independent Consultant"],
+          "summaryLabel": "Consultant Type"
+        },
+        {
+          "id": "organization_name",
+          "name": "organization_name",
+          "label": "Organisation Name",
+          "type": "text",
+          "required": false,
+          "placeholder": "e.g., ABC Corp Legal Department",
+          "helpText": "Name of the organisation you are employed with as a legal consultant.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "conditions": [
+            { "field": "consultant_type", "operator": "equals", "value": "In-house Consultant" }
+          ],
+          "summaryLabel": "Organisation Name"
+        },
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Experience",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 10",
+          "helpText": "Total years of legal consulting experience.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)"
+        },
+        {
+          "id": "rate_per_hour",
+          "name": "rate_per_hour",
+          "label": "Consultation Rate (₹/hour)",
+          "type": "number",
+          "required": false,
+          "placeholder": "e.g., 2500",
+          "helpText": "Your indicative hourly consultation rate in Indian Rupees (optional).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Rate per Hour (₹)"
+        }
+      ]
+    },
+    {
+      "stepId": "qualifications",
+      "stepTitle": "Qualifications",
+      "stepDescription": "Your academic qualifications in law.",
+      "fields": [
+        {
+          "id": "qualification",
+          "name": "qualification",
+          "label": "Highest Legal Qualification",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select qualification",
+          "helpText": "Select your highest law degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": ["LLB", "LLM", "BA LLB", "BBA LLB", "B.Com LLB", "PhD in Law", "Other"],
+          "summaryLabel": "Qualification"
+        },
+        {
+          "id": "university",
+          "name": "university",
+          "label": "University / Institution",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., National Law School of India University",
+          "helpText": "Name of the university or institution that awarded your degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "University"
+        },
+        {
+          "id": "passing_year",
+          "name": "passing_year",
+          "label": "Year of Passing",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2008",
+          "helpText": "Year in which you passed your highest law degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Passing Year"
+        }
+      ]
+    },
+    {
+      "stepId": "expertise",
+      "stepTitle": "Expertise",
+      "stepDescription": "Your areas of legal expertise and advisory sectors.",
+      "fields": [
+        {
+          "id": "expertise_domains",
+          "name": "expertise_domains",
+          "label": "Expertise Domains",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all applicable domains",
+          "helpText": "Select all legal domains in which you provide consulting services.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Corporate Law",
+            "Mergers & Acquisitions",
+            "Contract Drafting",
+            "Regulatory Compliance",
+            "Banking & Finance",
+            "Securities Law",
+            "Insurance Law",
+            "Real Estate",
+            "Other"
+          ],
+          "summaryLabel": "Expertise Domains"
+        },
+        {
+          "id": "advisory_sectors",
+          "name": "advisory_sectors",
+          "label": "Advisory Sectors",
+          "type": "multiselect",
+          "required": false,
+          "placeholder": "Select all applicable sectors",
+          "helpText": "Industry sectors in which you have provided legal advisory services (optional).",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Technology",
+            "Healthcare",
+            "Manufacturing",
+            "Financial Services",
+            "Government",
+            "NGO",
+            "Other"
+          ],
+          "summaryLabel": "Advisory Sectors"
+        },
+        {
+          "id": "certifications",
+          "name": "certifications",
+          "label": "Professional Certifications / Bar Memberships",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "List any professional certifications, specialised courses, or bar memberships you hold...",
+          "helpText": "Mention any relevant certifications or bar memberships that support your expertise (optional).",
+          "gridWidth": { "xs": 12 },
+          "summaryLabel": "Certifications"
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Documents Upload",
+      "stepDescription": "Upload required documents to verify your professional credentials.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport-size Photograph",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a recent passport-size photograph (JPG or PNG, max 2 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["jpg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph"
+        },
+        {
+          "id": "qualification_certificate",
+          "name": "qualification_certificate",
+          "label": "Qualification Certificate",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload your highest law degree certificate (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Qualification Certificate"
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Identity Proof",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a government-issued identity document (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof"
+        }
+      ]
+    }
+  ]
+}
+

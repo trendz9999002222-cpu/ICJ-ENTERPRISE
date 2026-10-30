@@ -1,0 +1,276 @@
+{
+  "formId": "seek-assistance",
+  "version": "1.0.0",
+  "title": "Seek Legal Assistance",
+  "description": "Submit your legal concern to the International Consortium of Jurists. Our empanelment cell will review your matter and assign qualified advocates.",
+  "steps": [
+    {
+      "stepId": "applicant-details",
+      "stepTitle": "Applicant Details",
+      "stepDescription": "Your personal and contact information for case communication.",
+      "sections": [
+        {
+          "sectionId": "identity",
+          "title": "Personal Information",
+          "description": "Please provide your verifiable identity details.",
+          "fields": [
+            {
+              "id": "full_name",
+              "name": "full_name",
+              "label": "Full Legal Name",
+              "type": "text",
+              "placeholder": "e.g. Ramesh Kumar",
+              "helpText": "As shown on government photo identification.",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Applicant Name"
+            },
+            {
+              "id": "date_of_birth",
+              "name": "date_of_birth",
+              "label": "Date of Birth",
+              "type": "date",
+              "helpText": "Applicant must be at least 18 years of age.",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Date of Birth"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "label": "Email Address",
+              "type": "email",
+              "placeholder": "name@example.com",
+              "helpText": "Official case correspondence and tracking OTPs will be sent here.",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Email"
+            },
+            {
+              "id": "mobile",
+              "name": "mobile",
+              "label": "Mobile Number",
+              "type": "tel",
+              "placeholder": "10-digit mobile number",
+              "helpText": "Enter 10-digit Indian mobile number without +91.",
+              "required": true,
+              "validation": {
+                "pattern": "^[6-9]\\d{9}$",
+                "errorMessage": "Enter a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9."
+              },
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Mobile"
+            },
+            {
+              "id": "preferred_contact",
+              "name": "preferred_contact",
+              "label": "Preferred Mode of Contact",
+              "type": "select",
+              "required": true,
+              "defaultValue": "Phone",
+              "options": [
+                { "label": "Phone Call", "value": "Phone" },
+                { "label": "Email", "value": "Email" },
+                { "label": "WhatsApp", "value": "WhatsApp" }
+              ],
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Preferred Contact"
+            },
+            {
+              "id": "address",
+              "name": "address",
+              "label": "Residential Address",
+              "type": "textarea",
+              "placeholder": "House/Flat No., Street, Locality",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Address"
+            },
+            {
+              "id": "state_name",
+              "name": "state_name",
+              "label": "State / Union Territory",
+              "type": "select",
+              "required": true,
+              "options": [
+                { "label": "Delhi", "value": "Delhi" },
+                { "label": "Maharashtra", "value": "Maharashtra" },
+                { "label": "Uttar Pradesh", "value": "Uttar Pradesh" },
+                { "label": "Haryana", "value": "Haryana" },
+                { "label": "Karnataka", "value": "Karnataka" },
+                { "label": "Tamil Nadu", "value": "Tamil Nadu" },
+                { "label": "West Bengal", "value": "West Bengal" },
+                { "label": "Gujarat", "value": "Gujarat" },
+                { "label": "Rajasthan", "value": "Rajasthan" },
+                { "label": "Punjab", "value": "Punjab" },
+                { "label": "Other", "value": "Other" }
+              ],
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "State"
+            },
+            {
+              "id": "city_name",
+              "name": "city_name",
+              "label": "City / District",
+              "type": "text",
+              "placeholder": "e.g. New Delhi",
+              "required": true,
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "City"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stepId": "matter-details",
+      "stepTitle": "Matter Details",
+      "stepDescription": "Describe your legal matter so that the appropriate legal division can assist you.",
+      "sections": [
+        {
+          "sectionId": "matter-info",
+          "title": "Legal Concern & Classification",
+          "description": "Provide factual details regarding the dispute or assistance required.",
+          "fields": [
+            {
+              "id": "category",
+              "name": "category",
+              "label": "Legal Category",
+              "type": "select",
+              "required": true,
+              "options": [
+                { "label": "Civil Litigation & Property", "value": "Civil Litigation & Property" },
+                { "label": "Criminal Defense & Bail", "value": "Criminal Defense & Bail" },
+                { "label": "Corporate, Commercial & Contracts", "value": "Corporate, Commercial & Contracts" },
+                { "label": "Family, Divorce & Matrimonial", "value": "Family, Divorce & Matrimonial" },
+                { "label": "Consumer Protection & Disputes", "value": "Consumer Protection & Disputes" },
+                { "label": "Labour, Employment & Service Matters", "value": "Labour, Employment & Service Matters" },
+                { "label": "Constitutional & Fundamental Rights", "value": "Constitutional & Fundamental Rights" },
+                { "label": "Cyber Crime & Digital Fraud", "value": "Cyber Crime & Digital Fraud" },
+                { "label": "Taxation, GST & Financial Advisory", "value": "Taxation, GST & Financial Advisory" },
+                { "label": "General Legal Consultation", "value": "General Legal Consultation" }
+              ],
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Category"
+            },
+            {
+              "id": "help_type",
+              "name": "help_type",
+              "label": "Assistance Required",
+              "type": "select",
+              "required": true,
+              "defaultValue": "Legal Counsel",
+              "options": [
+                { "label": "Legal Advice / Opinion", "value": "Legal Advice / Opinion" },
+                { "label": "Court Representation & Litigation", "value": "Court Representation & Litigation" },
+                { "label": "Contract / Notice Drafting", "value": "Contract / Notice Drafting" },
+                { "label": "Mediation & Dispute Resolution", "value": "Mediation & Dispute Resolution" },
+                { "label": "Pro Bono / Legal Aid Consideration", "value": "Pro Bono / Legal Aid Consideration" }
+              ],
+              "gridWidth": { "xs": 12, "md": 6 },
+              "summaryLabel": "Assistance Type"
+            },
+            {
+              "id": "urgency",
+              "name": "urgency",
+              "label": "Matter Urgency",
+              "type": "radio",
+              "required": true,
+              "defaultValue": "Medium",
+              "options": [
+                { "label": "Low (Informational inquiry, no imminent deadline)", "value": "Low" },
+                { "label": "Medium (Matter requires resolution within 1-2 weeks)", "value": "Medium" },
+                { "label": "High (Hearing scheduled within 3 days or limitation expiring)", "value": "High" },
+                { "label": "Critical (Arrest imminent, custodial matter, urgent stay)", "value": "Critical" }
+              ],
+              "gridWidth": { "xs": 12, "md": 12 },
+              "summaryLabel": "Urgency"
+            },
+            {
+              "id": "problem_description",
+              "name": "problem_description",
+              "label": "Detailed Description of the Issue",
+              "type": "textarea",
+              "placeholder": "Provide facts, dates, names of opposing parties (if applicable), current stage of the dispute, and specific relief sought.",
+              "helpText": "Minimum 20 characters.",
+              "required": true,
+              "validation": {
+                "min": 20,
+                "errorMessage": "Please provide at least 20 characters explaining your matter."
+              },
+              "gridWidth": { "xs": 12, "md": 12 },
+              "summaryLabel": "Matter Description"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stepId": "documents-step",
+      "stepTitle": "Supporting Documents",
+      "stepDescription": "Upload relevant court notices, contracts, FIR, or proof (optional but highly recommended).",
+      "sections": [
+        {
+          "sectionId": "doc-upload",
+          "title": "Document Attachments",
+          "description": "Allowed formats: PDF, DOCX, JPG, PNG up to 10 MB per file.",
+          "fields": [
+            {
+              "id": "supporting_document_1",
+              "name": "document__relevant_papers",
+              "label": "Primary Document (Notice / Complaint / Agreement)",
+              "type": "file",
+              "required": false,
+              "validation": {
+                "allowedTypes": ["pdf", "docx", "jpg", "png"],
+                "maxSizeMb": 10,
+                "errorMessage": "File must be PDF, DOCX, JPG, or PNG under 10 MB."
+              },
+              "gridWidth": { "xs": 12, "md": 12 },
+              "summaryLabel": "Primary Document"
+            },
+            {
+              "id": "supporting_document_2",
+              "name": "document__additional_evidence",
+              "label": "Additional Document / Evidence",
+              "type": "file",
+              "required": false,
+              "validation": {
+                "allowedTypes": ["pdf", "docx", "jpg", "png"],
+                "maxSizeMb": 10,
+                "errorMessage": "File must be PDF, DOCX, JPG, or PNG under 10 MB."
+              },
+              "gridWidth": { "xs": 12, "md": 12 },
+              "summaryLabel": "Additional Document"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "stepId": "review-declaration",
+      "stepTitle": "Review & Declaration",
+      "stepDescription": "Review your entered information and confirm accuracy prior to submission.",
+      "sections": [
+        {
+          "sectionId": "declaration",
+          "title": "Legal Declaration",
+          "description": "Please read and acknowledge the following confirmation.",
+          "fields": [
+            {
+              "id": "declaration_accepted",
+              "name": "declaration_accepted",
+              "label": "I hereby declare that the facts stated above are true and complete to the best of my knowledge, and I request ICJ to review my matter and assign appropriate legal assistance.",
+              "type": "checkbox",
+              "required": true,
+              "defaultValue": false,
+              "gridWidth": { "xs": 12, "md": 12 },
+              "summaryLabel": "Declaration Accepted"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

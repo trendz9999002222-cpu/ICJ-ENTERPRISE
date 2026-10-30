@@ -20,7 +20,7 @@ const SOCIAL_LINKS = [
   },
   {
     label: "Facebook",
-    href: "https://www.facebook.com/icj.enterprise",
+    href: "https://www.facebook.com/people/International-Consortium-of-Jurists/61573432496998/",
     icon: <FacebookIcon sx={{ fontSize: 20 }} />,
     color: "#1877F2",
   },

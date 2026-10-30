@@ -1,0 +1,210 @@
+{
+  "formId": "legal-researcher-registration",
+  "version": "1.0",
+  "title": "Legal Researcher Registration",
+  "description": "Complete registration form for legal researchers joining the ICJ network.",
+  "steps": [
+    {
+      "stepId": "professional-background",
+      "stepTitle": "Professional Background",
+      "stepDescription": "Your current institutional affiliation and research focus.",
+      "fields": [
+        {
+          "id": "current_institution",
+          "name": "current_institution",
+          "label": "Current Institution / Organisation",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., National Law University, Delhi",
+          "helpText": "Name of the university, research institute, or organisation you are currently associated with.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Current Institution"
+        },
+        {
+          "id": "designation",
+          "name": "designation",
+          "label": "Designation / Role",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Research Associate, Assistant Professor",
+          "helpText": "Your current designation or role at the institution.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Designation"
+        },
+        {
+          "id": "experience_years",
+          "name": "experience_years",
+          "label": "Years of Research Experience",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 5",
+          "helpText": "Total years of legal research experience.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "min": 0, "max": 60 },
+          "summaryLabel": "Experience (Years)"
+        },
+        {
+          "id": "research_focus",
+          "name": "research_focus",
+          "label": "Research Focus Areas",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all applicable areas",
+          "helpText": "Select all areas where you have substantive research experience.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "Constitutional Law",
+            "Human Rights",
+            "Criminal Justice",
+            "International Law",
+            "Comparative Law",
+            "Environmental Law",
+            "Legal Aid",
+            "Policy Research",
+            "Gender & Law",
+            "Other"
+          ],
+          "summaryLabel": "Research Focus"
+        }
+      ]
+    },
+    {
+      "stepId": "qualifications",
+      "stepTitle": "Qualifications",
+      "stepDescription": "Your academic qualifications.",
+      "fields": [
+        {
+          "id": "qualification",
+          "name": "qualification",
+          "label": "Highest Qualification",
+          "type": "select",
+          "required": true,
+          "placeholder": "Select qualification",
+          "helpText": "Select your highest academic qualification.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "options": ["LLB", "LLM", "PhD", "MPhil", "BA LLB", "Other"],
+          "summaryLabel": "Qualification"
+        },
+        {
+          "id": "university",
+          "name": "university",
+          "label": "University / Institution",
+          "type": "text",
+          "required": true,
+          "placeholder": "e.g., Jawaharlal Nehru University",
+          "helpText": "Name of the university or institution that awarded your degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "University"
+        },
+        {
+          "id": "passing_year",
+          "name": "passing_year",
+          "label": "Year of Passing",
+          "type": "number",
+          "required": true,
+          "placeholder": "e.g., 2018",
+          "helpText": "Year in which you passed your highest degree.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "Passing Year"
+        }
+      ]
+    },
+    {
+      "stepId": "research-output",
+      "stepTitle": "Research Output",
+      "stepDescription": "Your publications, identifiers, and language capabilities.",
+      "fields": [
+        {
+          "id": "publications",
+          "name": "publications",
+          "label": "Key Publications (list titles)",
+          "type": "textarea",
+          "required": false,
+          "placeholder": "List titles of your key publications, one per line...",
+          "helpText": "Mention titles of significant journal articles, books, or reports you have authored or co-authored (optional).",
+          "gridWidth": { "xs": 12 },
+          "rows": 4,
+          "summaryLabel": "Publications"
+        },
+        {
+          "id": "orcid_id",
+          "name": "orcid_id",
+          "label": "ORCID ID (if available)",
+          "type": "text",
+          "required": false,
+          "placeholder": "e.g., 0000-0002-1825-0097",
+          "helpText": "Your ORCID iD, if you have one. Format: XXXX-XXXX-XXXX-XXXX.",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "summaryLabel": "ORCID ID"
+        },
+        {
+          "id": "languages",
+          "name": "languages",
+          "label": "Working Languages",
+          "type": "multiselect",
+          "required": true,
+          "placeholder": "Select all languages",
+          "helpText": "Languages in which you can conduct or review legal research.",
+          "gridWidth": { "xs": 12 },
+          "options": [
+            "English",
+            "Hindi",
+            "Tamil",
+            "Telugu",
+            "Kannada",
+            "Malayalam",
+            "Marathi",
+            "Bengali",
+            "Gujarati",
+            "Punjabi",
+            "Odia",
+            "Assamese",
+            "Other"
+          ],
+          "summaryLabel": "Languages"
+        }
+      ]
+    },
+    {
+      "stepId": "documents-upload",
+      "stepTitle": "Documents Upload",
+      "stepDescription": "Upload required documents to verify your credentials.",
+      "fields": [
+        {
+          "id": "photo",
+          "name": "photo",
+          "label": "Passport-size Photograph",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a recent passport-size photograph (JPG or PNG, max 2 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["jpg", "png"], "maxSizeMb": 2 },
+          "summaryLabel": "Photograph"
+        },
+        {
+          "id": "cv_document",
+          "name": "cv_document",
+          "label": "Curriculum Vitae (CV)",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload your academic/professional CV (PDF, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf"], "maxSizeMb": 5 },
+          "summaryLabel": "CV"
+        },
+        {
+          "id": "identity_proof",
+          "name": "identity_proof",
+          "label": "Identity Proof",
+          "type": "file",
+          "required": true,
+          "helpText": "Upload a government-issued identity document (PDF, JPG or PNG, max 5 MB).",
+          "gridWidth": { "xs": 12, "sm": 6 },
+          "validation": { "allowedTypes": ["pdf", "jpg", "png"], "maxSizeMb": 5 },
+          "summaryLabel": "Identity Proof"
+        }
+      ]
+    }
+  ]
+}
+
