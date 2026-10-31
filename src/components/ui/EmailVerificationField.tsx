@@ -30,6 +30,7 @@ interface EmailVerificationFieldProps {
   onChange: (value: string) => void;
   onVerified?: (email: string) => void;
   isPreVerified?: boolean;
+  variant?: "standard" | "outlined" | "filled";
 }
 
 export default function EmailVerificationField({
@@ -45,6 +46,7 @@ export default function EmailVerificationField({
   onChange,
   onVerified,
   isPreVerified = false,
+  variant = "outlined",
 }: EmailVerificationFieldProps) {
   const [isVerified, setIsVerified] = useState<boolean>(() => {
     if (isPreVerified) return true;
@@ -194,8 +196,9 @@ export default function EmailVerificationField({
       <TextField
         fullWidth
         size="small"
+        variant={variant}
         type="email"
-        label={label + (required ? " *" : "")}
+        label={label + (required && variant !== "standard" ? " *" : "")}
         placeholder={placeholder}
         value={value}
         disabled={isVerified}
@@ -205,11 +208,22 @@ export default function EmailVerificationField({
         helperText={error ?? helperText}
         sx={{
           ...(inputSx || {}),
-          "& .MuiOutlinedInput-root": {
-            ...(inputSx?.["& .MuiOutlinedInput-root"] || {}),
-            borderColor: isVerified ? "#10b981 !important" : undefined,
-            bgcolor: isVerified ? "#f0fdf4" : undefined,
-          },
+          ...(variant === "standard"
+            ? {
+                "& .MuiInput-underline:before": {
+                  borderBottom: isVerified ? "2px solid #10b981 !important" : undefined,
+                },
+                "& .MuiInput-underline:after": {
+                  borderBottom: isVerified ? "2px solid #10b981 !important" : undefined,
+                },
+              }
+            : {
+                "& .MuiOutlinedInput-root": {
+                  ...(inputSx?.["& .MuiOutlinedInput-root"] || {}),
+                  borderColor: isVerified ? "#10b981 !important" : undefined,
+                  bgcolor: isVerified ? "#f0fdf4" : undefined,
+                },
+              }),
         }}
         slotProps={{
           input: {

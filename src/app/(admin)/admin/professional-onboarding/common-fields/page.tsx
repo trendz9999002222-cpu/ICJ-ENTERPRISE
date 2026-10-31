@@ -4,8 +4,8 @@ export default function ProfessionalCommonFields() {
   return (
     <MappedCommonFieldsPage
       formCode="PROFESSIONAL"
-      title="Professional Common Fields"
-      subtitle="Configure which global common fields are active and required for Professional Onboarding."
+      title="Common Fields"
+      subtitle="Configure which global common fields are active and required for Member Onboarding."
     />
   );
 }

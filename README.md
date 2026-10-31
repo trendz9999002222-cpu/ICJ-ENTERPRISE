@@ -72,3 +72,18 @@ npx tsc --noEmit
 # Production build
 npm run build
 ```
+
+---
+
+## Master OTP & Verification (Local Dev vs Production)
+
+For testing verification flows locally without waiting for email delivery:
+
+- **Master OTP:** `123456`
+- **Local Dev (`NODE_ENV !== "production"`):**
+  - Entering `123456` will immediately verify OTP and grant access to the next step across:
+    - **Track Case Status** (`/track-case`)
+    - **Email Verification Fields** (`EmailVerificationField` on `/join` and dynamic onboarding forms)
+  - Real OTP codes are still sent to the user's email address via EmailJS + Django SMTP.
+- **Production (`NODE_ENV === "production"`):**
+  - Master OTP is **strictly disabled**. Only the live code sent to the applicant's verified email is accepted.

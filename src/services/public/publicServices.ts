@@ -173,7 +173,7 @@ export const serviceService = {
       return null;
     }
   },
-  submitSeekAssistance: async (data: any): Promise<{ success: boolean; data?: any; error?: any }> => {
+  submitSeekAssistance: async (data: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const path = API_ENDPOINTS.publicServices.seekAssistance;
       const res = await apiClient<{ success: boolean; data: any; message?: string }>(path, {
@@ -182,9 +182,15 @@ export const serviceService = {
         suppressErrorLog: true,
       });
       return { success: true, data: res.data };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to submit assistance request:", error);
-      return { success: false, error };
+      const msg =
+        error?.body?.message ||
+        error?.body?.detail ||
+        (typeof error?.body === "string" ? error.body : null) ||
+        error?.message ||
+        "Failed to submit legal assistance request.";
+      return { success: false, error: msg };
     }
   }
 };

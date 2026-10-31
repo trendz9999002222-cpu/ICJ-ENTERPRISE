@@ -44,7 +44,7 @@ const LABEL_MAP: Record<string, string> = {
   events: "Events",
   memberships: "Memberships",
   professionals: "Professionals",
-  "professional-onboarding": "Member & Professional Onboarding",
+  "professional-onboarding": "Member Onboarding",
   categories: "Wings (Categories)",
   "profession-fields": "Wing Fields",
   "form-builder": "Form Builder",

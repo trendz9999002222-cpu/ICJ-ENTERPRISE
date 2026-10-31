@@ -76,7 +76,7 @@ const NAV_ITEMS: NavItem[] = [
     section: "Onboarding",
   },
   {
-    label: "Member & Professional Onboarding",
+    label: "Member Onboarding",
     href: "/admin/professional-onboarding/categories",
     icon: <LibraryBooksIcon fontSize="small" />,
   },

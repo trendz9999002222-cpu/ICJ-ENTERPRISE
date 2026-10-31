@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type {
+  MembershipOnboardingConfiguration,
+  MembershipOnboardingField,
+} from "@/types/public/membershipOnboarding";
 import {
   Alert,
   Box,
@@ -125,9 +129,13 @@ export default function JoinPage() {
   const router = useRouter();
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  const [form, setForm] = useState({
+  // Dynamic Common Fields configuration loaded from Admin via API
+  const [dynamicConfig, setDynamicConfig] = useState<MembershipOnboardingConfiguration | null>(null);
+
+  const [form, setForm] = useState<Record<string, any>>({
     first_name: "",
     last_name: "",
+    full_name: "",
     gender: "Male",
     date_of_birth: "1995-01-01",
     email: "",
@@ -167,22 +175,104 @@ export default function JoinPage() {
   const [successReference, setSuccessReference] = useState<string | null>(null);
   const [successPaymentStatus, setSuccessPaymentStatus] = useState<"paid" | "unpaid">("paid");
 
-  // Fetch admin configured membership fee on mount
-  React.useEffect(() => {
-    fetch(`${env.apiUrl}/membership-onboarding/payment-settings/`)
-      .then((res) => (res.ok ? res.json() : null))
+  // Fetch dynamic common fields and fee settings on mount (No hardcoded local URLs)
+  useEffect(() => {
+    membershipOnboardingPublicService
+      .fetchConfiguration()
+      .then((cfg) => {
+        if (cfg) {
+          setDynamicConfig(cfg);
+        }
+      })
+      .catch((err) => {
+        console.warn("[JoinPage] Dynamic common fields configuration load notice:", err);
+      });
+
+    membershipOnboardingPublicService
+      .fetchPaymentSettings()
       .then((data) => {
-        const d = data?.data ?? data;
-        if (d?.amount_inr !== undefined) {
+        if (data?.amount_inr !== undefined) {
           setMembershipFee({
-            amount_inr: Number(d.amount_inr),
-            amount_paise: d.amount_paise || Math.round(Number(d.amount_inr) * 100),
-            is_payment_enabled: d.is_payment_enabled !== false,
+            amount_inr: Number(data.amount_inr),
+            amount_paise: data.amount_paise || Math.round(Number(data.amount_inr) * 100),
+            is_payment_enabled: data.is_payment_enabled !== false,
           });
         }
       })
       .catch(() => {});
   }, []);
+
+  // Flatten step fields from admin configuration
+  const dynamicFields: MembershipOnboardingField[] = React.useMemo(() => {
+    return dynamicConfig?.steps?.flatMap((s) => s.step_fields || []) || [];
+  }, [dynamicConfig]);
+
+  const dynamicFieldMap = React.useMemo(() => {
+    const map = new Map<string, MembershipOnboardingField>();
+    dynamicFields.forEach((f) => map.set(f.field_key, f));
+    return map;
+  }, [dynamicFields]);
+
+  // Helpers to resolve admin overrides dynamically
+  const isFieldVisible = (key: string, defaultVisible = true): boolean => {
+    if (dynamicFields.length === 0) return defaultVisible;
+    return dynamicFieldMap.has(key);
+  };
+
+  const getFieldLabel = (key: string, defaultLabel: string): string => {
+    return dynamicFieldMap.get(key)?.label || defaultLabel;
+  };
+
+  const getFieldPlaceholder = (key: string, defaultPlaceholder: string): string => {
+    return dynamicFieldMap.get(key)?.placeholder || defaultPlaceholder;
+  };
+
+  const isFieldRequired = (key: string, defaultRequired = false): boolean => {
+    const f = dynamicFieldMap.get(key);
+    return f ? Boolean(f.required) : defaultRequired;
+  };
+
+  // Additional dynamic common fields added by admin beyond standard core fields
+  const standardKeys = React.useMemo(
+    () =>
+      new Set([
+        "first_name",
+        "last_name",
+        "full_name",
+        "gender",
+        "date_of_birth",
+        "email",
+        "mobile_number",
+        "phone",
+        "state_name",
+        "state",
+        "city_name",
+        "city",
+        "pincode",
+        "address",
+      ]),
+    []
+  );
+
+  const customAdminFields = React.useMemo(() => {
+    return dynamicFields.filter((f) => !standardKeys.has(f.field_key));
+  }, [dynamicFields, standardKeys]);
+
+  // Determine whether to show single "Full Name" or "First Name + Last Name"
+  const showFullName = React.useMemo(() => {
+    if (!isFieldVisible("full_name", true)) return false;
+    if (!isFieldVisible("first_name", false)) return true;
+    const fnOrder = dynamicFieldMap.get("full_name")?.display_order || 0;
+    const fNameOrder = dynamicFieldMap.get("first_name")?.display_order || 0;
+    if (fnOrder > 0 && fNameOrder === 0) return true;
+    if (fNameOrder > 0 && fnOrder === 0) return false;
+    return fnOrder <= fNameOrder;
+  }, [dynamicFieldMap, isFieldVisible]);
+
+  const showFirstLastName = React.useMemo(() => {
+    if (!isFieldVisible("first_name", false)) return false;
+    return !showFullName;
+  }, [dynamicFieldMap, isFieldVisible, showFullName]);
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -208,6 +298,40 @@ export default function JoinPage() {
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
+  const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const parts = val.trim().split(" ");
+    const fn = parts[0] || "";
+    const ln = parts.slice(1).join(" ") || "";
+    setForm((prev) => ({
+      ...prev,
+      full_name: val,
+      first_name: fn,
+      last_name: ln,
+    }));
+    if (error) setError(null);
+  };
+
+  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      first_name: val,
+      full_name: `${val} ${prev.last_name || ""}`.trim(),
+    }));
+    if (error) setError(null);
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      last_name: val,
+      full_name: `${prev.first_name || ""} ${val}`.trim(),
+    }));
+    if (error) setError(null);
+  };
+
   const handleFieldChange = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
     if (error) setError(null);
@@ -217,31 +341,69 @@ export default function JoinPage() {
     e.preventDefault();
     setError(null);
 
-    // Form validations
-    if (!form.first_name.trim() || !form.last_name.trim()) {
-      setError("Please enter your full first name and last name.");
-      return;
-    }
-    if (!form.email.trim()) {
-      setError("Please enter your email address.");
-      return;
+    const finalFullName = (form.full_name || `${form.first_name || ""} ${form.last_name || ""}`).trim();
+    const finalFirstName = form.first_name || finalFullName.split(" ")[0] || "";
+    const finalLastName = form.last_name || (finalFullName.includes(" ") ? finalFullName.split(" ").slice(1).join(" ") : "");
+
+    // Dynamic validation for all required fields configured by admin
+    for (const f of dynamicFields) {
+      if (f.required && isFieldVisible(f.field_key, true)) {
+        let val = form[f.field_key];
+        if (f.field_key === "full_name") val = finalFullName;
+        if (f.field_key === "first_name") val = finalFirstName;
+        if (f.field_key === "last_name") val = finalLastName;
+        if (val === undefined || val === null || String(val).trim() === "") {
+          setError(`Please fill in the required field: ${f.label}`);
+          return;
+        }
+      }
     }
 
-    // Email verification check (using EmailJS)
-    const verified = isEmailVerified || emailVerificationService.isEmailVerified(form.email);
-    if (!verified) {
-      setError("Please verify your email address. Click 'Send OTP' on the email field and enter the 6-digit code received via EmailJS.");
-      return;
+    // Name validations based on active layout
+    if (showFullName) {
+      if (!finalFullName) {
+        setError("Please enter your full legal name.");
+        return;
+      }
+    } else if (showFirstLastName) {
+      if (isFieldRequired("first_name", true) && !finalFirstName) {
+        setError("Please enter your first name.");
+        return;
+      }
+      if (isFieldRequired("last_name", true) && !finalLastName) {
+        setError("Please enter your last name.");
+        return;
+      }
+    } else {
+      if (!finalFullName && !finalFirstName) {
+        setError("Please enter your name.");
+        return;
+      }
     }
 
-    if (!form.mobile_number.trim()) {
-      setError("Please enter your mobile phone number.");
-      return;
+    if (isFieldVisible("email", true)) {
+      if (!form.email?.trim()) {
+        setError("Please enter your email address.");
+        return;
+      }
+      const verified = isEmailVerified || emailVerificationService.isEmailVerified(form.email);
+      if (!verified) {
+        setError("Please verify your email address with OTP before submitting.");
+        return;
+      }
     }
-    if (!isPhoneValid) {
-      setError("Please enter a valid mobile number with correct starting digits for your country.");
-      return;
+
+    if (isFieldVisible("mobile_number", true)) {
+      if (!form.mobile_number?.trim()) {
+        setError("Please enter your mobile phone number.");
+        return;
+      }
+      if (!isPhoneValid) {
+        setError("Please enter a valid mobile number with correct country code.");
+        return;
+      }
     }
+
     if (!form.password || form.password.length < 8) {
       setError("Password must be at least 8 characters long.");
       return;
@@ -259,17 +421,20 @@ export default function JoinPage() {
     try {
       // Prepare multipart FormData
       const fd = new FormData();
-      fd.append("first_name", form.first_name.trim());
-      fd.append("last_name", form.last_name.trim());
-      fd.append("email", form.email.trim().toLowerCase());
-      fd.append("mobile_number", form.mobile_number.trim());
-      fd.append("password", form.password);
-      fd.append("gender", form.gender);
-      fd.append("date_of_birth", form.date_of_birth);
-      fd.append("state_name", form.state_name);
-      fd.append("city_name", form.city_name.trim());
-      fd.append("pincode", form.pincode.trim());
-      fd.append("address", form.address.trim());
+      const finalForm = {
+        ...form,
+        full_name: finalFullName,
+        first_name: finalFirstName,
+        last_name: finalLastName,
+      };
+      // Append all form keys dynamically
+      Object.entries(finalForm).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) {
+          fd.append(k, String(v).trim());
+        }
+      });
+      fd.append("field_values", JSON.stringify(finalForm));
+      fd.append("common_field_values", JSON.stringify(finalForm));
 
       if (photoFile) {
         fd.append("profile_picture", photoFile);
@@ -670,62 +835,94 @@ export default function JoinPage() {
                     {/* Left Block: Name, Gender, DOB */}
                     <Grid size={{ xs: 12, md: 9 }}>
                       <Grid container spacing={3}>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <TextField
-                            variant="standard"
-                            fullWidth
-                            size="small"
-                            label="First Name"
-                            placeholder="e.g. Ramesh"
-                            value={form.first_name}
-                            onChange={handleFieldChange("first_name")}
-                            required
-                          />
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <TextField
-                            variant="standard"
-                            fullWidth
-                            size="small"
-                            label="Last Name"
-                            placeholder="e.g. Kumar"
-                            value={form.last_name}
-                            onChange={handleFieldChange("last_name")}
-                            required
-                          />
-                        </Grid>
-
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <FormControl fullWidth size="small" variant="standard">
-                            <InputLabel id="join-gender-label">Gender</InputLabel>
-                            <Select
+                        {/* Dynamic Full Name or First + Last Name based on Admin Display Order */}
+                        {showFullName && (
+                          <Grid size={{ xs: 12 }}>
+                            <TextField
                               variant="standard"
-                              labelId="join-gender-label"
-                              value={form.gender}
-                              label="Gender"
-                              onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
-                            >
-                              {GENDER_OPTIONS.map((g) => (
-                                <MenuItem key={g} value={g}>
-                                  {g}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <TextField
-                            variant="standard"
-                            fullWidth
-                            size="small"
-                            type="date"
-                            label="Date of Birth"
-                            value={form.date_of_birth}
-                            onChange={handleFieldChange("date_of_birth")}
-                            required
-                            slotProps={{ inputLabel: { shrink: true } }}
-                          />
-                        </Grid>
+                              fullWidth
+                              size="small"
+                              label={getFieldLabel("full_name", "Full Legal Name")}
+                              placeholder={getFieldPlaceholder("full_name", "Enter full legal name")}
+                              value={form.full_name || ""}
+                              onChange={handleFullNameChange}
+                              required={isFieldRequired("full_name", true)}
+                            />
+                          </Grid>
+                        )}
+
+                        {showFirstLastName && (
+                          <>
+                            {isFieldVisible("first_name", true) && (
+                              <Grid size={{ xs: 12, sm: isFieldVisible("last_name", true) ? 6 : 12 }}>
+                                <TextField
+                                  variant="standard"
+                                  fullWidth
+                                  size="small"
+                                  label={getFieldLabel("first_name", "First Name")}
+                                  placeholder={getFieldPlaceholder("first_name", "e.g. Ramesh")}
+                                  value={form.first_name || ""}
+                                  onChange={handleFirstNameChange}
+                                  required={isFieldRequired("first_name", true)}
+                                />
+                              </Grid>
+                            )}
+                            {isFieldVisible("last_name", true) && (
+                              <Grid size={{ xs: 12, sm: isFieldVisible("first_name", true) ? 6 : 12 }}>
+                                <TextField
+                                  variant="standard"
+                                  fullWidth
+                                  size="small"
+                                  label={getFieldLabel("last_name", "Last Name")}
+                                  placeholder={getFieldPlaceholder("last_name", "e.g. Kumar")}
+                                  value={form.last_name || ""}
+                                  onChange={handleLastNameChange}
+                                  required={isFieldRequired("last_name", true)}
+                                />
+                              </Grid>
+                            )}
+                          </>
+                        )}
+
+                        {isFieldVisible("gender", true) && (
+                          <Grid size={{ xs: 12, sm: isFieldVisible("date_of_birth", true) ? 6 : 12 }}>
+                            <FormControl fullWidth size="small" variant="standard" required={isFieldRequired("gender", false)}>
+                              <InputLabel id="join-gender-label">{getFieldLabel("gender", "Gender")}</InputLabel>
+                              <Select
+                                variant="standard"
+                                labelId="join-gender-label"
+                                value={form.gender || ""}
+                                label={getFieldLabel("gender", "Gender")}
+                                onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value }))}
+                              >
+                                {(dynamicFieldMap.get("gender")?.options?.length
+                                  ? dynamicFieldMap.get("gender")!.options.map((o) => (typeof o === "string" ? { label: o, value: o } : o))
+                                  : GENDER_OPTIONS.map((g) => ({ label: g, value: g }))
+                                ).map((g) => (
+                                  <MenuItem key={g.value} value={g.value}>
+                                    {g.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        )}
+
+                        {isFieldVisible("date_of_birth", true) && (
+                          <Grid size={{ xs: 12, sm: isFieldVisible("gender", true) ? 6 : 12 }}>
+                            <TextField
+                              variant="standard"
+                              fullWidth
+                              size="small"
+                              type="date"
+                              label={getFieldLabel("date_of_birth", "Date of Birth")}
+                              value={form.date_of_birth || ""}
+                              onChange={handleFieldChange("date_of_birth")}
+                              required={isFieldRequired("date_of_birth", true)}
+                              slotProps={{ inputLabel: { shrink: true } }}
+                            />
+                          </Grid>
+                        )}
                       </Grid>
                     </Grid>
 
@@ -858,93 +1055,128 @@ export default function JoinPage() {
 
                   <Grid container spacing={3}>
                     {/* Email Verification with EmailJS */}
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <EmailVerificationField
-                        label="Registered Email Address"
-                        value={form.email}
-                        required
-                        onChange={(email) => {
-                          setForm((prev) => ({ ...prev, email }));
-                          setIsEmailVerified(false);
-                          if (error) setError(null);
-                        }}
-                        onVerified={() => {
-                          setIsEmailVerified(true);
-                          if (error) setError(null);
-                        }}
-                      />
-                    </Grid>
+                    {isFieldVisible("email", true) && (
+                      <Grid size={{ xs: 12, sm: isFieldVisible("mobile_number", true) ? 6 : 12 }}>
+                        <EmailVerificationField
+                          label={getFieldLabel("email", "Registered Email Address")}
+                          value={form.email || ""}
+                          required={isFieldRequired("email", true)}
+                          onChange={(email) => {
+                            setForm((prev) => ({ ...prev, email }));
+                            setIsEmailVerified(false);
+                            if (error) setError(null);
+                          }}
+                          onVerified={() => {
+                            setIsEmailVerified(true);
+                            if (error) setError(null);
+                          }}
+                        />
+                      </Grid>
+                    )}
 
                     {/* Mobile with PhoneInputWithCountry */}
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <PhoneInputWithCountry
-                        variant="standard"
-                        label="Mobile Number"
-                        value={form.mobile_number}
-                        required
-                        onChange={(fullVal, _nationalVal, _code, isValid) => {
-                          setForm((prev) => ({ ...prev, mobile_number: fullVal }));
-                          setIsPhoneValid(isValid);
-                          if (error) setError(null);
-                        }}
-                      />
-                    </Grid>
+                    {(isFieldVisible("mobile_number", true) || isFieldVisible("phone", false)) && (
+                      <Grid size={{ xs: 12, sm: isFieldVisible("email", true) ? 6 : 12 }}>
+                        <PhoneInputWithCountry
+                          variant="standard"
+                          label={getFieldLabel("mobile_number", getFieldLabel("phone", "Mobile Number"))}
+                          value={form.mobile_number || ""}
+                          required={isFieldRequired("mobile_number", isFieldRequired("phone", true))}
+                          onChange={(fullVal, _nationalVal, _code, isValid) => {
+                            setForm((prev) => ({ ...prev, mobile_number: fullVal }));
+                            setIsPhoneValid(isValid);
+                            if (error) setError(null);
+                          }}
+                        />
+                      </Grid>
+                    )}
 
                     {/* State, City, PIN Code */}
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <FormControl fullWidth size="small" variant="standard">
-                        <InputLabel id="join-state-label">State / Union Territory</InputLabel>
-                        <Select
+                    {isFieldVisible("state_name", true) && (
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <FormControl fullWidth size="small" variant="standard" required={isFieldRequired("state_name", false)}>
+                          <InputLabel id="join-state-label">{getFieldLabel("state_name", "State / Union Territory")}</InputLabel>
+                          <Select
+                            variant="standard"
+                            labelId="join-state-label"
+                            value={form.state_name || ""}
+                            label={getFieldLabel("state_name", "State / Union Territory")}
+                            onChange={(e) => setForm((prev) => ({ ...prev, state_name: e.target.value }))}
+                          >
+                            {(dynamicFieldMap.get("state_name")?.options?.length
+                              ? dynamicFieldMap.get("state_name")!.options.map((o) => (typeof o === "string" ? { label: o, value: o } : o))
+                              : INDIAN_STATES.map((st) => ({ label: st, value: st }))
+                            ).map((st) => (
+                              <MenuItem key={st.value} value={st.value}>
+                                {st.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    )}
+
+                    {isFieldVisible("city_name", true) && (
+                      <Grid size={{ xs: 12, sm: isFieldVisible("state_name", true) ? (isFieldVisible("district", false) ? 3 : 4) : 6 }}>
+                        <TextField
                           variant="standard"
-                          labelId="join-state-label"
-                          value={form.state_name}
-                          label="State / Union Territory"
-                          onChange={(e) => setForm((prev) => ({ ...prev, state_name: e.target.value }))}
-                        >
-                          {INDIAN_STATES.map((st) => (
-                            <MenuItem key={st} value={st}>
-                              {st}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
-                        variant="standard"
-                        fullWidth
-                        size="small"
-                        label="City / District"
-                        placeholder="e.g. New Delhi"
-                        value={form.city_name}
-                        onChange={handleFieldChange("city_name")}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
-                        variant="standard"
-                        fullWidth
-                        size="small"
-                        label="Postal Code (PIN)"
-                        placeholder="e.g. 110001"
-                        value={form.pincode}
-                        onChange={handleFieldChange("pincode")}
-                        slotProps={{ htmlInput: { maxLength: 6 } }}
-                      />
-                    </Grid>
+                          fullWidth
+                          size="small"
+                          label={getFieldLabel("city_name", "City / District")}
+                          placeholder={getFieldPlaceholder("city_name", "e.g. New Delhi")}
+                          value={form.city_name || ""}
+                          onChange={handleFieldChange("city_name")}
+                          required={isFieldRequired("city_name", false)}
+                        />
+                      </Grid>
+                    )}
+
+                    {isFieldVisible("district", false) && (
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        <TextField
+                          variant="standard"
+                          fullWidth
+                          size="small"
+                          label={getFieldLabel("district", "District")}
+                          placeholder={getFieldPlaceholder("district", "e.g. South District")}
+                          value={form.district || ""}
+                          onChange={handleFieldChange("district")}
+                          required={isFieldRequired("district", false)}
+                        />
+                      </Grid>
+                    )}
+
+                    {isFieldVisible("pincode", true) && (
+                      <Grid size={{ xs: 12, sm: isFieldVisible("state_name", true) ? (isFieldVisible("district", false) ? 3 : 4) : 6 }}>
+                        <TextField
+                          variant="standard"
+                          fullWidth
+                          size="small"
+                          label={getFieldLabel("pincode", "Postal Code (PIN)")}
+                          placeholder={getFieldPlaceholder("pincode", "e.g. 110001")}
+                          value={form.pincode || ""}
+                          onChange={handleFieldChange("pincode")}
+                          required={isFieldRequired("pincode", false)}
+                          slotProps={{ htmlInput: { maxLength: 6 } }}
+                        />
+                      </Grid>
+                    )}
 
                     {/* Address */}
-                    <Grid size={{ xs: 12 }}>
-                      <TextField
-                        variant="standard"
-                        fullWidth
-                        size="small"
-                        label="Residential / Office Address"
-                        placeholder="House/Chamber No., Street, Locality or Landmark"
-                        value={form.address}
-                        onChange={handleFieldChange("address")}
-                      />
-                    </Grid>
+                    {isFieldVisible("address", true) && (
+                      <Grid size={{ xs: 12 }}>
+                        <TextField
+                          variant="standard"
+                          fullWidth
+                          size="small"
+                          label={getFieldLabel("address", "Residential / Office Address")}
+                          placeholder={getFieldPlaceholder("address", "House/Chamber No., Street, Locality or Landmark")}
+                          value={form.address || ""}
+                          onChange={handleFieldChange("address")}
+                          required={isFieldRequired("address", false)}
+                        />
+                      </Grid>
+                    )}
 
                     {/* Password Fields */}
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -983,7 +1215,126 @@ export default function JoinPage() {
                   </Grid>
                 </Box>
 
-                {/* ─── SECTION 3: STATUTORY MEMBER AFFIRMATION & ELECTRONIC UNDERTAKING ─── */}
+                {/* ─── DYNAMIC SECTION: ADDITIONAL ADMIN CONFIGURABLE COMMON FIELDS ─── */}
+                {customAdminFields.length > 0 && (
+                  <Box
+                    sx={{
+                      p: { xs: 2.5, sm: 3 },
+                      mb: 3,
+                      bgcolor: "#ffffff",
+                      borderRadius: "14px",
+                      border: "1.5px solid #e2e8f0",
+                      boxShadow: "0 2px 8px rgba(15, 23, 42, 0.04)",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "0.825rem",
+                        fontWeight: 900,
+                        color: "#0f2942",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        mb: 2.5,
+                        pb: 0.8,
+                        borderBottom: "1.5px solid #0f2942",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <HowToRegIcon sx={{ fontSize: 16, color: "#1e3a8a" }} />
+                      <span>SECTION III: ADDITIONAL ACCREDITATION &amp; APPLICATION PARTICULARS</span>
+                    </Typography>
+
+                    <Grid container spacing={3}>
+                      {customAdminFields.map((f) => {
+                        const isSelect = f.field_type === "select" || (f.options && f.options.length > 0);
+                        const isDate = f.field_type === "date";
+                        const isTextarea = f.field_type === "textarea";
+                        const isNumber = f.field_type === "number";
+
+                        if (isSelect) {
+                          const opts = (f.options || []).map((o) => (typeof o === "string" ? { label: o, value: o } : o));
+                          return (
+                            <Grid size={{ xs: 12, sm: 6 }} key={f.id || f.field_key}>
+                              <FormControl fullWidth size="small" variant="standard" required={Boolean(f.required)}>
+                                <InputLabel id={`label-${f.field_key}`}>{f.label}</InputLabel>
+                                <Select
+                                  variant="standard"
+                                  labelId={`label-${f.field_key}`}
+                                  value={form[f.field_key] || ""}
+                                  label={f.label}
+                                  onChange={(e) => setForm((prev) => ({ ...prev, [f.field_key]: e.target.value }))}
+                                >
+                                  {opts.map((opt) => (
+                                    <MenuItem key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          );
+                        }
+
+                        if (isDate) {
+                          return (
+                            <Grid size={{ xs: 12, sm: 6 }} key={f.id || f.field_key}>
+                              <TextField
+                                variant="standard"
+                                fullWidth
+                                size="small"
+                                type="date"
+                                label={f.label}
+                                value={form[f.field_key] || ""}
+                                onChange={handleFieldChange(f.field_key)}
+                                required={Boolean(f.required)}
+                                slotProps={{ inputLabel: { shrink: true } }}
+                              />
+                            </Grid>
+                          );
+                        }
+
+                        if (isTextarea) {
+                          return (
+                            <Grid size={{ xs: 12 }} key={f.id || f.field_key}>
+                              <TextField
+                                variant="standard"
+                                fullWidth
+                                multiline
+                                rows={3}
+                                size="small"
+                                label={f.label}
+                                placeholder={f.placeholder || ""}
+                                value={form[f.field_key] || ""}
+                                onChange={handleFieldChange(f.field_key)}
+                                required={Boolean(f.required)}
+                              />
+                            </Grid>
+                          );
+                        }
+
+                        return (
+                          <Grid size={{ xs: 12, sm: 6 }} key={f.id || f.field_key}>
+                            <TextField
+                              variant="standard"
+                              fullWidth
+                              size="small"
+                              type={isNumber ? "number" : "text"}
+                              label={f.label}
+                              placeholder={f.placeholder || ""}
+                              value={form[f.field_key] || ""}
+                              onChange={handleFieldChange(f.field_key)}
+                              required={Boolean(f.required)}
+                            />
+                          </Grid>
+                        );
+                      })}
+                    </Grid>
+                  </Box>
+                )}
+
+                {/* ─── SECTION: STATUTORY MEMBER AFFIRMATION & ELECTRONIC UNDERTAKING ─── */}
                 <Paper
                   elevation={0}
                   sx={{

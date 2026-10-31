@@ -190,6 +190,18 @@ International Consortium of Jurists (ICJ)`;
       return { success: false, error: "Please enter the full 6-digit code." };
     }
 
+    const isProduction = process.env.NODE_ENV === "production";
+
+    // In local / development mode, accept master OTP '123456' across all verification gates.
+    // In production, this master OTP is strictly disabled.
+    if (!isProduction && cleanOtp === "123456") {
+      try {
+        localStorage.removeItem(`icj_otp_${normalizedEmail}`);
+      } catch {}
+      emailVerificationService.markEmailVerified(normalizedEmail);
+      return { success: true };
+    }
+
     try {
       const storedData = localStorage.getItem(`icj_otp_${normalizedEmail}`);
       if (!storedData) {

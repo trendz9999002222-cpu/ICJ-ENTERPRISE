@@ -142,13 +142,14 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
 
   useEffect(() => {
     const combined: CombinedRow[] = globalFields
+      .filter((gf) => gf.field_key !== "first_name" && gf.field_key !== "last_name")
       .map((gf) => ({
         globalField: gf,
         config: configs.find((c) => c.common_field === gf.id) || null,
       }))
       .sort((a, b) => {
-        const orderA = a.config?.display_order !== undefined ? a.config.display_order : 9999;
-        const orderB = b.config?.display_order !== undefined ? b.config.display_order : 9999;
+        const orderA = a.config?.display_order !== undefined && a.config.display_order > 0 ? a.config.display_order : 9999;
+        const orderB = b.config?.display_order !== undefined && b.config.display_order > 0 ? b.config.display_order : 9999;
         if (orderA !== orderB) return orderA - orderB;
         return a.globalField.label.localeCompare(b.globalField.label);
       });

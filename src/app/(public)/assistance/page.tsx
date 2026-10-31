@@ -39,6 +39,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LegalDisclaimer from "@/components/features/public/LegalDisclaimer";
 import PageHeader from "@/components/features/public/PageHeader";
 import PhoneInputWithCountry from "@/components/ui/PhoneInputWithCountry";
+import VoiceSpeechInput from "@/components/ui/VoiceSpeechInput";
+import EmailVerificationField from "@/components/ui/EmailVerificationField";
+import { emailVerificationService } from "@/services/emailVerification.service";
 import { serviceService } from "@/services/public/publicServices";
 import { env } from "@/config/env";
 
@@ -186,6 +189,7 @@ export default function SeekAssistancePage() {
 
   const [declarationAccepted, setDeclarationAccepted] = useState(true);
   const [isMobileValid, setIsMobileValid] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -195,7 +199,7 @@ export default function SeekAssistancePage() {
   useEffect(() => {
     async function fetchDynamicFormConfig() {
       try {
-        const res = await fetch(`${env.apiUrl}/services/form-config/`);
+        const res = await fetch(`${env.apiUrl}/services/seek-assistance/config/`);
         if (res.ok) {
           const json = await res.json();
           const { legal_matter_fields, documents } = json?.data || {};
@@ -272,6 +276,11 @@ export default function SeekAssistancePage() {
     }
     if (!formData.email.trim()) {
       setErrorMessage("Please provide a valid email address for case communications.");
+      return;
+    }
+    const isEmailOk = isEmailVerified || emailVerificationService.isEmailVerified(formData.email.trim());
+    if (!isEmailOk) {
+      setErrorMessage("Please verify your email address with OTP before submitting.");
       return;
     }
     if (!formData.mobile.trim()) {
@@ -380,16 +389,18 @@ export default function SeekAssistancePage() {
         if (fallbackRes.success && (fallbackRes.data?.reference_id || (fallbackRes.data as any)?.id)) {
           setSubmittedRefId(fallbackRes.data?.reference_id || (fallbackRes.data as any)?.id);
         } else {
-          setErrorMessage(
+          const rawErr = fallbackRes.error;
+          const extractedMsg =
             json?.message ||
-              json?.detail ||
-              fallbackRes.error ||
-              "Submission could not be completed. Please review all fields and try again."
-          );
+            json?.detail ||
+            (typeof rawErr === "string" ? rawErr : (rawErr as any)?.message) ||
+            "Submission could not be completed. Please review all fields and try again.";
+          setErrorMessage(typeof extractedMsg === "string" ? extractedMsg : JSON.stringify(extractedMsg));
         }
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || "Failed to submit legal request. Please check your network connection.");
+      const msg = err?.message || "Failed to submit legal request. Please check your network connection.";
+      setErrorMessage(typeof msg === "string" ? msg : String(msg));
     } finally {
       setSubmitting(false);
     }
@@ -644,7 +655,7 @@ export default function SeekAssistancePage() {
 
               {errorMessage && (
                 <Alert severity="error" sx={{ mb: 3 }} onClose={() => setErrorMessage(null)}>
-                  {errorMessage}
+                  {typeof errorMessage === "string" ? errorMessage : String(errorMessage)}
                 </Alert>
               )}
 
@@ -698,16 +709,23 @@ export default function SeekAssistancePage() {
                           />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
-                          <TextField
+                          <EmailVerificationField
                             variant="standard"
-                            fullWidth
-                            size="small"
-                            type="email"
                             label="Registered Email Address"
                             placeholder="name@example.com"
                             value={formData.email}
-                            onChange={handleFieldChange("email")}
                             required
+                            themeColor="#0f2942"
+                            applicantName={formData.full_name}
+                            onChange={(email) => {
+                              setFormData((prev) => ({ ...prev, email }));
+                              setIsEmailVerified(false);
+                              if (errorMessage) setErrorMessage(null);
+                            }}
+                            onVerified={() => {
+                              setIsEmailVerified(true);
+                              if (errorMessage) setErrorMessage(null);
+                            }}
                           />
                         </Grid>
 
@@ -1021,20 +1039,41 @@ export default function SeekAssistancePage() {
                       </FormControl>
                     </Grid>
 
-                    {/* Row 3: 100% full width multiline grievance */}
+                    {/* Row 3: 100% full width multiline grievance with Voice-to-Text Microphone */}
                     <Grid size={{ xs: 12 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          mb: 1,
+                          flexWrap: "wrap",
+                          gap: 1,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: "0.82rem", fontWeight: 800, color: "#0f2942" }}>
+                          Detailed Statement of Facts / Grievance (विवाद का विस्तृत विवरण) *
+                        </Typography>
+                        <VoiceSpeechInput
+                          value={formData.problem_description}
+                          onChange={(newText) => {
+                            setFormData((prev) => ({ ...prev, problem_description: newText }));
+                            if (errorMessage) setErrorMessage(null);
+                          }}
+                          fieldName="Grievance / Problem Description"
+                        />
+                      </Box>
                       <TextField
                         variant="standard"
                         fullWidth
                         multiline
                         rows={4}
                         size="small"
-                        label="Detailed Statement of Facts / Grievance"
-                        placeholder="Please outline the factual background, opposing parties (if known), dates, FIR/police reference (if any), and specific legal remedy or aid sought..."
+                        placeholder="Please outline the factual background, opposing parties (if known), dates, FIR/police reference (if any), and specific legal remedy or aid sought (or click the microphone button above to speak in any Indian language)..."
                         value={formData.problem_description}
                         onChange={handleFieldChange("problem_description")}
                         required
-                        helperText="Minimum 20 characters explaining the legal dispute or relief required."
+                        helperText="Minimum 20 characters explaining the legal dispute or relief required. You can type or use the microphone to speak."
                       />
                     </Grid>
                   </Grid>
