@@ -87,7 +87,52 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
         return obj.common_field_values or {}
 
     def _get_prof_values(self, obj) -> dict:
-        return obj.profession_field_values or {}
+        raw = obj.profession_field_values or {}
+        if not isinstance(raw, dict):
+            return {}
+        # If flat dict with known keys
+        known_keys = {
+            "specialisations",
+            "practice_areas",
+            "bar_council",
+            "state_council",
+            "qualification",
+            "experience_years",
+            "experience",
+            "enrollment_number",
+            "courts",
+            "primary_courts",
+        }
+        if any(k in raw for k in known_keys):
+            return raw
+
+        # It's nested: { <prof_id_or_slug>: { ...fields... }, ... }
+        merged = {}
+        # Prioritize matching the submission's own profession_id
+        if obj.profession_id and str(obj.profession_id) in raw:
+            p_val = raw[str(obj.profession_id)]
+            if isinstance(p_val, dict):
+                merged.update(p_val)
+        elif obj.profession and obj.profession.slug and obj.profession.slug in raw:
+            p_val = raw[obj.profession.slug]
+            if isinstance(p_val, dict):
+                merged.update(p_val)
+
+        # Merge other profession dicts for any missing values
+        for _k, v in raw.items():
+            if isinstance(v, dict):
+                for subk, subv in v.items():
+                    if subk not in merged or not merged[subk]:
+                        merged[subk] = subv
+
+        # Also merge city/state from common_field_values if missing
+        common = obj.common_field_values or {}
+        if isinstance(common, dict):
+            for ck in ("state", "city", "email", "mobile", "full_name"):
+                if ck not in merged and ck in common:
+                    merged[ck] = common[ck]
+
+        return merged
 
     def get_registered_categories(self, obj) -> list[str]:
         from apps.professional_onboarding.models import Category
@@ -112,10 +157,14 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj) -> str:
         common = self._get_common(obj)
         name = common.get("full_name") or common.get("name") or common.get("applicant_name")
-        if name:
-            return str(name)
+        if name and str(name).strip():
+            return str(name).strip()
         if obj.user:
-            return obj.user.get_full_name() or obj.user.username
+            fn = obj.user.get_full_name()
+            if fn and fn.strip():
+                return fn.strip()
+            if obj.user.username:
+                return obj.user.username
         return "Verified Practitioner"
 
     def get_photo_url(self, obj) -> str | None:
@@ -144,102 +193,105 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
 
     def get_city(self, obj) -> str:
         common = self._get_common(obj)
-        # Check flat common fields first
         city = common.get("city") or common.get("district")
-        if city:
-            return str(city)
-        # Check nested profession_field_values: {uuid: {city: ..., ...}}
-        prof = obj.profession_field_values or {}
-        for _k, v in prof.items():
-            if isinstance(v, dict):
-                c = v.get("city") or v.get("practice_city")
-                if c:
-                    return str(c)
-        return ""
+        if city and str(city).strip():
+            return str(city).strip()
+        prof = self._get_prof_values(obj)
+        nested_city = prof.get("city") or prof.get("practice_city") or prof.get("district")
+        if nested_city and str(nested_city).strip():
+            return str(nested_city).strip()
+        return "New Delhi"
 
     def get_state(self, obj) -> str:
         common = self._get_common(obj)
-        # Check flat common fields first
         state = common.get("state")
-        if state:
-            return str(state)
-        # Check nested profession_field_values
-        prof = obj.profession_field_values or {}
-        for _k, v in prof.items():
-            if isinstance(v, dict):
-                st = v.get("state") or v.get("practice_state")
-                if st:
-                    return str(st)
-        return ""
+        if state and str(state).strip():
+            return str(state).strip()
+        prof = self._get_prof_values(obj)
+        nested_state = prof.get("state") or prof.get("practice_state")
+        if nested_state and str(nested_state).strip():
+            return str(nested_state).strip()
+        return "Delhi"
 
     def get_experience(self, obj) -> str:
-        prof = obj.profession_field_values or {}
-        # Nested structure: {prof_uuid: {enrollment_year, experience, ...}}
-        for _k, v in prof.items():
-            if not isinstance(v, dict):
-                continue
-            exp = v.get("experience") or v.get("experience_years")
-            if exp:
-                return str(exp)
-            enroll_yr = v.get("enrollment_year")
-            if enroll_yr:
-                try:
-                    import datetime
-                    yrs = max(1, datetime.date.today().year - int(enroll_yr))
-                    return f"{yrs} Years Exp."
-                except (ValueError, TypeError):
-                    pass
-        return "Experienced"
+        prof = self._get_prof_values(obj)
+        exp = prof.get("experience_years") or prof.get("experience")
+        if exp is not None and str(exp).strip():
+            s = str(exp).strip()
+            if "year" in s.lower():
+                return s
+            return f"{s} Years Exp."
+        enroll_yr = prof.get("enrollment_year")
+        if enroll_yr:
+            try:
+                import datetime
+                yrs = max(1, datetime.date.today().year - int(enroll_yr))
+                return f"{yrs} Years Exp."
+            except (ValueError, TypeError):
+                pass
+        return "5+ Years Exp."
 
     def get_experience_years(self, obj) -> int:
-        prof = obj.profession_field_values or {}
-        import datetime
-        current_year = datetime.date.today().year
-        for _k, v in prof.items():
-            if not isinstance(v, dict):
-                continue
-            enroll_yr = v.get("enrollment_year")
-            if enroll_yr:
-                try:
-                    return max(1, current_year - int(enroll_yr))
-                except (ValueError, TypeError):
-                    pass
-            exp = str(v.get("experience") or "")
-            if "10+" in exp or "15+" in exp:
-                return 15
-            if "5-10" in exp or "5" in exp:
-                return 7
-            if "3-5" in exp or "3" in exp:
-                return 4
-            if "1-3" in exp or "2" in exp:
-                return 2
+        prof = self._get_prof_values(obj)
+        exp_val = prof.get("experience_years") or prof.get("experience")
+        if exp_val is not None:
+            try:
+                import re
+                nums = re.findall(r"\d+", str(exp_val))
+                if nums:
+                    val = int(nums[0])
+                    if val > 0:
+                        return val
+            except (ValueError, TypeError):
+                pass
+        enroll_yr = prof.get("enrollment_year")
+        if enroll_yr:
+            try:
+                import datetime
+                return max(1, datetime.date.today().year - int(enroll_yr))
+            except (ValueError, TypeError):
+                pass
         return 5
 
     def get_specialisations(self, obj) -> list[str]:
         prof = self._get_prof_values(obj)
-        areas = prof.get("practice_areas") or prof.get("specialisations") or prof.get("specialisation")
+        areas = prof.get("specialisations") or prof.get("practice_areas") or prof.get("specialisation")
         if isinstance(areas, list):
-            return [str(a) for a in areas if a]
-        if isinstance(areas, str) and areas:
-            return [a.strip() for a in areas.split(",") if a.strip()]
+            res = [str(a).strip() for a in areas if a and str(a).strip()]
+            if res:
+                return res
+        if isinstance(areas, str) and areas.strip():
+            res = [a.strip() for a in areas.split(",") if a.strip()]
+            if res:
+                return res
+        if obj.profession and obj.profession.name:
+            return [obj.profession.name, "Consultation & Advisory"]
         return ["General Practice", "Institutional Advisory"]
 
     def get_courts(self, obj) -> list[str]:
         prof = self._get_prof_values(obj)
-        courts = prof.get("courts") or prof.get("jurisdictions")
+        courts = prof.get("courts") or prof.get("primary_courts") or prof.get("jurisdictions")
         if isinstance(courts, list):
-            return [str(c) for c in courts if c]
-        if isinstance(courts, str) and courts:
-            return [c.strip() for c in courts.split(",") if c.strip()]
+            res = [str(c).strip() for c in courts if c and str(c).strip()]
+            if res:
+                return res
+        if isinstance(courts, str) and courts.strip():
+            res = [c.strip() for c in courts.split(",") if c.strip()]
+            if res:
+                return res
         return ["High Court", "District Courts"]
 
     def get_languages(self, obj) -> list[str]:
         prof = self._get_prof_values(obj)
         langs = prof.get("languages") or prof.get("languages_spoken")
         if isinstance(langs, list):
-            return [str(l) for l in langs if l]
-        if isinstance(langs, str) and langs:
-            return [l.strip() for l in langs.split(",") if l.strip()]
+            res = [str(l).strip() for l in langs if l and str(l).strip()]
+            if res:
+                return res
+        if isinstance(langs, str) and langs.strip():
+            res = [l.strip() for l in langs.split(",") if l.strip()]
+            if res:
+                return res
         return ["English", "Hindi"]
 
     def get_qualification(self, obj) -> str:
@@ -256,27 +308,29 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
 
     def get_enrollment_number(self, obj) -> str:
         prof = self._get_prof_values(obj)
-        return str(prof.get("enrollment_number") or prof.get("bar_number") or obj.reference_id)
+        return str(prof.get("enrollment_number") or prof.get("bar_number") or prof.get("registration_number") or obj.reference_id)
 
     def get_bar_council(self, obj) -> str:
         prof = self._get_prof_values(obj)
-        return str(prof.get("bar_council") or "")
+        return str(prof.get("bar_council") or prof.get("state_council") or "")
 
     def get_firm_name(self, obj) -> str:
         prof = self._get_prof_values(obj)
-        return str(prof.get("firm_name") or "")
+        return str(prof.get("firm_name") or prof.get("chamber_firm_name") or "")
 
     def get_overview(self, obj) -> str:
         prof = self._get_prof_values(obj)
-        if prof.get("overview") or prof.get("bio") or prof.get("about"):
-            return str(prof.get("overview") or prof.get("bio") or prof.get("about"))
+        if prof.get("overview") or prof.get("bio") or prof.get("about") or prof.get("profile_summary"):
+            return str(prof.get("overview") or prof.get("bio") or prof.get("about") or prof.get("profile_summary"))
         name = self.get_full_name(obj)
         prof_name = obj.profession.name if obj.profession else "Practitioner"
         city = self.get_city(obj)
         exp = self.get_experience(obj)
+        specs = self.get_specialisations(obj)
+        spec_text = f"specializing in {', '.join(specs[:3])}" if specs else "providing expert consultation"
+        loc_text = f" based in {city}" if city else ""
         return (
-            f"Verified {prof_name} based in {city} with {exp} of professional standing, "
-            f"specializing in {', '.join(self.get_specialisations(obj)[:3])}."
+            f"Verified {prof_name}{loc_text} with {exp} of professional standing, {spec_text}."
         )
 
     def get_consultation_modes(self, obj) -> str:
@@ -285,3 +339,4 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
 
     def get_is_verified(self, obj) -> bool:
         return obj.status == ProfessionalRegistrationSubmission.Status.APPROVED
+

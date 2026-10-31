@@ -34,6 +34,41 @@ def build_profession_configuration(profession: Profession) -> dict:
         .select_related("common_field")
         .order_by("display_order", "common_field__name")
     )
+    if not common_fields.exists():
+        from apps.professional_onboarding.models import CommonField as LegacyCommonField
+        from apps.core.models import CommonField as CoreCommonField
+        legacy_cfs = list(LegacyCommonField.objects.filter(is_active=True).order_by("display_order", "name"))
+        if legacy_cfs:
+            form_obj, _ = AdditionalOnboardingFormfields.objects.get_or_create(
+                form_code=AdditionalOnboardingFormfields.FormCode.PROFESSIONAL,
+                defaults={"form_name": "Professional Onboarding"}
+            )
+            for lcf in legacy_cfs:
+                core_cf, _ = CoreCommonField.objects.get_or_create(
+                    field_key=lcf.field_key,
+                    defaults={
+                        "name": lcf.name,
+                        "label": lcf.label,
+                        "field_type": lcf.field_type,
+                        "placeholder": lcf.placeholder or "",
+                        "help_text": lcf.help_text or "",
+                        "is_active": True,
+                    }
+                )
+                FormFieldConfig.objects.get_or_create(
+                    form=form_obj,
+                    common_field=core_cf,
+                    defaults={
+                        "is_visible": True,
+                        "is_required": lcf.is_required,
+                        "display_order": lcf.display_order,
+                    }
+                )
+            common_fields = FormFieldConfig.objects.filter(
+                form=form_obj,
+                is_visible=True,
+                common_field__is_active=True,
+            ).select_related("common_field").order_by("display_order", "common_field__name")
 
     profession_fields = (
         ProfessionField.objects.filter(profession=profession, is_active=True)

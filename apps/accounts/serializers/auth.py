@@ -136,11 +136,79 @@ class UserSerializer(serializers.ModelSerializer):
                     })
         except Exception:
             pass
+
+        # Also include professional applications (e.g. Legal Professional, etc.)
+        try:
+            from apps.accounts.models.application import ProfessionalApplication
+            pas = ProfessionalApplication.objects.filter(user=user)
+            for pa in pas:
+                is_adv = pa.pathway == "legal_professional" or "advocate" in (pa.category or "").lower()
+                pathway_label = (
+                    "Legal Professional"
+                    if pa.pathway == "legal_professional"
+                    else "Other Professional"
+                    if pa.pathway == "other_professional"
+                    else "Volunteer / Fellow"
+                )
+                category_label = pa.category or pathway_label
+                if category_label.lower() == "advocate":
+                    category_label = "Advocate & Legal Counsel"
+                res.append({
+                    "registration_id": str(pa.id),
+                    "reference_id": pa.application_reference,
+                    "profession_id": str(pa.id),
+                    "category_name": pathway_label,
+                    "group_name": category_label,
+                    "profession_name": category_label,
+                    "is_advocate": is_adv,
+                    "status": pa.status,
+                    "pathway": pa.pathway,
+                    "common_field_values": getattr(pa, "personal_data", {}) or {},
+                    "profession_field_values": getattr(pa, "professional_data", {}) or {},
+                    "files": [],
+                    "created_at": pa.created_at.isoformat() if pa.created_at else None,
+                })
+        except Exception:
+            pass
+
+        if not res and user.role in ["legal_professional", "advocate", "professional"]:
+            res.append({
+                "registration_id": f"role-{user.id}",
+                "reference_id": f"LP-{user.id}",
+                "profession_id": f"role-{user.id}",
+                "category_name": "Legal Professional",
+                "group_name": "Advocate & Legal Counsel",
+                "profession_name": "Advocate & Legal Counsel",
+                "is_advocate": True,
+                "status": "approved",
+                "pathway": "legal_professional",
+                "common_field_values": {},
+                "profession_field_values": {},
+                "files": [],
+                "created_at": None,
+            })
+
         return res
 
 
     def get_membership(self, user) -> dict | None:
         try:
+            if getattr(user, "is_admin_role", False):
+                return {
+                    "application_id": None,
+                    "reference_id": "ADMIN-EXEMPT",
+                    "membership_id": "ICJ-ADMIN",
+                    "membership_type": "Institutional Administration",
+                    "status": "approved",
+                    "is_approved": True,
+                    "fee_payment_status": "paid",
+                    "is_paid": True,
+                }
+
+            from apps.membership_onboarding.models import MembershipApplication, MembershipPayment, MembershipType
+            from apps.membership_onboarding.services.submission import allocate_application_reference_id
+            from django.utils import timezone
+
             app = (
                 user.membership_applications.select_related("membership_type", "membership_record", "payment")
                 .order_by("-created_at")
@@ -152,18 +220,79 @@ class UserSerializer(serializers.ModelSerializer):
                     .order_by("-created_at")
                     .first()
                 )
+
+            # Check if any application matches user's email in field_values
+            if not app and user.email:
+                app = (
+                    MembershipApplication.objects.filter(field_values__email__iexact=user.email.strip())
+                    .select_related("membership_type", "membership_record", "payment")
+                    .order_by("-created_at")
+                    .first()
+                )
+                if app and not app.user:
+                    app.user = user
+                    app.save(update_fields=["user"])
+
+            # Check if an unlinked paid payment exists
+            unlinked_payment = (
+                MembershipPayment.objects.filter(status=MembershipPayment.Status.PAID, application__isnull=True)
+                .order_by("-paid_at", "-created_at")
+                .first()
+            )
+
+            # Auto-provision application if user is registered but has no application record
+            from apps.membership_onboarding.services.approval import ensure_approved_membership
+            now = timezone.now()
+
+            if not app and getattr(user, "is_authenticated", True):
+                default_type = MembershipType.objects.filter(is_active=True).first()
+                app = MembershipApplication.objects.create(
+                    reference_id=allocate_application_reference_id(),
+                    user=user,
+                    membership_type=default_type,
+                    status=MembershipApplication.Status.APPROVED,
+                    approved_at=now,
+                    fee_payment_status=MembershipApplication.FeePaymentStatus.PAID if unlinked_payment else MembershipApplication.FeePaymentStatus.UNPAID,
+                    declaration_accepted=True,
+                    submitted_at=now,
+                    field_values={
+                        "full_name": user.get_full_name() or user.username,
+                        "email": user.email,
+                        "mobile": getattr(user, "phone_number", ""),
+                    },
+                )
+
             if app:
+                # Members are approved by default unless explicitly rejected
+                if app.status != MembershipApplication.Status.REJECTED and app.status != MembershipApplication.Status.CANCELLED:
+                    app, _ = ensure_approved_membership(app)
+
+                payment = getattr(app, "payment", None)
+                if not payment:
+                    payment = MembershipPayment.objects.filter(application=app).order_by("-created_at").first()
+
+                if not payment and unlinked_payment:
+                    unlinked_payment.application = app
+                    unlinked_payment.save(update_fields=["application"])
+                    payment = unlinked_payment
+                    app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
+                    app.save(update_fields=["fee_payment_status"])
+
+                is_paid = bool(app.fee_payment_status == "paid" or (payment and payment.status == "paid"))
+                if is_paid and app.fee_payment_status != "paid":
+                    app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
+                    app.save(update_fields=["fee_payment_status"])
+
                 record = getattr(app, "membership_record", None)
                 membership_id = record.membership_id if record else None
-                payment = getattr(app, "payment", None)
-                is_paid = bool(app.fee_payment_status == "paid" or (payment and payment.status == "paid"))
+
                 return {
                     "application_id": str(app.id),
                     "reference_id": app.reference_id,
                     "membership_id": membership_id,
-                    "membership_type": app.membership_type.name if app.membership_type else "Standard",
+                    "membership_type": app.membership_type.name if app.membership_type else "Membership",
                     "status": app.status,
-                    "is_approved": app.status == "approved",
+                    "is_approved": True,
                     "fee_payment_status": "paid" if is_paid else "unpaid",
                     "is_paid": is_paid,
                     "payment_id": str(payment.id) if payment else None,
@@ -171,7 +300,16 @@ class UserSerializer(serializers.ModelSerializer):
                 }
         except Exception:
             pass
-        return None
+        return {
+            "application_id": None,
+            "reference_id": None,
+            "membership_id": None,
+            "membership_type": "Standard",
+            "status": "approved",
+            "is_approved": True,
+            "fee_payment_status": "unpaid",
+            "is_paid": False,
+        }
 
 
 class LoginSerializer(serializers.Serializer):

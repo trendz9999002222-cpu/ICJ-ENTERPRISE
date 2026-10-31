@@ -77,7 +77,7 @@ class MembershipApplication(models.Model):
     field_values = models.JSONField(default=dict)
     declaration_accepted = models.BooleanField(default=False)
     declaration_date = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.APPROVED, db_index=True)
     fee_payment_status = models.CharField(
         max_length=20, choices=FeePaymentStatus.choices, default=FeePaymentStatus.UNPAID
     )

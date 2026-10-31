@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.membership_onboarding.views.payment import (
+    MemberPayDuesAPIView,
     PublicMembershipCreateOrderAPIView,
     PublicMembershipPaymentSettingsAPIView,
     PublicMembershipVerifyPaymentAPIView,
@@ -21,10 +22,11 @@ urlpatterns = [
         PublicMembershipTypeConfigurationAPIView.as_view(),
         name="membership-onboarding-type-configuration",
     ),
-    path("configuration/", PublicMembershipConfigurationAPIView.as_view(), name="membership-onboarding-configuration"),
     path("payment/settings/", PublicMembershipPaymentSettingsAPIView.as_view(), name="membership-onboarding-payment-settings"),
+    path("payment-settings/", PublicMembershipPaymentSettingsAPIView.as_view(), name="membership-onboarding-payment-settings-alias"),
     path("payment/create-order/", PublicMembershipCreateOrderAPIView.as_view(), name="membership-onboarding-payment-create-order"),
     path("payment/verify/", PublicMembershipVerifyPaymentAPIView.as_view(), name="membership-onboarding-payment-verify"),
+    path("payment/pay-dues/", MemberPayDuesAPIView.as_view(), name="membership-onboarding-payment-pay-dues"),
     path("validate-identity/", PublicMembershipValidateIdentityAPIView.as_view(), name="membership-onboarding-validate-identity"),
     path("register/", PublicMembershipRegisterAPIView.as_view(), name="membership-onboarding-register"),
     path(

@@ -13,8 +13,15 @@ def create_or_sync_lead_for_assistance(sender, instance, created, **kwargs):
     Ensures every citizen seek-assistance intake creates and maintains an associated
     MarketplaceLead record (status: pending_review) ready for Admin review,
     dynamic field inspection, and safe marketplace publication.
+    Safe against duplicate signals and race conditions.
     """
-    if not hasattr(instance, "marketplace_lead") or instance.marketplace_lead is None:
+    if not created:
+        return
+
+    if MarketplaceLead.objects.filter(assistance_request=instance).exists():
+        return
+
+    try:
         year = timezone.now().year
         lead_id = f"LEAD-{year}-{random.randint(10000, 99999)}"
         while MarketplaceLead.objects.filter(lead_id=lead_id).exists():
@@ -36,20 +43,25 @@ def create_or_sync_lead_for_assistance(sender, instance, created, **kwargs):
         else:
             urgency_clean = "medium"
 
-        MarketplaceLead.objects.create(
-            lead_id=lead_id,
+        MarketplaceLead.objects.get_or_create(
             assistance_request=instance,
-            category=instance.category or "General Legal Assistance",
-            urgency=urgency_clean,
-            state_name=instance.state_name or "",
-            city_name=instance.city_name or "",
-            anonymized_summary=summary or f"Assistance request for {instance.category or 'General Legal Assistance'}",
-            full_description=instance.problem_description or "",
-            price_paise=default_price,
-            tax_percentage=tax,
-            status=MarketplaceLead.Status.PENDING_REVIEW,
-            client_name=instance.full_name or "",
-            client_email=instance.email or "",
-            client_mobile=instance.mobile or "",
-            client_preferred_contact=instance.preferred_contact or "Phone",
+            defaults={
+                "lead_id": lead_id,
+                "category": instance.category or "General Legal Assistance",
+                "urgency": urgency_clean,
+                "state_name": instance.state_name or "",
+                "city_name": instance.city_name or "",
+                "anonymized_summary": summary or f"Assistance request for {instance.category or 'General Legal Assistance'}",
+                "full_description": instance.problem_description or "",
+                "price_paise": default_price,
+                "tax_percentage": tax,
+                "status": MarketplaceLead.Status.PENDING_REVIEW,
+                "client_name": instance.full_name or "",
+                "client_email": instance.email or "",
+                "client_mobile": instance.mobile or "",
+                "client_preferred_contact": instance.preferred_contact or "Phone",
+            }
         )
+    except Exception:
+        # Prevent lead generation issues from breaking assistance submission
+        pass

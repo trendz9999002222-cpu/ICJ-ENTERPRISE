@@ -8,6 +8,66 @@ from apps.membership_onboarding.services.submission import allocate_membership_i
 
 
 @transaction.atomic
+def ensure_approved_membership(application: MembershipApplication, actor=None) -> tuple[MembershipApplication, str]:
+    """
+    Ensures that a membership application is approved by default and has an associated active Membership record.
+    Members are approved by default.
+    """
+    now = timezone.now()
+    if application.status != MembershipApplication.Status.APPROVED:
+        application.status = MembershipApplication.Status.APPROVED
+        application.approved_at = application.approved_at or now
+        if actor:
+            application.approved_by = actor
+        application.save(update_fields=["status", "approved_at", "approved_by"] if actor else ["status", "approved_at"])
+
+    record = getattr(application, "membership_record", None)
+    if record is None:
+        record = Membership.objects.filter(application=application).first()
+
+    if record is None:
+        from apps.membership_onboarding.services.public_config import (
+            ensure_default_membership_type,
+            get_active_membership_form,
+        )
+        form = application.form or get_active_membership_form()
+        membership_type = application.membership_type or (form.membership_type if form else None) or ensure_default_membership_type()
+        membership_id = allocate_membership_id()
+
+        person = application.person
+        if not person and application.user:
+            person = getattr(application.user, "person", None)
+        if not person:
+            from apps.person.services import resolve_person_for_application
+            person = resolve_person_for_application(field_values=application.field_values or {}, user=application.user)
+            application.person = person
+            application.save(update_fields=["person"])
+
+        record = Membership.objects.create(
+            membership_id=membership_id,
+            person=person,
+            membership_type=membership_type,
+            application=application,
+            form=form,
+            status=Membership.Status.ACTIVE,
+            start_date=now.date(),
+            approved_at=now,
+            approved_by=actor,
+        )
+
+        MembershipApplicationHistory.objects.create(
+            application=application,
+            action="application_approved",
+            actor=actor,
+            metadata={
+                "auto_approved": True,
+                "membership_id": membership_id,
+            },
+        )
+    return application, record.membership_id
+
+
+@transaction.atomic
 def approve_application(application: MembershipApplication, actor):
     application = MembershipApplication.objects.select_for_update().get(pk=application.pk)
     if application.status == MembershipApplication.Status.APPROVED:

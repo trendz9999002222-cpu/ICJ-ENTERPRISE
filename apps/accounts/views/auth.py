@@ -31,6 +31,209 @@ from apps.accounts.services.auth import (
 from apps.accounts.throttles import ForgotPasswordRateThrottle, LoginRateThrottle
 
 
+class RegisterView(APIView):
+    """
+    Public endpoint: POST /api/v1/auth/register/
+
+    Accepts:
+        first_name, last_name, email, mobile_number, password
+
+    Creates a new User with role=MEMBER, auto-generates a unique username
+    from the email, and returns a JWT access/refresh token pair identical
+    to the login response so the frontend can immediately proceed to the
+    Member Dashboard step.
+    """
+
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        first_name = (request.data.get("first_name") or "").strip()
+        last_name = (request.data.get("last_name") or "").strip()
+        email = (request.data.get("email") or "").strip().lower()
+        mobile_number = (request.data.get("mobile_number") or "").strip()
+        password = request.data.get("password") or ""
+
+        # ── Validate required fields ────────────────────────────────────────────
+        errors = {}
+        if not first_name:
+            errors["first_name"] = ["First name is required."]
+        if not last_name:
+            errors["last_name"] = ["Last name is required."]
+        if not email or "@" not in email:
+            errors["email"] = ["A valid email address is required."]
+        if not password or len(password) < 8:
+            errors["password"] = ["Password must be at least 8 characters."]
+
+        if errors:
+            return api_error(
+                message="Please correct the errors below.",
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ── Duplicate email guard ───────────────────────────────────────────────
+        from apps.accounts.models import User
+
+        if User.objects.filter(email=email).exists():
+            return api_error(
+                message="An account with this email address already exists. Please log in.",
+                errors={"email": ["An account with this email address already exists."]},
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ── Create user ─────────────────────────────────────────────────────────
+        import uuid
+
+        # Generate a unique username (email-based, truncated to 150 chars)
+        base_username = email.split("@")[0][:120]
+        username = base_username
+        suffix = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{suffix}"
+            suffix += 1
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            role=User.Role.MEMBER,
+        )
+        if mobile_number:
+            user.phone_number = mobile_number
+            user.save(update_fields=["phone_number"])
+
+        # ── Profile picture upload ──────────────────────────────────────────────
+        profile_pic = request.FILES.get("profile_picture") or request.FILES.get("photo")
+        if profile_pic:
+            user.profile_picture = profile_pic
+            user.save(update_fields=["profile_picture"])
+
+        # ── Membership Application & Fee Payment Handling ───────────────────────
+        app_ref = None
+        raw_fee_status = (request.data.get("fee_payment_status") or "").strip().lower()
+        is_paid = raw_fee_status == "paid" or request.data.get("is_paid") in [True, "true", "True", 1, "1"]
+
+        try:
+            from apps.membership_onboarding.models import MembershipApplication, MembershipPayment, MembershipType
+            from apps.membership_onboarding.services.fee_settings import get_membership_fee_settings
+            from apps.membership_onboarding.services.submission import allocate_application_reference_id
+            from apps.person.models import Person
+
+            gender = request.data.get("gender") or "Not specified"
+            dob_str = request.data.get("date_of_birth") or request.data.get("dob")
+            dob = None
+            if dob_str:
+                try:
+                    from datetime import datetime
+                    dob = datetime.strptime(str(dob_str)[:10], "%Y-%m-%d").date()
+                except Exception:
+                    pass
+
+            person, _ = Person.objects.get_or_create(
+                email=user.email,
+                defaults={
+                    "full_name": f"{user.first_name} {user.last_name}".strip(),
+                    "mobile": user.phone_number,
+                    "gender": gender,
+                    "date_of_birth": dob,
+                    "user": user,
+                },
+            )
+            if not person.user:
+                person.user = user
+                person.save(update_fields=["user"])
+
+            default_type = MembershipType.objects.filter(is_active=True).first()
+            app_ref = allocate_application_reference_id()
+            now = timezone.now()
+
+            from apps.membership_onboarding.services.approval import ensure_approved_membership
+
+            mem_app = MembershipApplication.objects.create(
+                reference_id=app_ref,
+                user=user,
+                person=person,
+                membership_type=default_type,
+                status=MembershipApplication.Status.APPROVED,
+                approved_at=now,
+                fee_payment_status=MembershipApplication.FeePaymentStatus.PAID if is_paid else MembershipApplication.FeePaymentStatus.UNPAID,
+                declaration_accepted=True,
+                submitted_at=now,
+                field_values={
+                    "full_name": f"{user.first_name} {user.last_name}".strip(),
+                    "email": user.email,
+                    "mobile": user.phone_number,
+                    "gender": gender,
+                    "state": request.data.get("state_name") or "",
+                    "city": request.data.get("city_name") or "",
+                    "pincode": request.data.get("pincode") or "",
+                    "address": request.data.get("address") or "",
+                },
+            )
+            ensure_approved_membership(mem_app)
+
+            if is_paid:
+                fee_cfg = get_membership_fee_settings()
+                MembershipPayment.objects.create(
+                    application=mem_app,
+                    amount_paise=fee_cfg.amount_paise,
+                    currency=fee_cfg.currency,
+                    gateway="easebuzz",
+                    status=MembershipPayment.Status.PAID,
+                    paid_at=now,
+                    easebuzz_payment_id=request.data.get("payment_id") or f"PAY-{uuid.uuid4().hex[:12].upper()}",
+                )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("Could not auto-link MembershipApplication: %s", exc)
+
+        # ── Issue JWT tokens ────────────────────────────────────────────────────
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+        from apps.accounts.role_utils import normalize_platform_role
+
+        access["role"] = normalize_platform_role(user.role) or "member"
+        access["roles"] = user.get_all_roles()
+        access["email"] = user.email
+        access["first_name"] = user.first_name
+        access["last_name"] = user.last_name
+        access["full_name"] = f"{user.first_name or ''} {user.last_name or ''}".strip()
+        access["user_id"] = user.id
+        access["password_change_required"] = user.password_change_required
+
+        # ── Trigger Notifications ──────────────────────────────────────────────
+        from apps.core.notifications import send_system_notification
+        send_system_notification(
+            title="Welcome to International Consortium of Jurists!",
+            message=f"Hello {user.first_name}, your official ICJ member account is active. You can now access justice services, empanelment pathways, and legal support.",
+            notification_type="success",
+            scope="user",
+            recipient=user,
+            link="/dashboard/member",
+        )
+        send_system_notification(
+            title="New Member Registration",
+            message=f"{user.first_name} {user.last_name} ({user.email}) registered as an active ICJ Member.",
+            notification_type="info",
+            scope="admin",
+            link="/admin/users",
+        )
+
+        return api_success(
+            message="Account created successfully. Welcome to ICJ!",
+            access=str(access),
+            refresh=str(refresh),
+            reference_id=app_ref or f"ICJ-MEM-{user.id}",
+            fee_payment_status="paid" if is_paid else "unpaid",
+            is_paid=is_paid,
+            user=UserSerializer(user).data,
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
 class LoginView(APIView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]
@@ -59,6 +262,8 @@ class LoginView(APIView):
         access["roles"] = user.get_all_roles()
         access["email"] = user.email
         access["first_name"] = user.first_name
+        access["last_name"] = user.last_name
+        access["full_name"] = f"{user.first_name or ''} {user.last_name or ''}".strip()
         access["user_id"] = user.id
         access["password_change_required"] = user.password_change_required
 

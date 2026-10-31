@@ -30,8 +30,23 @@ class LeadService:
         """
         if not user or not user.is_authenticated or not user.is_active:
             return False
-        if user.role == "professional" or user.is_staff or user.is_superuser:
+        if user.is_staff or user.is_superuser:
             return True
+        if getattr(user, "role", "") in ("professional", "legal_professional", "advocate"):
+            return True
+        if hasattr(user, "get_all_roles"):
+            roles = user.get_all_roles()
+            if any(r in ("professional", "legal_professional", "advocate") for r in roles):
+                return True
+        try:
+            from apps.accounts.models import ProfessionalApplication
+            if ProfessionalApplication.objects.filter(
+                user=user,
+                status=ProfessionalApplication.Status.APPROVED,
+            ).exists():
+                return True
+        except Exception:
+            pass
         return ProfessionalRegistrationSubmission.objects.filter(
             user=user,
             status=ProfessionalRegistrationSubmission.Status.APPROVED,
