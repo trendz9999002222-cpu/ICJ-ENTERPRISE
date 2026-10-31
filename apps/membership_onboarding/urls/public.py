@@ -14,8 +14,8 @@ from apps.membership_onboarding.views.public import (
     PublicMembershipTypeListAPIView,
     PublicMembershipValidateIdentityAPIView,
 )
-
 urlpatterns = [
+    path("configuration/", PublicMembershipConfigurationAPIView.as_view(), name="membership-onboarding-configuration"),
     path("types/", PublicMembershipTypeListAPIView.as_view(), name="membership-onboarding-types"),
     path(
         "types/<uuid:membership_type_id>/configuration/",

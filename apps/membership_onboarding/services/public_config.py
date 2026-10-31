@@ -39,6 +39,98 @@ def get_active_membership_form() -> MembershipForm | None:
     return active_forms[0]
 
 
+def _ensure_membership_common_fields():
+    from apps.core.models import AdditionalOnboardingFormfields, CommonField, FormFieldConfig
+
+    membership_form, _ = AdditionalOnboardingFormfields.objects.get_or_create(
+        form_code=AdditionalOnboardingFormfields.FormCode.MEMBERSHIP,
+        defaults={
+            "form_name": "Trustee Membership",
+            "description": "Application flow for Trustee Membership.",
+        },
+    )
+
+    # Clean up duplicate first_name and last_name fields
+    CommonField.objects.filter(field_key__in=["first_name", "last_name"]).delete()
+    FormFieldConfig.objects.filter(common_field__field_key__in=["first_name", "last_name"]).delete()
+
+    standard_fields = [
+        {"field_key": "full_name", "name": "Full Name", "label": "Full Name", "field_type": "text", "placeholder": "Enter full legal name", "is_required": True, "section_name": "Personal Particulars", "display_order": 10},
+        {
+            "field_key": "gender",
+            "name": "Gender",
+            "label": "Gender",
+            "field_type": "select",
+            "is_required": False,
+            "options": [
+                {"label": "Male", "value": "Male"},
+                {"label": "Female", "value": "Female"},
+                {"label": "Other", "value": "Other"},
+                {"label": "Prefer not to disclose", "value": "Prefer not to disclose"},
+            ],
+            "section_name": "Personal Particulars",
+            "display_order": 20,
+        },
+        {"field_key": "date_of_birth", "name": "Date of Birth", "label": "Date of Birth", "field_type": "date", "is_required": True, "section_name": "Personal Particulars", "display_order": 25},
+        {"field_key": "email", "name": "Registered Email Address", "label": "Registered Email Address", "field_type": "email", "placeholder": "name@example.com", "is_required": True, "section_name": "Contact & Location", "display_order": 30},
+        {"field_key": "mobile_number", "name": "Mobile Number", "label": "Mobile Number", "field_type": "phone", "placeholder": "9876543210", "is_required": True, "section_name": "Contact & Location", "display_order": 35},
+        {
+            "field_key": "state_name",
+            "name": "State / Union Territory",
+            "label": "State / Union Territory",
+            "field_type": "select",
+            "is_required": False,
+            "options": [
+                {"label": "Delhi", "value": "Delhi"},
+                {"label": "Maharashtra", "value": "Maharashtra"},
+                {"label": "Uttar Pradesh", "value": "Uttar Pradesh"},
+                {"label": "Haryana", "value": "Haryana"},
+                {"label": "Karnataka", "value": "Karnataka"},
+                {"label": "Tamil Nadu", "value": "Tamil Nadu"},
+                {"label": "West Bengal", "value": "West Bengal"},
+                {"label": "Gujarat", "value": "Gujarat"},
+                {"label": "Rajasthan", "value": "Rajasthan"},
+                {"label": "Punjab", "value": "Punjab"},
+                {"label": "Bihar", "value": "Bihar"},
+                {"label": "Madhya Pradesh", "value": "Madhya Pradesh"},
+                {"label": "Kerala", "value": "Kerala"},
+                {"label": "Telangana", "value": "Telangana"},
+                {"label": "Andhra Pradesh", "value": "Andhra Pradesh"},
+                {"label": "Other State / Union Territory", "value": "Other State / Union Territory"},
+            ],
+            "section_name": "Contact & Location",
+            "display_order": 40,
+        },
+        {"field_key": "city_name", "name": "City / District", "label": "City / District", "field_type": "text", "placeholder": "e.g. New Delhi", "is_required": False, "section_name": "Contact & Location", "display_order": 45},
+        {"field_key": "district", "name": "District", "label": "District", "field_type": "city", "placeholder": "e.g. South Delhi", "is_required": False, "section_name": "Contact & Location", "display_order": 48},
+        {"field_key": "pincode", "name": "Postal Code (PIN)", "label": "Postal Code (PIN)", "field_type": "pincode", "placeholder": "e.g. 110001", "is_required": False, "section_name": "Contact & Location", "display_order": 50},
+        {"field_key": "address", "name": "Residential / Office Address", "label": "Residential / Office Address", "field_type": "textarea", "placeholder": "House/Chamber No., Street, Locality or Landmark", "is_required": False, "section_name": "Contact & Location", "display_order": 55},
+    ]
+
+    for item in standard_fields:
+        cf, _ = CommonField.objects.get_or_create(
+            field_key=item["field_key"],
+            defaults={
+                "name": item["name"],
+                "label": item["label"],
+                "field_type": item["field_type"],
+                "placeholder": item.get("placeholder", ""),
+                "options": item.get("options", []),
+                "is_active": True,
+            },
+        )
+        FormFieldConfig.objects.get_or_create(
+            form=membership_form,
+            common_field=cf,
+            defaults={
+                "section_name": item["section_name"],
+                "display_order": item["display_order"],
+                "is_required": item["is_required"],
+                "is_visible": True,
+            },
+        )
+
+
 def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
     import uuid
     from apps.core.models import AdditionalOnboardingFormfields, CommonField, FormFieldConfig
@@ -46,20 +138,44 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
     steps_list = []
     documents = []
 
-    # 1. Fetch Dynamic Common Fields mapped to MEMBERSHIP in core
-    form_configs = list(
+    # Ensure standard common fields exist for membership onboarding
+    try:
+        _ensure_membership_common_fields()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+
+    # 1. Fetch Dynamic Common Fields mapped in admin
+    # The Admin screen at /admin/professional-onboarding/common-fields manages form_code=PROFESSIONAL
+    prof_configs = list(
         FormFieldConfig.objects.filter(
-            form__form_code=AdditionalOnboardingFormfields.FormCode.MEMBERSHIP,
+            form__form_code=AdditionalOnboardingFormfields.FormCode.PROFESSIONAL,
             is_visible=True,
             common_field__is_active=True,
         )
         .select_related("common_field")
-        .order_by("display_order", "common_field__name")
+    )
+    if not prof_configs:
+        prof_configs = list(
+            FormFieldConfig.objects.filter(
+                form__form_code=AdditionalOnboardingFormfields.FormCode.MEMBERSHIP,
+                is_visible=True,
+                common_field__is_active=True,
+            )
+            .select_related("common_field")
+        )
+
+    # Sort so positive display_order comes first (10, 20, 30...), then 0/null display_order
+    prof_configs.sort(
+        key=lambda x: (
+            999999 if (x.display_order is None or x.display_order == 0) else x.display_order,
+            x.common_field.name if x.common_field else "",
+        )
     )
 
     common_fields_data = []
-    if form_configs:
-        for fc in form_configs:
+    if prof_configs:
+        for fc in prof_configs:
             cf = fc.common_field
             common_fields_data.append({
                 "id": cf.id,

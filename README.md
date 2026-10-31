@@ -85,3 +85,18 @@ Profile picture and passport photograph uploads are universally handled:
 - Professional Onboarding: `http://localhost:8000/api/v1/professional-onboarding/`
 - Membership Onboarding: `http://localhost:8000/api/v1/membership-onboarding/`
 - Honorable Advisory: `http://localhost:8000/api/v1/honorable-advisory/`
+
+---
+
+## Master OTP & Email Verification (Local Dev vs Production)
+
+To facilitate smooth end-to-end testing across all user onboarding and verification gates, a **Master OTP** is configured:
+
+| Property | Local / Development (`DEBUG = True`) | Production (`DEBUG = False`) |
+| :--- | :--- | :--- |
+| **Master OTP Code** | `123456` | **Disabled** (Strictly Rejected) |
+| **Email Dispatch** | Real OTP dispatched to email via EmailJS + Django `send_mail` | Real OTP dispatched to verified email |
+| **Verification Gate** | Accepts either real OTP **OR** `123456` | Only accepts verified SHA-256 hashed OTP |
+| **Supported Flows** | • Case Tracking (`/track-case`)<br>• Seek Assistance Intake (`/assistance`)<br>• Member Registration (`/join`)<br>• Professional Onboarding | Enforces authentic applicant ownership |
+
+> **Note for Local Developers:** When testing `/track-case` or email verification fields locally, you can enter `123456` directly in the OTP field to proceed to the next step immediately.

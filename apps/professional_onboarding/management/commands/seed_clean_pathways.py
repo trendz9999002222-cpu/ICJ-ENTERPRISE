@@ -21,6 +21,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.WARNING("Resetting bloated onboarding data to 3 official wings..."))
 
+        options_to_create = []
+
         with transaction.atomic():
             # 1. Clear out test submissions referencing protected foreign keys
             ProfessionalRegistrationSubmissionFile.objects.all().delete()
@@ -28,7 +30,7 @@ class Command(BaseCommand):
 
             # 2. Clear out bloated catalog data
             ProfessionDocument.objects.all().delete()
-            FieldOption.objects.filter(profession_field__isnull=False).delete()
+            FieldOption.objects.all().delete()
             ProfessionField.objects.all().delete()
             Profession.objects.all().delete()
             Group.objects.all().delete()
@@ -59,16 +61,16 @@ class Command(BaseCommand):
                 "student_ngo_id": Document.objects.create(
                     name="Student ID / College Bonafide / NGO Recommendation",
                     document_key="student_ngo_id",
-                    description="Valid student identification, college recommendation letter, or NGO affiliation proof.",
+                    description="Valid student identity card, bona fide certificate, or NGO recommendation letter.",
                     allowed_file_types=["pdf", "jpg", "png"],
                     max_file_size_mb=5,
                     is_active=True,
                     display_order=30,
                 ),
                 "resume_cv": Document.objects.create(
-                    name="Curriculum Vitae (CV) / Professional Profile",
+                    name="Curriculum Vitae / Professional Resume",
                     document_key="resume_cv",
-                    description="Detailed resume highlighting educational background, standing, and practice areas.",
+                    description="Updated resume detailing litigation experience, academic background, or social work history.",
                     allowed_file_types=["pdf", "docx"],
                     max_file_size_mb=5,
                     is_active=True,
@@ -80,13 +82,13 @@ class Command(BaseCommand):
             cat_legal = Category.objects.create(
                 name="Legal Professional Wing",
                 slug="legal_professional",
-                description="Advocates, Bar Practitioners, Senior Counsels, and Dispute Mediators.",
+                description="Advocates, Senior Advocates, Corporate Legal Counsel, and Accredited Arbitrators/Mediators.",
                 is_active=True,
                 display_order=10,
             )
             VisualTheme.objects.create(
                 category=cat_legal,
-                primary_color="#0f2942",
+                primary_color="#1d4ed8",
                 secondary_color="#1e3a8a",
                 accent_color="#b45309",
                 background_color="#ffffff",
@@ -159,7 +161,7 @@ class Command(BaseCommand):
                     "Bar Council of Bihar",
                     "Other State Bar Council",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f2, value=sc, label=sc, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f2, value=sc, label=sc, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -181,7 +183,7 @@ class Command(BaseCommand):
                     display_order=40,
                 )
                 for idx, exp in enumerate(["1-3 Years", "3-5 Years", "5-10 Years", "10-15 Years", "15+ Years"], 1):
-                    FieldOption.objects.create(profession_field=f4, value=exp, label=exp, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f4, value=exp, label=exp, display_order=idx))
 
                 f5 = ProfessionField.objects.create(
                     profession=prof,
@@ -202,7 +204,7 @@ class Command(BaseCommand):
                     "Labour & Industrial Courts",
                     "Taxation Tribunals (ITAT/CESTAT)",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f5, value=court, label=court, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f5, value=court, label=court, display_order=idx))
 
                 f6 = ProfessionField.objects.create(
                     profession=prof,
@@ -224,7 +226,7 @@ class Command(BaseCommand):
                     "Cyber Law, Data Protection & White Collar Crimes",
                     "Labour, Service & Employment Law",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f6, value=pa, label=pa, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f6, value=pa, label=pa, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -323,7 +325,7 @@ class Command(BaseCommand):
                     "Institute of Cost Accountants of India (ICMAI)",
                     "Insolvency and Bankruptcy Board of India (IBBI)",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f_body, value=body, label=body, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f_body, value=body, label=body, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -345,7 +347,7 @@ class Command(BaseCommand):
                     display_order=40,
                 )
                 for idx, exp in enumerate(["1-3 Years", "3-5 Years", "5-10 Years", "10-15 Years", "15+ Years"], 1):
-                    FieldOption.objects.create(profession_field=f_exp, value=exp, label=exp, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f_exp, value=exp, label=exp, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -375,7 +377,7 @@ class Command(BaseCommand):
                     "Direct & Indirect Taxation (GST / International Tax)",
                     "Valuation & Financial Advisory",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f_spec, value=spec, label=spec, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f_spec, value=spec, label=spec, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -475,7 +477,7 @@ class Command(BaseCommand):
                     "Legal Research, Statutory Documentation & Policy Analysis",
                     "Dispute Mediation & Community Lok Adalat Organizing",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f_cause, value=cause, label=cause, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f_cause, value=cause, label=cause, display_order=idx))
 
                 f_hrs = ProfessionField.objects.create(
                     profession=prof,
@@ -491,7 +493,7 @@ class Command(BaseCommand):
                     "10-20 Hours / Week (Active Associate)",
                     "Full-time Internship / Legal Fellowship",
                 ], 1):
-                    FieldOption.objects.create(profession_field=f_hrs, value=hrs, label=hrs, display_order=idx)
+                    options_to_create.append(FieldOption(profession_field=f_hrs, value=hrs, label=hrs, display_order=idx))
 
                 ProfessionField.objects.create(
                     profession=prof,
@@ -503,6 +505,9 @@ class Command(BaseCommand):
                     is_required=True,
                     display_order=50,
                 )
+
+            # Fast bulk insert for all field options
+            FieldOption.objects.bulk_create(options_to_create)
 
         self.stdout.write(self.style.SUCCESS("Clean ICJ Pathways successfully seeded!"))
         self.stdout.write(self.style.SUCCESS("  - 3 Official Wings: Legal Professional, Other Professional, Volunteer"))

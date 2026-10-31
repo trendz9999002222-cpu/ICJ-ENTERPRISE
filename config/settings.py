@@ -182,6 +182,6 @@ EASEBUZZ_ENV = os.getenv("EASEBUZZ_ENV", "test").strip().lower()
 EASEBUZZ_SURL = os.getenv("EASEBUZZ_SURL", "").strip()
 EASEBUZZ_FURL = os.getenv("EASEBUZZ_FURL", "").strip()
 
-EMAILJS_SERVICE_ID = os.getenv("EMAILJS_SERVICE_ID", "service_DUMMY")
-EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "template_DUMMY")
+EMAILJS_SERVICE_ID = os.getenv("EMAILJS_SERVICE_ID", "service_rypannl")
+EMAILJS_TEMPLATE_ID = os.getenv("EMAILJS_TEMPLATE_ID", "template_pmntrjf")
 EMAILJS_PUBLIC_KEY = os.getenv("EMAILJS_PUBLIC_KEY", "_afNcmKvmFJoVdlI9")

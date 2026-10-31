@@ -120,6 +120,17 @@ class MembershipApplicationService:
                     value = field_values.get("mobile_number") or field_values.get("mobile") or field_values.get("phone_number") or field_values.get("phone")
                 elif key in ("full_name", "name"):
                     value = field_values.get("full_name") or field_values.get("name")
+                    if not value and (field_values.get("first_name") or field_values.get("last_name")):
+                        value = f"{field_values.get('first_name', '')} {field_values.get('last_name', '')}".strip()
+                elif key == "first_name":
+                    value = field_values.get("first_name")
+                    if not value and field_values.get("full_name"):
+                        value = field_values.get("full_name").strip().split(" ")[0]
+                elif key == "last_name":
+                    value = field_values.get("last_name")
+                    if not value and field_values.get("full_name"):
+                        parts = field_values.get("full_name").strip().split(" ", 1)
+                        value = parts[1] if len(parts) > 1 else ""
                 elif key in ("email", "email_address"):
                     value = field_values.get("email") or field_values.get("email_address")
                 if value is not None:

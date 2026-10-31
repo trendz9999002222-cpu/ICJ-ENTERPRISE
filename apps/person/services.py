@@ -31,6 +31,10 @@ def resolve_person_for_application(
     email = _pick(field_values, "email", "email_id", "email_address").lower()
     mobile = _pick(field_values, "mobile", "phone", "mobile_number", "primary_mobile")
     full_name = _pick(field_values, "full_name", "name", "legal_name")
+    if not full_name:
+        fn = _pick(field_values, "first_name")
+        ln = _pick(field_values, "last_name")
+        full_name = f"{fn} {ln}".strip()
 
     if user and user.is_authenticated:
         try:
