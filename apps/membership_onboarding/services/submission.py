@@ -197,7 +197,8 @@ class MembershipApplicationService:
                 field_values=field_values,
                 declaration_accepted=True,
                 declaration_date=now,
-                status=MembershipApplication.Status.PENDING,
+                status=MembershipApplication.Status.APPROVED,
+                approved_at=now,
                 submitted_at=now,
             )
             application.save()
@@ -215,11 +216,30 @@ class MembershipApplicationService:
                     file=file,
                 )
 
+            # Members are approved by default: allocate official Membership ID and create active Membership
+            from apps.membership_onboarding.models import Membership
+            effective_form = form or get_active_membership_form()
+            membership_id = allocate_membership_id()
+            Membership.objects.create(
+                membership_id=membership_id,
+                person=person,
+                membership_type=membership_type,
+                application=application,
+                form=effective_form,
+                status=Membership.Status.ACTIVE,
+                start_date=now.date(),
+                approved_at=now,
+            )
+
             MembershipApplicationHistory.objects.create(
                 application=application,
-                action="application_submitted",
+                action="application_submitted_and_approved",
                 actor=user if getattr(user, "is_authenticated", False) else None,
-                metadata={"reference_id": reference_id},
+                metadata={
+                    "reference_id": reference_id,
+                    "membership_id": membership_id,
+                    "auto_approved": True,
+                },
             )
 
             if payment:

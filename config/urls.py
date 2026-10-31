@@ -14,6 +14,8 @@ urlpatterns = [
     path("api/v1/applications/", include("apps.accounts.urls.applications")),
     path("api/v1/admin/applications/", include("apps.accounts.urls.admin_applications")),
     path("api/v1/admin/core/", include("apps.core.urls_admin")),
+    path("api/v1/notifications/", include("apps.core.urls_notifications")),
+    path("api/v1/admin/notifications/", include("apps.core.urls_notifications")),
     path(
         "api/v1/admin/professional-onboarding/",
         include("apps.professional_onboarding.urls.admin"),

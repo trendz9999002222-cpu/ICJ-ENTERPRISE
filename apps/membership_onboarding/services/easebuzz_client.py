@@ -15,39 +15,48 @@ from apps.professional_onboarding.services.crud import ServiceError
 logger = logging.getLogger(__name__)
 
 
+def _read_env_fresh(key_name: str, default: str = "") -> str:
+    val = getattr(settings, key_name, None)
+    if val and str(val).strip() != "DUMMY":
+        return str(val).strip()
+    val = os.getenv(key_name, "")
+    if val and str(val).strip() != "DUMMY":
+        return str(val).strip()
+    try:
+        env_file = getattr(settings, "BASE_DIR", None)
+        if env_file:
+            path = env_file / ".env"
+            if path.exists():
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if line.startswith(f"{key_name}="):
+                        extracted = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if extracted:
+                            return extracted
+    except Exception:
+        pass
+    return default
+
+
 def get_easebuzz_key() -> str:
-    val = getattr(settings, "EASEBUZZ_KEY", None)
-    if val is None or val == "DUMMY":
-        val = os.getenv("EASEBUZZ_KEY", "")
-    return str(val or "").strip()
+    return _read_env_fresh("EASEBUZZ_KEY", "")
 
 
 def get_easebuzz_salt() -> str:
-    val = getattr(settings, "EASEBUZZ_SALT", None)
-    if val is None or val == "DUMMY":
-        val = os.getenv("EASEBUZZ_SALT", "")
-    return str(val or "").strip()
+    return _read_env_fresh("EASEBUZZ_SALT", "")
 
 
 def get_easebuzz_env() -> str:
-    val = getattr(settings, "EASEBUZZ_ENV", None)
-    if val is None:
-        val = os.getenv("EASEBUZZ_ENV", "test")
-    return str(val or "test").strip().lower()
+    val = _read_env_fresh("EASEBUZZ_ENV", "test").lower()
+    return val if val in ("test", "prod") else "test"
 
 
 def get_easebuzz_surl() -> str:
-    val = getattr(settings, "EASEBUZZ_SURL", None)
-    if val is None:
-        val = os.getenv("EASEBUZZ_SURL", "")
-    return str(val or "").strip()
+    return _read_env_fresh("EASEBUZZ_SURL", "")
 
 
 def get_easebuzz_furl() -> str:
-    val = getattr(settings, "EASEBUZZ_FURL", None)
-    if val is None:
-        val = os.getenv("EASEBUZZ_FURL", "")
-    return str(val or "").strip()
+    return _read_env_fresh("EASEBUZZ_FURL", "")
 
 
 def is_easebuzz_configured() -> bool:
@@ -168,6 +177,19 @@ def create_easebuzz_order(
     default_base = "https://icj.co.in" if env == "prod" else "http://localhost:3000"
     s_url = surl or get_easebuzz_surl() or f"{default_base}/membership-application/payment-success"
     f_url = furl or get_easebuzz_furl() or f"{default_base}/membership-application/payment-failure"
+
+    if key == "DUMMY" or salt == "DUMMY":
+        mock_access = f"testaccess{uuid.uuid4().hex}"
+        return {
+            "access_key": mock_access,
+            "key": key,
+            "txnid": txnid,
+            "amount": amount_str,
+            "amount_paise": amount_paise,
+            "currency": "INR",
+            "env": env,
+            "payment_url": f"{s_url}?txnid={txnid}&status=success&easepayid={mock_access}",
+        }
 
     # Calculate SHA-512 initiate hash
     req_hash = generate_initiate_hash(

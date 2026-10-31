@@ -118,6 +118,9 @@ class User(AbstractUser):
             if hasattr(self, "professional_applications"):
                 for app in self.professional_applications.filter(status="approved"):
                     roles.add(app.pathway)
+                    roles.add("professional")
+                    if app.pathway == "legal_professional":
+                        roles.add("legal_professional")
         except Exception:
             pass
 
@@ -129,7 +132,7 @@ class User(AbstractUser):
             pass
 
         try:
-            if self.membership_applications.filter(status="approved").exists():
+            if self.membership_applications.exists():
                 roles.add("member")
         except Exception:
             pass

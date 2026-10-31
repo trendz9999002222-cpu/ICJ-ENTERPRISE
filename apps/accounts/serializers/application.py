@@ -47,6 +47,23 @@ class ProfessionalApplicationDetailSerializer(serializers.ModelSerializer):
     review_history = ApplicationReviewHistorySerializer(many=True, read_only=True)
     applicant_email = serializers.EmailField(source="user.email", read_only=True)
     applicant_name = serializers.CharField(source="user.get_full_name", read_only=True)
+    applicant_phone = serializers.SerializerMethodField()
+    applicant_photo = serializers.SerializerMethodField()
+
+    def get_applicant_phone(self, obj):
+        if obj.user and obj.user.phone_number:
+            return obj.user.phone_number
+        if obj.personal_data and isinstance(obj.personal_data, dict):
+            return obj.personal_data.get("mobile") or obj.personal_data.get("phone") or ""
+        return ""
+
+    def get_applicant_photo(self, obj):
+        if obj.user and obj.user.profile_picture:
+            try:
+                return obj.user.profile_picture.url
+            except Exception:
+                return None
+        return None
 
     class Meta:
         model = ProfessionalApplication
@@ -63,6 +80,8 @@ class ProfessionalApplicationDetailSerializer(serializers.ModelSerializer):
             "info_request_note",
             "applicant_name",
             "applicant_email",
+            "applicant_phone",
+            "applicant_photo",
             "documents",
             "review_history",
             "created_at",

@@ -91,6 +91,27 @@ class ApplicationSubmitAPIView(APIView):
             app.status = ProfessionalApplication.Status.UNDER_REVIEW
             app.save(update_fields=["status"])
 
+        # Trigger notifications
+        try:
+            from apps.core.notifications import send_system_notification
+            send_system_notification(
+                title=f"Empanelment Application Lodged ({app.application_reference})",
+                message=f"Your empanelment application for {app.category} has been received and is under official scrutiny.",
+                notification_type="application",
+                scope="user",
+                recipient=user,
+                link="/dashboard/member",
+            )
+            send_system_notification(
+                title="New Empanelment Application",
+                message=f"Candidate {user.get_full_name() or user.email} submitted empanelment application ({app.application_reference}) for {app.category}.",
+                notification_type="application",
+                scope="admin",
+                link="/admin/applications",
+            )
+        except Exception:
+            pass
+
         return api_success(
             data=ProfessionalApplicationDetailSerializer(app).data,
             message="Your application has been received and is under review by the ICJ Empanelment Committee.",
@@ -216,6 +237,39 @@ class AdminApplicationReviewAPIView(APIView):
                 )
 
             app.save()
+
+        # Trigger notification to candidate
+        try:
+            from apps.core.notifications import send_system_notification
+            if decision == "approve":
+                send_system_notification(
+                    title=f"Empanelment Approved! ({app.application_reference})",
+                    message=f"Congratulations! Your empanelment application ({app.application_reference}) as {app.category} has been approved. Your professional privileges are now active.",
+                    notification_type="success",
+                    scope="user",
+                    recipient=app.user,
+                    link="/dashboard/profile",
+                )
+            elif decision == "reject":
+                send_system_notification(
+                    title=f"Empanelment Status Update ({app.application_reference})",
+                    message=f"Your empanelment application was not approved. Committee note: {note}",
+                    notification_type="error",
+                    scope="user",
+                    recipient=app.user,
+                    link="/dashboard/member",
+                )
+            elif decision == "request_info":
+                send_system_notification(
+                    title=f"Information Requested ({app.application_reference})",
+                    message=f"The scrutiny board requires additional details for your empanelment application: {note}",
+                    notification_type="warning",
+                    scope="user",
+                    recipient=app.user,
+                    link="/dashboard/member",
+                )
+        except Exception:
+            pass
 
         return api_success(
             data=ProfessionalApplicationDetailSerializer(app).data,

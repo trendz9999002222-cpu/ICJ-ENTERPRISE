@@ -78,18 +78,71 @@ class PublicJusticeServiceDetailAPIView(APIView):
 
 
 class PublicAssistanceFormConfigAPIView(APIView):
+    """
+    Public Endpoint providing dynamic form configuration configured by the Admin.
+    Combines:
+    1. Citizen / Applicant common fields from core FormFieldConfig (SEEKER_ASSISTANT).
+    2. Legal matter fields from AssistanceFormField.
+    3. Attached document specifications from AssistanceDocument.
+    """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        """Deprecated: Forms are now defined in frontend JSON schemas in src/config/forms/."""
-        return api_success(data={"citizen_fields": [], "legal_matter_fields": [], "documents": []}, message="Form config.")
+        from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig, CommonField
+        from apps.services.models import AssistanceFormField, AssistanceDocument
+        from apps.services.serializers import AssistanceFormFieldSerializer, AssistanceDocumentSerializer
+
+        # 1. Fetch Citizen Common Fields
+        configs = (
+            FormFieldConfig.objects.filter(
+                form__form_code=AdditionalOnboardingFormfields.FormCode.SEEKER_ASSISTANT,
+                is_visible=True,
+                common_field__is_active=True,
+            )
+            .select_related("common_field")
+            .order_by("display_order")
+        )
+
+        citizen_fields = []
+        for cfg in configs:
+            cf = cfg.common_field
+            if not cf:
+                continue
+            citizen_fields.append({
+                "field_key": cf.field_key,
+                "label": cfg.label_override or cf.label,
+                "field_type": cf.field_type,
+                "placeholder": cfg.placeholder_override or cf.placeholder,
+                "required": cfg.is_required,
+                "options": cf.options or [],
+                "display_order": cfg.display_order,
+                "section_name": cfg.section_name or "Applicant Identity & Contact Information",
+            })
+
+        # 2. Fetch Legal Matter Fields
+        legal_matter_fields = AssistanceFormField.objects.filter(is_active=True).order_by("display_order", "created_at")
+        legal_fields_data = AssistanceFormFieldSerializer(legal_matter_fields, many=True).data
+
+        # 3. Fetch Documents
+        docs = AssistanceDocument.objects.filter(is_active=True).order_by("display_order", "name")
+        docs_data = AssistanceDocumentSerializer(docs, many=True).data
+
+        return api_success(
+            data={
+                "citizen_fields": citizen_fields,
+                "legal_matter_fields": legal_fields_data,
+                "documents": docs_data,
+            },
+            message="Dynamic form configuration retrieved successfully.",
+        )
 
 
 class PublicAssistanceRequestAPIView(APIView):
     """
     Public Seek Assistance Intake Endpoint:
-    Captures multi-step citizen request:
-    - Personal details with DOB & automatically calculated current age.
+    Captures citizen request with:
+    - Personal details with DOB & calculated current age.
+    - Profile picture / passport photo.
     - Matter details, service category, urgency, problem description.
     - Attached documents.
     - Persists record with unique Case ID (e.g. CASE-2026-00042).
@@ -201,9 +254,33 @@ class PublicAssistanceRequestAPIView(APIView):
                     client_preferred_contact=instance.preferred_contact or "Phone",
                 )
 
-        response_data = AssistanceRequestSerializer(instance).data
-        response_data["case_id"] = instance.reference_id
-        response_data["expected_response"] = "Within 48 business hours by the ICJ Empaneled Legal Cell."
+        # ── Trigger Notifications ──────────────────────────────────────────────
+        try:
+            from apps.core.notifications import send_system_notification
+            from apps.accounts.models import User
+
+            # Admin Notification
+            send_system_notification(
+                title="New Legal Assistance Filed",
+                message=f"Case #{instance.reference_id} ({instance.category}) filed by {instance.full_name or 'Citizen'}.",
+                notification_type="assistance",
+                scope="admin",
+                link="/admin/assistance",
+            )
+
+            # User Notification if registered
+            matched_user = User.objects.filter(email=instance.email).first() if instance.email else None
+            if matched_user:
+                send_system_notification(
+                    title=f"Legal Assistance Request #{instance.reference_id}",
+                    message=f"Your request for {instance.category} has been received and assigned Case ID {instance.reference_id}. Our legal panel is reviewing it.",
+                    notification_type="assistance",
+                    scope="user",
+                    recipient=matched_user,
+                    link="/dashboard/member",
+                )
+        except Exception:
+            pass
 
         return api_success(
             data=response_data,

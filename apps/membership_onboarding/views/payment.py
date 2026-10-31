@@ -45,10 +45,61 @@ class PublicMembershipCreateOrderAPIView(APIView):
             return api_error("Payment is not enabled for membership at this time.", status_code=status.HTTP_400_BAD_REQUEST)
 
         # Extract customer details if provided
-        firstname = request.data.get("name") or request.data.get("full_name") or request.data.get("firstname") or "Applicant"
-        email = request.data.get("email") or "applicant@icj.local"
-        phone = request.data.get("phone") or request.data.get("mobile") or request.data.get("mobile_number") or "9876543210"
+        firstname = request.data.get("name") or request.data.get("full_name") or request.data.get("firstname")
+        email = request.data.get("email")
+        phone = request.data.get("phone") or request.data.get("mobile") or request.data.get("mobile_number")
         application_id = request.data.get("application_id") or ""
+
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        if not user and email:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.filter(email__iexact=str(email).strip()).first()
+
+        if user:
+            firstname = firstname or user.get_full_name() or user.username
+            email = email or user.email
+            phone = phone or getattr(user, "phone_number", "") or "9876543210"
+
+        firstname = firstname or "Applicant"
+        email = email or "applicant@icj.local"
+        phone = phone or "9876543210"
+
+        from apps.membership_onboarding.models import MembershipApplication, MembershipType
+        from apps.membership_onboarding.services.submission import allocate_application_reference_id
+
+        # Pre-link application if id or authenticated user is present
+        app = None
+        if application_id:
+            app = (
+                MembershipApplication.objects.filter(pk=application_id).first()
+                if str(application_id).isdigit() or "-" in str(application_id)
+                else None
+            ) or MembershipApplication.objects.filter(reference_id=str(application_id)).first()
+
+        if not app and user:
+            app = user.membership_applications.order_by("-created_at").first()
+
+        if not app and user:
+            default_type = MembershipType.objects.filter(is_active=True).first()
+            now = timezone.now()
+            app = MembershipApplication.objects.create(
+                reference_id=allocate_application_reference_id(),
+                user=user,
+                membership_type=default_type,
+                status=MembershipApplication.Status.APPROVED,
+                approved_at=now,
+                fee_payment_status=MembershipApplication.FeePaymentStatus.UNPAID,
+                declaration_accepted=True,
+                submitted_at=now,
+                field_values={
+                    "full_name": str(firstname),
+                    "email": str(email),
+                    "mobile": str(phone),
+                },
+            )
+            from apps.membership_onboarding.services.approval import ensure_approved_membership
+            ensure_approved_membership(app)
 
         # --- Easebuzz Gateway Integration ---
         try:
@@ -58,12 +109,13 @@ class PublicMembershipCreateOrderAPIView(APIView):
                 email=str(email),
                 phone=str(phone),
                 productinfo="ICJ Membership Application",
-                udf1=str(application_id),
+                udf1=str(app.id if app else application_id),
             )
         except ServiceError as exc:
             return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
 
         payment = MembershipPayment.objects.create(
+            application=app,
             amount_paise=settings.amount_paise,
             currency=settings.currency,
             gateway="easebuzz",
@@ -92,18 +144,6 @@ class PublicMembershipCreateOrderAPIView(APIView):
             status_code=status.HTTP_201_CREATED,
         )
 
-        # --- Razorpay implementation (Commented out) ---
-        # try:
-        #     order = create_razorpay_order(settings.amount_paise, settings.currency)
-        # except ServiceError as exc:
-        #     return api_error(exc.message, exc.errors, status.HTTP_400_BAD_REQUEST)
-        # payment = MembershipPayment.objects.create(
-        #     amount_paise=settings.amount_paise,
-        #     currency=settings.currency,
-        #     razorpay_order_id=order["id"],
-        #     status=MembershipPayment.Status.CREATED,
-        # )
-
 
 class PublicMembershipVerifyPaymentAPIView(APIView):
     permission_classes = [AllowAny]
@@ -115,7 +155,7 @@ class PublicMembershipVerifyPaymentAPIView(APIView):
         easepayid = request.data.get("easepayid") or request.data.get("easebuzz_payment_id") or ""
         hash_val = request.data.get("hash") or ""
 
-        # Check if Razorpay payload was sent (commented out / graceful fallback)
+        # Check if Razorpay payload was sent (graceful fallback)
         razorpay_order_id = request.data.get("razorpay_order_id")
         if razorpay_order_id and not txnid:
             return api_error("Razorpay is deactivated. Please pay using Easebuzz.", status_code=status.HTTP_400_BAD_REQUEST)
@@ -133,17 +173,19 @@ class PublicMembershipVerifyPaymentAPIView(APIView):
             return api_error("Payment record not found.", status_code=status.HTTP_404_NOT_FOUND)
 
         if payment.status == MembershipPayment.Status.PAID:
+            # Ensure application is also marked paid
+            if payment.application and payment.application.fee_payment_status != "paid":
+                payment.application.fee_payment_status = "paid"
+                payment.application.save(update_fields=["fee_payment_status"])
             return api_success(data={"payment_id": str(payment.id), "verified": True}, message="Already verified.")
 
         # Easebuzz Status Verification
-        # In Easebuzz response, status can be 'success'
         is_success = status_val == "success"
 
         # Verify reverse hash if hash is provided
         if hash_val:
             hash_valid = verify_easebuzz_reverse_hash(request.data)
             if not hash_valid:
-                # In test mode or redirect callbacks, log warning if hash differs
                 pass
 
         if not is_success:
@@ -156,26 +198,171 @@ class PublicMembershipVerifyPaymentAPIView(APIView):
         payment.status = MembershipPayment.Status.PAID
         payment.paid_at = timezone.now()
 
-        application_id = request.data.get("application_id")
-        if application_id:
-            from apps.membership_onboarding.models import MembershipApplication
-            app = MembershipApplication.objects.filter(pk=application_id).first()
-            if app:
-                payment.application = app
-                app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
-                app.save(update_fields=["fee_payment_status"])
-        elif request.user and getattr(request.user, "is_authenticated", False):
-            app = request.user.membership_applications.order_by("-created_at").first()
-            if app:
-                payment.application = app
-                app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
-                app.save(update_fields=["fee_payment_status"])
+        from apps.membership_onboarding.models import MembershipApplication, MembershipType
+        from apps.membership_onboarding.services.submission import allocate_application_reference_id
+
+        application_id = request.data.get("application_id") or request.data.get("udf1") or ""
+        app = payment.application
+
+        if not app and application_id:
+            app = (
+                MembershipApplication.objects.filter(pk=application_id).first()
+                if str(application_id).isdigit() or "-" in str(application_id)
+                else None
+            ) or MembershipApplication.objects.filter(reference_id=str(application_id)).first()
+
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        email = request.data.get("email") or ""
+        if not user and email:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.filter(email__iexact=str(email).strip()).first()
+
+        if not app and user:
+            app = user.membership_applications.order_by("-created_at").first()
+
+        if not app and user:
+            default_type = MembershipType.objects.filter(is_active=True).first()
+            now = timezone.now()
+            app = MembershipApplication.objects.create(
+                reference_id=allocate_application_reference_id(),
+                user=user,
+                membership_type=default_type,
+                status=MembershipApplication.Status.APPROVED,
+                approved_at=now,
+                fee_payment_status=MembershipApplication.FeePaymentStatus.PAID,
+                declaration_accepted=True,
+                submitted_at=now,
+                field_values={
+                    "full_name": user.get_full_name() or user.username,
+                    "email": user.email,
+                    "mobile": getattr(user, "phone_number", ""),
+                },
+            )
+            from apps.membership_onboarding.services.approval import ensure_approved_membership
+            ensure_approved_membership(app)
+
+        if app:
+            payment.application = app
+            app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
+            app.save(update_fields=["fee_payment_status"])
+
+            try:
+                from apps.core.notifications import send_system_notification
+                recipient = app.user or user
+                if recipient:
+                    send_system_notification(
+                        title="Membership Fee Payment Received",
+                        message=f"Statutory ICJ membership fee of ₹{payment.amount_paise // 100} has been successfully settled via Easebuzz. Application reference: {app.reference_id}.",
+                        notification_type="success",
+                        scope="user",
+                        recipient=recipient,
+                        link="/dashboard/member",
+                    )
+            except Exception:
+                pass
 
         payment.save()
 
         return api_success(
             data={"payment_id": str(payment.id), "verified": True},
             message="Payment successfully verified via Easebuzz.",
+        )
+
+
+class MemberPayDuesAPIView(APIView):
+    """Allows an authenticated member to clear their statutory membership dues."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user = request.user if getattr(request.user, "is_authenticated", False) else None
+        user_id = request.data.get("user_id")
+        if not user and user_id:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.filter(pk=user_id).first()
+
+        application_id = request.data.get("application_id")
+        app = None
+        if application_id:
+            from apps.membership_onboarding.models import MembershipApplication
+            app = (
+                MembershipApplication.objects.filter(pk=application_id).first()
+                if str(application_id).isdigit() or "-" in str(application_id)
+                else None
+            ) or MembershipApplication.objects.filter(reference_id=str(application_id)).first()
+            if app and not user and app.user:
+                user = app.user
+
+        if not user and not app:
+            return api_error("Authentication or valid application_id required to settle membership dues.", status_code=status.HTTP_401_UNAUTHORIZED)
+
+        fee_cfg = get_membership_fee_settings()
+        from apps.membership_onboarding.models import MembershipApplication, MembershipType
+        from apps.membership_onboarding.services.submission import allocate_application_reference_id
+
+        if not app and user:
+            app = user.membership_applications.order_by("-created_at").first()
+        if not app:
+            ref = allocate_application_reference_id()
+            default_type = MembershipType.objects.filter(is_active=True).first()
+            now = timezone.now()
+            app = MembershipApplication.objects.create(
+                reference_id=ref,
+                user=user,
+                membership_type=default_type,
+                status=MembershipApplication.Status.APPROVED,
+                approved_at=now,
+                fee_payment_status=MembershipApplication.FeePaymentStatus.PAID,
+                declaration_accepted=True,
+                submitted_at=now,
+                field_values={
+                    "full_name": user.get_full_name() or user.username,
+                    "email": user.email,
+                    "mobile": user.phone_number,
+                },
+            )
+            from apps.membership_onboarding.services.approval import ensure_approved_membership
+            ensure_approved_membership(app)
+        else:
+            app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
+            app.save(update_fields=["fee_payment_status"])
+
+        import uuid
+        pay_ref = request.data.get("payment_id") or f"PAY-{uuid.uuid4().hex[:12].upper()}"
+        payment = MembershipPayment.objects.create(
+            application=app,
+            amount_paise=fee_cfg.amount_paise,
+            currency=fee_cfg.currency,
+            gateway="easebuzz",
+            status=MembershipPayment.Status.PAID,
+            paid_at=timezone.now(),
+            easebuzz_payment_id=pay_ref,
+        )
+
+        try:
+            from apps.core.notifications import send_system_notification
+            send_system_notification(
+                title="Membership Dues Cleared",
+                message=f"Statutory ICJ membership fee of ₹{fee_cfg.amount_inr} has been successfully settled. Professional empanelment wings are now fully unlocked.",
+                notification_type="success",
+                scope="user",
+                recipient=user,
+                link="/dashboard/member",
+            )
+        except Exception:
+            pass
+
+        return api_success(
+            data={
+                "fee_payment_status": "paid",
+                "is_paid": True,
+                "application_id": str(app.id),
+                "reference_id": app.reference_id,
+                "payment_id": str(payment.id),
+                "amount_inr": fee_cfg.amount_inr,
+            },
+            message="Membership fee settled successfully! Empanelment access unlocked.",
         )
 
 

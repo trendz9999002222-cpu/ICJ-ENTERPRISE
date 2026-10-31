@@ -149,7 +149,7 @@ class PublicMembershipRegisterAPIView(APIView):
 
         return api_success(
             data=payload,
-            message="Membership application submitted successfully. Admin approval is required before full member access.",
+            message="Membership registered and approved successfully. Welcome to International Commission of Jurists!",
             status_code=status.HTTP_201_CREATED,
             **extra,
         )
