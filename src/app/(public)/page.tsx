@@ -43,6 +43,7 @@ import { professionalService, serviceService } from "@/services/public";
 import type { JusticeService, PublicProfessional } from "@/types/public";
 import { mockAcademyCourses, mockResearchPapers } from "@/data/public/research";
 import { mockMembershipTiers, mockSocialImpactPrograms } from "@/data/public/knowledge";
+import { mockProfessionals } from "@/data/public/professionals";
 
 export default function HomePage() {
   const router = useRouter();
@@ -64,9 +65,14 @@ export default function HomePage() {
   ]);
 
   useEffect(() => {
-    professionalService.listProfessionals({ pageSize: 4 }).then((res) => {
-      setFeaturedProfessionals(res.results || []);
-    }).catch(console.error);
+    professionalService
+      .listProfessionals({ pageSize: 4 })
+      .then((res) => {
+        setFeaturedProfessionals(res?.results || []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch featured professionals from API:", err);
+      });
   }, []);
 
   useEffect(() => {
@@ -298,7 +304,7 @@ export default function HomePage() {
               {/* Quick links */}
               <Stack direction="row" spacing={0} sx={{ flexWrap: "wrap", gap: 1.5, mb: 4 }}>
                 {[
-                  { label: "Join Membership →", href: "/membership" },
+                  { label: "Join ICJ →", href: "/join" },
                   { label: "Volunteer →", href: "/volunteer" },
                   { label: "Donate →", href: "/donate" },
                 ].map((l) => (
@@ -937,7 +943,7 @@ export default function HomePage() {
 
               <Button
                 component={Link}
-                href="/membership"
+                href="/join"
                 variant="outlined"
                 size="large"
                 sx={{

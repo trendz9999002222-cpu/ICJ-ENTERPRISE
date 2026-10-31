@@ -28,6 +28,7 @@ type AdminFieldsTableProps = {
   onDelete?: (field: GenericAdminField) => void;
   onToggleActive?: (field: GenericAdminField) => void;
   onOptions?: (field: GenericAdminField) => void;
+  onReorder?: (sourceIndex: number, destinationIndex: number) => void;
 };
 
 export default function AdminFieldsTable({
@@ -38,6 +39,7 @@ export default function AdminFieldsTable({
   onDelete,
   onToggleActive,
   onOptions,
+  onReorder,
 }: AdminFieldsTableProps) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -147,6 +149,8 @@ export default function AdminFieldsTable({
         columns={columns}
         rows={paginatedFields}
         loading={loading}
+        isDraggable={!!onReorder}
+        onRowReorder={onReorder}
         getRowKey={(f) => f.id || f.field_key}
         emptyMessage={emptyMessage}
         pagination={{

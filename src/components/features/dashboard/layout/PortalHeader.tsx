@@ -31,6 +31,8 @@ import {
   Typography,
 } from "@mui/material";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
+import NotificationBellMenu from "@/components/features/notifications/NotificationBellMenu";
+import { normalizePlatformRoles } from "@/lib/roles";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -127,12 +129,19 @@ export default function PortalHeader({
 
   const isMemberRoute = pathname.startsWith("/dashboard/member");
 
+  const allRolesNorm = normalizePlatformRoles(roles);
+  const hasMember = allRolesNorm.includes("member") || Boolean(membership);
+  const hasPro =
+    allRolesNorm.includes("professional") ||
+    professions.length > 0;
+  const hasMultipleOptions = (hasMember && hasPro) || professions.length > 0;
+
   // Determine current active display label & icon
-  let activeDisplayLabel = isMemberRoute || activeRole === "member" ? "ICJ Member" : "Professional Practice";
+  let activeDisplayLabel = isMemberRoute || activeRole === "member" ? "ICJ Member" : "Legal Professional";
   let activeDisplayIcon = isMemberRoute || activeRole === "member" ? (
     <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />
   ) : (
-    <WorkspacePremiumIcon fontSize="small" sx={{ color: "#d97706" }} />
+    <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />
   );
 
   if (isMemberRoute || activeRole === "member") {
@@ -145,13 +154,10 @@ export default function PortalHeader({
     } else {
       activeDisplayIcon = <WorkspacePremiumIcon fontSize="small" sx={{ color: "#d97706" }} />;
     }
-  } else if (activeRole === "professional" || activeRole === "advocate") {
-    activeDisplayLabel = "Professional";
+  } else if (activeRole === "professional" || activeRole === "advocate" || activeRole === "legal_professional") {
+    activeDisplayLabel = "Legal Professional";
     activeDisplayIcon = <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />;
   }
-
-  // Switcher dropdown is only active when user has registered professions to switch between
-  const hasMultipleOptions = professions.length > 0;
 
   return (
     <AppBar
@@ -268,20 +274,23 @@ export default function PortalHeader({
             <Button
               size="small"
               onClick={(e) => setSwitcherAnchor(e.currentTarget)}
-              endIcon={<ArrowDropDownIcon />}
+              endIcon={<ArrowDropDownIcon sx={{ color: isMemberRoute ? "#166534" : "#1d4ed8" }} />}
               startIcon={activeDisplayIcon}
               sx={{
-                bgcolor: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                color: "#0f172a",
+                bgcolor: isMemberRoute ? "#f0fdf4" : "#eff6ff",
+                border: isMemberRoute ? "1px solid #bbf7d0" : "1px solid #bfdbfe",
+                color: isMemberRoute ? "#166534" : "#1d4ed8",
                 fontWeight: 700,
                 fontSize: "0.8125rem",
                 textTransform: "none",
                 borderRadius: "8px",
                 px: 1.5,
                 py: 0.6,
-                maxWidth: 260,
-                "&:hover": { bgcolor: "#f1f5f9", borderColor: "#cbd5e1" },
+                maxWidth: 280,
+                "&:hover": {
+                  bgcolor: isMemberRoute ? "#dcfce7" : "#dbeafe",
+                  borderColor: isMemberRoute ? "#86efac" : "#93c5fd",
+                },
               }}
             >
               <Typography noWrap sx={{ fontSize: "0.8125rem", fontWeight: 700 }}>
@@ -315,7 +324,7 @@ export default function PortalHeader({
               <Divider />
 
               {/* SECTION: REGISTERED PROFESSIONS */}
-              {professions.length > 0 && (
+              {professions.length > 0 ? (
                 <Box>
                   <Typography
                     variant="caption"
@@ -324,7 +333,7 @@ export default function PortalHeader({
                     REGISTERED PROFESSIONS ({professions.length})
                   </Typography>
                   {professions.map((prof) => {
-                    const isSelected = !isMemberRoute && activeRole !== "member" && activeProfession?.registration_id === prof.registration_id;
+                    const isSelected = !isMemberRoute && activeRole !== "member" && (activeProfession?.registration_id === prof.registration_id || (!activeProfession && professions.length === 1));
                     const isAdv = prof.is_advocate || prof.profession_name.toLowerCase().includes("advocate") || prof.profession_name.toLowerCase().includes("lawyer");
 
                     return (
@@ -364,10 +373,41 @@ export default function PortalHeader({
                     );
                   })}
                 </Box>
-              )}
+              ) : hasPro ? (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{ px: 2, pt: 1, pb: 0.5, display: "block", color: "#94a3b8", fontWeight: 700, fontSize: "0.68rem" }}
+                  >
+                    PROFESSIONAL WING
+                  </Typography>
+                  <MenuItem
+                    selected={!isMemberRoute && activeRole !== "member"}
+                    onClick={() => {
+                      setSwitcherAnchor(null);
+                      if (onRoleChange) onRoleChange("professional");
+                      router.push("/dashboard/professional");
+                    }}
+                    sx={{ py: 1, px: 2, gap: 1.5, alignItems: "flex-start" }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 28, mt: 0.3 }}>
+                      <GavelIcon fontSize="small" sx={{ color: "#2563eb" }} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Legal Professional Dashboard"
+                      secondary="Practice, Leads & Empanelment"
+                      slotProps={{
+                        primary: { sx: { fontSize: "0.85rem", fontWeight: (!isMemberRoute && activeRole !== "member") ? 800 : 600, color: "#0f172a" } },
+                        secondary: { sx: { fontSize: "0.7rem", color: "#64748b" } },
+                      }}
+                    />
+                    {!isMemberRoute && activeRole !== "member" && <CheckIcon fontSize="small" color="primary" sx={{ mt: 0.5 }} />}
+                  </MenuItem>
+                </Box>
+              ) : null}
 
               {/* SECTION: MEMBERSHIP */}
-              {membership && (
+              {(hasMember || membership) && (
                 <Box>
                   <Divider sx={{ my: 0.5 }} />
                   <Typography
@@ -377,7 +417,7 @@ export default function PortalHeader({
                     MEMBERSHIP
                   </Typography>
                   <MenuItem
-                    selected={isMemberRoute || (activeRole === "member" && !activeProfession)}
+                    selected={isMemberRoute || activeRole === "member"}
                     onClick={() => {
                       if (onRoleChange) onRoleChange("member");
                       setSwitcherAnchor(null);
@@ -389,18 +429,20 @@ export default function PortalHeader({
                       <CardMembershipIcon fontSize="small" sx={{ color: "#16a34a" }} />
                     </ListItemIcon>
                     <ListItemText
-                      primary={`${membership.membership_type || "Standard"} Member`}
+                      primary={`${membership?.membership_type || "Standard"} Member Dashboard`}
                       secondary={
-                        membership.membership_id
+                        membership?.membership_id
                           ? `ID: ${membership.membership_id}`
-                          : `App: ${membership.reference_id}`
+                          : membership?.reference_id
+                            ? `App: ${membership.reference_id}`
+                            : "General Membership"
                       }
                       slotProps={{
                         primary: { sx: { fontSize: "0.85rem", fontWeight: (isMemberRoute || activeRole === "member") ? 800 : 600 } },
                         secondary: { sx: { fontSize: "0.7rem", color: "#64748b" } },
                       }}
                     />
-                    {(isMemberRoute || (activeRole === "member" && !activeProfession)) && (
+                    {(isMemberRoute || activeRole === "member") && (
                       <CheckIcon fontSize="small" color="success" />
                     )}
                   </MenuItem>
@@ -410,14 +452,8 @@ export default function PortalHeader({
           </Box>
         )}
 
-        {/* Notifications */}
-        <Tooltip title="Notifications">
-          <IconButton size="small" sx={{ color: "#64748b" }}>
-            <Badge badgeContent={1} color="error" variant="dot">
-              <NotificationsOutlinedIcon fontSize="small" />
-            </Badge>
-          </IconButton>
-        </Tooltip>
+        {/* Live Notification Bell */}
+        <NotificationBellMenu isAdmin={false} />
 
         {/* User Identity Chip */}
         <Stack

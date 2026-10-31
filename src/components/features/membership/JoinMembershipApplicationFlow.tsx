@@ -356,11 +356,11 @@ export default function JoinMembershipApplicationFlow() {
         easebuzzLoaded = false;
       }
 
-      if (easebuzzLoaded && order.access_key) {
+      if (easebuzzLoaded && order.access_key && /^[a-z0-9]+$/i.test(order.access_key)) {
         // Open Easebuzz modal popup
         await new Promise<void>((resolve, reject) => {
           try {
-            const easebuzz = new window.EasebuzzCheckout(order.key, order.env || "test");
+            const easebuzz = new window.EasebuzzCheckout(order.key || "P2OTPKQ5X", order.env || "test");
             const options = {
               access_key: order.access_key,
               onResponse: async (response: any) => {
@@ -471,7 +471,7 @@ export default function JoinMembershipApplicationFlow() {
     setRedirecting(false);
     setErrors({
       submit:
-        "Application submitted. Please log in with your email to open the member dashboard.",
+        "Membership approved! Please log in with your email to open your member dashboard.",
     });
   };
 

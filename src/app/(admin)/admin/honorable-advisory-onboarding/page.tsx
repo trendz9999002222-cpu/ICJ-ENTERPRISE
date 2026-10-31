@@ -90,6 +90,35 @@ export default function AdminHonorableAdvisoryPage() {
     }
   };
 
+  const handleReorderField = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const nextFields = [...fields];
+    const [moved] = nextFields.splice(sourceIndex, 1);
+    nextFields.splice(destinationIndex, 0, moved);
+    setFields(nextFields);
+
+    const t = token();
+    if (!t) return;
+    try {
+      await Promise.all(
+        nextFields.map((f, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (f.display_order !== newOrder) {
+            return apiClient(`${ADMIN_BASE}/form-fields/`, {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${t}` },
+              body: { id: f.id, display_order: newOrder },
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      load();
+    } catch {
+      setError("Could not update field order.");
+    }
+  };
+
   const activePreviewFields = fields.filter((f) => f.is_active !== false);
   const paginatedFields = fields.slice(fieldPage * fieldRowsPerPage, fieldPage * fieldRowsPerPage + fieldRowsPerPage);
 
@@ -105,7 +134,7 @@ export default function AdminHonorableAdvisoryPage() {
         <Box>
           <AdditionalFieldsManager
             title="Additional Fields"
-            description="Common fields are currently used for onboarding. Manage additional fields for the application form here."
+            description="Common fields are currently used for onboarding. Manage additional fields for the application form here. Drag rows using the ⠿ handle to reorder."
             fields={fields.map(f => ({
               id: f.id!,
               label: f.label,
@@ -119,6 +148,7 @@ export default function AdminHonorableAdvisoryPage() {
             loading={loading}
             onSaveField={handleSaveField}
             onToggleActive={(f) => handleToggleActive(f.original)}
+            onReorderField={handleReorderField}
           />
         </Box>
       </Paper>

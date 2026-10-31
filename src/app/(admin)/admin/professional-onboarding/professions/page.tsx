@@ -237,6 +237,35 @@ function ProfessionsPageContent() {
     }
   };
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextRows = [...rows];
+    const [moved] = nextRows.splice(actualSource, 1);
+    nextRows.splice(actualDest, 0, moved);
+    setRows(nextRows);
+
+    try {
+      await Promise.all(
+        nextRows.map((p, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (p.display_order !== newOrder) {
+            return professionalOnboardingService.updateProfession(p.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Roles display order updated.");
+      load();
+    } catch (err) {
+      setToastMsg("Failed to update role order.");
+    }
+  };
+
   const columns: AdminTableColumn<OnboardingProfession>[] = [
     {
       key: "name",
@@ -328,6 +357,8 @@ function ProfessionsPageContent() {
         rows={rows}
         loading={loading}
         error={error}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         searchValue={search}
         onSearchChange={(v) => {
           setSearch(v);

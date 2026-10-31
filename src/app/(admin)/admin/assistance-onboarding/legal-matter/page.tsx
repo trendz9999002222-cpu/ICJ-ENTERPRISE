@@ -90,6 +90,32 @@ export default function SeekAssistanceLegalMatterPage() {
     }
   };
 
+  const handleReorderField = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const nextFields = [...fields];
+    const [moved] = nextFields.splice(sourceIndex, 1);
+    nextFields.splice(destinationIndex, 0, moved);
+    setFields(nextFields);
+
+    try {
+      await Promise.all(
+        nextFields.map((f, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (f.display_order !== newOrder) {
+            return assistanceOnboardingAdminService.updateField(f.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setSuccessMessage("Fields reordered successfully.");
+      await loadFields();
+    } catch {
+      setError("Failed to reorder fields.");
+    }
+  };
+
   return (
     <AdminPageShell
       title="Legal Matter Information"
@@ -103,7 +129,7 @@ export default function SeekAssistanceLegalMatterPage() {
 
       <AdditionalFieldsManager
         title="Legal Matter Information Fields"
-        description="Manage specific legal fields including category options, urgency classification, and problem description."
+        description="Manage specific legal fields including category options, urgency classification, and problem description. Drag rows using the ⠿ handle to reorder."
         fields={fields.map((f) => ({
           id: f.id,
           label: f.label,
@@ -119,6 +145,7 @@ export default function SeekAssistanceLegalMatterPage() {
         onSaveField={handleSaveField}
         onToggleActive={handleToggleActive}
         onDeleteField={handleDeleteField}
+        onReorderField={handleReorderField}
       />
 
       <Snackbar

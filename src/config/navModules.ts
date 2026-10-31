@@ -16,7 +16,6 @@ export type NavModule = {
 
 export const NAV_DIRECT_LINKS: NavLink[] = [
   { label: "Home", href: "/" },
-  { label: "ICJ Membership Tiers", href: "/membership" },
   { label: "Contact & State Desks", href: "/contact" },
 ];
 

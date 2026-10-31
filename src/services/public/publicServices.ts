@@ -58,14 +58,31 @@ export const serviceService = {
 
       const qs = q.toString();
       const path = `${API_ENDPOINTS.publicServices.list}${qs ? `?${qs}` : ""}`;
-      const res = await apiClient<{ data: { results: any[]; count: number; next: string | null; previous: string | null } }>(path, {
+      const res = await apiClient<any>(path, {
         suppressErrorLog: true,
       });
+
+      const raw = res?.data ?? res;
+      let items: any[] = [];
+      let count = 0;
+      let next: string | null = null;
+      let previous: string | null = null;
+
+      if (Array.isArray(raw)) {
+        items = raw;
+        count = raw.length;
+      } else if (raw && Array.isArray(raw.results)) {
+        items = raw.results;
+        count = typeof raw.count === "number" ? raw.count : raw.results.length;
+        next = raw.next ?? null;
+        previous = raw.previous ?? null;
+      }
+
       return {
-        count: res.data.count,
-        next: res.data.next,
-        previous: res.data.previous,
-        results: res.data.results.map(mapBackendService),
+        count,
+        next,
+        previous,
+        results: items.map(mapBackendService),
       };
     } catch (error) {
       console.error("Failed to fetch services:", error);
@@ -76,8 +93,9 @@ export const serviceService = {
   getServiceBySlug: async (slug: string): Promise<JusticeService | null> => {
     try {
       const path = API_ENDPOINTS.publicServices.detail(slug);
-      const res = await apiClient<{ data: any }>(path, { suppressErrorLog: true });
-      return mapBackendService(res.data);
+      const res = await apiClient<any>(path, { suppressErrorLog: true });
+      const raw = res?.data ?? res;
+      return raw ? mapBackendService(raw) : null;
     } catch (error) {
       console.error("Failed to fetch service by slug:", error);
       return null;
@@ -87,8 +105,9 @@ export const serviceService = {
   getFeaturedServices: async (): Promise<JusticeService[]> => {
     try {
       const path = API_ENDPOINTS.publicServices.featured;
-      const res = await apiClient<{ data: any[] }>(path, { suppressErrorLog: true });
-      return res.data.map(mapBackendService);
+      const res = await apiClient<any>(path, { suppressErrorLog: true });
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      return list.map(mapBackendService);
     } catch (error) {
       console.error("Failed to fetch featured services:", error);
       return [];
@@ -98,8 +117,9 @@ export const serviceService = {
   getCategories: async (): Promise<{ label: string; value: string }[]> => {
     try {
       const path = API_ENDPOINTS.publicServices.categories;
-      const res = await apiClient<{ data: any[] }>(path, { suppressErrorLog: true });
-      return [{ label: "All Services", value: "all" }, ...res.data.map((c) => ({ label: c.name, value: c.value }))];
+      const res = await apiClient<any>(path, { suppressErrorLog: true });
+      const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+      return [{ label: "All Services", value: "all" }, ...list.map((c: any) => ({ label: c.name ?? c.label, value: c.value ?? c.slug }))];
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       return [
@@ -229,12 +249,21 @@ export const professionalService = {
         suppressErrorLog: true,
       });
 
-      const apiResults = (res.data?.results || []).map(mapBackendToPublicProfessional);
+      if (res && res.data && Array.isArray(res.data.results)) {
+        const apiResults = res.data.results.map(mapBackendToPublicProfessional);
+        return {
+          count: typeof res.data.count === "number" ? res.data.count : apiResults.length,
+          next: res.data.next || null,
+          previous: res.data.previous || null,
+          results: apiResults,
+        };
+      }
+
       return {
-        count: res.data?.count || 0,
-        next: res.data?.next || null,
-        previous: res.data?.previous || null,
-        results: apiResults,
+        count: 0,
+        next: null,
+        previous: null,
+        results: [],
       };
     } catch (error) {
       console.error("Failed to fetch professionals from API:", error);
@@ -254,11 +283,10 @@ export const professionalService = {
       if (res?.data) {
         return mapBackendToPublicProfessional(res.data);
       }
-      return null;
     } catch (error) {
       console.error("Failed to fetch professional by ID from API:", error);
-      return null;
     }
+    return null;
   },
 
   getProfessionalsFilters: async (): Promise<{
@@ -278,15 +306,20 @@ export const professionalService = {
           cities: string[];
         };
       }>(path, { suppressErrorLog: true });
-      if (res?.data) {
+      if (res?.data && res.data.categories) {
         return res.data;
       }
     } catch (error) {
       console.error("Failed to fetch professional filters from API:", error);
     }
     return {
+      categories: [
+        { label: "All Categories", value: "all" },
+        { label: "Legal Professional Wing", value: "Legal Professional Wing" },
+        { label: "Other Professional Wing", value: "Other Professional Wing" },
+        { label: "Volunteer & Para-Legal Wing", value: "Volunteer & Para-Legal Wing" },
+      ],
       professions: [{ label: "All Practitioners", value: "all" }],
-      categories: [{ label: "All Categories", value: "all" }],
       states: ["All States"],
       cities: ["All Cities"],
     };

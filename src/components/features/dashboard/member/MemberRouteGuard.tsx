@@ -58,8 +58,8 @@ export default function MemberRouteGuard({ children }: { children: React.ReactNo
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         const membership = json?.data?.membership ?? json?.membership;
-        const approved =
-          membership?.status === "approved" || membership?.is_approved === true;
+        const isRejected = membership?.status === "rejected";
+        const approved = !isRejected;
 
         if (!approved && !allowedPath) {
           router.replace("/dashboard/member");

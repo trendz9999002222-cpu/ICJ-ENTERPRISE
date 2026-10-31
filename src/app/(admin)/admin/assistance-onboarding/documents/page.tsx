@@ -169,6 +169,35 @@ export default function SeekAssistanceDocumentsPage() {
     }
   };
 
+  const handleReorderDocuments = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextDocs = [...documents];
+    const [moved] = nextDocs.splice(actualSource, 1);
+    nextDocs.splice(actualDest, 0, moved);
+    setDocuments(nextDocs);
+
+    try {
+      await Promise.all(
+        nextDocs.map((d, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (d.display_order !== newOrder) {
+            return assistanceOnboardingAdminService.updateDocument(d.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setSuccessMessage("Documents reordered successfully.");
+      await loadDocuments();
+    } catch {
+      setError("Failed to reorder documents.");
+    }
+  };
+
   const columns: AdminTableColumn<AssistanceDocument>[] = [
     {
       key: "display_order",
@@ -309,6 +338,8 @@ export default function SeekAssistanceDocumentsPage() {
         columns={columns}
         rows={filteredDocuments.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)}
         loading={loading}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorderDocuments}
         searchValue={search}
         searchPlaceholder="Search documents by name, key, format..."
         onSearchChange={(v) => {

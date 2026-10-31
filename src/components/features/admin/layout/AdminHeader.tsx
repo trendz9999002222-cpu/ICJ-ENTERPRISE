@@ -21,6 +21,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { env } from "@/config/env";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
+import NotificationBellMenu from "@/components/features/notifications/NotificationBellMenu";
 
 // ---------------------------------------------------------------------------
 // Build breadcrumbs from the current URL path
@@ -43,7 +44,10 @@ const LABEL_MAP: Record<string, string> = {
   events: "Events",
   memberships: "Memberships",
   professionals: "Professionals",
-  "form-builder": "Membership Onboarding",
+  "professional-onboarding": "Member & Professional Onboarding",
+  categories: "Wings (Categories)",
+  "profession-fields": "Wing Fields",
+  "form-builder": "Form Builder",
   applications: "Applications",
   grievances: "Grievances",
   notifications: "Notifications",
@@ -182,20 +186,8 @@ export default function AdminHeader({ onMenuClick }: Props) {
 
         {/* Right-side actions */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          {/* Notifications */}
-          <Tooltip title="Notifications">
-            <IconButton
-              size="small"
-              sx={{ color: "#64748b" }}
-              component={Link}
-              href="/admin/notifications"
-              aria-label="notifications"
-            >
-              <Badge badgeContent={3} color="error">
-                <NotificationsOutlinedIcon fontSize="small" />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+          {/* Enterprise Live Notifications */}
+          <NotificationBellMenu isAdmin={true} />
 
           {/* User chip */}
           <Chip

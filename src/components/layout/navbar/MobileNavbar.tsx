@@ -433,6 +433,26 @@ export default function MobileNavbar() {
             >
               Find Empaneled Jurists
             </Button>
+
+            <Button
+              component={Link}
+              href="/join"
+              onClick={() => setDrawerOpen(false)}
+              variant="outlined"
+              fullWidth
+              sx={{
+                borderColor: "#b45309",
+                color: "#b45309",
+                fontWeight: 700,
+                fontSize: "0.875rem",
+                textTransform: "none",
+                py: 1.1,
+                borderRadius: 2,
+                "&:hover": { bgcolor: "#fffbeb", borderColor: "#92400e" },
+              }}
+            >
+              Join ICJ
+            </Button>
           </Stack>
 
           {/* Direct Main Links */}

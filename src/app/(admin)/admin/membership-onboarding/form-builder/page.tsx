@@ -222,6 +222,31 @@ export default function MembershipFormBuilderPage() {
     return true;
   };
 
+  const handleReorderField = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const allFields = steps.flatMap(s => fieldsByStep[s.id] || []);
+    const nextFields = [...allFields];
+    const [moved] = nextFields.splice(sourceIndex, 1);
+    nextFields.splice(destinationIndex, 0, moved);
+
+    try {
+      await Promise.all(
+        nextFields.map((f, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (f.display_order !== newOrder) {
+            return membershipOnboardingAdminService.updateStepField(f.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      await loadSteps();
+    } catch {
+      // error handled silently or on reload
+    }
+  };
+
   return (
     <AdminPageShell
       title="Additional Fields"
@@ -235,7 +260,7 @@ export default function MembershipFormBuilderPage() {
           <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
             <AdditionalFieldsManager
               title="Additional Fields"
-              description="Common fields are currently used for onboarding. You can add additional fields here."
+              description="Common fields are currently used for onboarding. You can add and drag & drop reorder additional fields here."
               fields={steps.flatMap(s => fieldsByStep[s.id] || []).map((f) => ({
                 id: f.id,
                 label: f.label,
@@ -256,6 +281,7 @@ export default function MembershipFormBuilderPage() {
                   .then(loadSteps)
               }
               onAddClickHook={handleAddClickHook}
+              onReorderField={handleReorderField}
             />
           </Paper>
         </Box>

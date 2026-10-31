@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function Page() {
-  redirect("/admin/professional-onboarding/common-fields");
+  redirect("/admin/professional-onboarding/categories");
 }

@@ -57,7 +57,6 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard/admin", icon: <DashboardIcon fontSize="small" /> },
   { label: "Users", href: "/admin/users", icon: <PeopleAltIcon fontSize="small" />, section: "People" },
-  { label: "Professionals", href: "/admin/professionals", icon: <GavelIcon fontSize="small" /> },
   { label: "Memberships", href: "/admin/memberships", icon: <CardMembershipIcon fontSize="small" /> },
   { label: "Honorable Advisory", href: "/admin/honorable-advisory-members", icon: <PeopleAltIcon fontSize="small" /> },
   { label: "Documents", href: "/admin/documents", icon: <DescriptionIcon fontSize="small" />, section: "Legal" },
@@ -77,14 +76,9 @@ const NAV_ITEMS: NavItem[] = [
     section: "Onboarding",
   },
   {
-    label: "Professional Onboarding",
-    href: "/admin/professional-onboarding/common-fields",
+    label: "Member & Professional Onboarding",
+    href: "/admin/professional-onboarding/categories",
     icon: <LibraryBooksIcon fontSize="small" />,
-  },
-  {
-    label: "Membership Onboarding",
-    href: "/admin/membership-onboarding/common-fields",
-    icon: <BallotOutlinedIcon fontSize="small" />,
   },
   {
     label: "Honorable Advisory Onboarding",
@@ -132,15 +126,6 @@ function isNavItemActive(pathname: string, href: string): boolean {
       Boolean(pathname.match(/^\/admin\/membership-onboarding\/[0-9a-f-]{36}/i))
     );
   }
-  if (href === "/admin/membership-onboarding/common-fields") {
-    if (
-      pathname.startsWith("/admin/membership-onboarding/applications") ||
-      Boolean(pathname.match(/^\/admin\/membership-onboarding\/[0-9a-f-]{36}/i))
-    ) {
-      return false;
-    }
-    return pathname.startsWith("/admin/membership-onboarding");
-  }
   if (href === "/admin/professionals") {
     return (
       pathname === "/admin/professionals" ||
@@ -149,14 +134,20 @@ function isNavItemActive(pathname: string, href: string): boolean {
       Boolean(pathname.match(/^\/admin\/professional-onboarding\/[0-9a-f-]{36}/i))
     );
   }
-  if (href === "/admin/professional-onboarding/common-fields") {
+  if (
+    href === "/admin/professional-onboarding/categories" ||
+    href === "/admin/professional-onboarding/common-fields"
+  ) {
     if (
       pathname.startsWith("/admin/professional-onboarding/registrations") ||
       Boolean(pathname.match(/^\/admin\/professional-onboarding\/[0-9a-f-]{36}/i))
     ) {
       return false;
     }
-    return pathname.startsWith("/admin/professional-onboarding");
+    return (
+      pathname.startsWith("/admin/professional-onboarding") ||
+      pathname.startsWith("/admin/membership-onboarding")
+    );
   }
   if (href === "/admin/honorable-advisory-members") {
     return (

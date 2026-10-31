@@ -31,7 +31,7 @@ export default function AboutPage() {
         title="International Consortium of Jurists"
         subtitle="An independent global alliance of jurists, advocates, academics, and dispute resolution specialists dedicated to the rule of law, legal literacy, and universal access to justice."
         breadcrumbs={[{ label: "About ICJ" }]}
-        primaryAction={{ label: "Join the Consortium to get Membership", href: "/membership" }}
+        primaryAction={{ label: "Join the Consortium", href: "/join" }}
         secondaryAction={{ label: "View Honorable Advisory Board", href: "#governance" }}
       />
 

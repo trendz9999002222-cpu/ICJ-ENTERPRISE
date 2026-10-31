@@ -1,6 +1,7 @@
 "use client";
 
 import SearchIcon from "@mui/icons-material/Search";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import {
   Box,
   InputAdornment,
@@ -14,6 +15,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { useEffect, useState, type ReactNode } from "react";
@@ -61,6 +63,9 @@ type Props<T> = {
   /** Prepends a serial number column (respects pagination offset) */
   showSerialNumber?: boolean;
   serialLabel?: string;
+  /** Enables drag-and-drop row reordering */
+  isDraggable?: boolean;
+  onRowReorder?: (sourceIndex: number, destinationIndex: number) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -111,12 +116,16 @@ export default function AdminDataTable<T>({
   pagination,
   showSerialNumber = false,
   serialLabel = "S.No.",
+  isDraggable = false,
+  onRowReorder,
 }: Props<T>) {
   const isControlled = typeof pagination === "object" && pagination !== null;
   const isPaginationEnabled = pagination !== false;
 
   const [internalPage, setInternalPage] = useState(0);
   const [internalRowsPerPage, setInternalRowsPerPage] = useState(10);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
 
   // Reset internal page when rows length changes or search changes
   useEffect(() => {
@@ -159,7 +168,7 @@ export default function AdminDataTable<T>({
           activePage * activeRowsPerPage + activeRowsPerPage
         );
 
-  const colCount = columns.length + (showSerialNumber ? 1 : 0);
+  const colCount = columns.length + (showSerialNumber ? 1 : 0) + (isDraggable ? 1 : 0);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -218,6 +227,27 @@ export default function AdminDataTable<T>({
           <Table size="small" sx={{ minWidth: columns.reduce((a, c) => a + (c.minWidth ?? 120), 0) }}>
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                {isDraggable && (
+                  <TableCell
+                    align="center"
+                    sx={{
+                      width: 44,
+                      minWidth: 44,
+                      maxWidth: 44,
+                      fontWeight: 700,
+                      color: "#94a3b8",
+                      fontSize: "0.7rem",
+                      borderBottom: "1px solid #e2e8f0",
+                      py: 1.5,
+                      px: 0.5,
+                      bgcolor: "#f8fafc",
+                    }}
+                  >
+                    <Tooltip title="Drag & Drop row to reorder">
+                      <DragIndicatorIcon sx={{ fontSize: 18, verticalAlign: "middle" }} />
+                    </Tooltip>
+                  </TableCell>
+                )}
                 {showSerialNumber && (
                   <TableCell
                     align="center"
@@ -275,13 +305,78 @@ export default function AdminDataTable<T>({
                 (displayedRows || []).map((row, rowIndex) => (
                   <TableRow
                     key={typeof getRowKey === "function" ? getRowKey(row) : ((row as any)?.id || rowIndex)}
+                    draggable={isDraggable}
+                    onDragStart={(e) => {
+                      if (!isDraggable) return;
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", String(rowIndex));
+                      setDraggedIndex(rowIndex);
+                    }}
+                    onDragOver={(e) => {
+                      if (!isDraggable) return;
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (overIndex !== rowIndex) {
+                        setOverIndex(rowIndex);
+                      }
+                    }}
+                    onDragLeave={(e) => {
+                      if (!isDraggable) return;
+                      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+                      if (overIndex === rowIndex) {
+                        setOverIndex(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      if (!isDraggable) return;
+                      e.preventDefault();
+                      const srcStr = e.dataTransfer.getData("text/plain");
+                      const src = parseInt(srcStr, 10);
+                      if (!isNaN(src) && src !== rowIndex && onRowReorder) {
+                        onRowReorder(src, rowIndex);
+                      }
+                      setDraggedIndex(null);
+                      setOverIndex(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setOverIndex(null);
+                    }}
                     hover
                     sx={{
+                      cursor: isDraggable ? "grab" : "default",
+                      opacity: draggedIndex === rowIndex ? 0.35 : 1,
+                      borderTop: overIndex === rowIndex && draggedIndex !== rowIndex ? "3px solid #0f2942 !important" : undefined,
+                      bgcolor: overIndex === rowIndex && draggedIndex !== rowIndex ? "rgba(15, 41, 66, 0.05)" : undefined,
+                      transition: "background 0.15s ease, opacity 0.15s ease",
                       "&:last-child td": { borderBottom: 0 },
-                      "&:hover": { bgcolor: "#f8fafc" },
-                      transition: "background 0.1s ease",
+                      "&:hover": { bgcolor: isDraggable ? "rgba(15, 41, 66, 0.03)" : "#f8fafc" },
                     }}
                   >
+                    {isDraggable && (
+                      <TableCell
+                        align="center"
+                        sx={{
+                          width: 44,
+                          minWidth: 44,
+                          maxWidth: 44,
+                          p: 0,
+                          color: "#94a3b8",
+                          cursor: "grab",
+                          "&:active": { cursor: "grabbing" },
+                          userSelect: "none",
+                        }}
+                      >
+                        <DragIndicatorIcon
+                          sx={{
+                            fontSize: 18,
+                            color: "#94a3b8",
+                            "&:hover": { color: "#0f2942" },
+                            verticalAlign: "middle",
+                          }}
+                        />
+                      </TableCell>
+                    )}
                     {showSerialNumber && (
                       <TableCell
                         align="center"

@@ -1,7 +1,7 @@
 /** ICJ platform roles exposed in UI and JWT (after normalization). */
 export type PlatformRole = "admin" | "professional" | "member";
 
-const LEGACY_PROFESSIONAL = new Set(["advocate", "client", "professional"]);
+const LEGACY_PROFESSIONAL = new Set(["advocate", "client", "professional", "legal_professional"]);
 const LEGACY_ADMIN = new Set(["super_admin", "admin"]);
 
 export function normalizePlatformRole(role: string | null | undefined): PlatformRole | null {

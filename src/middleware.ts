@@ -13,8 +13,27 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   }
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ── Handle Easebuzz gateway POST return callbacks ──────────────────────────
+  if (
+    request.method === "POST" &&
+    (pathname === "/membership-application/payment-success" ||
+      pathname === "/membership-application/payment-failure")
+  ) {
+    try {
+      const formData = await request.formData();
+      const targetUrl = new URL(pathname, request.url);
+      formData.forEach((val, key) => {
+        targetUrl.searchParams.set(key, String(val));
+      });
+      return NextResponse.redirect(targetUrl, { status: 303 });
+    } catch {
+      return NextResponse.redirect(new URL(pathname, request.url), { status: 303 });
+    }
+  }
+
   const token = request.cookies.get("icj_access_token")?.value;
 
   // ── Public paths — no auth needed ─────────────────────────────────────────
@@ -22,6 +41,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/join") ||
     pathname.startsWith("/recovery") ||
+    pathname.startsWith("/membership-application") ||
     pathname === "/"
   ) {
     return NextResponse.next();
@@ -56,5 +76,9 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/dashboard/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/dashboard/:path*",
+    "/membership-application/:path*",
+  ],
 };

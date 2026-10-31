@@ -22,8 +22,6 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-
-import AnimatedHighlightBorder from "@/components/ui/AnimatedHighlightBorder";
 import { NAV_MODULES, NAV_VERIFICATION_LINKS } from "@/config/navModules";
 import { CATEGORY_CONFIG, SearchEntry, searchContent } from "@/data/public/searchIndex";
 
@@ -201,31 +199,6 @@ export default function MainNavBar() {
                 </Button>
               );
             })}
-
-            {/* MEMBERSHIP — direct link (animated highlight border) */}
-            <AnimatedHighlightBorder borderRadius={6} innerBg="#0f2942" padding={2}>
-              <Button
-                component={Link}
-                href="/membership"
-                sx={{
-                  ...NAV_BTN_BASE,
-                  borderBottom: "3px solid transparent",
-                  borderRadius: 1,
-                  color: "#ffffff",
-                  bgcolor: pathname.startsWith("/membership") ? "rgba(37, 99, 235, 0.22)" : "rgba(255,255,255,0.06)",
-                  "&:hover": {
-                    color: "#ffffff",
-                    bgcolor: "rgba(37, 99, 235, 0.28)",
-                    borderBottom: "3px solid transparent",
-                  },
-                  ...(pathname.startsWith("/membership")
-                    ? { ...NAV_BTN_ACTIVE, borderBottom: "3px solid transparent" }
-                    : {}),
-                }}
-              >
-                Membership
-              </Button>
-            </AnimatedHighlightBorder>
 
             {/* CONTACT — direct link */}
             <Button

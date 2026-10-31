@@ -213,6 +213,35 @@ function GroupsPageContent() {
     }
   };
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextRows = [...rows];
+    const [moved] = nextRows.splice(actualSource, 1);
+    nextRows.splice(actualDest, 0, moved);
+    setRows(nextRows);
+
+    try {
+      await Promise.all(
+        nextRows.map((g, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (g.display_order !== newOrder) {
+            return professionalOnboardingService.updateGroup(g.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Groups order updated.");
+      load();
+    } catch (err) {
+      setToastMsg("Failed to update group order.");
+    }
+  };
+
   const columns: AdminTableColumn<OnboardingGroup>[] = [
     {
       key: "name",
@@ -288,6 +317,8 @@ function GroupsPageContent() {
         rows={rows}
         loading={loading}
         error={error}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         searchValue={search}
         onSearchChange={(v) => {
           setSearch(v);

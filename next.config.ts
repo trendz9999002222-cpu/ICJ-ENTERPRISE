@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
   images: {
     qualities: [75, 90, 95],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/media/:path*",
+        destination: "http://127.0.0.1:8000/media/:path*",
+      },
+    ];
+  },
   async redirects() {
     return [
       {

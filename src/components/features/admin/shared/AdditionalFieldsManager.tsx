@@ -17,6 +17,7 @@ interface AdditionalFieldsManagerProps {
   onToggleActive?: (field: GenericAdminField) => Promise<void>;
   onOptions?: (field: GenericAdminField) => void;
   onAddClickHook?: () => Promise<boolean | void>; // If it returns false, adding is aborted
+  onReorderField?: (sourceIndex: number, destinationIndex: number) => Promise<void> | void;
 }
 
 export default function AdditionalFieldsManager({
@@ -31,6 +32,7 @@ export default function AdditionalFieldsManager({
   onToggleActive,
   onOptions,
   onAddClickHook,
+  onReorderField,
 }: AdditionalFieldsManagerProps) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,6 +102,7 @@ export default function AdditionalFieldsManager({
         onDelete={onDeleteField}
         onToggleActive={onToggleActive}
         onOptions={onOptions}
+        onReorder={onReorderField}
       />
 
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">

@@ -202,6 +202,35 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextRows = [...rows];
+    const [moved] = nextRows.splice(actualSource, 1);
+    nextRows.splice(actualDest, 0, moved);
+    setRows(nextRows);
+
+    try {
+      await Promise.all(
+        nextRows.map((cat, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (cat.display_order !== newOrder) {
+            return professionalOnboardingService.updateCategory(cat.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Wings display order updated.");
+      load();
+    } catch (err) {
+      setToastMsg("Failed to reorder wings.");
+    }
+  };
+
   const columns: AdminTableColumn<OnboardingCategory>[] = [
     {
       key: "name",
@@ -296,6 +325,8 @@ export default function CategoriesPage() {
         rows={rows}
         loading={loading}
         error={error}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         searchValue={search}
         onSearchChange={(v) => {
           setSearch(v);

@@ -55,6 +55,34 @@ export default function AdminServiceCategoriesPage() {
     }
   };
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * pageSize + sourceIndex;
+    const actualDest = page * pageSize + destinationIndex;
+
+    const nextCats = [...categories];
+    const [moved] = nextCats.splice(actualSource, 1);
+    nextCats.splice(actualDest, 0, moved);
+    setCategories(nextCats);
+
+    try {
+      await Promise.all(
+        nextCats.map((c, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (c.display_order !== newOrder) {
+            return adminServicesService.updateCategory(c.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      loadData();
+    } catch (err) {
+      console.error("Failed to reorder categories", err);
+    }
+  };
+
   const columns: AdminTableColumn<AdminServiceCategory>[] = [
     {
       key: "name",
@@ -127,6 +155,8 @@ export default function AdminServiceCategoriesPage() {
         columns={columns}
         rows={categories}
         loading={loading}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         getRowKey={(r) => r.id}
         searchValue={search}
         onSearchChange={(v) => { setSearch(v); setPage(0); }}

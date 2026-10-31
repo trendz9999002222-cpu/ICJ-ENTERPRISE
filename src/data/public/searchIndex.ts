@@ -123,7 +123,7 @@ export const SEARCH_INDEX: SearchEntry[] = [
     title: "How do I become an ICJ member?",
     subtitle: "Membership eligibility, documents, fees and process",
     keywords: ["membership", "join", "member", "registration", "enroll", "advocate membership", "fee", "documents"],
-    href: "/membership",
+    href: "/join",
   },
   {
     id: "faq-probono",

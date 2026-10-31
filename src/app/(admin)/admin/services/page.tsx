@@ -56,6 +56,34 @@ export default function AdminServicesPage() {
     }
   };
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * pageSize + sourceIndex;
+    const actualDest = page * pageSize + destinationIndex;
+
+    const nextServices = [...services];
+    const [moved] = nextServices.splice(actualSource, 1);
+    nextServices.splice(actualDest, 0, moved);
+    setServices(nextServices);
+
+    try {
+      await Promise.all(
+        nextServices.map((s, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (s.display_order !== newOrder) {
+            return adminServicesService.updateService(s.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      loadData();
+    } catch (err) {
+      console.error("Failed to reorder services", err);
+    }
+  };
+
   const columns: AdminTableColumn<AdminJusticeService>[] = [
     {
       key: "title",
@@ -127,6 +155,8 @@ export default function AdminServicesPage() {
         columns={columns}
         rows={services}
         loading={loading}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         getRowKey={(r) => r.id}
         searchValue={search}
         onSearchChange={(v) => { setSearch(v); setPage(0); }}

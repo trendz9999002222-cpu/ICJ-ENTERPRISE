@@ -1,4 +1,4 @@
-import { apiClient, apiClientFormData } from "@/lib/api/client";
+import { apiClient, apiClientFormData, readAccessTokenFromCookie } from "@/lib/api/client";
 import { API_ENDPOINTS } from "@/lib/api/endpoints";
 import type { MembershipOnboardingConfiguration } from "@/types/public/membershipOnboarding";
 
@@ -50,16 +50,23 @@ export const membershipOnboardingPublicService = {
     phone?: string;
     application_id?: string;
   } = {}): Promise<MembershipCreateOrderResponse> {
+    const token = readAccessTokenFromCookie();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     return (
       await apiClient<ApiEnvelope<MembershipCreateOrderResponse>>(`${BASE}/payment/create-order/`, {
         method: "POST",
+        headers,
         body: payload,
       })
     ).data;
   },
 
   async verifyPayment(payload: {
-    payment_id: string;
+    payment_id?: string;
     txnid?: string;
     status?: string;
     easepayid?: string;
@@ -70,9 +77,16 @@ export const membershipOnboardingPublicService = {
     razorpay_signature?: string;
     application_id?: string;
   }): Promise<{ payment_id: string; verified: boolean }> {
+    const token = readAccessTokenFromCookie();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     return (
       await apiClient<ApiEnvelope<{ payment_id: string; verified: boolean }>>(`${BASE}/payment/verify/`, {
         method: "POST",
+        headers,
         body: payload,
       })
     ).data;

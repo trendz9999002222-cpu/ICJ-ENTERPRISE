@@ -91,6 +91,35 @@ export default function DocumentsPage() {
     load();
   }, [load]);
 
+  const handleReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextRows = [...rows];
+    const [moved] = nextRows.splice(actualSource, 1);
+    nextRows.splice(actualDest, 0, moved);
+    setRows(nextRows);
+
+    try {
+      await Promise.all(
+        nextRows.map((d, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (d.display_order !== newOrder) {
+            return professionalOnboardingService.updateDocument(d.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Documents order updated.");
+      load();
+    } catch (err) {
+      setToastMsg("Failed to update document order.");
+    }
+  };
+
   const columns: AdminTableColumn<OnboardingDocument>[] = [
     { key: "name", label: "Name", minWidth: 160, render: (r) => <strong>{r.name}</strong> },
     { key: "key", label: "Key", minWidth: 120, render: (r) => r.document_key },
@@ -181,6 +210,8 @@ export default function DocumentsPage() {
         rows={rows}
         loading={loading}
         error={error}
+        isDraggable={!search.trim()}
+        onRowReorder={handleReorder}
         searchValue={search}
         onSearchChange={(v) => {
           setSearch(v);

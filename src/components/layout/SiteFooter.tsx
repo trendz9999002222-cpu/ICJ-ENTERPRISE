@@ -174,7 +174,7 @@ export default function SiteFooter() {
                 { label: "Company Secretaries", href: "/professionals?profession=company+secretary" },
                 { label: "Mediators & Arbitrators", href: "/professionals?profession=mediator" },
                 { label: "Public Directory", href: "/directory" },
-                { label: "Join as Professional", href: "/membership" },
+                { label: "Join as Professional", href: "/join" },
               ].map((item) => (
                 <Link
                   key={item.href}

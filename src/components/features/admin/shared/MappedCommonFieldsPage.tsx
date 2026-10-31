@@ -6,8 +6,10 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { useCallback, useEffect, useState } from "react";
 
 import ActiveStatusChip from "@/components/features/admin/professional-onboarding/ActiveStatusChip";
@@ -135,13 +137,84 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
     }
   };
 
-  // Build rows combining global fields with their config
-  const rows: CombinedRow[] = globalFields.map(gf => ({
-    globalField: gf,
-    config: configs.find(c => c.common_field === gf.id) || null
-  }));
+  // Build and sort rows initially by display_order ascending, then alphabetically
+  const [orderedRows, setOrderedRows] = useState<CombinedRow[]>([]);
 
-  const filteredRows = rows.filter((r) => {
+  useEffect(() => {
+    const combined: CombinedRow[] = globalFields
+      .map((gf) => ({
+        globalField: gf,
+        config: configs.find((c) => c.common_field === gf.id) || null,
+      }))
+      .sort((a, b) => {
+        const orderA = a.config?.display_order !== undefined ? a.config.display_order : 9999;
+        const orderB = b.config?.display_order !== undefined ? b.config.display_order : 9999;
+        if (orderA !== orderB) return orderA - orderB;
+        return a.globalField.label.localeCompare(b.globalField.label);
+      });
+    setOrderedRows(combined);
+  }, [globalFields, configs]);
+
+  const handleRowReorder = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+
+    const actualSource = page * rowsPerPage + sourceIndex;
+    const actualDest = page * rowsPerPage + destinationIndex;
+
+    const nextRows = [...orderedRows];
+    const [movedItem] = nextRows.splice(actualSource, 1);
+    nextRows.splice(actualDest, 0, movedItem);
+
+    // Re-sequence display orders in steps of 10 (10, 20, 30, 40...)
+    const itemsToPersist: Array<{ row: CombinedRow; newOrder: number }> = [];
+    const resequencedRows = nextRows.map((item, idx) => {
+      const newOrder = (idx + 1) * 10;
+      if (item.config?.display_order !== newOrder) {
+        itemsToPersist.push({ row: item, newOrder });
+      }
+      return {
+        ...item,
+        config: item.config ? { ...item.config, display_order: newOrder } : null,
+      };
+    });
+
+    // Instant local UI update
+    setOrderedRows(resequencedRows);
+
+    // Save changes to backend
+    if (itemsToPersist.length > 0) {
+      try {
+        await Promise.all(
+          itemsToPersist.map(async ({ row, newOrder }) => {
+            if (row.config) {
+              return coreOnboardingService.updateFormFieldConfig(row.config.id, {
+                display_order: newOrder,
+              });
+            } else {
+              return coreOnboardingService.createFormFieldConfig({
+                form: formCode,
+                common_field: row.globalField.id,
+                section_name: "General",
+                is_visible: true,
+                is_required: false,
+                display_order: newOrder,
+              });
+            }
+          })
+        );
+        setToastMsg("Field display order updated successfully via drag-and-drop.");
+        const configsRes = await coreOnboardingService.listFormFieldConfigs({
+          form_code: formCode,
+          page_size: 1000,
+        });
+        setConfigs(configsRes.results);
+      } catch (err) {
+        setToastMsg(getCoreApiErrorMessage(err, "Failed to persist reordered fields."));
+      }
+    }
+  };
+
+  const filteredRows = orderedRows.filter((r) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
     return (
@@ -183,28 +256,61 @@ export default function MappedCommonFieldsPage({ formCode, title, subtitle, acti
     {
       key: "order",
       label: "Order",
+      minWidth: 160,
       render: (r) => (
-        <OrderInputCell
-          displayOrder={r.config?.display_order}
-          disabled={savingId === r.globalField.id || !(r.config ? r.config.is_visible : r.globalField.is_active)}
-          onSave={(newOrder) => handleUpdateConfig(r, { display_order: newOrder })}
-        />
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Chip
+            size="small"
+            label={`#${r.config?.display_order ?? 0}`}
+            sx={{
+              fontWeight: 800,
+              fontSize: "0.75rem",
+              bgcolor: "#0f2942",
+              color: "#ffffff",
+              minWidth: 46,
+              height: 24,
+            }}
+          />
+          <OrderInputCell
+            displayOrder={r.config?.display_order}
+            disabled={savingId === r.globalField.id || !(r.config ? r.config.is_visible : r.globalField.is_active)}
+            onSave={(newOrder) => handleUpdateConfig(r, { display_order: newOrder })}
+          />
+        </Stack>
       ),
     },
   ];
 
   return (
     <AdminPageShell title={title} subtitle={subtitle} actions={actions}>
-      <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-        Toggle <strong>Visible</strong> to map a master field to this onboarding flow.
-        You can also configure if it is required and set its display order.
-      </Typography>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          mb: 2,
+          p: 1.25,
+          bgcolor: "rgba(15, 41, 66, 0.04)",
+          borderRadius: 2,
+          border: "1px dashed #cbd5e1",
+        }}
+      >
+        <DragIndicatorIcon sx={{ color: "#0f2942", fontSize: 20 }} />
+        <Typography variant="body2" sx={{ color: "#0f2942", fontSize: "0.825rem", fontWeight: 600 }}>
+          Drag & Drop Enabled:
+          <span style={{ fontWeight: 400, color: "#475569", marginLeft: 4 }}>
+            Click and drag any row using the <strong>⠿ handle</strong> to reorder fields. The sequence (10, 20, 30...) updates and saves to the database automatically.
+          </span>
+        </Typography>
+      </Stack>
 
       <AdminDataTable
         columns={columns}
         rows={filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)}
         loading={loading}
         error={error}
+        isDraggable={!search.trim()}
+        onRowReorder={handleRowReorder}
         searchValue={search}
         searchPlaceholder="Search common fields by label, key, type..."
         onSearchChange={(v) => {

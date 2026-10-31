@@ -20,11 +20,13 @@ import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import {
   Avatar,
   Box,
   Chip,
+  Collapse,
   Divider,
   Drawer,
   IconButton,
@@ -39,13 +41,16 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 
 import { MEMBER_CHANGE_PASSWORD_QUERY } from "@/lib/memberDashboard";
 import { resolveMediaUrl } from "@/lib/mediaUrl";
 import { normalizePlatformRoles } from "@/lib/roles";
 
-export const SIDEBAR_WIDTH = 240;
+export const DEFAULT_SIDEBAR_WIDTH = 275;
+export const MIN_SIDEBAR_WIDTH = 220;
+export const MAX_SIDEBAR_WIDTH = 480;
+export const SIDEBAR_WIDTH = DEFAULT_SIDEBAR_WIDTH;
 export const SIDEBAR_COLLAPSED_WIDTH = 56;
 
 export type PortalNavItem = {
@@ -55,6 +60,103 @@ export type PortalNavItem = {
   section?: string;
   badge?: string;
 };
+
+export function getMemberChildNavItems(): PortalNavItem[] {
+  return [
+    {
+      label: "Find Advocates & Experts",
+      href: "/dashboard/member/find-advocate",
+      icon: <SearchIcon fontSize="small" />,
+      section: "Services",
+    },
+    {
+      label: "Documents & Vault",
+      href: "/dashboard/member/documents",
+      icon: <FolderOpenIcon fontSize="small" />,
+      section: "Documents",
+    },
+    {
+      label: "Donate to Trust",
+      href: "/dashboard/donations",
+      icon: <VolunteerActivismIcon fontSize="small" />,
+      section: "Trust & Giving",
+    },
+    {
+      label: "My Profile & Edit",
+      href: "/dashboard/profile",
+      icon: <PersonIcon fontSize="small" />,
+      section: "Account",
+    },
+    {
+      label: "Change Password",
+      href: "/dashboard/change-password",
+      icon: <LockOutlinedIcon fontSize="small" />,
+    },
+  ];
+}
+
+export function getProChildNavItems(options?: { activeProfessionName?: string }): PortalNavItem[] {
+  const proTitle = options?.activeProfessionName
+    ? `${options.activeProfessionName} Dashboard`
+    : "Legal Professional Dashboard";
+
+  return [
+    {
+      label: proTitle,
+      href: "/dashboard/professional",
+      icon: <DashboardIcon fontSize="small" />,
+    },
+    {
+      label: "Register New Practice",
+      href: "/dashboard/professional/register",
+      icon: <WorkspacePremiumIcon fontSize="small" />,
+      section: "Practice",
+    },
+    {
+      label: "Lead Marketplace",
+      href: "/dashboard/professional/leads",
+      icon: <StorefrontIcon fontSize="small" />,
+      section: "Leads & Marketplace",
+    },
+    {
+      label: "My Leads",
+      href: "/dashboard/professional/my-leads",
+      icon: <ContactPhoneIcon fontSize="small" />,
+    },
+    {
+      label: "ICJ Wallet",
+      href: "/dashboard/professional/wallet",
+      icon: <AccountBalanceWalletIcon fontSize="small" />,
+    },
+    {
+      label: "Lead Credit Plans",
+      href: "/dashboard/professional/plans",
+      icon: <LoyaltyIcon fontSize="small" />,
+    },
+    {
+      label: "Payment History",
+      href: "/dashboard/professional/payments",
+      icon: <ReceiptLongIcon fontSize="small" />,
+    },
+    {
+      label: "Donate to Trust",
+      href: "/dashboard/donations",
+      icon: <VolunteerActivismIcon fontSize="small" />,
+      section: "Trust & Giving",
+    },
+    {
+      label: "My Profile & Edit",
+      href: "/dashboard/profile",
+      icon: <PersonIcon fontSize="small" />,
+      section: "Account",
+    },
+    {
+      label: "Change Password",
+      href: "/dashboard/change-password",
+      icon: <LockOutlinedIcon fontSize="small" />,
+    },
+  ];
+}
 
 export function getPortalNavItems(
   roles: string[],
@@ -75,8 +177,7 @@ export function getPortalNavItems(
   const hasProfessions = options?.hasProfessions ?? false;
   const allRoles = normalizePlatformRoles(roles.length > 0 ? roles : [primaryRole]);
   const hasMember = allRoles.includes("member");
-  // User only has professional capability if they have registered profession(s)
-  const hasPro = hasProfessions;
+  const hasPro = hasProfessions || allRoles.includes("professional");
 
   const resolvedRole = isMemberPath
     ? "member"
@@ -233,6 +334,79 @@ export default function PortalSidebar({
 }: Props) {
   const pathname = usePathname();
   const collapsed = !open && variant === "persistent";
+
+  const allRoles = normalizePlatformRoles(roles.length > 0 ? roles : [primaryRole]);
+  const hasMember = allRoles.includes("member");
+  const hasPro = hasProfessions || allRoles.includes("professional");
+  const hasDualRole = hasMember && hasPro;
+
+  const isMemberPath = pathname.startsWith("/dashboard/member");
+  const isProPath = pathname.startsWith("/dashboard/professional");
+
+  const [memberExpanded, setMemberExpanded] = useState<boolean>(false);
+  const [proExpanded, setProExpanded] = useState<boolean>(false);
+
+  // Dynamic sidebar width for dragging and text visibility
+  const [sidebarWidth, setSidebarWidth] = useState<number>(DEFAULT_SIDEBAR_WIDTH);
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("icj_sidebar_width");
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= MIN_SIDEBAR_WIDTH && parsed <= MAX_SIDEBAR_WIDTH) {
+          setSidebarWidth(parsed);
+        }
+      }
+    }
+  }, []);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+
+    const startX = e.clientX;
+    const startW = sidebarWidth;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+      const deltaX = moveEvent.clientX - startX;
+      const nextWidth = Math.min(Math.max(startW + deltaX, MIN_SIDEBAR_WIDTH), MAX_SIDEBAR_WIDTH);
+      setSidebarWidth(nextWidth);
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      setIsResizing(false);
+      const deltaX = upEvent.clientX - startX;
+      const finalWidth = Math.min(Math.max(startW + deltaX, MIN_SIDEBAR_WIDTH), MAX_SIDEBAR_WIDTH);
+      setSidebarWidth(finalWidth);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("icj_sidebar_width", String(finalWidth));
+      }
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleDoubleClickResizer = () => {
+    setSidebarWidth(DEFAULT_SIDEBAR_WIDTH);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("icj_sidebar_width", String(DEFAULT_SIDEBAR_WIDTH));
+    }
+  };
+
+  const memberSubItems = useMemo(() => getMemberChildNavItems(), []);
+  const proSubItems = useMemo(() => getProChildNavItems({ activeProfessionName }), [activeProfessionName]);
+
   const navItems = getPortalNavItems(roles, primaryRole, {
     memberApproved,
     professionalApproved,
@@ -241,6 +415,101 @@ export default function PortalSidebar({
     hasProfessions,
     activeProfessionName,
   });
+
+  const renderNavItemsList = (items: PortalNavItem[], subIndent = false) => {
+    return items.map((item) => {
+      const active = isNavItemActive(pathname, item.href);
+
+      return (
+        <Box key={item.href + item.label}>
+          {item.section && !collapsed && (
+            <Typography
+              sx={{
+                px: subIndent ? 2 : 1.5,
+                pt: 1.5,
+                pb: 0.5,
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "#94a3b8",
+              }}
+            >
+              {item.section}
+            </Typography>
+          )}
+          <Tooltip title={collapsed ? item.label : ""} placement="right" arrow>
+            <ListItemButton
+              component={Link}
+              href={item.href}
+              selected={active}
+              onClick={variant === "temporary" ? onClose : undefined}
+              sx={{
+                minHeight: 38,
+                borderRadius: "8px",
+                px: collapsed ? 1.5 : subIndent ? 2 : 1.5,
+                py: 0.75,
+                mb: 0.3,
+                justifyContent: collapsed ? "center" : "flex-start",
+                color: active ? "#2563eb" : "#475569",
+                bgcolor: active ? "#eff6ff !important" : "transparent",
+                "&:hover": {
+                  bgcolor: active ? "#eff6ff" : "#f8fafc",
+                  color: active ? "#2563eb" : "#0f172a",
+                },
+                "&.Mui-selected": {
+                  bgcolor: "#eff6ff",
+                  "&:hover": { bgcolor: "#eff6ff" },
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: collapsed ? "auto" : 30,
+                  color: active ? "#2563eb" : "#64748b",
+                  justifyContent: "center",
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              {!collapsed && (
+                <>
+                  <ListItemText
+                    primary={item.label}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: "0.8125rem",
+                          fontWeight: active ? 700 : 500,
+                          lineHeight: 1.3,
+                          color: active ? "#2563eb" : "inherit",
+                        },
+                      },
+                    }}
+                  />
+
+                  {item.badge && (
+                    <Chip
+                      label={item.badge}
+                      size="small"
+                      sx={{
+                        height: 18,
+                        fontSize: "0.6rem",
+                        fontWeight: 700,
+                        bgcolor: active ? "#dbeafe" : "#f1f5f9",
+                        color: active ? "#1d4ed8" : "#64748b",
+                        border: "none",
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </ListItemButton>
+          </Tooltip>
+        </Box>
+      );
+    });
+  };
 
   const initials = userName
     .split(" ")
@@ -366,102 +635,177 @@ export default function PortalSidebar({
         }}
       >
         <List disablePadding>
-          {navItems.map((item) => {
-            const active = isNavItemActive(pathname, item.href);
-
-            return (
-              <Box key={item.href}>
-                {item.section && !collapsed && (
-                  <Typography
-                    sx={{
-                      px: 1.5,
-                      pt: 2,
-                      pb: 0.5,
-                      fontSize: "0.68rem",
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "#94a3b8",
-                    }}
-                  >
-                    {item.section}
-                  </Typography>
-                )}
-                <Tooltip
-                  title={collapsed ? item.label : ""}
-                  placement="right"
-                  arrow
+          {/* ─── 1. MEMBER DASHBOARD ACCORDION ─── */}
+          {hasMember && (
+            <Box sx={{ mb: 0.75 }}>
+              <Tooltip title={collapsed ? "Member Dashboard" : ""} placement="right" arrow>
+                <ListItemButton
+                  component={isMemberPath ? "div" : Link}
+                  href={isMemberPath ? undefined : "/dashboard/member"}
+                  selected={isMemberPath}
+                  onClick={() => {
+                    if (variant === "temporary") onClose();
+                    setMemberExpanded((p) => !p);
+                  }}
+                  sx={{
+                    minHeight: 40,
+                    borderRadius: "8px",
+                    px: collapsed ? 1.5 : 1.5,
+                    py: 0.75,
+                    mb: 0.4,
+                    cursor: "pointer",
+                    justifyContent: collapsed ? "center" : "space-between",
+                    color: isMemberPath ? "#1d4ed8" : "#334155",
+                    bgcolor: isMemberPath ? "#eff6ff !important" : "transparent",
+                    border: isMemberPath ? "1.5px solid #bfdbfe" : "1.5px solid transparent",
+                    "&:hover": {
+                      bgcolor: isMemberPath ? "#eff6ff" : "#f8fafc",
+                      color: "#1d4ed8",
+                    },
+                  }}
                 >
-                  <ListItemButton
-                    component={Link}
-                    href={item.href}
-                    selected={active}
-                    onClick={variant === "temporary" ? onClose : undefined}
-                    sx={{
-                      minHeight: 38,
-                      borderRadius: "8px",
-                      px: collapsed ? 1.5 : 1.5,
-                      py: 0.75,
-                      mb: 0.3,
-                      justifyContent: collapsed ? "center" : "flex-start",
-                      color: active ? "#2563eb" : "#475569",
-                      bgcolor: active ? "#eff6ff !important" : "transparent",
-                      "&:hover": {
-                        bgcolor: active ? "#eff6ff" : "#f8fafc",
-                        color: active ? "#2563eb" : "#0f172a",
-                      },
-                      "&.Mui-selected": {
-                        bgcolor: "#eff6ff",
-                        "&:hover": { bgcolor: "#eff6ff" },
-                      },
-                    }}
-                  >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: collapsed ? "auto" : 32,
-                        color: active ? "#2563eb" : "#64748b",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {item.icon}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, minWidth: 0, flex: 1, mr: 0.5 }}>
+                    <ListItemIcon sx={{ minWidth: collapsed ? "auto" : 28, color: isMemberPath ? "#2563eb" : "#64748b", justifyContent: "center" }}>
+                      <DashboardIcon fontSize="small" />
                     </ListItemIcon>
                     {!collapsed && (
-                      <>
-                        <ListItemText
-                          primary={item.label}
-                          slotProps={{
-                            primary: {
-                              sx: {
-                                fontSize: "0.8125rem",
-                                fontWeight: active ? 700 : 500,
-                                lineHeight: 1.3,
-                                color: active ? "#2563eb" : "inherit",
-                              },
+                      <ListItemText
+                        primary="Member Dashboard"
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              fontSize: "0.825rem",
+                              fontWeight: isMemberPath ? 800 : 700,
+                              color: isMemberPath ? "#1d4ed8" : "#1e293b",
+                              whiteSpace: "nowrap",
                             },
-                          }}
-                        />
-
-                        {item.badge && (
-                          <Chip
-                            label={item.badge}
-                            size="small"
-                            sx={{
-                              height: 18,
-                              fontSize: "0.6rem",
-                              fontWeight: 700,
-                              bgcolor: active ? "#dbeafe" : "#f1f5f9",
-                              color: active ? "#1d4ed8" : "#64748b",
-                              border: "none",
-                            }}
-                          />
-                        )}
-                      </>
+                          },
+                        }}
+                      />
                     )}
-                  </ListItemButton>
-                </Tooltip>
-              </Box>
-            );
-          })}
+                  </Box>
+                  {!collapsed && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setMemberExpanded((p) => !p);
+                      }}
+                      sx={{
+                        p: 0.3,
+                        color: isMemberPath ? "#2563eb" : "#64748b",
+                        transform: memberExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                        transition: "transform 0.2s ease-in-out",
+                      }}
+                    >
+                      <ExpandMoreIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </ListItemButton>
+              </Tooltip>
+
+              <Collapse in={!collapsed && memberExpanded} timeout="auto" unmountOnExit>
+                <Box sx={{ pl: 0.5 }}>
+                  {renderNavItemsList(memberSubItems, true)}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+
+          {/* ─── 2. LEGAL PROFESSIONAL ACCORDION ─── */}
+          {hasPro && (
+            <Box sx={{ mb: 0.75 }}>
+              <Tooltip title={collapsed ? "Legal Professional" : ""} placement="right" arrow>
+                <ListItemButton
+                  selected={isProPath}
+                  onClick={() => {
+                    if (variant === "temporary") onClose();
+                    setProExpanded((p) => !p);
+                  }}
+                  sx={{
+                    minHeight: 40,
+                    borderRadius: "8px",
+                    px: collapsed ? 1.5 : 1.5,
+                    py: 0.75,
+                    mb: 0.4,
+                    cursor: "pointer",
+                    justifyContent: collapsed ? "center" : "space-between",
+                    color: isProPath ? "#1d4ed8" : "#334155",
+                    bgcolor: isProPath ? "#eff6ff !important" : "transparent",
+                    border: isProPath ? "1.5px solid #bfdbfe" : "1.5px solid transparent",
+                    "&:hover": {
+                      bgcolor: isProPath ? "#eff6ff" : "#f8fafc",
+                      color: "#1d4ed8",
+                    },
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0, flex: 1, mr: 0.5 }}>
+                    <ListItemIcon sx={{ minWidth: collapsed ? "auto" : 26, color: isProPath ? "#2563eb" : "#64748b", justifyContent: "center" }}>
+                      <GavelIcon fontSize="small" />
+                    </ListItemIcon>
+                    {!collapsed && (
+                      <ListItemText
+                        primary="Legal Professional"
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              fontSize: "0.825rem",
+                              fontWeight: isProPath ? 800 : 700,
+                              color: isProPath ? "#1d4ed8" : "#1e293b",
+                              whiteSpace: "nowrap",
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                  </Box>
+                  {!collapsed && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.3, flexShrink: 0 }}>
+                      <Chip
+                        label="Empaneled"
+                        size="small"
+                        sx={{
+                          height: 18,
+                          fontSize: "0.58rem",
+                          fontWeight: 800,
+                          bgcolor: "#dcfce7",
+                          color: "#15803d",
+                          border: "1px solid #bbf7d0",
+                          px: 0.3,
+                        }}
+                      />
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setProExpanded((p) => !p);
+                        }}
+                        sx={{
+                          p: 0.3,
+                          color: isProPath ? "#2563eb" : "#64748b",
+                          transform: proExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.2s ease-in-out",
+                        }}
+                      >
+                        <ExpandMoreIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  )}
+                </ListItemButton>
+              </Tooltip>
+
+              <Collapse in={!collapsed && proExpanded} timeout="auto" unmountOnExit>
+                <Box sx={{ pl: 0.5 }}>
+                  {renderNavItemsList(proSubItems, true)}
+                </Box>
+              </Collapse>
+            </Box>
+          )}
+
+          {/* Fallback if user has neither */}
+          {!hasMember && !hasPro && renderNavItemsList(navItems)}
         </List>
       </Box>
 
@@ -535,7 +879,7 @@ export default function PortalSidebar({
         ModalProps={{ keepMounted: true }}
         sx={{
           "& .MuiDrawer-paper": {
-            width: SIDEBAR_WIDTH,
+            width: Math.min(sidebarWidth, 320),
             borderRight: "1px solid #e2e8f0",
             boxSizing: "border-box",
           },
@@ -546,7 +890,7 @@ export default function PortalSidebar({
     );
   }
 
-  const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+  const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : sidebarWidth;
 
   return (
     <Box
@@ -554,7 +898,7 @@ export default function PortalSidebar({
       sx={{
         width,
         flexShrink: 0,
-        transition: "width 0.2s ease",
+        transition: isResizing ? "none" : "width 0.2s ease",
         height: "100vh",
         position: "sticky",
         top: 0,
@@ -565,6 +909,52 @@ export default function PortalSidebar({
       }}
     >
       {content}
+
+      {/* Draggable resize handle on right border */}
+      {variant === "persistent" && !collapsed && (
+        <Box
+          onMouseDown={handleMouseDown}
+          onDoubleClick={handleDoubleClickResizer}
+          title="Drag to resize sidebar (Double-click to reset)"
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "8px",
+            cursor: "col-resize",
+            zIndex: 30,
+            userSelect: "none",
+            touchAction: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background-color 0.15s ease",
+            bgcolor: isResizing ? "rgba(37, 99, 235, 0.25)" : "transparent",
+            "&:hover": {
+              bgcolor: "rgba(59, 130, 246, 0.2)",
+              "& .resizer-bar": {
+                bgcolor: "#2563eb",
+                opacity: 1,
+                transform: "scaleY(1.2)",
+              },
+            },
+          }}
+        >
+          {/* Subtle grab bar indicator */}
+          <Box
+            className="resizer-bar"
+            sx={{
+              width: "2.5px",
+              height: "36px",
+              borderRadius: "2px",
+              bgcolor: isResizing ? "#2563eb" : "#cbd5e1",
+              opacity: isResizing ? 1 : 0.6,
+              transition: "all 0.15s ease",
+            }}
+          />
+        </Box>
+      )}
     </Box>
   );
 }

@@ -53,7 +53,10 @@ export default function PortalShell({ children }: Props) {
   const [userEmail, setUserEmail] = useState<string>("");
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
-  const hasProfessions = professions.length > 0;
+  const allRolesNorm = normalizePlatformRoles(roles);
+  const hasProfessions =
+    professions.length > 0 ||
+    allRolesNorm.includes("professional");
 
   // If user has not registered any profession, they are strictly restricted to member mode (except when registering)
   const currentRole = isMemberRoute
@@ -112,15 +115,18 @@ export default function PortalShell({ children }: Props) {
           const data = json.data || json;
           if (Array.isArray(data.professions)) {
             setProfessions(data.professions);
-            const userHasPro = data.professions.length > 0;
+            const userHasPro =
+              data.professions.length > 0 ||
+              (Array.isArray(data.roles) &&
+                (data.roles.includes("legal_professional") || data.roles.includes("professional")));
             if (userHasPro) {
               const savedProfId = typeof window !== "undefined" ? localStorage.getItem("active_profession_id") : null;
               if (savedProfId) {
                 const matched = data.professions.find((p: any) => p.registration_id === savedProfId);
                 if (matched) setActiveProfession(matched);
-                else setActiveProfession(data.professions[0]);
+                else setActiveProfession(data.professions[0] || null);
               } else {
-                setActiveProfession(data.professions[0]);
+                setActiveProfession(data.professions[0] || null);
               }
             } else {
               setActiveProfession(null);
@@ -180,10 +186,7 @@ export default function PortalShell({ children }: Props) {
   const closeSidebar = () => setSidebarOpen(false);
 
   const hasMemberRole = normalizePlatformRoles(roles).includes("member");
-  const memberApproved =
-    !hasMemberRole ||
-    membership?.status === "approved" ||
-    membership?.is_approved === true;
+  const memberApproved = !hasMemberRole || membership?.status !== "rejected";
 
   const hasProRole = normalizePlatformRoles(roles).includes("professional");
   const professionalApproved = !hasProRole || isProfessionalApproved(

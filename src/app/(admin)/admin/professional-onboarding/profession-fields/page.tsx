@@ -3,6 +3,8 @@
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import BallotIcon from "@mui/icons-material/Ballot";
+import DescriptionIcon from "@mui/icons-material/Description";
 import {
   Box,
   Button,
@@ -146,6 +148,61 @@ function ProfessionFieldsPageContent() {
     }
   };
 
+  const handleReorderField = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const nextFields = [...fieldRows];
+    const [moved] = nextFields.splice(sourceIndex, 1);
+    nextFields.splice(destinationIndex, 0, moved);
+    setFieldRows(nextFields);
+
+    try {
+      await Promise.all(
+        nextFields.map((f, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (f.display_order !== newOrder) {
+            return professionalOnboardingService.updateProfessionField(f.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Field order updated.");
+      loadProfessionContext();
+    } catch (err) {
+      setToastMsg("Failed to update field order.");
+    }
+  };
+
+  const handleReorderDoc = async (sourceIndex: number, destinationIndex: number) => {
+    if (sourceIndex === destinationIndex) return;
+    const actualSource = docPage * docRowsPerPage + sourceIndex;
+    const actualDest = docPage * docRowsPerPage + destinationIndex;
+
+    const nextDocs = [...docRows];
+    const [moved] = nextDocs.splice(actualSource, 1);
+    nextDocs.splice(actualDest, 0, moved);
+    setDocRows(nextDocs);
+
+    try {
+      await Promise.all(
+        nextDocs.map((d, idx) => {
+          const newOrder = (idx + 1) * 10;
+          if (d.display_order !== newOrder) {
+            return professionalOnboardingService.updateProfessionDocument(d.id, {
+              display_order: newOrder,
+            });
+          }
+          return Promise.resolve();
+        })
+      );
+      setToastMsg("Documents reordered successfully.");
+      loadProfessionContext();
+    } catch (err) {
+      setToastMsg("Failed to update document order.");
+    }
+  };
+
   const loadOptions = async (field: ProfessionField) => {
     const res = await professionalOnboardingService.listFieldOptions({
       profession_field: field.id,
@@ -225,10 +282,38 @@ function ProfessionFieldsPageContent() {
 
       {cascade.professionId && (
         <Box>
-          <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }}>
-            <Tab label="Profession fields" />
-            <Tab label="Required documents" />
-          </Tabs>
+          <Box sx={{ borderBottom: "1px solid #e2e8f0", mb: 3 }}>
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              sx={{
+                minHeight: 44,
+                "& .MuiTab-root": {
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  minHeight: 44,
+                  px: 2.5,
+                  color: "#475569",
+                  "&.Mui-selected": {
+                    color: "primary.main",
+                    fontWeight: 700,
+                  },
+                  "&:hover": {
+                    color: "#1e293b",
+                  },
+                },
+                "& .MuiTabs-indicator": {
+                  height: 3,
+                  borderRadius: "3px 3px 0 0",
+                  bgcolor: "primary.main",
+                },
+              }}
+            >
+              <Tab icon={<BallotIcon fontSize="small" />} iconPosition="start" label="Profession Fields" />
+              <Tab icon={<DescriptionIcon fontSize="small" />} iconPosition="start" label="Required Documents" />
+            </Tabs>
+          </Box>
 
           {tab === 0 && (
             <>
@@ -250,6 +335,7 @@ function ProfessionFieldsPageContent() {
                 onSaveField={handleSaveField}
                 onDeleteField={async (r) => { setDeleteField(r.original); }}
                 onOptions={(r) => openOptions(r.original)}
+                onReorderField={handleReorderField}
               />
             </>
           )}
@@ -280,6 +366,8 @@ function ProfessionFieldsPageContent() {
                 rows={docRows.slice(docPage * docRowsPerPage, docPage * docRowsPerPage + docRowsPerPage)}
                 loading={loading}
                 error={error}
+                isDraggable
+                onRowReorder={handleReorderDoc}
                 getRowKey={(r) => r.id}
                 emptyMessage="No documents assigned to this profession."
                 pagination={{

@@ -116,7 +116,7 @@ export default function ProfessionalsDirectoryPage() {
         title="Find a Verified Professional"
         subtitle="Search and connect with empaneled advocates, chartered accountants, company secretaries, and accredited mediators across state jurisdictions."
         breadcrumbs={[{ label: "Professionals" }]}
-        primaryAction={{ label: "Empanel as a Professional", href: "/membership" }}
+        primaryAction={{ label: "Empanel as a Professional", href: "/join" }}
         secondaryAction={{ label: "Seek Direct Assistance", href: "/assistance" }}
       />
 
