@@ -48,18 +48,42 @@ class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        full_name = (request.data.get("full_name") or request.data.get("name") or "").strip()
         first_name = (request.data.get("first_name") or "").strip()
         last_name = (request.data.get("last_name") or "").strip()
-        email = (request.data.get("email") or "").strip().lower()
-        mobile_number = (request.data.get("mobile_number") or "").strip()
+
+        # Graceful name extraction if single full_name is provided
+        if not first_name and full_name:
+            parts = full_name.split(" ", 1)
+            first_name = parts[0]
+            if len(parts) > 1 and not last_name:
+                last_name = parts[1]
+        elif first_name and not last_name and full_name and " " in full_name:
+            parts = full_name.split(" ", 1)
+            last_name = parts[1]
+
+        email = (
+            request.data.get("email")
+            or request.data.get("email_address")
+            or request.data.get("email_id")
+            or ""
+        ).strip().lower()
+
+        mobile_number = (
+            request.data.get("mobile_number")
+            or request.data.get("mobile")
+            or request.data.get("phone")
+            or request.data.get("phone_number")
+            or ""
+        ).strip()
+
         password = request.data.get("password") or ""
 
         # ── Validate required fields ────────────────────────────────────────────
         errors = {}
         if not first_name:
-            errors["first_name"] = ["First name is required."]
-        if not last_name:
-            errors["last_name"] = ["Last name is required."]
+            errors["first_name"] = ["First name or full legal name is required."]
+        # Note: last_name is optional in Django User model and accommodated for single names
         if not email or "@" not in email:
             errors["email"] = ["A valid email address is required."]
         if not password or len(password) < 8:
@@ -106,12 +130,20 @@ class RegisterView(APIView):
             user.save(update_fields=["phone_number"])
 
         # ── Profile picture upload ──────────────────────────────────────────────
-        profile_pic = request.FILES.get("profile_picture") or request.FILES.get("photo")
+        profile_pic = (
+            request.FILES.get("profile_picture")
+            or request.FILES.get("photo")
+            or request.FILES.get("profile_photo")
+            or request.FILES.get("avatar")
+            or request.FILES.get("passport_photo")
+            or request.FILES.get("document_passport_photograph")
+        )
         if profile_pic:
             user.profile_picture = profile_pic
             user.save(update_fields=["profile_picture"])
 
         # ── Membership Application & Fee Payment Handling ───────────────────────
+        mem_app = None
         app_ref = None
         raw_fee_status = (request.data.get("fee_payment_status") or "").strip().lower()
         is_paid = raw_fee_status == "paid" or request.data.get("is_paid") in [True, "true", "True", 1, "1"]
@@ -119,6 +151,7 @@ class RegisterView(APIView):
         try:
             from apps.membership_onboarding.models import MembershipApplication, MembershipPayment, MembershipType
             from apps.membership_onboarding.services.fee_settings import get_membership_fee_settings
+            from apps.membership_onboarding.services.public_config import ensure_default_membership_type
             from apps.membership_onboarding.services.submission import allocate_application_reference_id
             from apps.person.models import Person
 
@@ -146,11 +179,41 @@ class RegisterView(APIView):
                 person.user = user
                 person.save(update_fields=["user"])
 
-            default_type = MembershipType.objects.filter(is_active=True).first()
+            default_type = MembershipType.objects.filter(is_active=True).first() or ensure_default_membership_type()
             app_ref = allocate_application_reference_id()
             now = timezone.now()
 
             from apps.membership_onboarding.services.approval import ensure_approved_membership
+
+            raw_field_vals = request.data.get("field_values") or request.data.get("common_field_values")
+            parsed_fields = {}
+            if isinstance(raw_field_vals, str):
+                try:
+                    import json
+                    parsed_fields = json.loads(raw_field_vals)
+                except Exception:
+                    parsed_fields = {}
+            elif isinstance(raw_field_vals, dict):
+                parsed_fields = raw_field_vals
+
+            field_vals = {
+                "full_name": full_name or f"{user.first_name} {user.last_name}".strip(),
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "mobile": user.phone_number,
+                "mobile_number": user.phone_number,
+                "gender": gender,
+                "date_of_birth": str(dob) if dob else (request.data.get("date_of_birth") or request.data.get("dob") or ""),
+                "state": request.data.get("state_name") or request.data.get("state") or "",
+                "city": request.data.get("city_name") or request.data.get("city") or "",
+                "pincode": request.data.get("pincode") or "",
+                "address": request.data.get("address") or "",
+            }
+            if isinstance(parsed_fields, dict):
+                for k, v in parsed_fields.items():
+                    if v is not None and (k not in field_vals or not field_vals[k]):
+                        field_vals[k] = v
 
             mem_app = MembershipApplication.objects.create(
                 reference_id=app_ref,
@@ -162,16 +225,7 @@ class RegisterView(APIView):
                 fee_payment_status=MembershipApplication.FeePaymentStatus.PAID if is_paid else MembershipApplication.FeePaymentStatus.UNPAID,
                 declaration_accepted=True,
                 submitted_at=now,
-                field_values={
-                    "full_name": f"{user.first_name} {user.last_name}".strip(),
-                    "email": user.email,
-                    "mobile": user.phone_number,
-                    "gender": gender,
-                    "state": request.data.get("state_name") or "",
-                    "city": request.data.get("city_name") or "",
-                    "pincode": request.data.get("pincode") or "",
-                    "address": request.data.get("address") or "",
-                },
+                field_values=field_vals,
             )
             ensure_approved_membership(mem_app)
 
@@ -227,6 +281,8 @@ class RegisterView(APIView):
             access=str(access),
             refresh=str(refresh),
             reference_id=app_ref or f"ICJ-MEM-{user.id}",
+            application_id=str(mem_app.id) if mem_app else None,
+            application_reference_id=app_ref,
             fee_payment_status="paid" if is_paid else "unpaid",
             is_paid=is_paid,
             user=UserSerializer(user).data,

@@ -308,15 +308,18 @@ class ProfessionalRegistrationSubmissionService:
             common_field_values["city"] = common_field_values["district"]
         if "full_name" in common_fields_union and not common_field_values.get("full_name") and common_field_values.get("name"):
             common_field_values["full_name"] = common_field_values["name"]
+        if "first_name" in common_fields_union and not common_field_values.get("first_name") and common_field_values.get("full_name"):
+            common_field_values["first_name"] = str(common_field_values["full_name"]).strip().split(" ")[0]
+        if "last_name" in common_fields_union and not common_field_values.get("last_name") and common_field_values.get("full_name"):
+            parts = str(common_field_values["full_name"]).strip().split(" ", 1)
+            common_field_values["last_name"] = parts[1] if len(parts) > 1 else "."
         if "mobile_number" in common_fields_union and not common_field_values.get("mobile_number"):
             common_field_values["mobile_number"] = common_field_values.get("mobile") or common_field_values.get("phone") or common_field_values.get("phone_number")
 
         for key in list(common_field_values.keys()):
             if key not in common_fields_union:
-                # Do not error out on aliases like 'email_address' or 'name' if standard key is present
-                if key in ("name", "email_address", "mobile", "phone", "phone_number", "city"):
-                    continue
-                errors.setdefault(key, []).append("Unknown common field.")
+                # Tolerate extra/alias common fields gracefully without blocking registration
+                continue
 
         for key, meta in common_fields_union.items():
             value = common_field_values.get(key)

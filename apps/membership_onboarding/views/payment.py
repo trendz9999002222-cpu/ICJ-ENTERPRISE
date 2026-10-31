@@ -71,11 +71,13 @@ class PublicMembershipCreateOrderAPIView(APIView):
         # Pre-link application if id or authenticated user is present
         app = None
         if application_id:
-            app = (
-                MembershipApplication.objects.filter(pk=application_id).first()
-                if str(application_id).isdigit() or "-" in str(application_id)
-                else None
-            ) or MembershipApplication.objects.filter(reference_id=str(application_id)).first()
+            import uuid
+            try:
+                app = MembershipApplication.objects.filter(pk=uuid.UUID(str(application_id))).first()
+            except (ValueError, TypeError):
+                app = None
+            if not app:
+                app = MembershipApplication.objects.filter(reference_id=str(application_id)).first()
 
         if not app and user:
             app = user.membership_applications.order_by("-created_at").first()
@@ -205,11 +207,13 @@ class PublicMembershipVerifyPaymentAPIView(APIView):
         app = payment.application
 
         if not app and application_id:
-            app = (
-                MembershipApplication.objects.filter(pk=application_id).first()
-                if str(application_id).isdigit() or "-" in str(application_id)
-                else None
-            ) or MembershipApplication.objects.filter(reference_id=str(application_id)).first()
+            import uuid
+            try:
+                app = MembershipApplication.objects.filter(pk=uuid.UUID(str(application_id))).first()
+            except (ValueError, TypeError):
+                app = None
+            if not app:
+                app = MembershipApplication.objects.filter(reference_id=str(application_id)).first()
 
         user = request.user if getattr(request.user, "is_authenticated", False) else None
         email = request.data.get("email") or ""

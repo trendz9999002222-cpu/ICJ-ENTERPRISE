@@ -131,6 +131,9 @@ class MembershipApplicationService:
                     if not value and field_values.get("full_name"):
                         parts = field_values.get("full_name").strip().split(" ", 1)
                         value = parts[1] if len(parts) > 1 else ""
+                    # If last_name is marked required but applicant has a single-word name, provide graceful fallback
+                    if field.is_required and (value is None or not str(value).strip()) and (field_values.get("full_name") or field_values.get("first_name")):
+                        value = "."
                 elif key in ("email", "email_address"):
                     value = field_values.get("email") or field_values.get("email_address")
                 if value is not None:

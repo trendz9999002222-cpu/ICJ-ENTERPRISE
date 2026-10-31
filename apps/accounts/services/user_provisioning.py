@@ -36,8 +36,14 @@ def _professional_identity_from_submission(submission):
         parts = full_name.strip().split(" ", 1)
         first_name = parts[0]
         last_name = parts[1] if len(parts) > 1 else ""
+    elif full_name and not last_name and " " in full_name:
+        parts = full_name.strip().split(" ", 1)
+        last_name = parts[1]
 
-    mobile = common.get("mobile") or common.get("phone") or common.get("phone_number") or ""
+    if not first_name:
+        first_name = "Professional"
+
+    mobile = common.get("mobile") or common.get("phone") or common.get("phone_number") or common.get("mobile_number") or ""
     return email, first_name, last_name, mobile
 
 
