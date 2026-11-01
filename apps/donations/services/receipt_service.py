@@ -10,7 +10,7 @@ TRUST_DETAILS = {
     "80g_reg_no": "AAATI9982FF20234",
     "80g_validity": "Perpetual / AY 2024-25 onwards",
     "office_address": "801-804, Sovereign Tower, Justice Avenue, New Delhi - 110001",
-    "email": "trust@icj.org.in",
+    "email": "consortiumofjurists@gmail.com",
     "phone": "+91 11 4982 0000",
 }
 

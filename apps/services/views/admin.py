@@ -215,6 +215,9 @@ class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
             return api_error("Field label is required.", status_code=status.HTTP_400_BAD_REQUEST)
         
         field_type = request.data.get("field_type", "text")
+        placeholder = str(request.data.get("placeholder", "") or "").strip()
+        help_text = str(request.data.get("help_text", "") or "").strip()
+        description = str(request.data.get("description", "") or "").strip()
         required = str(request.data.get("required", request.data.get("is_required", False))).lower() == "true"
         display_order = int(request.data.get("display_order", 0))
         is_active = str(request.data.get("is_active", True)).lower() == "true"
@@ -234,6 +237,9 @@ class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
             field_key=field_key,
             label=label,
             field_type=field_type,
+            placeholder=placeholder,
+            help_text=help_text,
+            description=description,
             required=required,
             display_order=display_order,
             is_active=is_active,
@@ -251,6 +257,15 @@ class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
             field.label = request.data.get("label", field.label).strip()
         if "field_type" in request.data:
             field.field_type = request.data.get("field_type", field.field_type)
+        if "placeholder" in request.data:
+            val = request.data.get("placeholder")
+            field.placeholder = (str(val) if val is not None else "").strip()
+        if "help_text" in request.data:
+            val = request.data.get("help_text")
+            field.help_text = (str(val) if val is not None else "").strip()
+        if "description" in request.data:
+            val = request.data.get("description")
+            field.description = (str(val) if val is not None else "").strip()
         if "required" in request.data or "is_required" in request.data:
             val = request.data.get("required", request.data.get("is_required"))
             field.required = str(val).lower() == "true"
@@ -275,6 +290,15 @@ class AdminAssistanceFormFieldDetailAPIView(AdminServicesBaseView):
             field.label = request.data.get("label", field.label).strip()
         if "field_type" in request.data:
             field.field_type = request.data.get("field_type", field.field_type)
+        if "placeholder" in request.data:
+            val = request.data.get("placeholder")
+            field.placeholder = (str(val) if val is not None else "").strip()
+        if "help_text" in request.data:
+            val = request.data.get("help_text")
+            field.help_text = (str(val) if val is not None else "").strip()
+        if "description" in request.data:
+            val = request.data.get("description")
+            field.description = (str(val) if val is not None else "").strip()
         if "required" in request.data or "is_required" in request.data:
             val = request.data.get("required", request.data.get("is_required"))
             field.required = str(val).lower() == "true"

@@ -383,7 +383,7 @@ def send_case_otp_email(to_email: str, full_name: str, case_id: str, otp: str):
                 <p style="font-size: 12px; color: #64748b; margin-top: 8px;">Valid for 15 minutes</p>
             </div>
             <p style="font-size: 13px; color: #64748b; line-height: 1.5;">
-                If you did not request this verification code, please ignore this email or contact our legal helpdesk at support@icj.org.in.
+                If you did not request this verification code, please ignore this email or contact our legal helpdesk at consortiumofjurists@gmail.com.
             </p>
         </div>
         <div style="background-color: #f8fafc; padding: 12px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
