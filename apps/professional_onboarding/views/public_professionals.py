@@ -30,14 +30,15 @@ def _extract_nested_values(submission, key):
     return values
 
 
-def _sync_approved_applications():
+def _sync_approved_applications(force=False):
     """
-    Synchronizes real approved professional applications (from all 3 wings:
-    Legal Professional, Other Professional, and Volunteer) into
-    ProfessionalRegistrationSubmission so they dynamically appear in the public
-    directory and homepage.
-    Removes any static dummy records so only real registered practitioners are shown.
+    Synchronizes real approved professional applications into ProfessionalRegistrationSubmission.
+    Throttled via cache so it does not run expensive DB writes on every GET request.
     """
+    from django.core.cache import cache
+    if not force and cache.get("pro_apps_synced"):
+        return
+
     try:
         # 1. Clean up any leftover static seed or dummy test submissions
         ProfessionalRegistrationSubmission.objects.filter(
@@ -179,6 +180,7 @@ def _sync_approved_applications():
                 sub.profession_field_values = p_vals
                 sub.status = ProfessionalRegistrationSubmission.Status.APPROVED
                 sub.save()
+        cache.set("pro_apps_synced", True, timeout=900)
     except Exception as exc:
         import logging
         logging.getLogger(__name__).warning("Could not sync professional applications: %s", exc)
@@ -195,7 +197,6 @@ class PublicProfessionalsListAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        _sync_approved_applications()
         params = list_params(request)
 
         qs = (

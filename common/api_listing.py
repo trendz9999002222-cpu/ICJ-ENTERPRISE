@@ -15,16 +15,21 @@ def list_params(request: Request) -> dict:
     }
 
 
-def paginated_success(request: Request, queryset, serializer_class, message: str = "OK", **kwargs):
+def paginated_success(request: Request, queryset, serializer_class, message: str = "OK", extra: dict | None = None, **kwargs):
     paginator = StandardResultsPagination()
     page = paginator.paginate_queryset(queryset, request)
-    serializer = serializer_class(page, many=True, **kwargs)
+    context = kwargs.pop("context", {})
+    context.setdefault("request", request)
+    serializer = serializer_class(page, many=True, context=context, **kwargs)
+    payload = {
+        "results": serializer.data,
+        "count": paginator.page.paginator.count,
+        "next": paginator.get_next_link(),
+        "previous": paginator.get_previous_link(),
+    }
+    if extra:
+        payload.update(extra)
     return api_success(
         message=message,
-        data={
-            "results": serializer.data,
-            "count": paginator.page.paginator.count,
-            "next": paginator.get_next_link(),
-            "previous": paginator.get_previous_link(),
-        },
+        data=payload,
     )

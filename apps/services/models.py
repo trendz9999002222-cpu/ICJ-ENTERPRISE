@@ -127,10 +127,10 @@ class AssistanceRequest(models.Model):
     email = models.EmailField()
     mobile = models.CharField(max_length=20)
     preferred_contact = models.CharField(max_length=20)
-    state_name = models.CharField(max_length=100)
-    city_name = models.CharField(max_length=100)
-    category = models.CharField(max_length=200)
-    urgency = models.CharField(max_length=20)
+    state_name = models.CharField(max_length=100, db_index=True)
+    city_name = models.CharField(max_length=100, db_index=True)
+    category = models.CharField(max_length=200, db_index=True)
+    urgency = models.CharField(max_length=20, db_index=True)
     date_of_birth = models.DateField(null=True, blank=True)
     calculated_age = models.PositiveIntegerField(null=True, blank=True)
     address = models.TextField(blank=True, default='')
@@ -139,11 +139,15 @@ class AssistanceRequest(models.Model):
     additional_fields = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["category", "state_name"]),
+        ]
         
     def __str__(self) -> str:
         return f"{self.reference_id} - {self.full_name}"

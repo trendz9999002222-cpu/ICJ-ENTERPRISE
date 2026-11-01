@@ -29,13 +29,20 @@ from apps.services.serializers import (
     ProfessionalWalletSerializer,
     WalletTransactionSerializer,
 )
+from django.core.cache import cache
 
 
-def sync_assistance_requests_to_leads():
+def sync_assistance_requests_to_leads(force: bool = False):
     """
-    Ensures every citizen seek-assistance intake has a corresponding MarketplaceLead
-    so it appears immediately in the Unified Leads Management table.
+    Ensures every citizen seek-assistance intake has a corresponding MarketplaceLead.
+    Guarded with a 10-minute cache check to prevent repetitive remote DB latency on GET requests.
     """
+    cache_key = "sync_assistance_requests_to_leads_guard"
+    if not force and cache.get(cache_key):
+        return
+
+    cache.set(cache_key, True, timeout=600)
+
     orphaned_requests = AssistanceRequest.objects.filter(marketplace_lead__isnull=True).order_by("-created_at")
     if not orphaned_requests.exists():
         return

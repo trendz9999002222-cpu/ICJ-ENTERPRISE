@@ -32,12 +32,21 @@ from apps.services.serializers import (
 )
 
 
+from django.core.cache import cache
+
+
 class PublicCategoryListAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cache_key = "public_service_categories_list"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return api_success(data=cached_data, message="Categories retrieved successfully.")
+
         categories = ServiceCategory.objects.filter(is_active=True).order_by("display_order", "name")
         serializer = ServiceCategorySerializer(categories, many=True)
+        cache.set(cache_key, serializer.data, timeout=600)
         return api_success(data=serializer.data, message="Categories retrieved successfully.")
 
 
@@ -45,14 +54,25 @@ class PublicJusticeServiceListAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        qs = JusticeService.objects.filter(is_active=True).select_related("category").order_by("display_order", "title")
         category_slug = request.query_params.get("category")
+        search_query = request.query_params.get("search")
+
+        # Cache default listing without filters for 10 minutes
+        cache_key = None
+        if not category_slug and not search_query:
+            cache_key = "public_justice_services_default_list"
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return api_success(data=cached_data, message="Justice services retrieved successfully.")
+
+        qs = JusticeService.objects.filter(is_active=True).select_related("category").order_by("display_order", "title")
         if category_slug:
             qs = qs.filter(category__slug=category_slug)
-        search_query = request.query_params.get("search")
         if search_query:
             qs = qs.filter(title__icontains=search_query) | qs.filter(short_description__icontains=search_query)
         serializer = JusticeServiceSerializer(qs, many=True)
+        if cache_key:
+            cache.set(cache_key, serializer.data, timeout=600)
         return api_success(data=serializer.data, message="Justice services retrieved successfully.")
 
 
@@ -60,8 +80,14 @@ class PublicFeaturedServicesAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cache_key = "public_featured_services_list"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return api_success(data=cached_data, message="Featured services retrieved successfully.")
+
         services = JusticeService.objects.filter(is_active=True, is_featured=True).select_related("category").order_by("display_order", "title")
         serializer = JusticeServiceSerializer(services, many=True)
+        cache.set(cache_key, serializer.data, timeout=600)
         return api_success(data=serializer.data, message="Featured services retrieved successfully.")
 
 
@@ -746,3 +772,69 @@ class CaseTrackingVerifyAPIView(APIView):
             track_data=tracking_data,
             message="Case status verified successfully.",
         )
+
+
+class PublicProfessionalAppointmentAPIView(APIView):
+    """
+    Public Direct Practitioner Appointment & Consultation Booking.
+    Saves direct inquiry to an AssistanceRequest with lead_type="professional_appointment".
+    Triggers automatic Lead record generation for Admin Leads desk.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        payload = request.data
+        client_name = (payload.get("client_name") or payload.get("full_name") or "").strip()
+        client_email = (payload.get("client_email") or payload.get("email") or "").strip()
+        client_mobile = (payload.get("client_mobile") or payload.get("mobile") or payload.get("client_phone") or "").strip()
+        consultation_notes = (payload.get("consultation_notes") or payload.get("problem_description") or "").strip()
+        professional_id = str(payload.get("professional_id") or "").strip()
+        professional_name = (payload.get("professional_name") or "").strip()
+        profession = (payload.get("profession") or "Legal Professional").strip()
+
+        if not client_name:
+            return api_error("Your full name is required.", status_code=400)
+        if not client_mobile:
+            return api_error("Your mobile number is required.", status_code=400)
+        if not consultation_notes:
+            return api_error("Please provide a summary of your consultation query or legal matter.", status_code=400)
+
+        year = timezone.now().year
+        ref_id = f"ICJ-REQ-{random.randint(100000, 999999)}"
+        while AssistanceRequest.objects.filter(reference_id=ref_id).exists():
+            ref_id = f"ICJ-REQ-{random.randint(100000, 999999)}"
+
+        extra_fields = {
+            "lead_type": "professional_appointment",
+            "professional_id": professional_id,
+            "professional_name": professional_name,
+            "profession": profession,
+        }
+
+        category_label = f"Consultation: {professional_name}" if professional_name else "Professional Consultation"
+
+        instance = AssistanceRequest.objects.create(
+            reference_id=ref_id,
+            full_name=client_name,
+            email=client_email,
+            mobile=client_mobile,
+            preferred_contact=payload.get("preferred_contact", "Phone Call"),
+            state_name=payload.get("state_name", "Not Specified"),
+            city_name=payload.get("city_name", "Not Specified"),
+            category=category_label,
+            urgency=payload.get("urgency", "Medium"),
+            problem_description=consultation_notes,
+            additional_fields=extra_fields,
+        )
+
+        return api_success(
+            data={
+                "reference_id": ref_id,
+                "client_name": client_name,
+                "professional_name": professional_name,
+                "created_at": instance.created_at.isoformat(),
+            },
+            message="Consultation request received successfully. The practitioner's office will reach out within 24 hours.",
+            status_code=201,
+        )
+

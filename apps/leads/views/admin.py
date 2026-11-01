@@ -21,6 +21,7 @@ from apps.leads.models import (
     LeadAuditLog,
 )
 from apps.leads.serializers import (
+    AdminLeadListSerializer,
     LeadDetailSerializer,
     LeadAcceptanceSerializer,
     LeadCommercialSettingsSerializer,
@@ -32,6 +33,19 @@ from apps.leads.serializers import (
 )
 from apps.leads.services.lead_service import LeadService
 from apps.leads.services.wallet_service import WalletService
+from django.core.cache import cache
+
+
+def _get_admin_leads_version():
+    return cache.get("admin_leads_cache_ver") or 1
+
+
+def _clear_admin_leads_cache():
+    try:
+        ver = cache.get("admin_leads_cache_ver") or 1
+        cache.set("admin_leads_cache_ver", ver + 1, timeout=86400 * 30)
+    except Exception:
+        pass
 
 
 class AdminLeadsBaseView(APIView):
@@ -51,7 +65,15 @@ class AdminLeadsBaseView(APIView):
 class AdminLeadListAPIView(AdminLeadsBaseView):
     def get(self, request):
         params = list_params(request)
-        qs = Lead.objects.select_related("assistance_request", "assigned_professional", "legal_case").all()
+        # Lightweight queryset for table list — only join assistance_request for client identity!
+        qs = Lead.objects.select_related("assistance_request").all()
+
+        lead_type = request.query_params.get("lead_type")
+        if lead_type and lead_type != "all":
+            if lead_type == Lead.LeadType.SEEK_ASSISTANCE:
+                qs = qs.filter(Q(lead_type=Lead.LeadType.SEEK_ASSISTANCE) | Q(lead_type__isnull=True) | Q(lead_type=""))
+            else:
+                qs = qs.filter(lead_type=lead_type)
 
         status_filter = request.query_params.get("status")
         if status_filter and status_filter != "all":
@@ -61,9 +83,84 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
         if category and category != "all":
             qs = qs.filter(category=category)
 
-        qs = apply_search(qs, params.get("search"), "lead_id", "category", "assistance_request__full_name", "state_name", "city_name")
+        qs = apply_search(
+            qs,
+            params.get("search"),
+            "lead_id",
+            "category",
+            "service_name",
+            "target_professional_name",
+            "assistance_request__full_name",
+            "state_name",
+            "city_name",
+        )
         qs = apply_ordering(qs, params.get("ordering"), "-created_at")
-        return paginated_success(request, qs, LeadDetailSerializer, message="Admin leads retrieved.")
+
+        ver = _get_admin_leads_version()
+
+        # Top-level Tab Counts - Cached for 60s to eliminate Australia roundtrip on every navigation!
+        counts_cache_key = f"admin_leads_top_counts_v{ver}"
+        counts = cache.get(counts_cache_key)
+        if counts is None:
+            counts_agg = Lead.objects.aggregate(
+                all_count=Count("id"),
+                seek_count=Count(
+                    "id",
+                    filter=Q(lead_type=Lead.LeadType.SEEK_ASSISTANCE) | Q(lead_type__isnull=True) | Q(lead_type=""),
+                ),
+                prof_count=Count("id", filter=Q(lead_type=Lead.LeadType.PROFESSIONAL_APPOINTMENT)),
+                serv_count=Count("id", filter=Q(lead_type=Lead.LeadType.SERVICE_REQUEST)),
+            )
+            counts = {
+                "all": counts_agg["all_count"] or 0,
+                "seek_assistance": counts_agg["seek_count"] or 0,
+                "professional_appointment": counts_agg["prof_count"] or 0,
+                "service_request": counts_agg["serv_count"] or 0,
+            }
+            cache.set(counts_cache_key, counts, timeout=60)
+
+        # Status counts within the active lead_type tab - Cached for 60s
+        status_cache_key = f"admin_leads_status_counts_v{ver}_{lead_type or 'all'}_{category or 'all'}"
+        status_counts = cache.get(status_cache_key)
+        if status_counts is None:
+            base_type_qs = Lead.objects.all()
+            if lead_type and lead_type != "all":
+                if lead_type == Lead.LeadType.SEEK_ASSISTANCE:
+                    base_type_qs = base_type_qs.filter(
+                        Q(lead_type=Lead.LeadType.SEEK_ASSISTANCE) | Q(lead_type__isnull=True) | Q(lead_type="")
+                    )
+                else:
+                    base_type_qs = base_type_qs.filter(lead_type=lead_type)
+            if category and category != "all":
+                base_type_qs = base_type_qs.filter(category=category)
+
+            status_agg = base_type_qs.aggregate(
+                all_count=Count("id"),
+                pending_count=Count("id", filter=Q(status=Lead.Status.PENDING_REVIEW)),
+                published_count=Count("id", filter=Q(status=Lead.Status.PUBLISHED)),
+                accepted_count=Count("id", filter=Q(status=Lead.Status.ACCEPTED)),
+                unavailable_count=Count(
+                    "id",
+                    filter=Q(status__in=[Lead.Status.UNAVAILABLE, Lead.Status.CLOSED, Lead.Status.REJECTED]),
+                ),
+            )
+            status_counts = {
+                "all": status_agg["all_count"] or 0,
+                "pending_review": status_agg["pending_count"] or 0,
+                "published": status_agg["published_count"] or 0,
+                "accepted": status_agg["accepted_count"] or 0,
+                "unavailable": status_agg["unavailable_count"] or 0,
+            }
+            cache.set(status_cache_key, status_counts, timeout=60)
+
+        return paginated_success(
+            request,
+            qs,
+            AdminLeadListSerializer,
+            message="Admin leads retrieved.",
+            extra={"counts": counts, "status_counts": status_counts},
+            context={"request": request, "is_admin": True},
+        )
 
     def post(self, request):
         """
@@ -87,14 +184,27 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
         if initial_status not in [Lead.Status.PENDING_REVIEW, Lead.Status.PUBLISHED, Lead.Status.DRAFT]:
             initial_status = Lead.Status.PENDING_REVIEW
 
+        lead_type = data.get("lead_type", Lead.LeadType.SEEK_ASSISTANCE)
+        service_name = data.get("service_name", "")
+        target_professional_name = data.get("target_professional_name", "")
+        target_professional_id = data.get("target_professional_id", "")
+
         import random
         from django.utils import timezone
         from apps.services.models import AssistanceRequest
+        from apps.leads.models import LeadActivity
 
         year = timezone.now().year
         ref_id = f"ICJ-CALL-{year}-{random.randint(10000, 99999)}"
         while AssistanceRequest.objects.filter(reference_id=ref_id).exists():
             ref_id = f"ICJ-CALL-{year}-{random.randint(10000, 99999)}"
+
+        extra_fields = {
+            "lead_type": lead_type,
+            "service_name": service_name,
+            "professional_name": target_professional_name,
+            "professional_id": target_professional_id,
+        }
 
         req = AssistanceRequest.objects.create(
             reference_id=ref_id,
@@ -107,12 +217,17 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
             category=category,
             urgency=urgency,
             problem_description=problem_description,
+            additional_fields=extra_fields,
         )
 
         lead_id = f"LEAD-{ref_id}"
         lead = Lead.objects.create(
             lead_id=lead_id,
             assistance_request=req,
+            lead_type=lead_type,
+            service_name=service_name,
+            target_professional_name=target_professional_name,
+            target_professional_id=target_professional_id,
             category=category,
             urgency=urgency,
             state_name=state_name,
@@ -128,7 +243,7 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
             lead=lead,
             actor=request.user,
             action="LEAD_MANUALLY_CREATED",
-            description=f"Lead {lead.lead_id} manually generated by admin {request.user.email} (Status: {initial_status}).",
+            description=f"Lead {lead.lead_id} manually generated by admin {request.user.email} (Type: {lead_type}, Status: {initial_status}).",
         )
 
         return api_success(
@@ -141,7 +256,7 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
 class AdminLeadDetailAPIView(AdminLeadsBaseView):
     def get(self, request, pk):
         lead = get_object_or_404(Lead.objects.select_related("assistance_request", "assigned_professional"), pk=pk)
-        return api_success(data=LeadDetailSerializer(lead, context={"request": request}).data, message="Lead retrieved.")
+        return api_success(data=LeadDetailSerializer(lead, context={"request": request, "is_admin": True}).data, message="Lead retrieved.")
 
     def patch(self, request, pk):
         lead = get_object_or_404(Lead, pk=pk)

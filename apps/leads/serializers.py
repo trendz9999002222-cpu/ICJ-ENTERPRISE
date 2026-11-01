@@ -79,17 +79,32 @@ class LeadDetailSerializer(serializers.ModelSerializer):
     client_email = serializers.SerializerMethodField()
     client_mobile = serializers.SerializerMethodField()
     client_preferred_contact = serializers.SerializerMethodField()
+    client_address = serializers.SerializerMethodField()
+    client_pincode = serializers.SerializerMethodField()
+    client_gender = serializers.SerializerMethodField()
+    client_age = serializers.SerializerMethodField()
+    client_dob = serializers.SerializerMethodField()
+    assistance_reference_id = serializers.SerializerMethodField()
+    dynamic_fields = serializers.SerializerMethodField()
     full_description = serializers.SerializerMethodField()
     client_documents = serializers.SerializerMethodField()
     assigned_professional_details = serializers.SerializerMethodField()
     acceptance_info = serializers.SerializerMethodField()
     legal_case_id = serializers.SerializerMethodField()
+    lead_type = serializers.SerializerMethodField()
+    service_name = serializers.SerializerMethodField()
+    target_professional_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = [
             "id",
             "lead_id",
+            "assistance_reference_id",
+            "lead_type",
+            "service_name",
+            "target_professional_name",
+            "target_professional_id",
             "category",
             "urgency",
             "state_name",
@@ -103,6 +118,7 @@ class LeadDetailSerializer(serializers.ModelSerializer):
             "case_notes",
             "reassignment_notes",
             "client_documents",
+            "dynamic_fields",
             "price_paise",
             "price_inr",
             "tax_percentage",
@@ -112,18 +128,59 @@ class LeadDetailSerializer(serializers.ModelSerializer):
             "client_email",
             "client_mobile",
             "client_preferred_contact",
+            "client_address",
+            "client_pincode",
+            "client_gender",
+            "client_age",
+            "client_dob",
             "acceptance_info",
             "legal_case_id",
             "published_at",
             "created_at",
         ]
 
+    def get_lead_type(self, obj: Lead):
+        if obj.lead_type:
+            return obj.lead_type
+        if obj.assistance_request and obj.assistance_request.additional_fields:
+            af = obj.assistance_request.additional_fields
+            if af.get("service_name") or af.get("service_slug"):
+                return "service_request"
+            if af.get("professional_name") or af.get("professional_id"):
+                return "professional_appointment"
+        return "seek_assistance"
+
+    def get_service_name(self, obj: Lead):
+        if obj.service_name:
+            return obj.service_name
+        if obj.assistance_request and obj.assistance_request.additional_fields:
+            return obj.assistance_request.additional_fields.get("service_name", "")
+        return ""
+
+    def get_target_professional_name(self, obj: Lead):
+        if obj.target_professional_name:
+            return obj.target_professional_name
+        if obj.assistance_request and obj.assistance_request.additional_fields:
+            return obj.assistance_request.additional_fields.get("professional_name", "")
+        return ""
+
     def _has_access(self, obj: Lead) -> bool:
+        if self.context.get("is_admin", False):
+            return True
         request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
+        if not request:
+            return True
+        if getattr(request, "path", "").find("/admin/") != -1:
+            return True
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
             return False
-        user = request.user
-        if user.is_staff or getattr(user, "role", "") in ["admin", "super_admin"]:
+        if (
+            user.is_staff
+            or user.is_superuser
+            or getattr(user, "is_admin_role", False)
+            or getattr(user, "role", "") in ["admin", "super_admin"]
+        ):
             return True
         if obj.assigned_professional_id == user.id:
             return True
@@ -132,11 +189,20 @@ class LeadDetailSerializer(serializers.ModelSerializer):
             return True
         return False
 
+    def _get_active_acceptance(self, obj: Lead):
+        # Use prefetched acceptances if available to avoid firing N+1 SQL queries
+        if hasattr(obj, "_prefetched_objects_cache") and "acceptances" in obj._prefetched_objects_cache:
+            for acc in obj.acceptances.all():
+                if acc.status == LeadAcceptance.Status.ACTIVE:
+                    return acc
+            return None
+        return getattr(obj, "acceptance", None)
+
     def get_assigned_professional_details(self, obj: Lead):
         pro = obj.assigned_professional
         if not pro:
-            acc = getattr(obj, "acceptance", None)
-            pro = acc.professional if acc else None
+            acc = self._get_active_acceptance(obj)
+            pro = getattr(acc, "professional", None) if acc else None
         if pro:
             return {
                 "id": str(pro.id),
@@ -147,29 +213,145 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         return None
 
     def get_client_documents(self, obj: Lead):
-        if self._has_access(obj):
-            return obj.client_documents or []
-        return []
+        if not self._has_access(obj):
+            return []
+        docs = []
+        if isinstance(obj.client_documents, list):
+            docs.extend(obj.client_documents)
+        if obj.assistance_request:
+            request = self.context.get("request")
+            for doc in obj.assistance_request.case_documents.all():
+                url = doc.file.url if doc.file else None
+                if url and request and not url.startswith("http"):
+                    try:
+                        url = request.build_absolute_uri(url)
+                    except Exception:
+                        pass
+                docs.append({
+                    "id": str(doc.id),
+                    "document_title": doc.document_title or doc.file_name,
+                    "file_name": doc.file_name,
+                    "file_url": url,
+                    "url": url,
+                    "file_size": doc.file_size_bytes,
+                })
+        return docs
 
     def get_client_name(self, obj: Lead):
-        if self._has_access(obj) and obj.assistance_request:
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.full_name:
             return obj.assistance_request.full_name
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            for k in ["full_name", "client_name", "name"]:
+                if af.get(k):
+                    return af.get(k)
         return None
 
     def get_client_email(self, obj: Lead):
-        if self._has_access(obj) and obj.assistance_request:
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.email:
             return obj.assistance_request.email
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            for k in ["email", "client_email"]:
+                if af.get(k):
+                    return af.get(k)
         return None
 
     def get_client_mobile(self, obj: Lead):
-        if self._has_access(obj) and obj.assistance_request:
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.mobile:
             return obj.assistance_request.mobile
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            for k in ["mobile", "client_mobile", "mobile_number", "phone"]:
+                if af.get(k):
+                    return af.get(k)
         return None
 
     def get_client_preferred_contact(self, obj: Lead):
-        if self._has_access(obj) and obj.assistance_request:
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.preferred_contact:
             return obj.assistance_request.preferred_contact
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            for k in ["preferred_contact", "contact_method"]:
+                if af.get(k):
+                    return af.get(k)
         return None
+
+    def get_client_address(self, obj: Lead):
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.address:
+            return obj.assistance_request.address
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            for k in ["address", "residential_address", "client_address"]:
+                if af.get(k):
+                    return af.get(k)
+        loc = f"{obj.city_name}, {obj.state_name}".strip(", ")
+        return loc if loc else None
+
+    def get_client_pincode(self, obj: Lead):
+        if not self._has_access(obj):
+            return ""
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            return af.get("pincode") or af.get("client_pincode") or af.get("pin_code") or ""
+        return ""
+
+    def get_client_gender(self, obj: Lead):
+        if not self._has_access(obj):
+            return ""
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            return af.get("gender") or af.get("client_gender") or ""
+        return ""
+
+    def get_client_age(self, obj: Lead):
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.calculated_age:
+            age = obj.assistance_request.calculated_age
+            return age if age > 0 else None
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            age = af.get("age") or af.get("client_age")
+            if age:
+                try:
+                    age_int = int(age)
+                    return age_int if age_int > 0 else None
+                except Exception:
+                    pass
+        return None
+
+    def get_client_dob(self, obj: Lead):
+        if not self._has_access(obj):
+            return None
+        if obj.assistance_request and obj.assistance_request.date_of_birth:
+            return str(obj.assistance_request.date_of_birth)
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            af = obj.assistance_request.additional_fields
+            return af.get("date_of_birth") or af.get("dob") or None
+        return None
+
+    def get_assistance_reference_id(self, obj: Lead):
+        if obj.assistance_request:
+            return obj.assistance_request.reference_id
+        return None
+
+    def get_dynamic_fields(self, obj: Lead):
+        if not self._has_access(obj):
+            return {}
+        if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
+            return obj.assistance_request.additional_fields
+        return {}
 
     def get_full_description(self, obj: Lead):
         if self._has_access(obj):
@@ -177,23 +359,68 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         return None
 
     def get_acceptance_info(self, obj: Lead):
-        acceptance = getattr(obj, "acceptance", None)
+        acceptance = self._get_active_acceptance(obj)
         if acceptance:
+            pro = getattr(acceptance, "professional", None)
             return {
                 "accepted_at": acceptance.accepted_at,
                 "payment_method": acceptance.payment_method,
                 "receipt_reference": acceptance.receipt_reference,
-                "professional_email": acceptance.professional.email,
+                "professional_email": pro.email if pro else "",
                 "status": acceptance.status,
             }
         return None
 
     def get_legal_case_id(self, obj: Lead):
-        if obj.legal_case:
-            return obj.legal_case.case_id
-        if obj.assistance_request and hasattr(obj.assistance_request, "legal_case"):
-            return obj.assistance_request.legal_case.case_id
+        if obj.legal_case_id:
+            try:
+                if obj.legal_case:
+                    return obj.legal_case.case_id
+            except Exception:
+                pass
+        ar = obj.assistance_request
+        if ar:
+            # Check prefetched legal_case if available
+            if hasattr(ar, "_prefetched_objects_cache") and "legal_case" in ar._prefetched_objects_cache:
+                lc = getattr(ar, "legal_case", None)
+                return lc.case_id if lc else None
+            try:
+                if hasattr(ar, "legal_case") and ar.legal_case:
+                    return ar.legal_case.case_id
+            except Exception:
+                pass
         return None
+
+
+class AdminLeadListSerializer(LeadDetailSerializer):
+    """
+    Ultra-lightweight list serializer for the Admin Leads Management table.
+    Omits heavy relations (client_documents, acceptance_info, case_notes, dynamic_fields)
+    so table fetches execute in 1 single fast query without N+1 joins!
+    """
+    class Meta:
+        model = Lead
+        fields = [
+            "id",
+            "lead_id",
+            "assistance_reference_id",
+            "lead_type",
+            "service_name",
+            "target_professional_name",
+            "category",
+            "urgency",
+            "state_name",
+            "city_name",
+            "tokens_required",
+            "price_paise",
+            "price_inr",
+            "status",
+            "client_name",
+            "client_email",
+            "client_mobile",
+            "client_preferred_contact",
+            "created_at",
+        ]
 
 
 class LeadAcceptanceSerializer(serializers.ModelSerializer):

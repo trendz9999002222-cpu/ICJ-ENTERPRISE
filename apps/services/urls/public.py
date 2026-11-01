@@ -7,6 +7,7 @@ from apps.services.views.public import (
     PublicJusticeServiceListAPIView,
     PublicAssistanceRequestAPIView,
     PublicAssistanceFormConfigAPIView,
+    PublicProfessionalAppointmentAPIView,
 )
 
 urlpatterns = [
@@ -15,5 +16,6 @@ urlpatterns = [
     path("", PublicJusticeServiceListAPIView.as_view(), name="public-services"),
     path("seek-assistance/config/", PublicAssistanceFormConfigAPIView.as_view(), name="public-seek-assistance-config"),
     path("seek-assistance/", PublicAssistanceRequestAPIView.as_view(), name="public-seek-assistance"),
+    path("request-appointment/", PublicProfessionalAppointmentAPIView.as_view(), name="public-request-appointment"),
     path("<slug:slug>/", PublicJusticeServiceDetailAPIView.as_view(), name="public-service-detail"),
 ]

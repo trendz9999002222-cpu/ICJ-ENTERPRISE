@@ -134,25 +134,57 @@ class PublicProfessionalProfileSerializer(serializers.ModelSerializer):
 
         return merged
 
+    @classmethod
+    def _get_cat_map(cls):
+        from django.core.cache import cache
+        cat_map = cache.get("cat_name_map")
+        if cat_map is None:
+            try:
+                from apps.professional_onboarding.models import Category
+                raw = dict(Category.objects.values_list("id", "name"))
+                cat_map = {str(k): v for k, v in raw.items()}
+                cache.set("cat_name_map", cat_map, timeout=3600)
+            except Exception:
+                cat_map = {}
+        return cat_map
+
+    @classmethod
+    def _get_prof_map(cls):
+        from django.core.cache import cache
+        prof_map = cache.get("prof_name_map")
+        if prof_map is None:
+            try:
+                from apps.professional_onboarding.models import Profession
+                raw = dict(Profession.objects.values_list("id", "name"))
+                prof_map = {str(k): v for k, v in raw.items()}
+                cache.set("prof_name_map", prof_map, timeout=3600)
+            except Exception:
+                prof_map = {}
+        return prof_map
+
     def get_registered_categories(self, obj) -> list[str]:
-        from apps.professional_onboarding.models import Category
         ids = obj.selected_category_ids or []
         if not ids and obj.category_id:
             ids = [str(obj.category_id)]
-        try:
-            return list(Category.objects.filter(id__in=ids).values_list('name', flat=True))
-        except Exception:
+        if not ids:
             return [obj.category.name] if obj.category else []
+        cat_map = self._get_cat_map()
+        names = [cat_map[str(cid)] for cid in ids if str(cid) in cat_map]
+        if not names and obj.category:
+            return [obj.category.name]
+        return names
 
     def get_registered_professions(self, obj) -> list[str]:
-        from apps.professional_onboarding.models import Profession
         ids = obj.selected_profession_ids or []
         if not ids and obj.profession_id:
             ids = [str(obj.profession_id)]
-        try:
-            return list(Profession.objects.filter(id__in=ids).values_list('name', flat=True))
-        except Exception:
+        if not ids:
             return [obj.profession.name] if obj.profession else []
+        prof_map = self._get_prof_map()
+        names = [prof_map[str(pid)] for pid in ids if str(pid) in prof_map]
+        if not names and obj.profession:
+            return [obj.profession.name]
+        return names
 
     def get_full_name(self, obj) -> str:
         common = self._get_common(obj)

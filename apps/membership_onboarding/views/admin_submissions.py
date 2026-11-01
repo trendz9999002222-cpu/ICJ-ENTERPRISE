@@ -15,7 +15,7 @@ from apps.professional_onboarding.services.crud import ServiceError
 class MembershipApplicationListAPIView(AdminMembershipConfigAPIView):
     def get(self, request):
         params = list_params(request)
-        qs = MembershipApplication.objects.select_related("person", "membership_type", "membership_record").all()
+        qs = MembershipApplication.objects.select_related("person", "user", "membership_type", "membership_record").all()
         search = (params.get("search") or "").strip()
         if search:
             qs = qs.filter(

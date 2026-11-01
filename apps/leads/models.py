@@ -121,6 +121,23 @@ class Lead(models.Model):
         blank=True,
         related_name="marketplace_lead_case",
     )
+    class LeadType(models.TextChoices):
+        SEEK_ASSISTANCE = "seek_assistance", "Seek Assistance"
+        PROFESSIONAL_APPOINTMENT = "professional_appointment", "Professional Appointment"
+        SERVICE_REQUEST = "service_request", "Service Request"
+
+    lead_type = models.CharField(
+        max_length=40,
+        choices=LeadType.choices,
+        default=LeadType.SEEK_ASSISTANCE,
+        blank=True,
+        null=True,
+        db_index=True,
+    )
+    service_name = models.CharField(max_length=200, blank=True, null=True, default="", db_index=True)
+    target_professional_name = models.CharField(max_length=200, blank=True, null=True, default="")
+    target_professional_id = models.CharField(max_length=100, blank=True, null=True, default="")
+
     category = models.CharField(max_length=200, db_index=True)
     urgency = models.CharField(max_length=50, default="Medium", db_index=True)
     state_name = models.CharField(max_length=100, db_index=True)
@@ -159,6 +176,17 @@ class Lead(models.Model):
             models.Index(fields=["status", "published_at"]),
             models.Index(fields=["category", "state_name"]),
         ]
+
+    def save(self, *args, **kwargs):
+        if not self.lead_type:
+            self.lead_type = self.LeadType.SEEK_ASSISTANCE
+        if self.service_name is None:
+            self.service_name = ""
+        if self.target_professional_name is None:
+            self.target_professional_name = ""
+        if self.target_professional_id is None:
+            self.target_professional_id = ""
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.lead_id} ({self.category} - {self.status})"
@@ -247,6 +275,10 @@ class LeadAcceptance(models.Model):
 
     class Meta:
         ordering = ("-accepted_at",)
+        indexes = [
+            models.Index(fields=["lead", "status"]),
+            models.Index(fields=["professional", "status"]),
+        ]
 
 
 class LeadActivity(models.Model):

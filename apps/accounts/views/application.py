@@ -212,6 +212,12 @@ class AdminApplicationReviewAPIView(APIView):
                     note=note or "Application approved by ICJ Empanelment Committee.",
                 )
 
+                try:
+                    from apps.professional_onboarding.views.public_professionals import _sync_approved_applications
+                    _sync_approved_applications(force=True)
+                except Exception:
+                    pass
+
             elif decision == "reject":
                 if not note:
                     return api_error(message="A rejection reason is mandatory.", status_code=status.HTTP_400_BAD_REQUEST)
