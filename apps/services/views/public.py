@@ -131,20 +131,33 @@ class PublicAssistanceFormConfigAPIView(APIView):
         )
 
         citizen_fields = []
-        for cfg in configs:
-            cf = cfg.common_field
-            if not cf:
-                continue
-            citizen_fields.append({
-                "field_key": cf.field_key,
-                "label": cfg.label_override or cf.label,
-                "field_type": cf.field_type,
-                "placeholder": cfg.placeholder_override or cf.placeholder,
-                "required": cfg.is_required,
-                "options": cf.options or [],
-                "display_order": cfg.display_order,
-                "section_name": cfg.section_name or "Applicant Identity & Contact Information",
-            })
+        if configs.exists():
+            for cfg in configs:
+                cf = cfg.common_field
+                if not cf:
+                    continue
+                citizen_fields.append({
+                    "field_key": cf.field_key,
+                    "label": cfg.label_override or cf.label,
+                    "field_type": cf.field_type,
+                    "placeholder": cfg.placeholder_override or cf.placeholder,
+                    "required": cfg.is_required,
+                    "options": cf.options or [],
+                    "display_order": cfg.display_order,
+                    "section_name": cfg.section_name or "Applicant Identity & Contact Information",
+                })
+        else:
+            for cf in CommonField.objects.filter(is_active=True).order_by("created_at"):
+                citizen_fields.append({
+                    "field_key": cf.field_key,
+                    "label": cf.label,
+                    "field_type": cf.field_type,
+                    "placeholder": cf.placeholder,
+                    "required": cf.is_system_field,
+                    "options": cf.options or [],
+                    "display_order": 0,
+                    "section_name": "Applicant Identity & Contact Information",
+                })
 
         # 2. Fetch Legal Matter Fields
         legal_matter_fields = AssistanceFormField.objects.filter(is_active=True).order_by("display_order", "created_at")
@@ -507,6 +520,13 @@ def send_case_tracking_details_email(to_email: str, full_name: str, case_data: d
         milestone_lines.append(f"{idx}. {m.get('title')}: {status_icon}{date_str}")
     milestones_txt = "\n".join(milestone_lines)
 
+    frontend_base = (
+        getattr(settings, "FRONTEND_URL", None)
+        or (settings.CORS_ALLOWED_ORIGINS[0] if getattr(settings, "CORS_ALLOWED_ORIGINS", []) else None)
+        or "https://icj.org.in"
+    ).rstrip("/")
+    track_url = f"{frontend_base}/track-case"
+
     subject = f"Case Status Report - Case #{case_id} ({status_text}) - ICJ"
     message = (
         f"Dear {full_name or 'Citizen'},\n\n"
@@ -515,7 +535,7 @@ def send_case_tracking_details_email(to_email: str, full_name: str, case_data: d
         f"• Current Status: {status_text}\n"
         f"• Assigned Legal Counsel: {counsel}\n\n"
         f"Procedural Milestones:\n{milestones_txt}\n\n"
-        f"You can re-verify or check live updates anytime: https://icj.org.in/track-case\n\n"
+        f"You can re-verify or check live updates anytime: {track_url}\n\n"
         f"Regards,\n"
         f"Registry & Case Management Desk\n"
         f"International Consortium of Jurists (ICJ)\n"
@@ -547,7 +567,7 @@ def send_case_tracking_details_email(to_email: str, full_name: str, case_data: d
             data=payload,
             headers={
                 "Content-Type": "application/json",
-                "Origin": "http://localhost:3000",
+                "Origin": frontend_base,
             },
         )
         urllib.request.urlopen(req, timeout=8)

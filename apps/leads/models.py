@@ -10,6 +10,8 @@ class LeadCommercialSettings(models.Model):
     Singleton configuration for Lead Marketplace commercial and compliance parameters.
     Default compliance requirement: paid lead unlocking is DISABLED until legal approval.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     paid_unlock_enabled = models.BooleanField(
         default=False,
@@ -65,13 +67,15 @@ class LeadCommercialSettings(models.Model):
 
     def __str__(self):
         status_text = "ENABLED" if self.paid_unlock_enabled else "DISABLED"
-        return f"Commercial Settings (Paid Unlocking: {status_text}, Default: ₹{self.default_lead_price_paise / 100:.2f})"
+        return f"Commercial Settings (Paid Unlocking: {status_text}, Default: ₹{self.default_lead_price_paise / 100:.2f})"  # type: ignore
 
 
 class LeadPricingRule(models.Model):
     """
     Pricing rules and overrides by category, urgency, or custom promotion.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=150)
     category = models.CharField(max_length=200, blank=True, help_text="Specific legal category or blank for all")
@@ -88,13 +92,15 @@ class LeadPricingRule(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.name} - ₹{self.base_price_paise / 100:.2f}"
+        return f"{self.name} - ₹{self.base_price_paise / 100:.2f}"  # type: ignore
 
 
 class Lead(models.Model):
     """
     Lead record representing an anonymized legal assistance inquiry published to the marketplace.
     """
+    objects = models.Manager()
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         PENDING_REVIEW = "pending_review", "Pending Review"
@@ -193,7 +199,7 @@ class Lead(models.Model):
 
     @property
     def price_inr(self) -> float:
-        return round(self.price_paise / 100, 2)
+        return round(self.price_paise / 100, 2)  # type: ignore
 
     @property
     def acceptance(self):
@@ -204,6 +210,8 @@ class LeadPublication(models.Model):
     """
     Audit record of lead publication/unpublication by administrators.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="publications")
     published_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="published_leads")
@@ -221,6 +229,8 @@ class LeadReservation(models.Model):
     Short-lived reservation lock during professional checkout.
     Ensures only one professional can attempt checkout on an exclusive lead at a time.
     """
+    objects = models.Manager()
+
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
         EXPIRED = "expired", "Expired"
@@ -249,6 +259,8 @@ class LeadAcceptance(models.Model):
     """
     Permanent, auditable record of lead acceptance by an eligible professional.
     """
+    objects = models.Manager()
+
     class PaymentMethod(models.TextChoices):
         WALLET = "wallet", "ICJ Wallet"
         LEAD_CREDIT = "lead_credit", "Lead Credit Subscription"
@@ -285,6 +297,8 @@ class LeadActivity(models.Model):
     """
     Audit log of all actions on a specific lead.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name="activities")
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
@@ -302,6 +316,8 @@ class ProfessionalWallet(models.Model):
     Token and payment wallet account for an eligible verified professional.
     Professional accepts leads exclusively using tokens.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     professional = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="icj_wallet")
     currency = models.CharField(max_length=10, default="INR")
@@ -316,11 +332,11 @@ class ProfessionalWallet(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Wallet ({self.professional.email}) - Tokens: {self.token_balance}, Balance: ₹{self.balance_paise / 100:.2f}"
+        return f"Wallet ({self.professional.email}) - Tokens: {self.token_balance}, Balance: ₹{self.balance_paise / 100:.2f}"  # type: ignore
 
     @property
     def available_paise(self) -> int:
-        return max(0, self.balance_paise - self.reserved_paise)
+        return max(0, self.balance_paise - self.reserved_paise)  # type: ignore
 
     @property
     def available_inr(self) -> float:
@@ -331,6 +347,8 @@ class WalletTransaction(models.Model):
     """
     Append-only immutable transaction ledger for professional wallets.
     """
+    objects = models.Manager()
+
     class TxType(models.TextChoices):
         CREDIT = "credit", "Credit (Top-up)"
         DEBIT = "debit", "Debit (Lead Acceptance)"
@@ -360,6 +378,8 @@ class LeadCreditPlan(models.Model):
     """
     Configurable prepaid plans for purchasing lead credits.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     code = models.SlugField(max_length=100, unique=True)
@@ -376,13 +396,15 @@ class LeadCreditPlan(models.Model):
         ordering = ("display_order", "price_paise")
 
     def __str__(self):
-        return f"{self.name} ({self.credits_granted} credits - ₹{self.price_paise / 100:.2f})"
+        return f"{self.name} ({self.credits_granted} credits - ₹{self.price_paise / 100:.2f})"  # type: ignore
 
 
 class ProfessionalPlanPurchase(models.Model):
     """
     Lead credit plan instance purchased by a professional.
     """
+    objects = models.Manager()
+
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
         EXHAUSTED = "exhausted", "Exhausted"
@@ -407,6 +429,8 @@ class LeadCreditLedger(models.Model):
     """
     Audit ledger tracking each consumption or grant of lead credits.
     """
+    objects = models.Manager()
+
     class EntryType(models.TextChoices):
         CREDIT_GRANTED = "granted", "Credits Granted"
         CREDIT_CONSUMED = "consumed", "Credit Consumed"
@@ -432,6 +456,8 @@ class PaymentOrder(models.Model):
     """
     Represents an internal and gateway payment order (Razorpay / Mock).
     """
+    objects = models.Manager()
+
     class OrderType(models.TextChoices):
         WALLET_TOPUP = "wallet_topup", "Wallet Top-up"
         LEAD_ACCEPTANCE = "lead_acceptance", "Direct Lead Acceptance"
@@ -467,6 +493,8 @@ class PaymentTransaction(models.Model):
     """
     Verification record for received gateway transaction.
     """
+    objects = models.Manager()
+
     class Status(models.TextChoices):
         CAPTURED = "captured", "Captured"
         FAILED = "failed", "Failed"
@@ -491,6 +519,8 @@ class RefundRequest(models.Model):
     """
     Audit record for refund requests on lead acceptances or failed orders.
     """
+    objects = models.Manager()
+
     class Status(models.TextChoices):
         PENDING = "pending", "Pending Review"
         APPROVED = "approved", "Approved"
@@ -517,6 +547,8 @@ class LeadAuditLog(models.Model):
     """
     System-wide tamper-evident audit log for lead marketplace operations.
     """
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     entity_type = models.CharField(max_length=50, db_index=True)
     entity_id = models.CharField(max_length=100, db_index=True)

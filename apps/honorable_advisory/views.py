@@ -37,26 +37,53 @@ def public_members(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def public_form_fields(request):
-    from apps.professional_onboarding.models import CommonField
+    from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig
     
     data = []
     
-    # Prepend Common Fields
-    common_fields = CommonField.objects.filter(is_active=True).prefetch_related("options").order_by("display_order", "label")
-    for cf in common_fields:
-        opts = []
-        for o in cf.options.filter(is_active=True).order_by("display_order", "label"):
-            opts.append({"label": o.label, "value": o.value})
-            
-        data.append({
-            'field_key': cf.field_key,
-            'label': cf.label,
-            'field_type': cf.field_type,
-            'required': cf.is_required,
-            'options': opts if opts else None,
-        })
+    # 1. Fetch Common Fields mapped for HONORABLE_ADVISORY by Admin
+    configs = (
+        FormFieldConfig.objects.filter(
+            form__form_code=AdditionalOnboardingFormfields.FormCode.HONORABLE_ADVISORY,
+            is_visible=True,
+            common_field__is_active=True,
+        )
+        .select_related("common_field")
+        .order_by("display_order")
+    )
+    
+    if configs.exists():
+        for cfg in configs:
+            cf = cfg.common_field
+            if not cf:
+                continue
+            data.append({
+                'field_key': cf.field_key,
+                'label': cfg.label_override or cf.label,
+                'field_type': cf.field_type,
+                'placeholder': cfg.placeholder_override or cf.placeholder,
+                'required': cfg.is_required,
+                'options': cf.options or [],
+                'display_order': cfg.display_order,
+            })
+    else:
+        # Fallback if not yet mapped in core FormFieldConfig
+        from apps.professional_onboarding.models import CommonField
+        common_fields = CommonField.objects.filter(is_active=True).prefetch_related("options").order_by("display_order", "label")
+        for cf in common_fields:
+            opts = []
+            for o in cf.options.filter(is_active=True).order_by("display_order", "label"):
+                opts.append({"label": o.label, "value": o.value})
+                
+            data.append({
+                'field_key': cf.field_key,
+                'label': cf.label,
+                'field_type': cf.field_type,
+                'required': cf.is_required,
+                'options': opts if opts else None,
+            })
         
-    # Append Custom Honorable Fields
+    # 2. Append Custom Honorable Fields configured by Admin
     fields = HonorableFormField.objects.filter(is_active=True).order_by('display_order')
     for f in fields:
         data.append({
@@ -65,6 +92,7 @@ def public_form_fields(request):
             'field_type': f.field_type,
             'required': f.required,
             'options': f.options,
+            'display_order': f.display_order,
         })
     return Response({'success': True, 'data': {'fields': data}})
 
