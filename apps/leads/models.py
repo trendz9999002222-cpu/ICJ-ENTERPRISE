@@ -203,7 +203,7 @@ class Lead(models.Model):
 
     @property
     def acceptance(self):
-        return self.acceptances.filter(status=LeadAcceptance.Status.ACTIVE).first()
+        return self.acceptances.filter(status=LeadAcceptance.Status.ACTIVE).first()  # type: ignore
 
 
 class LeadPublication(models.Model):
