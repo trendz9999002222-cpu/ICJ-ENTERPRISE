@@ -29,6 +29,8 @@ class UserSerializer(serializers.ModelSerializer):
             "membership",
             "phone_number",
             "mobile",
+            "address",
+            "date_of_birth",
             "profile_picture_url",
             "photo_url",
             "password_change_required",
@@ -346,7 +348,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("first_name", "last_name", "phone_number", "profile_picture")
+        fields = ("first_name", "last_name", "phone_number", "profile_picture", "date_of_birth", "address")
 
     def validate_profile_picture(self, value):
         if value is None:

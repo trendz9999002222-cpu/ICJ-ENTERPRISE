@@ -407,11 +407,28 @@ class MeView(APIView):
         if membership_field_values and isinstance(membership_field_values, dict):
             app = request.user.membership_applications.order_by("-created_at").first()
             if app:
-                # Merge new values with existing values
                 current_values = dict(app.field_values or {})
                 current_values.update(membership_field_values)
                 app.field_values = current_values
                 app.save(update_fields=["field_values"])
+
+        # Handle updating professional submission practice fields if provided
+        common_field_values = request.data.get("common_field_values")
+        profession_field_values = request.data.get("profession_field_values")
+        if common_field_values or profession_field_values:
+            reg_id = request.data.get("registration_id")
+            subs = request.user.professional_registration_submissions.all()
+            sub = (subs.filter(pk=reg_id).first() or subs.filter(reference_id=str(reg_id)).first()) if reg_id else subs.order_by("-created_at").first()
+            if sub:
+                if common_field_values and isinstance(common_field_values, dict):
+                    curr = dict(sub.common_field_values or {})
+                    curr.update(common_field_values)
+                    sub.common_field_values = curr
+                if profession_field_values and isinstance(profession_field_values, dict):
+                    curr = dict(sub.profession_field_values or {})
+                    curr.update(profession_field_values)
+                    sub.profession_field_values = curr
+                sub.save()
 
         request.user.refresh_from_db()
         return api_success(
