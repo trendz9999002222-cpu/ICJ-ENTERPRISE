@@ -62,11 +62,85 @@ class AdminLeadsBaseView(APIView):
         return data if isinstance(data, dict) else {}
 
 
+def sync_assistance_requests_to_leads():
+    """
+    Ensures any citizen seek-assistance intake in services_assistancerequest
+    has a corresponding Lead record in leads_lead table.
+    """
+    cache_key = "leads_sync_assistance_guard"
+    if cache.get(cache_key):
+        return
+    cache.set(cache_key, True, timeout=60)
+
+    try:
+        from apps.services.models import AssistanceRequest
+        import random
+        from django.utils import timezone
+
+        orphaned = AssistanceRequest.objects.filter(marketplace_lead__isnull=True).order_by("-created_at")[:100]
+        if not orphaned.exists():
+            return
+
+        settings_obj = LeadCommercialSettings.get_settings()
+        year = timezone.now().year
+
+        for req in orphaned:
+            lead_id = f"ICJ-LEAD-{year}-{random.randint(10000, 99999)}"
+            while Lead.objects.filter(lead_id=lead_id).exists():
+                lead_id = f"ICJ-LEAD-{year}-{random.randint(10000, 99999)}"
+
+            summary = (req.problem_description or "").strip()
+            if len(summary) > 220:
+                summary = summary[:217] + "..."
+
+            add_fields = req.additional_fields if isinstance(req.additional_fields, dict) else {}
+            lead_type = add_fields.get("lead_type")
+            if not lead_type:
+                if add_fields.get("service_name") or add_fields.get("service_slug"):
+                    lead_type = Lead.LeadType.SERVICE_REQUEST
+                elif (
+                    add_fields.get("professional_name")
+                    or add_fields.get("practitioner_name")
+                    or add_fields.get("professional_id")
+                    or "Appointment" in (req.category or "")
+                    or "Consultation" in (req.help_type or "")
+                ):
+                    lead_type = Lead.LeadType.PROFESSIONAL_APPOINTMENT
+                else:
+                    lead_type = Lead.LeadType.SEEK_ASSISTANCE
+
+            service_name = add_fields.get("service_name") or add_fields.get("service_title", "") or ""
+            target_pro_name = add_fields.get("professional_name") or add_fields.get("practitioner_name", "") or ""
+            target_pro_id = add_fields.get("professional_id", "") or ""
+
+            Lead.objects.get_or_create(
+                assistance_request=req,
+                defaults={
+                    "lead_id": lead_id,
+                    "lead_type": lead_type or Lead.LeadType.SEEK_ASSISTANCE,
+                    "service_name": service_name,
+                    "target_professional_name": target_pro_name,
+                    "target_professional_id": target_pro_id,
+                    "category": req.category or "General Legal Assistance",
+                    "urgency": req.urgency or "Medium",
+                    "state_name": req.state_name or "Not Specified",
+                    "city_name": req.city_name or "Not Specified",
+                    "anonymized_summary": summary,
+                    "full_description": req.problem_description or "",
+                    "price_paise": settings_obj.default_lead_price_paise,
+                    "tax_percentage": settings_obj.tax_percentage,
+                    "status": Lead.Status.PENDING_REVIEW,
+                }
+            )
+    except Exception:
+        pass
+
+
 class AdminLeadListAPIView(AdminLeadsBaseView):
     def get(self, request):
+        sync_assistance_requests_to_leads()
         params = list_params(request)
-        # Lightweight queryset for table list — only join assistance_request for client identity!
-        qs = Lead.objects.select_related("assistance_request").all()
+        qs = Lead.objects.all()
 
         lead_type = request.query_params.get("lead_type")
         if lead_type and lead_type != "all":

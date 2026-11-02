@@ -276,8 +276,9 @@ class LeadDetailSerializer(serializers.ModelSerializer):
     def get_client_preferred_contact(self, obj: Lead):
         if not self._has_access(obj):
             return None
-        if obj.assistance_request and obj.assistance_request.preferred_contact:
-            return obj.assistance_request.preferred_contact
+        pref = getattr(obj.assistance_request, "preferred_contact", None) if obj.assistance_request else None
+        if pref:
+            return pref
         if obj.assistance_request and isinstance(obj.assistance_request.additional_fields, dict):
             af = obj.assistance_request.additional_fields
             for k in ["preferred_contact", "contact_method"]:
