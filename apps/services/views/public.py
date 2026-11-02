@@ -115,6 +115,11 @@ class PublicAssistanceFormConfigAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cache_key = "public_seek_assistance_config"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return api_success(data=cached_data, message="Dynamic form configuration retrieved successfully.")
+
         from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig, CommonField
         from apps.services.models import AssistanceFormField, AssistanceDocument
         from apps.services.serializers import AssistanceFormFieldSerializer, AssistanceDocumentSerializer
@@ -167,12 +172,15 @@ class PublicAssistanceFormConfigAPIView(APIView):
         docs = AssistanceDocument.objects.filter(is_active=True).order_by("display_order", "name")
         docs_data = AssistanceDocumentSerializer(docs, many=True).data
 
+        payload = {
+            "citizen_fields": citizen_fields,
+            "legal_matter_fields": legal_fields_data,
+            "documents": docs_data,
+        }
+        cache.set(cache_key, payload, timeout=300)
+
         return api_success(
-            data={
-                "citizen_fields": citizen_fields,
-                "legal_matter_fields": legal_fields_data,
-                "documents": docs_data,
-            },
+            data=payload,
             message="Dynamic form configuration retrieved successfully.",
         )
 

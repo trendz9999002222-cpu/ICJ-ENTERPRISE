@@ -1,5 +1,6 @@
 import json
 
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -42,14 +43,21 @@ class PublicMembershipConfigurationAPIView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cache_key = "public_membership_onboarding_config"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return api_success(data=cached_data, message="Membership configuration retrieved.")
+
         config = build_active_configuration()
         payload = {
             "form": config["form"],
             "steps": config["steps"],
             "documents": config["documents"],
         }
+        serialized = PublicMembershipConfigurationSerializer(payload).data
+        cache.set(cache_key, serialized, timeout=300)
         return api_success(
-            data=PublicMembershipConfigurationSerializer(payload).data,
+            data=serialized,
             message="Membership configuration retrieved.",
         )
 
