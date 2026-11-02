@@ -95,7 +95,7 @@ class FormFieldConfigListCreateAPIView(APIView):
                 )
             qs = qs.filter(form__form_code=form_code_clean)
             
-        ordering = params.get("ordering", "display_order")
+        ordering = params.get("ordering") or "display_order"
         if ordering:
             qs = qs.order_by(ordering)
             

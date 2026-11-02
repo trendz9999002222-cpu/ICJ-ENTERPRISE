@@ -77,8 +77,8 @@ def _ensure_membership_common_fields():
         {"field_key": "country", "name": "Country", "label": "Country", "field_type": "country", "placeholder": "e.g. India", "is_required": True, "section_name": "Contact & Location", "display_order": 60},
         {"field_key": "state", "name": "State", "label": "State", "field_type": "state", "placeholder": "Select State", "is_required": False, "section_name": "Contact & Location", "display_order": 70},
         {"field_key": "district", "name": "District", "label": "District", "field_type": "city", "placeholder": "Select District", "is_required": False, "section_name": "Contact & Location", "display_order": 80},
-        {"field_key": "address", "name": "Residential / Office Address", "label": "Residential / Office Address", "field_type": "textarea", "placeholder": "House/Chamber No., Street, Locality or Landmark", "is_required": False, "section_name": "Contact & Location", "display_order": 90},
-        {"field_key": "pincode", "name": "Postal Code (PIN)", "label": "Postal Code (PIN)", "field_type": "pincode", "placeholder": "e.g. 110001", "is_required": False, "section_name": "Contact & Location", "display_order": 100},
+        {"field_key": "pincode", "name": "Postal Code (PIN)", "label": "Postal Code (PIN)", "field_type": "pincode", "placeholder": "e.g. 110001", "is_required": False, "section_name": "Contact & Location", "display_order": 90},
+        {"field_key": "address", "name": "Residential / Office Address", "label": "Residential / Office Address", "field_type": "textarea", "placeholder": "House/Chamber No., Street, Locality or Landmark", "is_required": False, "section_name": "Contact & Location", "display_order": 100},
     ]
 
     for item in standard_fields:
@@ -93,16 +93,22 @@ def _ensure_membership_common_fields():
                 "is_active": True,
             },
         )
-        FormFieldConfig.objects.get_or_create(
+        f_cfg = FormFieldConfig.objects.filter(
             form=membership_form,
             common_field=cf,
-            defaults={
-                "section_name": item["section_name"],
-                "display_order": item["display_order"],
-                "is_required": item["is_required"],
-                "is_visible": True,
-            },
-        )
+        ).first()
+        if not f_cfg:
+            FormFieldConfig.objects.create(
+                form=membership_form,
+                common_field=cf,
+                section_name=item["section_name"],
+                display_order=item["display_order"],
+                is_required=item["is_required"],
+                is_visible=True,
+            )
+        elif f_cfg.display_order == 0 or f_cfg.display_order is None:
+            f_cfg.display_order = item["display_order"]
+            f_cfg.save(update_fields=["display_order"])
 
 
 def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
@@ -128,6 +134,7 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
         )
         .exclude(common_field__field_key__in=["state_name", "city_name", "first_name", "last_name"])
         .select_related("common_field")
+        .order_by("display_order", "created_at")
     )
     if not prof_configs:
         prof_configs = list(
@@ -138,6 +145,7 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
             )
             .exclude(common_field__field_key__in=["state_name", "city_name", "first_name", "last_name"])
             .select_related("common_field")
+            .order_by("display_order", "created_at")
         )
 
     # Sort so positive display_order comes first (10, 20, 30...), then 0/null display_order

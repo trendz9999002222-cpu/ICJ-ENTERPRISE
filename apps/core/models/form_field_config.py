@@ -42,7 +42,7 @@ class FormFieldConfig(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ("form", "section_name", "display_order")
+        ordering = ("form", "display_order", "created_at")
         constraints = [
             models.UniqueConstraint(
                 fields=["form", "common_field"],
