@@ -126,7 +126,6 @@ class AssistanceRequest(models.Model):
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
     mobile = models.CharField(max_length=20)
-    preferred_contact = models.CharField(max_length=20)
     state_name = models.CharField(max_length=100, db_index=True)
     city_name = models.CharField(max_length=100, db_index=True)
     category = models.CharField(max_length=200, db_index=True)

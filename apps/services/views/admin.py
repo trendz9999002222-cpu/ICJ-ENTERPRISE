@@ -1,4 +1,5 @@
 import re
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -245,6 +246,7 @@ class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
             is_active=is_active,
             options=options,
         )
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field created.", status_code=status.HTTP_201_CREATED)
 
     def put(self, request):
@@ -276,6 +278,7 @@ class AdminAssistanceFormFieldListCreateAPIView(AdminServicesBaseView):
         if "options" in request.data:
             field.options = request.data.get("options")
         field.save()
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field updated.")
 
 
@@ -309,11 +312,13 @@ class AdminAssistanceFormFieldDetailAPIView(AdminServicesBaseView):
         if "options" in request.data:
             field.options = request.data.get("options")
         field.save()
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceFormFieldSerializer(field).data, message="Field updated.")
 
     def delete(self, request, pk):
         field = get_object_or_404(AssistanceFormField, pk=pk)
         field.delete()
+        cache.delete("public_seek_assistance_config")
         return api_success(message="Field deleted.")
 
 
@@ -352,6 +357,7 @@ class AdminAssistanceDocumentListCreateAPIView(AdminServicesBaseView):
             is_active=str(request.data.get("is_active", True)).lower() == "true",
             display_order=int(request.data.get("display_order", 0)),
         )
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document created.", status_code=status.HTTP_201_CREATED)
 
     def put(self, request):
@@ -377,6 +383,7 @@ class AdminAssistanceDocumentListCreateAPIView(AdminServicesBaseView):
         if "display_order" in request.data:
             doc.display_order = int(request.data.get("display_order", doc.display_order))
         doc.save()
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document updated.")
 
 
@@ -405,11 +412,13 @@ class AdminAssistanceDocumentDetailAPIView(AdminServicesBaseView):
         if "display_order" in request.data:
             doc.display_order = int(request.data.get("display_order", doc.display_order))
         doc.save()
+        cache.delete("public_seek_assistance_config")
         return api_success(data=AssistanceDocumentSerializer(doc).data, message="Document updated.")
 
     def delete(self, request, pk):
         doc = get_object_or_404(AssistanceDocument, pk=pk)
         doc.delete()
+        cache.delete("public_seek_assistance_config")
         return api_success(message="Document deleted.")
 
 

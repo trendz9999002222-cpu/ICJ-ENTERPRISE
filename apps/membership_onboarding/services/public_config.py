@@ -119,11 +119,10 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
         import traceback
         traceback.print_exc()
 
-    # 1. Fetch Dynamic Common Fields mapped in admin
-    # The Admin screen at /admin/professional-onboarding/common-fields manages form_code=PROFESSIONAL
+    # 1. Fetch Dynamic Common Fields mapped in admin for MEMBERSHIP (fallback to PROFESSIONAL if none)
     prof_configs = list(
         FormFieldConfig.objects.filter(
-            form__form_code=AdditionalOnboardingFormfields.FormCode.PROFESSIONAL,
+            form__form_code=AdditionalOnboardingFormfields.FormCode.MEMBERSHIP,
             is_visible=True,
             common_field__is_active=True,
         )
@@ -133,7 +132,7 @@ def _prefetch_form_configuration(form: MembershipForm | None) -> dict:
     if not prof_configs:
         prof_configs = list(
             FormFieldConfig.objects.filter(
-                form__form_code=AdditionalOnboardingFormfields.FormCode.MEMBERSHIP,
+                form__form_code=AdditionalOnboardingFormfields.FormCode.PROFESSIONAL,
                 is_visible=True,
                 common_field__is_active=True,
             )

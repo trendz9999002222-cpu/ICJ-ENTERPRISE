@@ -299,7 +299,7 @@ class PublicAssistanceRequestAPIView(APIView):
                     client_name=instance.full_name or "",
                     client_email=instance.email or "",
                     client_mobile=instance.mobile or "",
-                    client_preferred_contact=instance.preferred_contact or "Phone",
+                    client_preferred_contact=getattr(instance, "preferred_contact", "Phone") or "Phone",
                 )
 
         # ── Trigger Notifications ──────────────────────────────────────────────

@@ -84,7 +84,7 @@ def sync_assistance_requests_to_leads(force: bool = False):
             client_name=req.full_name or "",
             client_email=req.email or "",
             client_mobile=req.mobile or "",
-            client_preferred_contact=req.preferred_contact or "Phone",
+            client_preferred_contact=getattr(req, "preferred_contact", "Phone") or "Phone",
         )
 
 
