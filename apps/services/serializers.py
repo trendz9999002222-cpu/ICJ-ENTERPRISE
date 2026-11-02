@@ -10,8 +10,6 @@ from apps.services.models import (
     LegalCase,
     CaseAssignmentHistory,
     CaseInstallmentSchedule,
-    AssistanceFormField,
-    AssistanceDocument,
     ProfessionalWallet,
     WalletTransaction,
     LeadCreditPlan,
@@ -92,6 +90,23 @@ class AssistanceRequestSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ("id", "reference_id", "created_at", "updated_at", "status")
 
+    def to_internal_value(self, data):
+        if hasattr(data, "dict"):
+            data = data.dict()
+        elif hasattr(data, "copy"):
+            data = data.copy()
+        if "additional_fields" in data:
+            val = data.get("additional_fields")
+            if val is None or val == "" or val == "null" or val == "undefined":
+                data["additional_fields"] = {}
+            elif isinstance(val, str):
+                try:
+                    import json
+                    data["additional_fields"] = json.loads(val)
+                except Exception:
+                    data["additional_fields"] = {}
+        return super().to_internal_value(data)
+
 
 class CaseAssignmentHistorySerializer(serializers.ModelSerializer):
     previous_professional_name = serializers.SerializerMethodField()
@@ -170,18 +185,6 @@ class CaseTrackingVerifySerializer(serializers.Serializer):
     otp = serializers.CharField(min_length=6, max_length=6)
 
 
-class AssistanceFormFieldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AssistanceFormField
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-
-class AssistanceDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AssistanceDocument
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
 
 
 class ProfessionalWalletSerializer(serializers.ModelSerializer):

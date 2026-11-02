@@ -20,12 +20,3 @@ class HonorableAdvisoryApplication(models.Model):
     field_values = models.JSONField(default=dict)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
-class HonorableFormField(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    field_key = models.CharField(max_length=50, unique=True)
-    label = models.CharField(max_length=100)
-    field_type = models.CharField(max_length=50)
-    required = models.BooleanField(default=False)
-    options = models.JSONField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    display_order = models.IntegerField(default=0)

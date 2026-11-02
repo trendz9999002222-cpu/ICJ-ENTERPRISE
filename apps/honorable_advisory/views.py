@@ -6,7 +6,7 @@ from django.core.files.storage import default_storage
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import HonorableAdvisoryMember, HonorableAdvisoryApplication, HonorableFormField
+from .models import HonorableAdvisoryMember, HonorableAdvisoryApplication
 
 def handle_file_upload(uploaded_file, folder):
     if not uploaded_file:
@@ -83,17 +83,6 @@ def public_form_fields(request):
                 'options': opts if opts else None,
             })
         
-    # 2. Append Custom Honorable Fields configured by Admin
-    fields = HonorableFormField.objects.filter(is_active=True).order_by('display_order')
-    for f in fields:
-        data.append({
-            'field_key': f.field_key,
-            'label': f.label,
-            'field_type': f.field_type,
-            'required': f.required,
-            'options': f.options,
-            'display_order': f.display_order,
-        })
     return Response({'success': True, 'data': {'fields': data}})
 
 @api_view(['POST'])
@@ -153,7 +142,7 @@ def admin_members(request):
         from apps.professional_onboarding.services.field_validation import validate_configured_field_value
         from apps.professional_onboarding.models import CommonField
         
-        all_active_fields = list(CommonField.objects.filter(is_active=True)) + list(HonorableFormField.objects.filter(is_active=True))
+        all_active_fields = list(CommonField.objects.filter(is_active=True))
         
         for f in all_active_fields:
             val = field_values.get(f.field_key)
@@ -262,16 +251,6 @@ def admin_member_detail(request, pk):
         for k, v in field_values.items():
             current_field_values[k] = v
 
-        from apps.professional_onboarding.services.field_validation import validate_configured_field_value
-        active_fields = HonorableFormField.objects.filter(is_active=True)
-        for f in active_fields:
-            val = current_field_values.get(f.field_key)
-            if f.required and not val:
-                errors.setdefault(f.field_key, []).append(f"{f.label} is required.")
-            elif val:
-                msg = validate_configured_field_value(f.field_type, val, f.options)
-                if msg:
-                    errors.setdefault(f.field_key, []).append(msg)
 
         if errors:
             return Response({'message': 'Validation failed.', 'errors': errors}, status=400)
@@ -338,59 +317,4 @@ def admin_approve(request, pk):
 @api_view(['GET', 'POST', 'PUT'])
 @permission_classes([permissions.IsAdminUser])
 def admin_form_fields(request):
-    if request.method == 'PUT':
-        field_id = request.data.get('id')
-        f = HonorableFormField.objects.get(id=field_id)
-        f.label = request.data.get('label', f.label)
-        f.field_type = request.data.get('field_type', f.field_type)
-        f.required = str(request.data.get('required', f.required)).lower() == 'true'
-        f.display_order = int(request.data.get('display_order', f.display_order))
-        f.is_active = str(request.data.get('is_active', f.is_active)).lower() == 'true'
-        if 'options' in request.data:
-            f.options = request.data.get('options')
-        f.save()
-        return Response({'success': True})
-
-    if request.method == 'POST':
-        label = request.data.get('label', '')
-        if not label:
-            return Response({'error': 'Label is required'}, status=400)
-            
-        field_type = request.data.get('field_type', 'text')
-        required = str(request.data.get('required', 'false')).lower() == 'true'
-        display_order = int(request.data.get('display_order', 0))
-        
-        base_key = re.sub(r'[^a-z0-9]', '_', label.lower())
-        base_key = re.sub(r'_+', '_', base_key).strip('_')
-        
-        # Ensure uniqueness
-        field_key = base_key
-        counter = 1
-        while HonorableFormField.objects.filter(field_key=field_key).exists():
-            field_key = f"{base_key}_{counter}"
-            counter += 1
-            
-        f = HonorableFormField.objects.create(
-            field_key=field_key,
-            label=label,
-            field_type=field_type,
-            required=required,
-            display_order=display_order,
-            is_active=True,
-            options=request.data.get('options')
-        )
-        return Response({'success': True, 'id': str(f.id)})
-
-    fields = HonorableFormField.objects.all().order_by('display_order')
-    data = []
-    for f in fields:
-        data.append({
-            'id': str(f.id),
-            'field_key': f.field_key,
-            'label': f.label,
-            'field_type': f.field_type,
-            'required': f.required,
-            'is_active': f.is_active,
-            'display_order': f.display_order,
-        })
-    return Response({'success': True, 'data': {'results': data}})
+    return Response({'success': True, 'data': {'results': []}})

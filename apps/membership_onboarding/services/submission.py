@@ -10,9 +10,7 @@ from apps.membership_onboarding.models import (
     MembershipApplication,
     MembershipApplicationDocument,
     MembershipApplicationHistory,
-    MembershipDocument,
     MembershipReferenceCounter,
-    MembershipStepField,
     MembershipType,
 )
 from apps.membership_onboarding.services.public_config import build_configuration_for_form, get_active_membership_form
@@ -100,69 +98,23 @@ class MembershipApplicationService:
         if form and str(membership_type.id) != str(form.membership_type_id):
             membership_type = form.membership_type
 
-        from apps.membership_onboarding.services.public_config import _prefetch_form_configuration
-        config = _prefetch_form_configuration(form)
+        full_name = (field_values.get("full_name") or field_values.get("name") or "").strip()
+        if not full_name and (field_values.get("first_name") or field_values.get("last_name")):
+            full_name = f"{field_values.get('first_name', '')} {field_values.get('last_name', '')}".strip()
+        field_values["full_name"] = full_name
+
+        email_val = (field_values.get("email") or field_values.get("email_address") or "").strip().lower()
+        mobile_val = (field_values.get("mobile_number") or field_values.get("mobile") or field_values.get("phone_number") or "").strip()
 
         errors: dict[str, list[str]] = {}
-        field_meta: dict[str, MembershipStepField] = {}
-        for step in config["steps"]:
-            for field in getattr(step, "active_fields", step.fields.filter(is_active=True)):
-                field_meta[field.field_key] = field
-
-        doc_meta = {d.document_key: d for d in config["documents"]}
-
-        for key, field in field_meta.items():
-            if field.field_type in (MembershipStepField.FieldType.FILE, MembershipStepField.FieldType.IMAGE):
-                continue
-            value = field_values.get(key)
-            if value is None or (isinstance(value, str) and not value.strip()):
-                if key in ("mobile_number", "mobile"):
-                    value = field_values.get("mobile_number") or field_values.get("mobile") or field_values.get("phone_number") or field_values.get("phone")
-                elif key in ("full_name", "name"):
-                    value = field_values.get("full_name") or field_values.get("name")
-                    if not value and (field_values.get("first_name") or field_values.get("last_name")):
-                        value = f"{field_values.get('first_name', '')} {field_values.get('last_name', '')}".strip()
-                elif key == "first_name":
-                    value = field_values.get("first_name")
-                    if not value and field_values.get("full_name"):
-                        value = field_values.get("full_name").strip().split(" ")[0]
-                elif key == "last_name":
-                    value = field_values.get("last_name")
-                    if not value and field_values.get("full_name"):
-                        parts = field_values.get("full_name").strip().split(" ", 1)
-                        value = parts[1] if len(parts) > 1 else ""
-                    # If last_name is marked required but applicant has a single-word name, provide graceful fallback
-                    if field.is_required and (value is None or not str(value).strip()) and (field_values.get("full_name") or field_values.get("first_name")):
-                        value = "."
-                elif key in ("email", "email_address"):
-                    value = field_values.get("email") or field_values.get("email_address")
-                if value is not None:
-                    field_values[key] = value
-
-            opts = getattr(field, "active_options", None)
-            if opts is not None:
-                options = [{"value": o.value, "label": o.label} for o in opts]
-            else:
-                options = [
-                    {"value": o.value, "label": o.label}
-                    for o in field.options.filter(is_active=True).order_by("display_order", "label")
-                ]
-            if field.is_required and (value is None or (isinstance(value, str) and not value.strip())):
-                errors.setdefault(key, []).append(f"{field.label} is required.")
-            elif value:
-                ftype = _normalize_field_type(field.field_type)
-                msg = validate_configured_field_value(ftype, value, options, field_values.get("country"))
-                if msg:
-                    errors.setdefault(key, []).append(msg)
-
-        for doc_key, doc in doc_meta.items():
-            if doc.is_required and doc_key not in uploaded_files:
-                errors.setdefault(doc_key, []).append(f"{doc.name} is required.")
+        if not full_name:
+            errors.setdefault("full_name", []).append("Full name is required.")
+        if not email_val:
+            errors.setdefault("email", []).append("Email address is required.")
+        if not mobile_val:
+            errors.setdefault("mobile_number", []).append("Mobile number is required.")
 
         for key, file in uploaded_files.items():
-            if key not in doc_meta and key not in field_meta:
-                errors.setdefault(key, []).append("Unknown upload.")
-                continue
             if file.size <= 0:
                 errors.setdefault(key, []).append("Empty file is not allowed.")
 
@@ -218,12 +170,11 @@ class MembershipApplicationService:
             application.save()
 
             for doc_key, file in uploaded_files.items():
-                doc_cfg = doc_meta.get(doc_key)
                 MembershipApplicationDocument.objects.create(
                     application=application,
                     person=person,
                     document_key=doc_key,
-                    document_type=doc_cfg.document_type if doc_cfg else "",
+                    document_type="",
                     original_name=os.path.basename(file.name or "upload"),
                     content_type=file.content_type or "",
                     size_bytes=file.size,

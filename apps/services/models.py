@@ -207,50 +207,6 @@ class CaseOtpVerification(models.Model):
         return f"OTP for {self.case_reference} ({status_text})"
 
 
-class AssistanceFormField(models.Model):
-    objects = models.Manager()
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    field_key = models.CharField(max_length=50, unique=True)
-    label = models.CharField(max_length=100)
-    field_type = models.CharField(max_length=50)
-    placeholder = models.CharField(max_length=255, blank=True, default="")
-    help_text = models.CharField(max_length=255, blank=True, default="")
-    description = models.TextField(blank=True, default="")
-    required = models.BooleanField(default=False)
-    options = models.JSONField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    display_order = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ('display_order', 'created_at')
-
-    def __str__(self) -> str:
-        return f"{self.label} ({self.field_key})"
-
-
-class AssistanceDocument(models.Model):
-    objects = models.Manager()
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=150)
-    document_key = models.CharField(max_length=64, unique=True)
-    description = models.TextField(blank=True)
-    allowed_file_types = models.JSONField(default=list, help_text='JSON list of allowed extensions e.g. ["pdf", "docx", "jpg", "png"]')
-    max_file_size_mb = models.PositiveIntegerField(default=5)
-    is_required = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, db_index=True)
-    display_order = models.PositiveIntegerField(default=0, db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ("display_order", "name")
-
-    def __str__(self) -> str:
-        return f"{self.name} ({self.document_key})"
 
 
 class LegalCase(models.Model):

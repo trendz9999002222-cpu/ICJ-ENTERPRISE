@@ -125,27 +125,6 @@ class MembershipApplication(models.Model):
 MembershipSubmission = MembershipApplication
 
 
-class MembershipSubmissionFile(models.Model):
-    """Legacy file rows — prefer MembershipApplicationDocument."""
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    submission = models.ForeignKey(
-        MembershipApplication,
-        on_delete=models.CASCADE,
-        related_name="legacy_files",
-    )
-    field_key = models.CharField(max_length=64, db_index=True)
-    step = models.ForeignKey(
-        "membership_onboarding.MembershipStep",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-    original_name = models.CharField(max_length=255)
-    content_type = models.CharField(max_length=120, blank=True)
-    size_bytes = models.PositiveBigIntegerField(default=0)
-    file = models.FileField(upload_to=application_file_upload_to)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
 class MembershipApplicationDocument(models.Model):

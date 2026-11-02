@@ -106,82 +106,14 @@ class PublicJusticeServiceDetailAPIView(APIView):
 
 class PublicAssistanceFormConfigAPIView(APIView):
     """
-    Public Endpoint providing dynamic form configuration configured by the Admin.
-    Combines:
-    1. Citizen / Applicant common fields from core FormFieldConfig (SEEKER_ASSISTANT).
-    2. Legal matter fields from AssistanceFormField.
-    3. Attached document specifications from AssistanceDocument.
+    Deprecated: Seek Assistance intake form is now 100% static.
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        cache_key = "public_seek_assistance_config"
-        cached_data = cache.get(cache_key)
-        if cached_data is not None:
-            return api_success(data=cached_data, message="Dynamic form configuration retrieved successfully.")
-
-        from apps.core.models import AdditionalOnboardingFormfields, FormFieldConfig, CommonField
-        from apps.services.models import AssistanceFormField, AssistanceDocument
-        from apps.services.serializers import AssistanceFormFieldSerializer, AssistanceDocumentSerializer
-
-        # 1. Fetch Citizen Common Fields
-        configs = (
-            FormFieldConfig.objects.filter(
-                form__form_code=AdditionalOnboardingFormfields.FormCode.SEEKER_ASSISTANT,
-                is_visible=True,
-                common_field__is_active=True,
-            )
-            .select_related("common_field")
-            .order_by("display_order")
-        )
-
-        citizen_fields = []
-        if configs.exists():
-            for cfg in configs:
-                cf = cfg.common_field
-                if not cf:
-                    continue
-                citizen_fields.append({
-                    "field_key": cf.field_key,
-                    "label": cfg.label_override or cf.label,
-                    "field_type": cf.field_type,
-                    "placeholder": cfg.placeholder_override or cf.placeholder,
-                    "required": cfg.is_required,
-                    "options": cf.options or [],
-                    "display_order": cfg.display_order,
-                    "section_name": cfg.section_name or "Applicant Identity & Contact Information",
-                })
-        else:
-            for cf in CommonField.objects.filter(is_active=True).order_by("created_at"):
-                citizen_fields.append({
-                    "field_key": cf.field_key,
-                    "label": cf.label,
-                    "field_type": cf.field_type,
-                    "placeholder": cf.placeholder,
-                    "required": cf.is_system_field,
-                    "options": cf.options or [],
-                    "display_order": 0,
-                    "section_name": "Applicant Identity & Contact Information",
-                })
-
-        # 2. Fetch Legal Matter Fields
-        legal_matter_fields = AssistanceFormField.objects.filter(is_active=True).order_by("display_order", "created_at")
-        legal_fields_data = AssistanceFormFieldSerializer(legal_matter_fields, many=True).data
-
-        # 3. Fetch Documents
-        docs = AssistanceDocument.objects.filter(is_active=True).order_by("display_order", "name")
-        docs_data = AssistanceDocumentSerializer(docs, many=True).data
-
-        payload = {
-            "citizen_fields": citizen_fields,
-            "legal_matter_fields": legal_fields_data,
-            "documents": docs_data,
-        }
-        cache.set(cache_key, payload, timeout=300)
-
         return api_success(
-            data=payload,
-            message="Dynamic form configuration retrieved successfully.",
+            data={"status": "static"},
+            message="Seek Assistance intake form configuration is static.",
         )
 
 
@@ -199,7 +131,10 @@ class PublicAssistanceRequestAPIView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        payload = request.data.copy()
+        if hasattr(request.data, "dict"):
+            payload = request.data.dict()
+        else:
+            payload = request.data.copy()
 
         # Handle Date of Birth & Calculate Age accurately
         dob_raw = payload.get("date_of_birth") or payload.get("dob")
@@ -226,18 +161,31 @@ class PublicAssistanceRequestAPIView(APIView):
         if "matter_type" not in payload:
             payload["matter_type"] = category
 
-        # Extract any unmapped dynamic fields into additional_fields JSON
+        # Extract any extra/location fields into additional_fields JSON
         standard_keys = {
             "full_name", "email", "mobile", "preferred_contact",
             "state_name", "city_name", "category", "urgency",
             "problem_description", "status", "reference_id",
             "date_of_birth", "calculated_age", "help_type", "address"
         }
-        extra = {k: v for k, v in payload.items() if k not in standard_keys and not k.startswith("document_")}
-        existing_extra = payload.get("additional_fields", {})
-        if isinstance(existing_extra, dict):
-            extra.update(existing_extra)
-        payload["additional_fields"] = extra
+        extra = {}
+        for k, v in payload.items():
+            if k not in standard_keys and not k.startswith("document_"):
+                extra[k] = v
+
+        existing_extra = payload.get("additional_fields")
+        if existing_extra:
+            if isinstance(existing_extra, str):
+                try:
+                    parsed = json.loads(existing_extra)
+                    if isinstance(parsed, dict):
+                        extra.update(parsed)
+                except Exception:
+                    pass
+            elif isinstance(existing_extra, dict):
+                extra.update(existing_extra)
+
+        payload["additional_fields"] = json.dumps(extra)
 
         serializer = AssistanceRequestSerializer(data=payload)
         if not serializer.is_valid():

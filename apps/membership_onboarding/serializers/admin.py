@@ -2,11 +2,7 @@ from rest_framework import serializers
 
 from apps.membership_onboarding.models import (
     MembershipApplication,
-    MembershipDocument,
-    MembershipFieldOption,
     MembershipForm,
-    MembershipStep,
-    MembershipStepField,
     MembershipType,
 )
 
@@ -21,34 +17,6 @@ class MembershipTypeSerializer(serializers.ModelSerializer):
 class MembershipFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = MembershipForm
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-
-class MembershipStepSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MembershipStep
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-
-class MembershipStepFieldSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MembershipStepField
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-
-class MembershipFieldOptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MembershipFieldOption
-        fields = "__all__"
-        read_only_fields = ("id", "created_at", "updated_at")
-
-
-class MembershipDocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MembershipDocument
         fields = "__all__"
         read_only_fields = ("id", "created_at", "updated_at")
 
