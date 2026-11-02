@@ -159,6 +159,11 @@ def case_document_upload_to(instance: "CaseDocument", filename: str) -> str:
 
 
 class CaseDocument(models.Model):
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        assistance_request: Any
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     assistance_request = models.ForeignKey(
         AssistanceRequest, on_delete=models.CASCADE, related_name="case_documents"
@@ -178,6 +183,8 @@ class CaseDocument(models.Model):
 
 class CaseOtpVerification(models.Model):
     """Secure expiring OTP tracking record for 2-factor case status lookup."""
+    objects = models.Manager()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session_id = models.CharField(max_length=100, unique=True, db_index=True)
     case_reference = models.CharField(max_length=50, db_index=True)
@@ -255,6 +262,11 @@ class LegalCase(models.Model):
         
     objects = models.Manager()
 
+    if TYPE_CHECKING:
+        assistance_request: Any
+        professional: Any
+        professional_group: Any
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case_id = models.CharField(max_length=50, unique=True, db_index=True)
     assistance_request = models.OneToOneField(AssistanceRequest, on_delete=models.PROTECT, related_name='legal_case')
@@ -279,6 +291,14 @@ class LegalCase(models.Model):
 
 class CaseAssignmentHistory(models.Model):
     """Audit trail of advocate/professional assignment and reassignments."""
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        legal_case: Any
+        previous_professional: Any
+        new_professional: Any
+        reassigned_by: Any
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     legal_case = models.ForeignKey(
         LegalCase, on_delete=models.CASCADE, related_name="assignment_history"
@@ -300,7 +320,7 @@ class CaseAssignmentHistory(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self) -> str:
-        prev = self.previous_professional.get_full_name() if self.previous_professional else "Unassigned"
+        prev = (self.previous_professional.get_full_name() or self.previous_professional.email) if self.previous_professional else "Unassigned"
         new = self.new_professional.get_full_name() or self.new_professional.email
         return f"{self.legal_case.case_id}: {prev} -> {new}"
 
@@ -311,6 +331,11 @@ class CaseInstallmentSchedule(models.Model):
         PENDING = "pending", "Pending"
         PAID = "paid", "Paid"
         OVERDUE = "overdue", "Overdue"
+
+    objects = models.Manager()
+
+    if TYPE_CHECKING:
+        legal_case: Any
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     legal_case = models.ForeignKey(

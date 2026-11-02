@@ -249,7 +249,12 @@ class PublicMembershipVerifyPaymentAPIView(APIView):
         if app:
             payment.application = app
             app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
-            app.save(update_fields=["fee_payment_status"])
+            if app.status != MembershipApplication.Status.REJECTED:
+                app.status = MembershipApplication.Status.APPROVED
+                app.approved_at = timezone.now()
+                from apps.membership_onboarding.services.approval import ensure_approved_membership
+                ensure_approved_membership(app)
+            app.save()
 
             try:
                 from apps.core.notifications import send_system_notification
@@ -330,7 +335,12 @@ class MemberPayDuesAPIView(APIView):
             ensure_approved_membership(app)
         else:
             app.fee_payment_status = MembershipApplication.FeePaymentStatus.PAID
-            app.save(update_fields=["fee_payment_status"])
+            if app.status != MembershipApplication.Status.REJECTED:
+                app.status = MembershipApplication.Status.APPROVED
+                app.approved_at = timezone.now()
+                from apps.membership_onboarding.services.approval import ensure_approved_membership
+                ensure_approved_membership(app)
+            app.save(update_fields=["fee_payment_status", "status", "approved_at"])
 
         import uuid
         pay_ref = request.data.get("payment_id") or f"PAY-{uuid.uuid4().hex[:12].upper()}"
