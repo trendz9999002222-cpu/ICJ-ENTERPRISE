@@ -98,6 +98,36 @@ class LeadMarketplaceTests(TestCase):
         self.assertEqual(lead.category, "Property Dispute")
         self.assertEqual(lead.price_paise, 100000)
 
+    def test_icj_consultant_submission_is_indexed_as_its_own_lead_type(self):
+        client = APIClient()
+        payload = {
+            "full_name": "ICJ Consultant Client",
+            "email": "consultant-client@example.com",
+            "mobile": "9876543210",
+            "preferred_contact": "Phone",
+            "state_name": "Delhi",
+            "city_name": "New Delhi",
+            "category": "Legal Consultation",
+            "urgency": "Medium",
+            "problem_description": "Requesting an initial consultation about a commercial contract.",
+            "lead_type": "icj_consultant",
+        }
+
+        response = client.post("/api/v1/services/seek-assistance/", data=payload, format="json")
+
+        self.assertEqual(response.status_code, 201)
+        request = AssistanceRequest.objects.get(email="consultant-client@example.com")
+        lead = request.marketplace_lead
+        self.assertEqual(lead.lead_type, Lead.LeadType.ICJ_CONSULTANT)
+
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=self.admin_user)
+        listing = admin_client.get("/api/v1/admin/leads/?lead_type=icj_consultant")
+        self.assertEqual(listing.status_code, 200)
+        self.assertEqual(listing.data["data"]["count"], 1)
+        self.assertEqual(listing.data["data"]["results"][0]["lead_type"], "icj_consultant")
+        self.assertEqual(listing.data["data"]["counts"]["icj_consultant"], 1)
+
     def test_02_existing_assistance_functionality_remains_intact(self):
         """2. Existing assistance endpoints continue working."""
         req = AssistanceRequest.objects.create(

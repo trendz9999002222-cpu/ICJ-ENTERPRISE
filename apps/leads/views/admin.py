@@ -173,7 +173,7 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
         ver = _get_admin_leads_version()
 
         # Top-level Tab Counts - Cached for 60s to eliminate Australia roundtrip on every navigation!
-        counts_cache_key = f"admin_leads_top_counts_v{ver}"
+        counts_cache_key = f"admin_leads_top_counts_v2_{ver}"
         counts = cache.get(counts_cache_key)
         if counts is None:
             counts_agg = Lead.objects.aggregate(
@@ -183,12 +183,14 @@ class AdminLeadListAPIView(AdminLeadsBaseView):
                     filter=Q(lead_type=Lead.LeadType.SEEK_ASSISTANCE) | Q(lead_type__isnull=True) | Q(lead_type=""),
                 ),
                 prof_count=Count("id", filter=Q(lead_type=Lead.LeadType.PROFESSIONAL_APPOINTMENT)),
+                consultant_count=Count("id", filter=Q(lead_type=Lead.LeadType.ICJ_CONSULTANT)),
                 serv_count=Count("id", filter=Q(lead_type=Lead.LeadType.SERVICE_REQUEST)),
             )
             counts = {
                 "all": counts_agg["all_count"] or 0,
                 "seek_assistance": counts_agg["seek_count"] or 0,
                 "professional_appointment": counts_agg["prof_count"] or 0,
+                "icj_consultant": counts_agg["consultant_count"] or 0,
                 "service_request": counts_agg["serv_count"] or 0,
             }
             cache.set(counts_cache_key, counts, timeout=60)

@@ -130,6 +130,7 @@ class Lead(models.Model):
     class LeadType(models.TextChoices):
         SEEK_ASSISTANCE = "seek_assistance", "Seek Assistance"
         PROFESSIONAL_APPOINTMENT = "professional_appointment", "Professional Appointment"
+        ICJ_CONSULTANT = "icj_consultant", "ICJ Consultant"
         SERVICE_REQUEST = "service_request", "Service Request"
 
     lead_type = models.CharField(

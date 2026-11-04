@@ -144,6 +144,8 @@ class LeadDetailSerializer(serializers.ModelSerializer):
             return obj.lead_type
         if obj.assistance_request and obj.assistance_request.additional_fields:
             af = obj.assistance_request.additional_fields
+            if af.get("lead_type") == "icj_consultant":
+                return "icj_consultant"
             if af.get("service_name") or af.get("service_slug"):
                 return "service_request"
             if af.get("professional_name") or af.get("professional_id"):
