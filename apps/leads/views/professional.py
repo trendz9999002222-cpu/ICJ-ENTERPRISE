@@ -369,6 +369,25 @@ class ProfessionalLeadPlanPurchaseAPIView(ProfessionalLeadBaseView):
                 plan=plan,
                 idempotency_key=idempotency_key,
             )
+            if not is_razorpay_configured():
+                order.status = PaymentOrder.Status.SUCCESS
+                order.save(update_fields=["status", "updated_at"])
+                purchase = PlanService.grant_plan_credits(user=request.user, plan=plan, payment_order=order)
+                wallet = WalletService.get_or_create_wallet(request.user)
+                return api_success(
+                    data={
+                        "order_id": order.order_id,
+                        "gateway_order_id": order.gateway_order_id,
+                        "status": "success",
+                        "credits_granted": plan.credits_granted,
+                        "remaining_credits": purchase.remaining_credits,
+                        "token_balance": wallet.token_balance,
+                        "available_credits": wallet.token_balance,
+                        "is_mock": True,
+                    },
+                    message=f"Plan '{plan.name}' purchased successfully! {plan.credits_granted} tokens added to your wallet.",
+                    status_code=201,
+                )
             return api_success(
                 data={
                     "order_id": order.order_id,
@@ -413,14 +432,17 @@ class PaymentVerifyAPIView(ProfessionalLeadBaseView):
                 gateway_signature=signature or "",
                 raw_payload=data,
             )
+            wallet = WalletService.get_or_create_wallet(request.user)
             return api_success(
                 data={
                     "order_id": tx.order.order_id,
                     "status": "success",
                     "amount_inr": round(tx.amount_paise / 100, 2),
                     "order_type": tx.order.order_type,
+                    "token_balance": wallet.token_balance,
+                    "available_credits": wallet.token_balance,
                 },
-                message="Payment verified and processed successfully.",
+                message="Payment verified and tokens added to wallet successfully.",
             )
         except Exception as exc:
             return api_error(str(exc), status_code=400)

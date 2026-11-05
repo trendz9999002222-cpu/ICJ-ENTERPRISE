@@ -1,4 +1,4 @@
-from rest_framework import serializers
+﻿from rest_framework import serializers
 from apps.leads.models import (
     Lead,
     LeadAcceptance,
@@ -46,6 +46,7 @@ class LeadMarketplacePreviewSerializer(serializers.ModelSerializer):
     Sensitive client identity details (full name, email, phone, full text) are strictly omitted.
     """
     price_inr = serializers.ReadOnlyField()
+    is_accepted = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
@@ -63,9 +64,13 @@ class LeadMarketplacePreviewSerializer(serializers.ModelSerializer):
             "tax_percentage",
             "status",
             "is_exclusive",
+            "is_accepted",
             "published_at",
             "created_at",
         ]
+
+    def get_is_accepted(self, obj):
+        return obj.status == Lead.Status.ACCEPTED
 
 
 class LeadDetailSerializer(serializers.ModelSerializer):
