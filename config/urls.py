@@ -73,6 +73,11 @@ urlpatterns = [
         "api/v1/donations/",
         include("apps.donations.urls.user"),
     ),
+    # Public unauthenticated endpoints (homepage marquee, etc.)
+    path(
+        "api/v1/public/",
+        include("apps.leads.urls.public"),
+    ),
 ]
 
 if settings.DEBUG or True:
